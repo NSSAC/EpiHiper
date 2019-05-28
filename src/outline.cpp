@@ -1,3 +1,7 @@
+// check all required components are ready
+void Simulation::validate() {
+  //
+}
 void Simulation::run() {
   // process initialization
   for (std::vector<Intervention>::iterator init = initialization.begin();
@@ -79,8 +83,12 @@ health_t Node::computeInfection
 (DiseaseModel *disease, Network *network, std::vector<Node> *population) {
   std::vector<pid_t> infectors = network->getNeighbors(id);
   health_t nextState = NULL;
+  bool infected = false;
   // get node states of infectors from population; compute total prob.;
   // if infection occurs compute next state
+  if (infected) {
+    disease->computeInfectedState(currentState);
+  }
   return nextState;
 }
 

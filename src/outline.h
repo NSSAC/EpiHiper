@@ -1,6 +1,6 @@
 class SimConfig {
 private:
-  bool validated;
+  bool valid;
   // required parameters
   std::string diseaseModelFile;
   std::string networkFile;
@@ -21,6 +21,8 @@ public:
 
   // minimal set of parameters are specified and files are accessible
   validate();
+
+  inline bool isValid() { return valid; }
 };
 
 class PersonTraitDB {
@@ -55,6 +57,7 @@ private:
   std::vector<Intervention> initialization;
   std::vector<Intervention> interventions;
   DiseaseModel *disease;
+  // partition ???
   Network *network;
   ActionQueue *actionQueue;
   ComputingEnvironment *compEnv; // MPI context
@@ -65,6 +68,13 @@ private:
 public:
   Simulation(SimConfig cfg);
   ~Simulation();
+  void readDiseaseModel();
+  void partition();
+  void readNetwork();
+  void initializeNodes();
+  void readInterventions();
+
+  void validate();
   void run();  
 };
 
@@ -96,7 +106,8 @@ private:
   // diagram
 public:
   DiseaseModel(std::string modelJson);
-  ~DiseaseModel();
+  ~DieaseModel();
+  void validate();
   Transition getTransition(health_t currentState);
 };
 
