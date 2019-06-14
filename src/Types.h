@@ -4,7 +4,8 @@
 #include <cstdint>
 #include <string>
 
-typedef uint64_t pid_t;
+typedef uint64_t personid_t;
+typedef uint64_t netsize_t;
 struct health_t {
   std::string id;
   std::string label;

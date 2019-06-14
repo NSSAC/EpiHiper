@@ -1,9 +1,21 @@
+#include <mpi.h>
+#include <set>
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <algorithm>
+#include <cmath>
 #include "Simulation.h"
+#include "Misc.h"
 
 // initialize according to config
-Simulation::Simulation(SimConfig cfg) {
+Simulation::Simulation(SimConfig cfg, int seed, std::string dbconn) {
+  valid = false;
+  randomSeed = seed;
   startTick = 0;
   endTick = -1;
+
+  /*
   disease = NULL;
   network = NULL;
   actionQueue = NULL;
@@ -11,26 +23,39 @@ Simulation::Simulation(SimConfig cfg) {
   db = NULL;
   output = NULL;
   log = NULL;
-  valid = false;
+  */
 
+  startTick = cfg.getStartTick();
+  endTick = cfg.getEndTick();
+  networkFile = cfg.getNetworkFile();
+  outputFile = cfg.getOutputFile();
+
+  /*
   readDiseaseModel();
   partition();
   readNetwork();
   readInterventions();
   initializeNodes();
+  */
+}
+
+Simulation::~Simulation() {
 }
 
 // check all required components are ready
 void Simulation::validate() {
   valid = true;
   if (endTick < startTick) valid = false;
+  /*
   if (disease == NULL) valid = false;
   if (network == NULL) valid = false;
   if (actionQueue == NULL) valid = false;
   if (compEnv == NULL) valid = false;
+  */
   // db, output, log are not necessary in all simulations  
 }
 
+/*
 void Simulation::run() {
   // process initialization
   for (std::vector<Intervention>::iterator init = initialization.begin();
@@ -108,3 +133,141 @@ Simulation::execute(Action action) {
   processInterventions();
 }
 
+*/
+
+void Simulation::dummyRun() {
+  int myRank, numProcess;
+  MPI_Comm_size(MPI_COMM_WORLD, &numProcess);
+  MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
+  MPI_Status status;
+  srand48(randomSeed + myRank);
+
+  std::set<personid_t> population;
+  if (myRank == 0) {
+    std::ifstream f(networkFile.data());
+    if (! f.good()) {
+      std::cerr << "fail to read file " << networkFile << std::endl;
+    }
+    else {
+      std::stringstream buffer;
+      buffer << f.rdbuf();
+      std::string edge;
+      std::getline(buffer, edge); // skip json line
+      std::getline(buffer, edge); // skip CSV header line
+      netsize_t edgeCount = 0;
+      while (std::getline(buffer, edge)) {
+	edgeCount++;
+	std::vector<std::string> items = split(edge,',');
+	population.insert(std::stoull(items[0]));
+	population.insert(std::stoull(items[2]));
+      }
+      // std::cout << "M = " << edgeCount << std::endl;
+    }
+    // std::cout << "N = " << population.size() << std::endl;
+  }
+
+  uint64_t N;
+  uint64_t sizeSubpop[numProcess];
+  if (myRank == 0) {
+    N = population.size();
+    for (int i = 0; i < numProcess; i++) {
+      sizeSubpop[i] = N / numProcess;
+    }
+    sizeSubpop[0] += (N - (N / numProcess) * numProcess);
+  }
+  MPI_Bcast(sizeSubpop, numProcess, MPI_UINT64_T, 0, MPI_COMM_WORLD);
+  personid_t subpop[sizeSubpop[myRank]];
+  /*
+  std::cout << "subpop size of rank " << myRank << "=" << sizeSubpop[myRank]
+	    << std::endl;
+  */
+
+  if (myRank == 0) {
+    // divide population and send ids
+    std::set<personid_t>::iterator iter = population.begin();
+    personid_t *subpopTmp;
+    for (int rank = 1; rank < numProcess; rank++) {
+      subpopTmp = new personid_t[sizeSubpop[rank]];
+      for (uint64_t index = 0; index < sizeSubpop[rank]; index++) {
+	subpopTmp[index] = *iter;
+	++iter;
+      }
+      MPI_Send(subpopTmp, sizeSubpop[rank], MPI_UINT64_T, rank, myRank,
+	       MPI_COMM_WORLD);
+      delete [] subpopTmp;
+    }
+    for (uint64_t index = 0; index < sizeSubpop[myRank]; index++) {
+      if (iter != population.end()) {
+	subpop[index] = *iter;
+	++iter;
+      }
+      else {
+	std::cerr << "pids running out" << std::endl;
+      }
+    }
+  }
+  else {
+    MPI_Recv(subpop, sizeSubpop[myRank], MPI_UINT64_T, 0, 0,
+	     MPI_COMM_WORLD, &status);
+  }
+
+  int T = endTick - startTick + 1;
+  N = sizeSubpop[myRank];
+  std::random_shuffle(&subpop[0], &subpop[N], myRandom);
+  std::vector<DummyTransition> transitions;
+  int totalInfection = 0;
+
+  std::string contact;
+  int tick = startTick;
+  while (tick <= endTick) {
+    int numInfection = int(N * exp(-(8.*tick/T-4)*(8.*tick/T-4)/2)/T);
+    for (int i = 0; i < numInfection; i++) {
+      if (totalInfection == 0) contact = "-1";
+      else contact = std::to_string(transitions[myRandom(totalInfection)].id);
+      DummyTransition t = {tick, subpop[totalInfection+i],
+			   "infectious",contact};
+      transitions.push_back(t);
+    }
+    totalInfection = transitions.size();
+    tick++;
+  }
+
+  int signal = 0;
+  std::ofstream out;
+  if (myRank == 0) {
+    signal = 1;
+    out.open(outputFile.data());
+    if (out.good()) {
+      out << "tick,pid,exit_state,contact_pid" << std::endl;
+      for (std::vector<DummyTransition>::iterator it = transitions.begin();
+	   it != transitions.end(); ++it) {
+	out << (*it).tick << "," << (*it).id << "," << (*it).exitState
+	    << "," << it->idContact << std::endl;
+      }
+    }
+    out.close();
+    MPI_Send(&signal, 1, MPI_INT, myRank+1, myRank, MPI_COMM_WORLD);
+    signal = 0;
+    MPI_Recv(&signal, 1, MPI_INT, numProcess-1, numProcess-1, MPI_COMM_WORLD,
+	     &status);
+    /*
+    if (signal == 1) {
+      std::cout << "complete writing output file" << std::endl;
+    }
+    */
+  }
+  else {
+    MPI_Recv(&signal, 1, MPI_INT, myRank-1, myRank-1, MPI_COMM_WORLD,
+	     &status);
+    out.open(outputFile.data(), std::ios_base::app);
+    if (out.good()) {
+      for (std::vector<DummyTransition>::iterator it = transitions.begin();
+	   it != transitions.end(); ++it) {
+	out << (*it).tick << "," << (*it).id << "," << (*it).exitState
+	    << "," << it->idContact << std::endl;
+      }
+    }
+    out.close();
+    MPI_Send(&signal, 1, MPI_INT, (myRank+1)%numProcess, myRank, MPI_COMM_WORLD);
+  }
+}
