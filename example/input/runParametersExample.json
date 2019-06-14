@@ -1,0 +1,11 @@
+{
+  "$schema": "../../schema/runParametersSchema.json",
+  "contactNetwork": "input/va_montgomery_2009.txt",
+  "diseaseModel": "input/diseaseModelExample.json",
+  "initialization": "input/initilizationExample.json",
+  "intervention": "input/interventionExample.json",
+  "traits": "input/traitsExample.json",
+  "startTick": 0,
+  "endTick": 28,
+  "outputFile": "output/EpiHiper_output.txt"
+}
