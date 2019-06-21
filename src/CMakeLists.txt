@@ -1,13 +1,14 @@
-cmake_minimum_required (VERSION 2.6)
-project (EpiHiper)
+cmake_minimum_required (VERSION 3.11)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
-set(EpiHiper_SRCS EpiHiper.cpp Misc.cpp SimConfig.cpp Simulation.cpp)
+file(GLOB HEADERS_EPIHIPER *.h)
+file(GLOB SOURCES_EPIHIPER *.cpp)
 
-include_directories("${PROJECT_BINARY_DIR}")
-add_executable (EpiHiper ${EpiHiper_SRCS})
-find_package (MPI REQUIRED)
-if (MPI_FOUND)
-  include_directories (SYSTEM ${MPI_INCLUDE_PATH})
-  target_link_libraries (EpiHiper ${MPI_LIBRARIES})
-endif (MPI_FOUND)
+# outline is currently not required
+list(REMOVE_ITEM SOURCES_EPIHIPER ${CMAKE_CURRENT_SOURCE_DIR}/outline.cpp)
+
+# create source group for IDEs
+source_group(EpiHiper FILES ${SOURCES_EPIHIPER} ${HEADERS_EPIHIPER})
+
+add_executable (EpiHiper ${SOURCES_EPIHIPER})
+add_dependencies(EpiHiper jansson)
+target_link_libraries (EpiHiper ${MPI_LIBRARIES} ${CMAKE_BINARY_DIR}/lib/libjansson.a)
