@@ -9,6 +9,9 @@ list(REMOVE_ITEM SOURCES_EPIHIPER ${CMAKE_CURRENT_SOURCE_DIR}/outline.cpp)
 # create source group for IDEs
 source_group(EpiHiper FILES ${SOURCES_EPIHIPER} ${HEADERS_EPIHIPER})
 
+include(traits/CMakeLists.txt)
+
 add_executable (EpiHiper ${SOURCES_EPIHIPER})
+
 add_dependencies(EpiHiper jansson)
 target_link_libraries (EpiHiper ${MPI_LIBRARIES} ${CMAKE_BINARY_DIR}/lib/libjansson.a)

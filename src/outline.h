@@ -1,30 +1,3 @@
-class SimConfig {
-private:
-  bool valid;
-  // required parameters
-  std::string diseaseModelFile;
-  std::string networkFile;
-  std::string interventionFile;
-  int startTick;
-  int endTick;
-  int numReplicates; // number of replicates to run
-
-  // optional
-  std::string outputFile;
-  std::string logFile;
-  std::string dbServiceUrl;
-  std::string rngFile; // random number generating seeds
-
-public:
-  SimConfig(std::string configFile);
-  ~SimConfig();
-
-  // minimal set of parameters are specified and files are accessible
-  validate();
-
-  inline bool isValid() { return valid; }
-};
-
 class PersonTraitDB {
 private:
   std::string url; // ip:port

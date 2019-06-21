@@ -3,21 +3,25 @@
 
 #include <string>
 
+struct json_t;
+
 class SimConfig {
 private:
   bool valid;
 
   // required
-  std::string diseaseModelFile;
-  std::string networkFile;
-  std::string initializationFile;
+  std::string diseaseModel;
+  std::string contactNetwork;
+  std::string initialization;
+  std::string traits;
+  std::string personTraitDB;
   int startTick;
   int endTick;
 
   // optional
-  std::string outputFile;
+  std::string output;
   std::string logFile;
-  std::string interventionFile;
+  std::string intervention;
 
 public:
   SimConfig(const std::string& configFile);
@@ -29,8 +33,12 @@ public:
   inline bool isValid() const { return valid; }
   inline int getStartTick() const { return startTick; }
   inline int getEndTick() const { return endTick; }
-  inline const std::string& getNetworkFile() const { return networkFile; }
-  inline const std::string& getOutputFile() const { return outputFile; }
+  inline const std::string& getNetworkFile() const { return contactNetwork; }
+  inline const std::string& getOutputFile() const { return output; }
+
+private:
+  json_t * loadJson(const std::string & jsonFile) const;
+
 
 };
 
