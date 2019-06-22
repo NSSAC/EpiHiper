@@ -11,10 +11,11 @@
 #include <map>
 #include <utility>
 
+#include "Feature.h"
+
 struct json_t;
 
-class Feature;
-class Trait
+class Trait: public Annotation
 {
 public:
 
@@ -38,16 +39,16 @@ public:
 
 	void fromJSON(const json_t * json);
 
-	const std::string & getName() const;
+	const std::string & getId() const;
 
 	const bool & isValid() const;
 
 	size_t size() const;
 
-	const Feature & getFeature(const std::string & name) const;
+	const Feature & getFeature(const std::string & id) const;
 
 private:
-	std::string mName;
+	std::string mId;
 	size_t mBytes;
 	std::map< std::string, Feature > mFeatureMap;
 	bool mValid;

@@ -8,12 +8,11 @@
 #include <vector>
 #include <fstream>
 #include <iostream>
-#include <jansson.h>
 #include <cmath>
 
-#include "TraitData.h"
+#include <jansson.h>
+
 #include "Trait.h"
-#include "Feature.h"
 
 #include "../SimConfig.h"
 
@@ -40,7 +39,7 @@ std::map< std::string, Trait > Trait::load(const std::string & jsonFile)
 
       if (Trait.isValid())
         {
-          Traits[Trait.getName()] = Trait;
+          Traits[Trait.getId()] = Trait;
         }
     }
 
@@ -50,7 +49,8 @@ std::map< std::string, Trait > Trait::load(const std::string & jsonFile)
 }
 
 Trait::Trait()
-  : mName()
+  : Annotation()
+  , mId()
   , mBytes(0)
   , mFeatureMap()
   , mValid(false)
@@ -59,7 +59,8 @@ Trait::Trait()
 Trait::~Trait() {}
 
 Trait::Trait(const Trait & src)
-  : mName(src.mName)
+  : Annotation(src)
+  , mId(src.mId)
   , mBytes(src.mBytes)
   , mFeatureMap(src.mFeatureMap)
   , mValid(src.mValid)
@@ -73,9 +74,11 @@ void Trait::fromJSON(const json_t * json)
 
   if (json_is_string(pValue))
     {
-      mName = json_string_value(pValue);
-      mValid &= !mName.empty();
+      mId = json_string_value(pValue);
+      mAnnId = mId;
     }
+
+  mValid &= !mId.empty();
 
   pValue = json_object_get(json, "features");
 
@@ -90,7 +93,7 @@ void Trait::fromJSON(const json_t * json)
 
       if (Feature.isValid())
         {
-          mFeatureMap[Feature.getName()] = Feature;
+          mFeatureMap[Feature.getId()] = Feature;
 
           size_t required = Feature.bitsRequired();
           Required.push_back(required);
@@ -100,9 +103,9 @@ void Trait::fromJSON(const json_t * json)
         {
           mValid = false;
         }
-
-
     }
+
+  Annotation::fromJSON(json);
 
   mBytes = ceil(std::max(bits/8.0, 4.0));
 
@@ -121,9 +124,9 @@ void Trait::fromJSON(const json_t * json)
     }
 }
 
-const std::string & Trait::getName() const
+const std::string & Trait::getId() const
 {
-  return mName;
+  return mId;
 }
 
 const bool & Trait::isValid() const
@@ -136,11 +139,11 @@ size_t Trait::size() const
   return mBytes;
 }
 
-const Feature & Trait::getFeature(const std::string & name) const
+const Feature & Trait::getFeature(const std::string & id) const
 {
   static Feature Missing;
 
-  std::map< std::string, Feature >::const_iterator found = mFeatureMap.find(name);
+  std::map< std::string, Feature >::const_iterator found = mFeatureMap.find(id);
 
   if (found != mFeatureMap.end())
     {

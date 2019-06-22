@@ -1,36 +1,38 @@
 /*
- * Feature.h
+ * Enum.h
  *
- *  Created on: Jun 21, 2019
+ *  Created on: Jun 22, 2019
  *      Author: shoops
  */
 
-#ifndef SRC_TRAITS_FEATURE_H_
-#define SRC_TRAITS_FEATURE_H_
+#ifndef SRC_TRAITS_ENUM_H_
+#define SRC_TRAITS_ENUM_H_
 
 #include <string>
-#include <map>
 
-#include "Enum.h"
+#include "../utilities/Annotation.h"
+#include "TraitData.h"
 
-class Feature: public Annotation
+struct json_t;
+
+class Enum: public Annotation
 {
 public:
   /**
    * Default constructor
    */
-  Feature();
+  Enum();
 
   /**
    * Copy construnctor
    * @param const Feature & src
    */
-  Feature(const Feature & src);
+  Enum(const Enum & src);
 
   /**
    * Destructor
    */
-  virtual ~Feature();
+  virtual ~Enum();
 
   void fromJSON(const json_t * json);
 
@@ -38,22 +40,14 @@ public:
 
   const bool & isValid() const;
 
-  size_t size() const;
-
-  size_t bitsRequired() const;
-
   void setMask(const TraitData & mask);
 
   const TraitData & getMask() const;
 
-  const Enum & getEnum(const std::string & ) const;
-
 private:
   std::string mId;
-  std::string mDefault;
   TraitData mMask;
-  std::map< std::string, Enum > mEnumMap;
   bool mValid;
 };
 
-#endif /* SRC_TRAITS_FEATURE_H_ */
+#endif /* SRC_TRAITS_ENUM_H_ */
