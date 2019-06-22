@@ -17,16 +17,24 @@
 #include "Trait.h"
 
 // static
-void TraitData::setValue(TraitData::base & data, TraitData::base feature, const TraitData::base & value)
+bool TraitData::hasValue(const TraitData::base & data, const TraitData::value & value)
 {
-  data &= feature.flip();
-  data |= value;
+  return (data & value.first) == value.second;
 }
 
 // static
-TraitData::base TraitData::getValue(const TraitData::base & data, const TraitData::base & feature)
+void TraitData::setValue(TraitData::base & data, const TraitData::value & value)
 {
-  return data & feature;
+  base Feature(value.first);
+
+  data &= Feature.flip();
+  data |= value.second;
+}
+
+// static
+TraitData::value TraitData::getValue(const TraitData::base & data, const TraitData::base & feature)
+{
+  return std::make_pair(feature, data & feature);
 }
 
 TraitData::TraitData(unsigned long long val)

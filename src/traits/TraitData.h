@@ -22,6 +22,7 @@
 
 #include <cstddef>
 #include <bitset>
+#include <utility>
 
 class Trait;
 
@@ -29,6 +30,8 @@ class TraitData: public std::bitset< 32 >
 {
 public:
   typedef std::bitset< 32 > base;
+
+  typedef std::pair< base, base > value;
 
   TraitData(unsigned long long val = 0);
 
@@ -44,9 +47,12 @@ public:
 
   size_t firstBit() const;
 
-  static void setValue(base & data, base feature, const base & value);
+  static void setValue(base & data, const value & value);
 
-  static base getValue(const base & data, const base & feature);
+  static value getValue(const base & data, const base & feature);
+
+  static bool hasValue(const base & data, const value & value);
+
 };
 
 #endif /* SRC_TRAITS_TRAITDATA_H_ */
