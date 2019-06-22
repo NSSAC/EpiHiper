@@ -3,29 +3,86 @@
 #include <fstream>
 #include <iostream>
 #include <jansson.h>
+#include <limits>
 
 #include "SimConfig.h"
 #include "Misc.h"
+#include "utilities/DirEntry.h"
+
+// static
+SimConfig * SimConfig::CONFIG(NULL);
+
+// static
+void SimConfig::init(const std::string & configFile)
+{
+  if (SimConfig::CONFIG == NULL)
+    {
+      SimConfig::CONFIG = new SimConfig(configFile);
+    }
+}
+
+// static
+void SimConfig::release()
+{
+  if (SimConfig::CONFIG != NULL)
+    {
+      delete SimConfig::CONFIG;
+      SimConfig::CONFIG = NULL;
+    }
+}
+
+// static
+bool SimConfig::isValid() { return SimConfig::CONFIG->valid; }
+
+// static
+int SimConfig::getStartTick() { return SimConfig::CONFIG->startTick; }
+
+// static
+int SimConfig::getEndTick() { return SimConfig::CONFIG->endTick; }
+
+// static
+const std::string& SimConfig::getDiseaseModel() { return SimConfig::CONFIG->diseaseModel; }
+
+// static
+const std::string& SimConfig::getContactNetwork() { return SimConfig::CONFIG->contactNetwork; }
+
+// static
+const std::string& SimConfig::getInitialization() { return SimConfig::CONFIG->initialization; }
+
+// static
+const std::string& SimConfig::getTraits() { return SimConfig::CONFIG->traits; }
+
+// static
+const std::string& SimConfig::getPersonTraitDB() { return SimConfig::CONFIG->personTraitDB; }
+
+// static
+const std::string& SimConfig::getOutput() { return SimConfig::CONFIG->output; }
+
+// static
+const std::string& SimConfig::getIntervention() { return SimConfig::CONFIG->intervention; }
 
 // constructor: parse JSON
 SimConfig::SimConfig(const std::string& configFile)
   : valid(false)
+  , runParameters(configFile)
   , diseaseModel()
   , contactNetwork()
   , initialization()
   , traits()
   , personTraitDB()
-  , startTick(0)
-  , endTick(0)
+  , startTick(std::numeric_limits< int >::min())
+  , endTick(std::numeric_limits< int >::max())
   , output()
   , logFile()
   , intervention()
 {
-  if (configFile.empty())
+  if (runParameters.empty())
     {
       std::cerr << "Simulation configuration file is not specified" << std::endl;
       return;
     }
+
+  DirEntry::makePathAbsolute(runParameters, DirEntry::getPWD());
 
   json_t * pRoot = loadJson(configFile);
 
@@ -37,62 +94,89 @@ SimConfig::SimConfig(const std::string& configFile)
   json_t * pValue = json_object_get(pRoot, "contactNetwork");
 
   if (json_is_string(pValue))
-    contactNetwork = json_string_value(pValue);
+    {
+      contactNetwork = json_string_value(pValue);
+      DirEntry::makePathAbsolute(contactNetwork, runParameters);
+    }
 
   pValue = json_object_get(pRoot, "diseaseModel");
 
   if (json_is_string(pValue))
-    diseaseModel = json_string_value(pValue);
+    {
+      diseaseModel = json_string_value(pValue);
+      DirEntry::makePathAbsolute(diseaseModel, runParameters);
+    }
 
   pValue = json_object_get(pRoot, "initialization");
 
   if (json_is_string(pValue))
-    initialization = json_string_value(pValue);
+    {
+      initialization = json_string_value(pValue);
+      DirEntry::makePathAbsolute(initialization, runParameters);
+    }
 
   pValue = json_object_get(pRoot, "intervention");
 
   if (json_is_string(pValue))
-    intervention = json_string_value(pValue);
+    {
+      intervention = json_string_value(pValue);
+      DirEntry::makePathAbsolute(intervention, runParameters);
+    }
 
   pValue = json_object_get(pRoot, "traits");
 
   if (json_is_string(pValue))
-    traits = json_string_value(pValue);
+    {
+      traits = json_string_value(pValue);
+      DirEntry::makePathAbsolute(traits, runParameters);
+    }
 
   pValue = json_object_get(pRoot, "personTraitDB");
 
   if (json_is_string(pValue))
-    personTraitDB = json_string_value(pValue);
+    {
+      personTraitDB = json_string_value(pValue);
+      DirEntry::makePathAbsolute(personTraitDB, runParameters);
+    }
 
   pValue = json_object_get(pRoot, "output");
 
   if (json_is_string(pValue))
-    output = json_string_value(pValue);
+    {
+      output = json_string_value(pValue);
+      DirEntry::makePathAbsolute(output, runParameters);
+    }
 
   pValue = json_object_get(pRoot, "startTick");
 
   if (json_is_integer(pValue))
-    startTick = json_integer_value(pValue);
+    {
+      startTick = json_integer_value(pValue);
+    }
 
   pValue = json_object_get(pRoot, "endTick");
 
   if (json_is_integer(pValue))
-    endTick = json_integer_value(pValue);
+    {
+      endTick = json_integer_value(pValue);
+    }
+
+  valid = !contactNetwork.empty() &&
+          !diseaseModel.empty() &&
+          !intervention.empty() &&
+          !initialization.empty() &&
+          !traits.empty() &&
+          startTick != std::numeric_limits< int >::min() &&
+          endTick != std::numeric_limits< int >::max() &&
+          startTick < endTick;
 }
 
 SimConfig::~SimConfig()
 {
 }
 
-void SimConfig::validate()
-{
-  valid = true;
-  std::ifstream f(contactNetwork.data());
-  if (!f.good())
-    valid = false;
-}
-
-json_t * SimConfig::loadJson(const std::string & jsonFile) const
+// static
+json_t * SimConfig::loadJson(const std::string & jsonFile)
 {
   json_t * pRoot = NULL;
 

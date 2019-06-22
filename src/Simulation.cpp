@@ -7,9 +7,10 @@
 #include <cmath>
 #include "Simulation.h"
 #include "Misc.h"
+#include "SimConfig.h"
 
 // initialize according to config
-Simulation::Simulation(SimConfig cfg, int seed, std::string dbconn) {
+Simulation::Simulation(int seed, std::string dbconn) {
   valid = false;
   randomSeed = seed;
   startTick = 0;
@@ -25,10 +26,10 @@ Simulation::Simulation(SimConfig cfg, int seed, std::string dbconn) {
   log = NULL;
   */
 
-  startTick = cfg.getStartTick();
-  endTick = cfg.getEndTick();
-  networkFile = cfg.getNetworkFile();
-  outputFile = cfg.getOutputFile();
+  startTick = SimConfig::getStartTick();
+  endTick = SimConfig::getEndTick();
+  networkFile = SimConfig::getContactNetwork();
+  outputFile = SimConfig::getOutput();
 
   /*
   readDiseaseModel();

@@ -9,6 +9,8 @@ class SimConfig {
 private:
   bool valid;
 
+  std::string runParameters;
+
   // required
   std::string diseaseModel;
   std::string contactNetwork;
@@ -23,21 +25,28 @@ private:
   std::string logFile;
   std::string intervention;
 
-public:
+private:
+  static SimConfig * CONFIG;
+
+  SimConfig() = delete;
   SimConfig(const std::string& configFile);
   ~SimConfig();
 
-  // minimal set of parameters are specified and files are accessible
-  void validate();
+public:
+  static void init(const std::string & configFile);
+  static void release();
 
-  inline bool isValid() const { return valid; }
-  inline int getStartTick() const { return startTick; }
-  inline int getEndTick() const { return endTick; }
-  inline const std::string& getNetworkFile() const { return contactNetwork; }
-  inline const std::string& getOutputFile() const { return output; }
-
-private:
-  json_t * loadJson(const std::string & jsonFile) const;
+  static bool isValid();
+  static int getStartTick();
+  static int getEndTick();
+  static const std::string& getDiseaseModel();
+  static const std::string& getContactNetwork();
+  static const std::string& getInitialization();
+  static const std::string& getTraits();
+  static const std::string& getPersonTraitDB();
+  static const std::string& getOutput();
+  static const std::string& getIntervention();
+  static json_t * loadJson(const std::string & jsonFie);
 
 
 };

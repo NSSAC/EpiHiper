@@ -1,7 +1,6 @@
 #ifndef SIMULATION_H
 #define SIMULATION_H
 
-#include "SimConfig.h"
 #include "Types.h"
 
 class Simulation {
@@ -27,7 +26,7 @@ private:
   std::string outputFile;
 
 public:
-  Simulation(SimConfig cfg, int seed, std::string dbconn);
+  Simulation(int seed, std::string dbconn);
   ~Simulation();
   void readDiseaseModel();
   void partition();

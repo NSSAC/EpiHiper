@@ -5,6 +5,7 @@
 
 #include "SimConfig.h"
 #include "Simulation.h"
+#include "traits/Trait.h"
 
 std::string config = std::string();
 int seed = -1;
@@ -67,15 +68,18 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  SimConfig cfg(config);
-  cfg.validate();
-  if (cfg.isValid()) {
-    Simulation sim(cfg, seed, dbconn);
+  SimConfig::init(config);
+
+  if (SimConfig::isValid()) {
+    std::map< std::string, Trait > Traits = Trait::load(SimConfig::getTraits());
+
+    Simulation sim(seed, dbconn);
     sim.validate();
     if (sim.isValid()) {
       sim.dummyRun();
     }
   }
 
+  SimConfig::release();
   MPI_Finalize(); return 0;
 }

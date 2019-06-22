@@ -10,6 +10,7 @@ list(REMOVE_ITEM SOURCES_EPIHIPER ${CMAKE_CURRENT_SOURCE_DIR}/outline.cpp)
 source_group(EpiHiper FILES ${SOURCES_EPIHIPER} ${HEADERS_EPIHIPER})
 
 include(traits/CMakeLists.txt)
+include(utilities/CMakeLists.txt)
 
 add_executable (EpiHiper ${SOURCES_EPIHIPER})
 

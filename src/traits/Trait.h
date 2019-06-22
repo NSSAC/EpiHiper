@@ -13,23 +13,10 @@
 
 struct json_t;
 
+class Feature;
 class Trait
 {
 public:
-
-	class Data
-	{
-	public:
-		Data() = delete;
-
-		Data(const Trait & trait);
-
-		~Data();
-
-	private:
-		char * mpBuffer;
-		size_t mBytes;
-	};
 
 	static std::map< std::string, Trait > load(const std::string & jsonFile);
 
@@ -53,12 +40,17 @@ public:
 
 	const std::string & getName() const;
 
+	const bool & isValid() const;
+
 	size_t size() const;
+
+	const Feature & getFeature(const std::string & name) const;
 
 private:
 	std::string mName;
 	size_t mBytes;
-	std::map< std::string, std::pair< Data, std::map< std::string, Data > > > mFeatureMask;
+	std::map< std::string, Feature > mFeatureMap;
+	bool mValid;
 };
 
 #endif /* SRC_TRAITS_TRAIT_H_ */

@@ -5,50 +5,27 @@
  *      Author: shoops
  */
 
+#include <vector>
 #include <fstream>
 #include <iostream>
 #include <jansson.h>
+#include <cmath>
 
+#include "TraitData.h"
 #include "Trait.h"
+#include "Feature.h"
+
+#include "../SimConfig.h"
 
 // static
 std::map< std::string, Trait > Trait::load(const std::string & jsonFile)
 {
   std::map< std::string, Trait > Traits;
 
-  if (jsonFile.empty())
-    {
-      std::cerr << "Traits file is not specified" << std::endl;
-      return Traits;
-    }
-
-  std::ifstream is(jsonFile.c_str());
-
-  if (is.fail())
-    {
-      std::cerr << "Traits file: '" << jsonFile << "' cannot be opened." << std::endl;
-      return Traits;
-    }
-
-  // get length of file:
-  is.seekg (0, is.end);
-  std::istream::pos_type length = is.tellg();
-  is.seekg (0, is.beg);
-
-  char * buffer = new char [length];
-  is.read(buffer, length);
-
-  json_t *pRoot;
-  json_error_t error;
-
-  pRoot = json_loads(buffer, 0, &error);
-  delete [] buffer;
+  json_t * pRoot = SimConfig::loadJson(jsonFile);
 
   if (pRoot == NULL)
     {
-      std::cerr << "Traits file: '" << jsonFile << "' JSON error on line " << error.line << ": " << error.text << std::endl;
-      delete [] buffer;
-
       return Traits;
     }
 
@@ -61,7 +38,10 @@ std::map< std::string, Trait > Trait::load(const std::string & jsonFile)
       Trait Trait;
       Trait.fromJSON(json_array_get(pTraits, i));
 
-      Traits[Trait.getName()] = Trait;
+      if (Trait.isValid())
+        {
+          Traits[Trait.getName()] = Trait;
+        }
     }
 
   json_decref(pRoot);
@@ -69,23 +49,11 @@ std::map< std::string, Trait > Trait::load(const std::string & jsonFile)
   return Traits;
 }
 
-
-Trait::Data::Data(const Trait & trait)
-  : mpBuffer(NULL)
-  , mBytes(trait.size())
-{
-  mpBuffer = new char[mBytes];
-}
-
-Trait::Data::~Data()
-{
-  delete [] mpBuffer;
-}
-
 Trait::Trait()
   : mName()
   , mBytes(0)
-  , mFeatureMask()
+  , mFeatureMap()
+  , mValid(false)
 {}
 
 Trait::~Trait() {}
@@ -93,12 +61,64 @@ Trait::~Trait() {}
 Trait::Trait(const Trait & src)
   : mName(src.mName)
   , mBytes(src.mBytes)
-  , mFeatureMask(src.mFeatureMask)
+  , mFeatureMap(src.mFeatureMap)
+  , mValid(src.mValid)
 {}
 
 void Trait::fromJSON(const json_t * json)
 {
+  mValid = true;
 
+  json_t * pValue = json_object_get(json, "id");
+
+  if (json_is_string(pValue))
+    {
+      mName = json_string_value(pValue);
+      mValid &= !mName.empty();
+    }
+
+  pValue = json_object_get(json, "features");
+
+  std::vector< size_t > Required;
+  size_t bits = 0;
+
+  // Iterate of the array elements
+  for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
+    {
+      Feature Feature;
+      Feature.fromJSON(json_array_get(pValue, i));
+
+      if (Feature.isValid())
+        {
+          mFeatureMap[Feature.getName()] = Feature;
+
+          size_t required = Feature.bitsRequired();
+          Required.push_back(required);
+          bits += required;
+        }
+      else
+        {
+          mValid = false;
+        }
+
+
+    }
+
+  mBytes = ceil(std::max(bits/8.0, 4.0));
+
+  std::map< std::string, Feature >::iterator it = mFeatureMap.begin();
+  std::map< std::string, Feature >::iterator end = mFeatureMap.end();
+  std::vector< size_t >::const_iterator itRequired = Required.begin();
+
+
+  for (size_t start = 0; it != end; ++it, ++itRequired)
+    {
+       TraitData Data(*this);
+       Data.setBits(start, start + *itRequired);
+       start += *itRequired;
+
+       it->second.setMask(Data);
+    }
 }
 
 const std::string & Trait::getName() const
@@ -106,10 +126,29 @@ const std::string & Trait::getName() const
   return mName;
 }
 
+const bool & Trait::isValid() const
+{
+  return mValid;
+}
 
 size_t Trait::size() const
 {
   return mBytes;
 }
+
+const Feature & Trait::getFeature(const std::string & name) const
+{
+  static Feature Missing;
+
+  std::map< std::string, Feature >::const_iterator found = mFeatureMap.find(name);
+
+  if (found != mFeatureMap.end())
+    {
+      return found->second;
+    }
+
+  return Missing;
+}
+
 
 
