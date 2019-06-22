@@ -16,12 +16,29 @@
 #include "TraitData.h"
 #include "Trait.h"
 
+// static
+void TraitData::setValue(TraitData::base & data, TraitData::base feature, const TraitData::base & value)
+{
+  data &= feature.flip();
+  data |= value;
+}
+
+// static
+TraitData::base TraitData::getValue(const TraitData::base & data, const TraitData::base & feature)
+{
+  return data & feature;
+}
+
 TraitData::TraitData(unsigned long long val)
   : std::bitset< 32 >(val)
 {}
 
 TraitData::TraitData(const TraitData & src)
   : std::bitset< 32 >(src)
+{}
+
+TraitData::TraitData(const std::bitset< 32 > & bitset)
+  : std::bitset< 32 >(bitset)
 {}
 
 TraitData::TraitData(const Trait & trait)
