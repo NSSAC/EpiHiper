@@ -13,7 +13,7 @@
 #ifndef SRC_DISEASEMODEL_TRANSMISSION_H_
 #define SRC_DISEASEMODEL_TRANSMISSION_H_
 
-#include "../utilities/Annotation.h"
+#include "utilities/Annotation.h"
 #include "FactorOperation.h"
 
 struct json_t;

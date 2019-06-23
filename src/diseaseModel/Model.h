@@ -17,7 +17,7 @@
 #include <string>
 #include <vector>
 
-#include "../utilities/Annotation.h"
+#include "utilities/Annotation.h"
 
 class State;
 class Transmission;

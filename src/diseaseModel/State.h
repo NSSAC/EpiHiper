@@ -14,7 +14,7 @@
 #define SRC_DISEASEMODEL_STATE_H_
 
 #include <string>
-#include "../utilities/Annotation.h"
+#include "utilities/Annotation.h"
 
 struct json_t;
 

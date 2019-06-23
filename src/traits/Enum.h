@@ -22,7 +22,7 @@
 
 #include <string>
 
-#include "../utilities/Annotation.h"
+#include "utilities/Annotation.h"
 #include "TraitData.h"
 
 struct json_t;

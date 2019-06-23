@@ -26,7 +26,7 @@
 
 #include "Trait.h"
 
-#include "../SimConfig.h"
+#include "SimConfig.h"
 
 // static
 std::map< std::string, Trait > Trait::load(const std::string & jsonFile)

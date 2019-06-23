@@ -13,7 +13,7 @@
 #ifndef SRC_DISEASEMODEL_PROGRESSION_H_
 #define SRC_DISEASEMODEL_PROGRESSION_H_
 
-#include "../utilities/Annotation.h"
+#include "utilities/Annotation.h"
 #include "FactorOperation.h"
 #include "Distribution.h"
 

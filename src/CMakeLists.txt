@@ -21,6 +21,8 @@ list(REMOVE_ITEM SOURCES_EPIHIPER ${CMAKE_CURRENT_SOURCE_DIR}/outline.cpp)
 # create source group for IDEs
 source_group(EpiHiper FILES ${SOURCES_EPIHIPER} ${HEADERS_EPIHIPER})
 
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR})
+
 include(diseaseModel/CMakeLists.txt)
 include(traits/CMakeLists.txt)
 include(utilities/CMakeLists.txt)
