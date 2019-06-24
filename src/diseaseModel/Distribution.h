@@ -13,6 +13,9 @@
 #ifndef SRC_DISEASEMODEL_DISTRIBUTION_H_
 #define SRC_DISEASEMODEL_DISTRIBUTION_H_
 
+#include <vector>
+#include <utility>
+
 struct json_t;
 
 class Distribution
@@ -22,7 +25,8 @@ public:
    fixed,
    discrete,
    uniform,
-   normal
+   normal,
+   __NONE
   };
 
   Distribution();
@@ -37,6 +41,8 @@ public:
 
 private:
   Type mType;
+  std::vector< std::pair <double, double > > mValues;
+  std::vector< double > mArguments;
   bool mValid;
 };
 

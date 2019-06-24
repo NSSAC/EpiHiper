@@ -10,10 +10,14 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#include <string>
+
+#include <jansson.h>
+
 #include "FactorOperation.h"
 
 FactorOperation::FactorOperation()
-  : mType()
+  : mType(Type::__NONE)
   , mValue()
   , mValid(false)
 {}
@@ -29,7 +33,31 @@ FactorOperation::~FactorOperation()
 {}
 
 void FactorOperation::fromJSON(const json_t * json)
-{}
+{
+  mValid = true;
+
+  json_t * pValue = json_object_get(json, "operator");
+
+  if (json_is_string(pValue))
+    {
+      std::string Operator = json_string_value(pValue);
+
+      if (Operator == "=") mType = Type::assign;
+      else if(Operator == "*=") mType = Type::multiply;
+      else if (Operator == "/=") mType = Type::divide;
+    }
+
+  mValid &= (mType != Type::__NONE);
+
+  pValue = json_object_get(json, "value");
+
+  if (json_is_real(pValue))
+    {
+      mValue = json_real_value(pValue);
+    }
+
+  mValid &= (mValue >= 0);
+}
 
 const bool & FactorOperation::isValid() const
 {

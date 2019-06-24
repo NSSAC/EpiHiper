@@ -21,7 +21,8 @@ public:
   enum struct Type {
     assign,
     multiply,
-    divide
+    divide,
+    __NONE
   };
 
   FactorOperation();

@@ -42,7 +42,7 @@ public:
 
 private:
   std::map< std::string, State > mStates;
-  State * mpInitialState;
+  State const * mpInitialState;
   std::vector< Transmission > mTransmissions;
   std::vector< Progression > mProgressions;
   bool mValid;

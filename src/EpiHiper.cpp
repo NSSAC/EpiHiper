@@ -18,6 +18,7 @@
 #include "SimConfig.h"
 #include "Simulation.h"
 #include "traits/Trait.h"
+#include "diseaseModel/Model.h"
 
 std::string config = std::string();
 int seed = -1;
@@ -84,6 +85,9 @@ int main(int argc, char *argv[]) {
 
   if (SimConfig::isValid()) {
     std::map< std::string, Trait > Traits = Trait::load(SimConfig::getTraits());
+
+    Model DiseaseModel;
+    DiseaseModel.fromJSON(SimConfig::loadJson(SimConfig::getDiseaseModel()));
 
     Simulation sim(seed, dbconn);
     sim.validate();

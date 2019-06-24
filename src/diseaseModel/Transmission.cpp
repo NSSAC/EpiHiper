@@ -10,6 +10,9 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#include <jansson.h>
+
+#include "State.h"
 #include "Transmission.h"
 
 Transmission::Transmission()
@@ -40,8 +43,80 @@ Transmission::Transmission(const Transmission & src)
 Transmission::~Transmission()
 {}
 
-void Transmission::fromJSON(const json_t * json)
-{}
+void Transmission::fromJSON(const json_t * json, const std::map< std::string, State> & states)
+{
+  mValid = true;
+
+  std::map< std::string, State>::const_iterator found;
+  std::map< std::string, State>::const_iterator notFound = states.end();
+
+  json_t * pValue = json_object_get(json, "id");
+
+  if (json_is_string(pValue))
+    {
+      mId = json_string_value(pValue);
+      mAnnId = mId;
+    }
+
+  mValid &= !mId.empty();
+
+  pValue = json_object_get(json, "entryState");
+
+  if (json_is_string(pValue) &&
+      (found = states.find(json_string_value(pValue))) != notFound)
+    {
+      mpEntryState = &found->second;
+    }
+
+  mValid &= (mpEntryState != NULL);
+
+  pValue = json_object_get(json, "exitState");
+
+  if (json_is_string(pValue) &&
+      (found = states.find(json_string_value(pValue))) != notFound)
+    {
+      mpExitState = &found->second;
+    }
+
+  mValid &= (mpExitState != NULL);
+
+  pValue = json_object_get(json, "contactState");
+
+  if (json_is_string(pValue) &&
+      (found = states.find(json_string_value(pValue))) != notFound)
+    {
+      mpContactState = &found->second;
+    }
+
+  mValid &= (mpContactState != NULL);
+
+  pValue = json_object_get(json, "transmissibility");
+
+  if (json_is_real(pValue))
+    {
+      mTransmissibility = json_real_value(pValue);
+    }
+
+  mValid &= (mTransmissibility >= 0);
+
+  pValue = json_object_get(json, "susceptibilityFactorOperation");
+
+  if (json_is_object(pValue))
+    {
+      mSusceptibilityFactorOperation.fromJSON(pValue);
+      mValid &= mSusceptibilityFactorOperation.isValid();
+    }
+
+  pValue = json_object_get(json, "infectivityFactorOperation");
+
+  if (json_is_object(pValue))
+    {
+      mInfectivityFactorOperation.fromJSON(pValue);
+      mValid &= mInfectivityFactorOperation.isValid();
+    }
+
+  Annotation::fromJSON(json);
+}
 
 const std::string & Transmission::getId() const
 {

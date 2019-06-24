@@ -161,16 +161,16 @@ SimConfig::SimConfig(const std::string& configFile)
 
   pValue = json_object_get(pRoot, "startTick");
 
-  if (json_is_integer(pValue))
+  if (json_is_real(pValue))
     {
-      startTick = json_integer_value(pValue);
+      startTick = json_real_value(pValue);
     }
 
   pValue = json_object_get(pRoot, "endTick");
 
-  if (json_is_integer(pValue))
+  if (json_is_real(pValue))
     {
-      endTick = json_integer_value(pValue);
+      endTick = json_real_value(pValue);
     }
 
   valid = !contactNetwork.empty() &&
@@ -217,7 +217,7 @@ json_t * SimConfig::loadJson(const std::string & jsonFile)
 
   json_error_t error;
 
-  pRoot = json_loads(buffer, 0, &error);
+  pRoot = json_loads(buffer, JSON_DECODE_INT_AS_REAL, &error);
   delete [] buffer;
 
   if (pRoot == NULL)

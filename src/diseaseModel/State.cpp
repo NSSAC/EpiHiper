@@ -10,13 +10,15 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#include <jansson.h>
+
 #include "State.h"
 
 State::State()
   : Annotation()
   , mId()
-  , mSusceptibility(0)
-  , mInfectivity(0)
+  , mSusceptibility(-1.0)
+  , mInfectivity(-1.0)
   , mValid(false)
 {}
 
@@ -33,7 +35,35 @@ State::~State()
 {}
 
 void State::fromJSON(const json_t * json)
-{}
+{
+  mValid = true;
+
+  json_t * pValue = json_object_get(json, "id");
+
+  if (json_is_string(pValue))
+    {
+      mId = json_string_value(pValue);
+      mAnnId = mId;
+    }
+
+  mValid &= !mId.empty();
+
+  pValue = json_object_get(json, "susceptibility");
+
+  if (json_is_real(pValue))
+    {
+      mSusceptibility = json_real_value(pValue);
+    }
+
+  pValue = json_object_get(json, "infectivity");
+
+  if (json_is_real(pValue))
+    {
+      mInfectivity = json_real_value(pValue);
+    }
+
+  Annotation::fromJSON(json);
+}
 
 const std::string & State::getId() const
 {

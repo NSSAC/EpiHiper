@@ -13,6 +13,8 @@
 #ifndef SRC_DISEASEMODEL_TRANSMISSION_H_
 #define SRC_DISEASEMODEL_TRANSMISSION_H_
 
+#include <map>
+
 #include "utilities/Annotation.h"
 #include "FactorOperation.h"
 
@@ -28,7 +30,7 @@ public:
 
   virtual ~Transmission();
 
-  void fromJSON(const json_t * json);
+  void fromJSON(const json_t * json, const std::map< std::string, State> & states);
 
   const std::string & getId() const;
 

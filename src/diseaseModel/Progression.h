@@ -13,6 +13,8 @@
 #ifndef SRC_DISEASEMODEL_PROGRESSION_H_
 #define SRC_DISEASEMODEL_PROGRESSION_H_
 
+#include <map>
+
 #include "utilities/Annotation.h"
 #include "FactorOperation.h"
 #include "Distribution.h"
@@ -29,7 +31,7 @@ public:
 
   virtual ~Progression();
 
-  void fromJSON(const json_t * json);
+  void fromJSON(const json_t * json, const std::map< std::string, State> & states);
 
   const std::string & getId() const;
 
