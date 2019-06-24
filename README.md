@@ -2,28 +2,35 @@
 
 EpiHiper version 0.0.1 is a minimal blackbox. It can be built with a C++/MPI compiler, and is executable on a cluster. To install it on Rivanna and run the minimal example (see under `example/`):
 
+### Obtain Code
 ```
-# obtain code from github
 git clone git@github.com:NSSAC/EpiHiper-code.git
-
-# build EpiHiper blackbox executable
 cd EpiHiper-code
+git submodule update --init dependencies/
+```
+
+### Build EpiHiper
+__Rivanna__: The code is already deployed on rivanna in: `/project/biocomplexity/nssac/EpiHiper/git/EpiHiper-code`. For the following instructions we use that as the location of the git repository.
+
+Create a build directory of you choice.
+```
 mkdir build
 cd build
 module purge
-module add intel intelmpi # can use other MPI modules, e.g. openmpi
-cmake ../src -DCMAKE_CXX_COMPILER=mpiicpc
+module load intel intelmpi cmake/3.12.3 
+export CC=icc
+export CXX=icc
+cmake /project/biocomplexity/nssac/EpiHiper/git/EpiHiper-code
 make
+```
 
-# run the minimal example
-cd ../example
-# Network file is not kept in this repository due to its large size;
-# it's available on Rivanna.
-ln -s /project/biocomplexity/EpiHiper/data/va_montgomery_2009.txt input/
-mkdir output
-
+### Run the minimal example
+```
 # make sure this is executed on a compute node (within a slurm job)
-srun ../build/EpiHiper --config input/runParametersExample.json --seed 1234567 --dbconn dummydb
+mkdir output
+cd output
+srun <build>/src/EpiHiper --seed 1234567 --dbconn \
+  --config /project/biocomplexity/nssac/EpiHiper/test/001/interventionExampleRunParameters.json  dummydb
 # output file is created as output/EpiHiper_output.txt
 ```
 
