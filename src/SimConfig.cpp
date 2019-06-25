@@ -77,6 +77,7 @@ const std::string& SimConfig::getIntervention() { return SimConfig::CONFIG->inte
 SimConfig::SimConfig(const std::string& configFile)
   : valid(false)
   , runParameters(configFile)
+  , modelScenario()
   , diseaseModel()
   , contactNetwork()
   , initialization()
@@ -103,60 +104,18 @@ SimConfig::SimConfig(const std::string& configFile)
       return;
     }
 
-  json_t * pValue = json_object_get(pRoot, "contactNetwork");
+  json_t * pValue = json_object_get(pRoot, "modelScenario");
 
   if (json_is_string(pValue))
     {
-      contactNetwork = json_string_value(pValue);
-      DirEntry::makePathAbsolute(contactNetwork, runParameters);
-    }
-
-  pValue = json_object_get(pRoot, "diseaseModel");
-
-  if (json_is_string(pValue))
-    {
-      diseaseModel = json_string_value(pValue);
-      DirEntry::makePathAbsolute(diseaseModel, runParameters);
-    }
-
-  pValue = json_object_get(pRoot, "initialization");
-
-  if (json_is_string(pValue))
-    {
-      initialization = json_string_value(pValue);
-      DirEntry::makePathAbsolute(initialization, runParameters);
-    }
-
-  pValue = json_object_get(pRoot, "intervention");
-
-  if (json_is_string(pValue))
-    {
-      intervention = json_string_value(pValue);
-      DirEntry::makePathAbsolute(intervention, runParameters);
-    }
-
-  pValue = json_object_get(pRoot, "traits");
-
-  if (json_is_string(pValue))
-    {
-      traits = json_string_value(pValue);
-      DirEntry::makePathAbsolute(traits, runParameters);
-    }
-
-  pValue = json_object_get(pRoot, "personTraitDB");
-
-  if (json_is_string(pValue))
-    {
-      personTraitDB = json_string_value(pValue);
-      DirEntry::makePathAbsolute(personTraitDB, runParameters);
+      modelScenario = DirEntry::resolve(json_string_value(pValue), runParameters);
     }
 
   pValue = json_object_get(pRoot, "output");
 
   if (json_is_string(pValue))
     {
-      output = json_string_value(pValue);
-      DirEntry::makePathAbsolute(output, runParameters);
+      output = DirEntry::resolve(json_string_value(pValue), runParameters);
     }
 
   pValue = json_object_get(pRoot, "startTick");
@@ -173,18 +132,71 @@ SimConfig::SimConfig(const std::string& configFile)
       endTick = json_real_value(pValue);
     }
 
-  valid = !contactNetwork.empty() &&
-          !diseaseModel.empty() &&
-          !intervention.empty() &&
-          !initialization.empty() &&
-          !traits.empty() &&
+  valid = !modelScenario.empty()&&
           startTick != std::numeric_limits< int >::min() &&
           endTick != std::numeric_limits< int >::max() &&
           startTick < endTick;
+
+  valid &= loadScenario();
 }
 
 SimConfig::~SimConfig()
 {
+}
+
+bool SimConfig::loadScenario()
+{
+  json_t * pRoot = loadJson(modelScenario);
+
+  if (pRoot == NULL) return false;
+
+  json_t * pValue = json_object_get(pRoot, "contactNetwork");
+
+  if (json_is_string(pValue))
+    {
+      contactNetwork = DirEntry::resolve(json_string_value(pValue), modelScenario);
+    }
+
+  pValue = json_object_get(pRoot, "diseaseModel");
+
+  if (json_is_string(pValue))
+    {
+      diseaseModel = DirEntry::resolve(json_string_value(pValue), modelScenario);
+    }
+
+  pValue = json_object_get(pRoot, "initialization");
+
+  if (json_is_string(pValue))
+    {
+      initialization = DirEntry::resolve(json_string_value(pValue), modelScenario);
+    }
+
+  pValue = json_object_get(pRoot, "intervention");
+
+  if (json_is_string(pValue))
+    {
+      intervention = DirEntry::resolve(json_string_value(pValue), modelScenario);
+    }
+
+  pValue = json_object_get(pRoot, "traits");
+
+  if (json_is_string(pValue))
+    {
+      traits = DirEntry::resolve(json_string_value(pValue), modelScenario);
+    }
+
+  pValue = json_object_get(pRoot, "personTraitDB");
+
+  if (json_is_string(pValue))
+    {
+      personTraitDB = DirEntry::resolve(json_string_value(pValue), modelScenario);
+    }
+
+  return !contactNetwork.empty() &&
+          !diseaseModel.empty() &&
+          !intervention.empty() &&
+          !initialization.empty() &&
+          !traits.empty();
 }
 
 // static

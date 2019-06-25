@@ -24,6 +24,7 @@ private:
   std::string runParameters;
 
   // required
+  std::string modelScenario;
   std::string diseaseModel;
   std::string contactNetwork;
   std::string initialization;
@@ -43,6 +44,8 @@ private:
   SimConfig() = delete;
   SimConfig(const std::string& configFile);
   ~SimConfig();
+
+  bool loadScenario();
 
 public:
   static void init(const std::string & configFile);

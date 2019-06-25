@@ -20,6 +20,7 @@
 #include "Simulation.h"
 #include "Misc.h"
 #include "SimConfig.h"
+#include "utilities/Random.h"
 
 // initialize according to config
 Simulation::Simulation(int seed, std::string dbconn) {
@@ -153,7 +154,15 @@ void Simulation::dummyRun() {
   MPI_Comm_size(MPI_COMM_WORLD, &numProcess);
   MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
   MPI_Status status;
-  srand48(randomSeed + myRank);
+
+  if (randomSeed == -1)
+    {
+      Random::randomSeed();
+    }
+  else
+    {
+      Random::seed(randomSeed);
+    }
 
   std::set<personid_t> population;
   if (myRank == 0) {
@@ -226,9 +235,11 @@ void Simulation::dummyRun() {
 
   int T = endTick - startTick + 1;
   N = sizeSubpop[myRank];
-  std::random_shuffle(&subpop[0], &subpop[N], myRandom);
+  std::shuffle(&subpop[0], &subpop[N], Random::G);
   std::vector<DummyTransition> transitions;
   int totalInfection = 0;
+
+  Random::uniform_int uniform;
 
   std::string contact;
   int tick = startTick;
@@ -236,7 +247,10 @@ void Simulation::dummyRun() {
     int numInfection = int(N * exp(-(8.*tick/T-4)*(8.*tick/T-4)/2)/T);
     for (int i = 0; i < numInfection; i++) {
       if (totalInfection == 0) contact = "-1";
-      else contact = std::to_string(transitions[myRandom(totalInfection)].id);
+      else
+        {
+          contact = std::to_string(transitions[uniform(Random::G, Random::uniform_int_p(0, totalInfection - 1))].id);
+        }
       DummyTransition t = {tick, subpop[totalInfection+i],
 			   "infectious",contact};
       transitions.push_back(t);

@@ -389,3 +389,25 @@ std::string DirEntry::getPWD(void)
   return pwd;
 }
 
+// static
+std::string DirEntry::resolve(const std::string & pathSpec, const std::string & relativeTo)
+{
+  if (pathSpec.substr(0, 7) == "self://")
+    {
+      std::string Path(pathSpec.substr(7));
+      makePathAbsolute(Path, relativeTo);
+
+      return Path;
+    }
+
+  if (isRelativePath(pathSpec))
+    {
+      std::string Path(pathSpec);
+      makePathAbsolute(Path, getPWD());
+
+      return Path;
+    }
+
+  return pathSpec;
+}
+

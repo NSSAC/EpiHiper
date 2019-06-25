@@ -146,6 +146,13 @@ public:
    */
   static std::string getPWD(void);
 
+  /**
+   * Resolve the pathspec
+   * @param const std::string & pathSpec
+   * @param const std::string & relativeTo
+   * @return const std::string absolutePath
+   */
+  static std::string resolve(const std::string & pathSpec, const std::string & relativeTo);
 };
 
 #endif // SRC_UTILITIES_DIRENTRY_H_

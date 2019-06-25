@@ -30,6 +30,3 @@ std::vector<std::string> split(const std::string& s, char c) {
   return items;
 }
 
-int myRandom(int i) {
-  return lrand48() % i;
-}
