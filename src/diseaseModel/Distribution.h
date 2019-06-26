@@ -49,7 +49,7 @@ private:
   std::vector< unsigned int > mUniformSet;
   unsigned int (Distribution::*mpSample)() const;
 
-  double mFixed;
+  unsigned int mFixed;
   Random::uniform_int * mpUniformInt;
   Random::uniform_real * mpUniformReal;
   Random::normal * mpNormal;

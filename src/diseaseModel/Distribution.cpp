@@ -41,7 +41,11 @@ Distribution::Distribution(const Distribution & src)
 
 // virtual
 Distribution::~Distribution()
-{}
+{
+  if (mpUniformInt != NULL) delete mpUniformInt;
+  if (mpUniformReal != NULL) delete mpUniformReal;
+  if (mpNormal != NULL) delete mpNormal;
+}
 
 void Distribution::fromJSON(const json_t * json)
 {
@@ -121,8 +125,6 @@ void Distribution::fromJSON(const json_t * json)
       mUniformSet.resize(json_array_size(pValue));
       std::vector< unsigned int >::iterator it = mUniformSet.begin();
       std::vector< unsigned int >::iterator end = mUniformSet.end();
-
-      mpUniformInt = new Random::uniform_int(0, mUniformSet.size());
 
       for (size_t i = 0; it != end; ++it, ++i)
         {
