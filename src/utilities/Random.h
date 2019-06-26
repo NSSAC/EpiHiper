@@ -12,6 +12,8 @@ public:
   typedef uniform_int::param_type uniform_int_p;
   typedef std::uniform_real_distribution< double > uniform_real;
   typedef uniform_real::param_type uniform_real_p;
+  typedef std::normal_distribution< double > normal;
+  typedef normal::param_type normal_p;
 
   static generator_t G;
   static void randomSeed();

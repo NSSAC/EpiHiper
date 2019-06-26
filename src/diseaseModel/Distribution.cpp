@@ -17,16 +17,26 @@
 
 Distribution::Distribution()
   : mType(Type::__NONE)
-  , mValues()
-  , mArguments()
+  , mDiscrete()
+  , mUniformSet()
   , mValid(false)
+  , mpSample(NULL)
+  , mFixed(0.0)
+  , mpUniformInt(NULL)
+  , mpUniformReal(NULL)
+  , mpNormal(NULL)
 {}
 
 Distribution::Distribution(const Distribution & src)
   : mType(src.mType)
-  , mValues(src.mValues)
-  , mArguments(src.mArguments)
+  , mDiscrete(src.mDiscrete)
+  , mUniformSet(src.mUniformSet)
   , mValid(src.mValid)
+  , mpSample(src.mpSample)
+  , mFixed(0.0)
+  , mpUniformInt(src.mpUniformInt != NULL ? new Random::uniform_int(*src.mpUniformInt) : NULL)
+  , mpUniformReal(src.mpUniformReal != NULL ? new Random::uniform_real(*src.mpUniformReal) : NULL)
+  , mpNormal(src.mpNormal != NULL ? new Random::normal(*src.mpNormal) : NULL)
 {}
 
 // virtual
@@ -35,20 +45,6 @@ Distribution::~Distribution()
 
 void Distribution::fromJSON(const json_t * json)
 {
-  /*
-    {
-      "required": ["fixed"]
-    },
-    {
-      "required": ["discrete"]
-    },
-    {
-      "required": ["uniform"]
-    },
-    {
-      "required": ["normal"]
-    }
-  */
   mValid = true;
 
   json_t * pValue = json_object_get(json, "fixed");
@@ -56,10 +52,10 @@ void Distribution::fromJSON(const json_t * json)
   if (json_is_real(pValue))
     {
        mType = Type::fixed;
-       mArguments.resize(1);
-       mArguments[0] = json_real_value(pValue);
+       mpSample = &Distribution::fixed;
+       mFixed = json_real_value(pValue);
 
-       mValid &= (mArguments[0] >= 0);
+       mValid &= (mFixed >= 0);
     }
 
   pValue = json_object_get(json, "discrete");
@@ -67,9 +63,12 @@ void Distribution::fromJSON(const json_t * json)
   if (json_is_array(pValue))
     {
        mType = Type::discrete;
-       mValues.resize(json_array_size(pValue));
-       std::vector< std::pair < double, double > >::iterator it = mValues.begin();
-       std::vector< std::pair < double, double > >::iterator end = mValues.end();
+       mpSample = &Distribution::discrete;
+
+       double Total = 0.0;
+       mDiscrete.resize(json_array_size(pValue));
+       std::vector< std::pair < double, unsigned int > >::iterator it = mDiscrete.begin();
+       std::vector< std::pair < double, unsigned int > >::iterator end = mDiscrete.end();
 
        for (size_t i = 0; it != end; ++it, ++i)
          {
@@ -83,6 +82,7 @@ void Distribution::fromJSON(const json_t * json)
                  {
                    it->first = json_real_value(pReal);
                    mValid &= (it->first >= 0);
+                   Total += it->first;
                  }
                else
                  {
@@ -93,7 +93,7 @@ void Distribution::fromJSON(const json_t * json)
 
               if (json_is_real(pReal))
                 {
-                  it->second = json_real_value(pReal);
+                  it->second = std::round(json_real_value(pReal));
                   mValid &= (it->first >= 0);
                 }
               else
@@ -102,59 +102,82 @@ void Distribution::fromJSON(const json_t * json)
                 }
              }
          }
+
+       mValid &= fabs(Total - 1.0) < 100.0 * std::numeric_limits< double >::epsilon();
+
+       if (mValid)
+         {
+           mpUniformReal = new Random::uniform_real(0, std::nextafter(Total, 2.0));
+         }
     }
 
   pValue = json_object_get(json, "uniform");
 
   if (json_is_array(pValue))
     {
-       mType = Type::uniform;
-       mArguments.resize(json_array_size(pValue));
-       std::vector< double >::iterator it = mArguments.begin();
-       std::vector< double >::iterator end = mArguments.end();
+      mType = Type::uniform;
+      mpSample = &Distribution::uniformSet;
 
-       for (size_t i = 0; it != end; ++it, ++i)
-         {
-           json_t * pReal = json_array_get(pValue, i);
+      mUniformSet.resize(json_array_size(pValue));
+      std::vector< unsigned int >::iterator it = mUniformSet.begin();
+      std::vector< unsigned int >::iterator end = mUniformSet.end();
 
-           if (json_is_real(pReal))
-             {
-               *it = json_real_value(pReal);
-               mValid &= (*it >= 0);
-             }
-           else
-             {
-               mValid = false;
-             }
-         }
+      mpUniformInt = new Random::uniform_int(0, mUniformSet.size());
+
+      for (size_t i = 0; it != end; ++it, ++i)
+        {
+          json_t * pReal = json_array_get(pValue, i);
+
+          if (json_is_real(pReal))
+            {
+              *it = std::round(json_real_value(pReal));
+              mValid &= (*it >= 0);
+            }
+          else
+            {
+              mValid = false;
+            }
+        }
+
+      if (mValid)
+        {
+          mpUniformInt = new Random::uniform_int(0, mUniformSet.size() - 1);
+        }
     }
   else if (json_is_object(pValue))
     {
-       mType = Type::uniform;
-       mArguments.resize(2);
+      mType = Type::uniform;
+      mpSample = &Distribution::uniformDiscrete;
 
-       json_t * pReal = json_object_get(pValue, "min");
-
-       if (json_is_real(pReal))
-         {
-           mArguments[0] = json_real_value(pReal);
-           mValid &= (mArguments[0] >= 0);
-         }
-       else
-         {
-           mValid = false;
-         }
-
-      pReal = json_object_get(pValue, "max");
+      unsigned int min;
+      json_t * pReal = json_object_get(pValue, "min");
 
       if (json_is_real(pReal))
         {
-          mArguments[1] = json_real_value(pReal);
-          mValid &= (mArguments[1] >= 0);
+          min = std::round(json_real_value(pReal));
+          mValid &= (min >= 0);
         }
       else
         {
           mValid = false;
+        }
+
+      unsigned int max;
+      pReal = json_object_get(pValue, "max");
+
+      if (json_is_real(pReal))
+        {
+          max = std::round(json_real_value(pReal));
+          mValid &= (max >= 0);
+        }
+      else
+        {
+          mValid = false;
+        }
+
+      if (mValid)
+        {
+          mpUniformInt = new Random::uniform_int(min, max);
         }
      }
 
@@ -162,31 +185,38 @@ void Distribution::fromJSON(const json_t * json)
 
   if (json_is_object(pValue))
     {
-       mType = Type::normal;
-       mArguments.resize(2);
+      mType = Type::normal;
+      mpSample = &Distribution::normal;
 
-       json_t * pReal = json_object_get(pValue, "mean");
-
-       if (json_is_real(pReal))
-         {
-           mArguments[0] = json_real_value(pReal);
-           mValid &= (mArguments[0] >= 0);
-         }
-       else
-         {
-           mValid = false;
-         }
-
-      pReal = json_object_get(pValue, "standardDeviation");
+      double mean;
+      json_t * pReal = json_object_get(pValue, "mean");
 
       if (json_is_real(pReal))
         {
-          mArguments[1] = json_real_value(pReal);
-          mValid &= (mArguments[1] >= 0);
+          mean = json_real_value(pReal);
+          mValid &= (mean >= 0);
         }
       else
         {
           mValid = false;
+        }
+
+      double standardDeviation;
+      pReal = json_object_get(pValue, "standardDeviation");
+
+      if (json_is_real(pReal))
+        {
+          standardDeviation = json_real_value(pReal);
+          mValid &= (standardDeviation >= 0);
+        }
+      else
+        {
+          mValid = false;
+        }
+
+      if (mValid)
+        {
+          mpNormal = new Random::normal(mean, standardDeviation);
         }
     }
 
@@ -198,3 +228,47 @@ const bool & Distribution::isValid() const
 {
   return mValid;
 }
+
+unsigned int Distribution::sample() const
+{
+  return (this->*mpSample)();
+}
+
+unsigned int Distribution::fixed() const
+{
+  return mUniformSet[0];
+}
+
+unsigned int Distribution::discrete() const
+{
+  double A = mpUniformReal->operator()(Random::G);
+
+  std::vector< std::pair < double, unsigned int > >::const_iterator it = mDiscrete.begin();
+  std::vector< std::pair < double, unsigned int > >::const_iterator end = mDiscrete.end();
+
+  for (; it != end; ++it)
+    {
+      A -= it->first;
+
+      if (A < 0.0)
+        return it->second;
+    }
+
+  return mDiscrete.rbegin()->second;
+}
+
+unsigned int Distribution::uniformSet() const
+{
+  return mUniformSet[mpUniformInt->operator()(Random::G)];
+}
+
+unsigned int Distribution::uniformDiscrete() const
+{
+  return mpUniformInt->operator()(Random::G);
+}
+
+unsigned int Distribution::normal() const
+{
+  return std::round(std::max(0.0, mpNormal->operator()(Random::G)));
+}
+

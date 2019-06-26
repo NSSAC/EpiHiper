@@ -16,6 +16,8 @@
 #include <vector>
 #include <utility>
 
+#include "utilities/Random.h"
+
 struct json_t;
 
 class Distribution
@@ -39,11 +41,26 @@ public:
 
   const bool & isValid() const;
 
+  unsigned int sample() const;
+
 private:
   Type mType;
-  std::vector< std::pair <double, double > > mValues;
-  std::vector< double > mArguments;
+  std::vector< std::pair <double, unsigned int > > mDiscrete;
+  std::vector< unsigned int > mUniformSet;
+  unsigned int (Distribution::*mpSample)() const;
+
+  double mFixed;
+  Random::uniform_int * mpUniformInt;
+  Random::uniform_real * mpUniformReal;
+  Random::normal * mpNormal;
+
   bool mValid;
+
+  unsigned int fixed() const;
+  unsigned int discrete() const;
+  unsigned int uniformSet() const;
+  unsigned int uniformDiscrete() const;
+  unsigned int normal() const;
 };
 
 #endif /* SRC_DISEASEMODEL_DISTRIBUTION_H_ */
