@@ -29,15 +29,13 @@ class Trait;
 class TraitData: public std::bitset< 32 >
 {
 public:
-  typedef std::bitset< 32 > base;
+  typedef unsigned int base;
 
-  typedef std::pair< base, base > value;
+  typedef std::pair< const base, const base > value;
 
-  TraitData(unsigned long long val = 0);
+  TraitData(base val = 0);
 
   TraitData(const TraitData & src);
-
-  TraitData(const base & bitset);
 
   TraitData(const Trait & trait);
 

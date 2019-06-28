@@ -31,6 +31,10 @@ public:
 
   const std::string & getId() const;
 
+  const double & getSusceptibility() const;
+
+  const double & getInfectivity() const;
+
   const bool & isValid() const;
 
 private:

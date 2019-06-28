@@ -27,18 +27,34 @@ struct json_t;
 
 class Model: public Annotation
 {
-public:
-  Model();
+private:
+  static Model * INSTANCE;
 
-  Model(const Model & src);
+  /**
+   * Default constructor
+   */
+  Model() = delete;
 
+  /**
+   * Copy construnctor
+   * @param const std::string & modelFile
+   */
+  Model(const std::string & modelFile);
+
+  /**
+   * Destructor
+   */
   virtual ~Model();
+
+public:
+  static void init(const std::string & modelFile);
+  static void release();
 
   void fromJSON(const json_t * json);
 
-  const std::string & getId() const;
+  static const State & getInitialState();
 
-  const bool & isValid() const;
+  static const bool & isValid();
 
 private:
   std::map< std::string, State > mStates;

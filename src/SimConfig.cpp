@@ -22,56 +22,56 @@
 #include "utilities/DirEntry.h"
 
 // static
-SimConfig * SimConfig::CONFIG(NULL);
+SimConfig * SimConfig::INSTANCE(NULL);
 
 // static
 void SimConfig::init(const std::string & configFile)
 {
-  if (SimConfig::CONFIG == NULL)
+  if (SimConfig::INSTANCE == NULL)
     {
-      SimConfig::CONFIG = new SimConfig(configFile);
+      SimConfig::INSTANCE = new SimConfig(configFile);
     }
 }
 
 // static
 void SimConfig::release()
 {
-  if (SimConfig::CONFIG != NULL)
+  if (SimConfig::INSTANCE != NULL)
     {
-      delete SimConfig::CONFIG;
-      SimConfig::CONFIG = NULL;
+      delete SimConfig::INSTANCE;
+      SimConfig::INSTANCE = NULL;
     }
 }
 
 // static
-bool SimConfig::isValid() { return SimConfig::CONFIG->valid; }
+bool SimConfig::isValid() { return SimConfig::INSTANCE->valid; }
 
 // static
-int SimConfig::getStartTick() { return SimConfig::CONFIG->startTick; }
+int SimConfig::getStartTick() { return SimConfig::INSTANCE->startTick; }
 
 // static
-int SimConfig::getEndTick() { return SimConfig::CONFIG->endTick; }
+int SimConfig::getEndTick() { return SimConfig::INSTANCE->endTick; }
 
 // static
-const std::string& SimConfig::getDiseaseModel() { return SimConfig::CONFIG->diseaseModel; }
+const std::string& SimConfig::getDiseaseModel() { return SimConfig::INSTANCE->diseaseModel; }
 
 // static
-const std::string& SimConfig::getContactNetwork() { return SimConfig::CONFIG->contactNetwork; }
+const std::string& SimConfig::getContactNetwork() { return SimConfig::INSTANCE->contactNetwork; }
 
 // static
-const std::string& SimConfig::getInitialization() { return SimConfig::CONFIG->initialization; }
+const std::string& SimConfig::getInitialization() { return SimConfig::INSTANCE->initialization; }
 
 // static
-const std::string& SimConfig::getTraits() { return SimConfig::CONFIG->traits; }
+const std::string& SimConfig::getTraits() { return SimConfig::INSTANCE->traits; }
 
 // static
-const std::string& SimConfig::getPersonTraitDB() { return SimConfig::CONFIG->personTraitDB; }
+const std::string& SimConfig::getPersonTraitDB() { return SimConfig::INSTANCE->personTraitDB; }
 
 // static
-const std::string& SimConfig::getOutput() { return SimConfig::CONFIG->output; }
+const std::string& SimConfig::getOutput() { return SimConfig::INSTANCE->output; }
 
 // static
-const std::string& SimConfig::getIntervention() { return SimConfig::CONFIG->intervention; }
+const std::string& SimConfig::getIntervention() { return SimConfig::INSTANCE->intervention; }
 
 // constructor: parse JSON
 SimConfig::SimConfig(const std::string& configFile)
@@ -97,7 +97,7 @@ SimConfig::SimConfig(const std::string& configFile)
 
   DirEntry::makePathAbsolute(runParameters, DirEntry::getPWD());
 
-  json_t * pRoot = loadJson(configFile);
+  json_t * pRoot = loadJson(configFile, JSON_DECODE_INT_AS_REAL);
 
   if (pRoot == NULL)
     {
@@ -146,7 +146,7 @@ SimConfig::~SimConfig()
 
 bool SimConfig::loadScenario()
 {
-  json_t * pRoot = loadJson(modelScenario);
+  json_t * pRoot = loadJson(modelScenario, JSON_DECODE_INT_AS_REAL);
 
   if (pRoot == NULL) return false;
 
@@ -200,7 +200,7 @@ bool SimConfig::loadScenario()
 }
 
 // static
-json_t * SimConfig::loadJson(const std::string & jsonFile)
+json_t * SimConfig::loadJson(const std::string & jsonFile, int flags)
 {
   json_t * pRoot = NULL;
 
@@ -229,7 +229,7 @@ json_t * SimConfig::loadJson(const std::string & jsonFile)
 
   json_error_t error;
 
-  pRoot = json_loads(buffer, JSON_DECODE_INT_AS_REAL, &error);
+  pRoot = json_loads(buffer, flags, &error);
   delete [] buffer;
 
   if (pRoot == NULL)

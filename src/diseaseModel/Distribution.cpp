@@ -57,7 +57,7 @@ void Distribution::fromJSON(const json_t * json)
     {
        mType = Type::fixed;
        mpSample = &Distribution::fixed;
-       mFixed = json_real_value(pValue);
+       mFixed = std::round(json_real_value(pValue));
 
        mValid &= (mFixed >= 0);
     }
@@ -238,7 +238,7 @@ unsigned int Distribution::sample() const
 
 unsigned int Distribution::fixed() const
 {
-  return mUniformSet[0];
+  return mFixed;
 }
 
 unsigned int Distribution::discrete() const

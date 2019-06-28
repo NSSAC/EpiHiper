@@ -39,7 +39,7 @@ private:
   std::string intervention;
 
 private:
-  static SimConfig * CONFIG;
+  static SimConfig * INSTANCE;
 
   SimConfig() = delete;
   SimConfig(const std::string& configFile);
@@ -61,7 +61,7 @@ public:
   static const std::string& getPersonTraitDB();
   static const std::string& getOutput();
   static const std::string& getIntervention();
-  static json_t * loadJson(const std::string & jsonFie);
+  static json_t * loadJson(const std::string & jsonFile, int flags);
 
 
 };

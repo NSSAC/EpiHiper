@@ -21,13 +21,14 @@
 #include <iostream>
 #include <jansson.h>
 
-#include "Feature.h"
+#include "traits/Feature.h"
 
 Feature::Feature()
   : Annotation()
   , mId()
-  , mDefault()
-  , mMask()
+  , mpDefault(NULL)
+  , mMask(0)
+  , mEnums()
   , mEnumMap()
   , mValid(false)
 {}
@@ -36,10 +37,20 @@ Feature::Feature(const Feature & src)
   : Annotation(src)
   , mId(src.mId)
   , mMask(src.mMask)
-  , mDefault(src.mDefault)
-  , mEnumMap(src.mEnumMap)
+  , mpDefault(NULL)
+  , mEnums(src.mEnums)
+  , mEnumMap()
   , mValid(src.mValid)
-{}
+{
+  std::vector< Enum >::iterator it = mEnums.begin();
+  std::vector< Enum >::iterator end = mEnums.end();
+
+  for (; it != end; ++it)
+    mEnumMap[it->getId()] = &*it;
+
+  if (src.mpDefault != NULL)
+    mpDefault = mEnumMap.find(src.mpDefault->getId())->second;
+}
 
 Feature::~Feature() {}
 
@@ -67,8 +78,9 @@ void Feature::fromJSON(const json_t * json)
 
       if (Enum.isValid())
         {
-          Enum.setMask(TraitData(i));
-          mEnumMap[Enum.getId()] = Enum;
+          Enum.setMask(TraitData(i).to_ulong());
+          mEnums.push_back(Enum);
+          mEnumMap[Enum.getId()] = &*mEnums.rbegin();
         }
       else
         {
@@ -80,11 +92,15 @@ void Feature::fromJSON(const json_t * json)
 
   if (json_is_string(pValue))
     {
-      mDefault = json_string_value(pValue);
+      std::map< std::string, Enum * >::const_iterator found = mEnumMap.find(json_string_value(pValue));
+
+      if (found != mEnumMap.end())
+        {
+          mpDefault = found->second;
+        }
     }
 
-  mValid &= !mDefault.empty() &&
-             mEnumMap.find(mDefault) != mEnumMap.end();
+  mValid &= mpDefault != NULL;
 
   Annotation::fromJSON(json);
 }
@@ -110,41 +126,56 @@ size_t Feature::bitsRequired() const
   return ceil(log(mEnumMap.size())/log(2.0));
 }
 
-void Feature::setMask(const TraitData & mask)
+void Feature::setMask(const TraitData::base & mask)
 {
   mMask = mask;
-  size_t FirstBit = mMask.firstBit();
+  size_t FirstBit = TraitData(mMask).firstBit();
 
-  std::map< std::string, Enum >::iterator it = mEnumMap.begin();
-  std::map< std::string, Enum >::iterator end = mEnumMap.end();
+  std::vector< Enum >::iterator it = mEnums.begin();
+  std::vector< Enum >::iterator end = mEnums.end();
 
   for (; it != end; ++it)
     {
-      TraitData Mask = it->second.getMask();
+      TraitData::base Mask = it->getMask();
       Mask <<= FirstBit;
-      it->second.setMask(Mask);
+      it->setMask(Mask);
     }
 }
 
-const TraitData & Feature::getMask() const
+const TraitData::base & Feature::getMask() const
 {
   return mMask;
 }
 
-const Enum & Feature::getEnum(const std::string & id) const
+const Enum & Feature::operator[](const size_t & index) const
 {
   static Enum Missing;
 
-  std::map< std::string, Enum >::const_iterator found = mEnumMap.find(id);
-
-  if (found != mEnumMap.end())
+  if (index < mEnums.size())
     {
-      return found->second;
+      return mEnums[index];
     }
 
   return Missing;
 }
 
+const Enum & Feature::operator[](const std::string & id) const
+{
+  static Enum Missing;
 
+  std::map< std::string, Enum * >::const_iterator found = mEnumMap.find(id);
+
+  if (found != mEnumMap.end())
+    {
+      return *found->second;
+    }
+
+  return Missing;
+}
+
+const Enum & Feature::getDefault() const
+{
+  return *mpDefault;
+}
 
 

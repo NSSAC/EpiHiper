@@ -10,7 +10,6 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include <mpi.h>
 #include <set>
 #include <iostream>
 #include <sstream>
@@ -21,6 +20,7 @@
 #include "Misc.h"
 #include "SimConfig.h"
 #include "utilities/Random.h"
+#include "utilities/Communicate.h"
 
 // initialize according to config
 Simulation::Simulation(int seed, std::string dbconn) {
@@ -150,10 +150,7 @@ Simulation::execute(Action action) {
 */
 
 void Simulation::dummyRun() {
-  int myRank, numProcess;
-  MPI_Comm_size(MPI_COMM_WORLD, &numProcess);
-  MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
-  MPI_Status status;
+  Communicate::Status status;
 
   if (randomSeed == -1)
     {
@@ -165,7 +162,7 @@ void Simulation::dummyRun() {
     }
 
   std::set<personid_t> population;
-  if (myRank == 0) {
+  if (Communicate::Rank == 0) {
     std::ifstream f(networkFile.data());
     if (! f.good()) {
       std::cerr << "fail to read file " << networkFile << std::endl;
@@ -189,36 +186,36 @@ void Simulation::dummyRun() {
   }
 
   uint64_t N;
-  uint64_t sizeSubpop[numProcess];
-  if (myRank == 0) {
+  uint64_t sizeSubpop[Communicate::Processes];
+  if (Communicate::Rank == 0) {
     N = population.size();
-    for (int i = 0; i < numProcess; i++) {
-      sizeSubpop[i] = N / numProcess;
+    for (int i = 0; i < Communicate::Processes; i++) {
+      sizeSubpop[i] = N / Communicate::Processes;
     }
-    sizeSubpop[0] += (N - (N / numProcess) * numProcess);
+    sizeSubpop[0] += (N - (N / Communicate::Processes) * Communicate::Processes);
   }
-  MPI_Bcast(sizeSubpop, numProcess, MPI_UINT64_T, 0, MPI_COMM_WORLD);
-  personid_t subpop[sizeSubpop[myRank]];
+
+  Communicate::broadcast(sizeSubpop, Communicate::Processes, MPI_UINT64_T, 0);
+  personid_t subpop[sizeSubpop[Communicate::Rank]];
   /*
-  std::cout << "subpop size of rank " << myRank << "=" << sizeSubpop[myRank]
+  std::cout << "subpop size of rank " << Communicate::Rank << "=" << sizeSubpop[Communicate::Rank]
 	    << std::endl;
   */
 
-  if (myRank == 0) {
+  if (Communicate::Rank == 0) {
     // divide population and send ids
     std::set<personid_t>::iterator iter = population.begin();
     personid_t *subpopTmp;
-    for (int rank = 1; rank < numProcess; rank++) {
+    for (int rank = 1; rank < Communicate::Processes; rank++) {
       subpopTmp = new personid_t[sizeSubpop[rank]];
       for (uint64_t index = 0; index < sizeSubpop[rank]; index++) {
 	subpopTmp[index] = *iter;
 	++iter;
       }
-      MPI_Send(subpopTmp, sizeSubpop[rank], MPI_UINT64_T, rank, myRank,
-	       MPI_COMM_WORLD);
+      Communicate::send(subpopTmp, sizeSubpop[rank], MPI_UINT64_T, rank, Communicate::Rank);
       delete [] subpopTmp;
     }
-    for (uint64_t index = 0; index < sizeSubpop[myRank]; index++) {
+    for (uint64_t index = 0; index < sizeSubpop[Communicate::Rank]; index++) {
       if (iter != population.end()) {
 	subpop[index] = *iter;
 	++iter;
@@ -229,12 +226,11 @@ void Simulation::dummyRun() {
     }
   }
   else {
-    MPI_Recv(subpop, sizeSubpop[myRank], MPI_UINT64_T, 0, 0,
-	     MPI_COMM_WORLD, &status);
+    Communicate::receive(subpop, sizeSubpop[Communicate::Rank], MPI_UINT64_T, 0, 0, &status);
   }
 
   int T = endTick - startTick + 1;
-  N = sizeSubpop[myRank];
+  N = sizeSubpop[Communicate::Rank];
   std::shuffle(&subpop[0], &subpop[N], Random::G);
   std::vector<DummyTransition> transitions;
   int totalInfection = 0;
@@ -261,7 +257,7 @@ void Simulation::dummyRun() {
 
   int signal = 0;
   std::ofstream out;
-  if (myRank == 0) {
+  if (Communicate::Rank == 0) {
     signal = 1;
     out.open(outputFile.data());
     if (out.good()) {
@@ -273,9 +269,9 @@ void Simulation::dummyRun() {
       }
     }
     out.close();
-    MPI_Send(&signal, 1, MPI_INT, myRank+1, myRank, MPI_COMM_WORLD);
+    Communicate::send(&signal, 1, MPI_INT, Communicate::Rank+1, Communicate::Rank);
     signal = 0;
-    MPI_Recv(&signal, 1, MPI_INT, numProcess-1, numProcess-1, MPI_COMM_WORLD,
+    Communicate::receive(&signal, 1, MPI_INT, Communicate::Processes-1, Communicate::Processes-1,
 	     &status);
     /*
     if (signal == 1) {
@@ -284,7 +280,7 @@ void Simulation::dummyRun() {
     */
   }
   else {
-    MPI_Recv(&signal, 1, MPI_INT, myRank-1, myRank-1, MPI_COMM_WORLD,
+    Communicate::receive(&signal, 1, MPI_INT, Communicate::Rank-1, Communicate::Rank-1,
 	     &status);
     out.open(outputFile.data(), std::ios_base::app);
     if (out.good()) {
@@ -295,6 +291,6 @@ void Simulation::dummyRun() {
       }
     }
     out.close();
-    MPI_Send(&signal, 1, MPI_INT, (myRank+1)%numProcess, myRank, MPI_COMM_WORLD);
+    Communicate::send(&signal, 1, MPI_INT, (Communicate::Rank+1)%Communicate::Processes, Communicate::Rank);
   }
 }

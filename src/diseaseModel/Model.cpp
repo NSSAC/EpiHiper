@@ -12,28 +12,52 @@
 
 #include <jansson.h>
 
+#include "SimConfig.h"
 #include "State.h"
 #include "Transmission.h"
 #include "Progression.h"
 #include "Model.h"
 
-Model::Model()
+// static
+Model * Model::INSTANCE(NULL);
+
+// static
+void Model::init(const std::string & modelFile)
+{
+  if (INSTANCE == NULL)
+    {
+      INSTANCE = new Model(modelFile);
+    }
+}
+
+// static
+void Model::release()
+{
+  if (INSTANCE != NULL)
+    {
+      delete INSTANCE;
+      INSTANCE = NULL;
+    }
+}
+
+
+Model::Model(const std::string & modelFile)
   : Annotation()
   , mStates()
   , mpInitialState(NULL)
   , mTransmissions()
   , mProgressions()
   , mValid(false)
-{}
+{
+  json_t * pRoot = SimConfig::loadJson(modelFile, JSON_DECODE_INT_AS_REAL);
 
-Model::Model(const Model & src)
-  : Annotation(src)
-  , mStates(src.mStates)
-  , mpInitialState(src.mpInitialState)
-  , mTransmissions(src.mTransmissions)
-  , mProgressions(src.mProgressions)
-  , mValid(src.mValid)
-{}
+  if (pRoot == NULL)
+    {
+      return;
+    }
+
+  fromJSON(pRoot );
+}
 
 // virtual
 Model::~Model()
@@ -101,7 +125,14 @@ void Model::fromJSON(const json_t * json)
   Annotation::fromJSON(json);
 }
 
-const bool & Model::isValid() const
+// static
+const State & Model::getInitialState()
 {
-  return mValid;
+  return *INSTANCE->mpInitialState;
+}
+
+// static
+const bool & Model::isValid()
+{
+  return INSTANCE->mValid;
 }

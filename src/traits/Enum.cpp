@@ -17,7 +17,7 @@
 Enum::Enum()
   : Annotation()
   , mId()
-  , mMask()
+  , mMask(0)
   , mValid(false)
 {}
 
@@ -57,12 +57,12 @@ const bool & Enum::isValid() const
   return mValid;
 }
 
-void Enum::setMask(const TraitData & mask)
+void Enum::setMask(const TraitData::base & mask)
 {
   mMask = mask;
 }
 
-const TraitData & Enum::getMask() const
+const TraitData::base & Enum::getMask() const
 {
   return mMask;
 }

@@ -70,6 +70,17 @@ const std::string & State::getId() const
   return mId;
 }
 
+const double & State::getSusceptibility() const
+{
+  return mSusceptibility;
+}
+
+const double & State::getInfectivity() const
+{
+  return mInfectivity;
+}
+
+
 const bool & State::isValid() const
 {
   return mValid;

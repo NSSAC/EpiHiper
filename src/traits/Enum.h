@@ -52,13 +52,13 @@ public:
 
   const bool & isValid() const;
 
-  void setMask(const TraitData & mask);
+  void setMask(const TraitData::base & mask);
 
-  const TraitData & getMask() const;
+  const TraitData::base & getMask() const;
 
 private:
   std::string mId;
-  TraitData mMask;
+  TraitData::base mMask;
   bool mValid;
 };
 

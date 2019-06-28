@@ -12,13 +12,14 @@
 
 #include <iostream>
 #include <cstdlib>
-#include <mpi.h>
 #include <getopt.h>
 
 #include "SimConfig.h"
 #include "Simulation.h"
 #include "traits/Trait.h"
 #include "diseaseModel/Model.h"
+#include "network/Network.h"
+#include "utilities/Communicate.h"
 
 std::string config = std::string();
 int seed = -1;
@@ -65,29 +66,32 @@ bool parseArgs(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
-  MPI_Init(&argc, &argv);
-  int myRank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
+  Communicate::init(&argc, &argv);
 
-  if (myRank == 0) {
+  if (Communicate::Rank == 0) {
     std::cout << "EpiHiper version 0.0.1 (2019.06.14)" << std::endl;
   }
 
   if (argc < 3 || ! parseArgs(argc, argv)) {
-    if (myRank == 0) {
+    if (Communicate::Rank == 0) {
       printUsage();
     }
-    MPI_Abort(MPI_COMM_WORLD,1); MPI_Finalize();
+    Communicate::abort(1);
+    Communicate::finalize();
+
     exit(EXIT_FAILURE);
   }
 
   SimConfig::init(config);
 
   if (SimConfig::isValid()) {
-    std::map< std::string, Trait > Traits = Trait::load(SimConfig::getTraits());
+    Network::init();
+    Trait::init(SimConfig::getTraits());
+    Model::init(SimConfig::getDiseaseModel());
 
-    Model DiseaseModel;
-    DiseaseModel.fromJSON(SimConfig::loadJson(SimConfig::getDiseaseModel()));
+    Network::INSTANCE->load();
+    // Network::INSTANCE->write("network.bin", true);
+    // Network::INSTANCE->write("network.txt", false);
 
     Simulation sim(seed, dbconn);
     sim.validate();
@@ -97,5 +101,9 @@ int main(int argc, char *argv[]) {
   }
 
   SimConfig::release();
-  MPI_Finalize(); return 0;
+  Model::release();
+  Network::release();
+
+  Communicate::finalize();
+  return 0;
 }

@@ -20,10 +20,11 @@
 #ifndef SRC_TRAITS_TRAIT_H_
 #define SRC_TRAITS_TRAIT_H_
 
+#include <vector>
 #include <map>
 #include <utility>
 
-#include "Feature.h"
+#include "traits/Feature.h"
 
 struct json_t;
 
@@ -31,7 +32,8 @@ class Trait: public Annotation
 {
 public:
 
-	static std::map< std::string, Trait > load(const std::string & jsonFile);
+  static std::map< std::string, Trait > INSTANCES;
+	static void init(const std::string & jsonFile);
 
 	/**
 	 * Default constructor
@@ -57,12 +59,21 @@ public:
 
 	size_t size() const;
 
-	const Feature & getFeature(const std::string & id) const;
+  const Feature & operator[](const size_t & index) const;
+
+  const Feature & operator[](const std::string & id) const;
+
+	TraitData::base getDefault() const;
+
+  bool fromString(const std::string & str, TraitData::base & data) const;
+
+  std::string toString(TraitData::base & data) const;
 
 private:
 	std::string mId;
 	size_t mBytes;
-	std::map< std::string, Feature > mFeatureMap;
+	std::vector< Feature > mFeatures;
+	std::map< std::string, Feature * > mFeatureMap;
 	bool mValid;
 };
 

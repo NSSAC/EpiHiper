@@ -18,26 +18,30 @@
  */
 
 #include <vector>
+#include <set>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <cmath>
-
+#include <string.h>
 #include <jansson.h>
 
-#include "Trait.h"
-
+#include "traits/Trait.h"
 #include "SimConfig.h"
 
 // static
-std::map< std::string, Trait > Trait::load(const std::string & jsonFile)
+std::map< std::string, Trait > Trait::INSTANCES;
+
+// static
+void Trait::init(const std::string & jsonFile)
 {
   std::map< std::string, Trait > Traits;
 
-  json_t * pRoot = SimConfig::loadJson(jsonFile);
+  json_t * pRoot = SimConfig::loadJson(jsonFile, JSON_DECODE_INT_AS_REAL);
 
   if (pRoot == NULL)
     {
-      return Traits;
+      return;
     }
 
   // Get the key "traits"
@@ -51,19 +55,20 @@ std::map< std::string, Trait > Trait::load(const std::string & jsonFile)
 
       if (Trait.isValid())
         {
-          Traits[Trait.getId()] = Trait;
+          INSTANCES[Trait.getId()] = Trait;
         }
     }
 
   json_decref(pRoot);
 
-  return Traits;
+  return;
 }
 
 Trait::Trait()
   : Annotation()
   , mId()
   , mBytes(0)
+  , mFeatures()
   , mFeatureMap()
   , mValid(false)
 {}
@@ -74,9 +79,16 @@ Trait::Trait(const Trait & src)
   : Annotation(src)
   , mId(src.mId)
   , mBytes(src.mBytes)
-  , mFeatureMap(src.mFeatureMap)
+  , mFeatures(src.mFeatures)
+  , mFeatureMap()
   , mValid(src.mValid)
-{}
+{
+  std::vector< Feature >::iterator it = mFeatures.begin();
+  std::vector< Feature >::iterator end = mFeatures.end();
+
+  for (; it != end; ++it)
+    mFeatureMap[it->getId()] = &*it;
+}
 
 void Trait::fromJSON(const json_t * json)
 {
@@ -105,7 +117,8 @@ void Trait::fromJSON(const json_t * json)
 
       if (Feature.isValid())
         {
-          mFeatureMap[Feature.getId()] = Feature;
+          mFeatures.push_back(Feature);
+          mFeatureMap[Feature.getId()] = &*mFeatures.rbegin();
 
           size_t required = Feature.bitsRequired();
           Required.push_back(required);
@@ -121,8 +134,8 @@ void Trait::fromJSON(const json_t * json)
 
   mBytes = ceil(std::max(bits/8.0, 4.0));
 
-  std::map< std::string, Feature >::iterator it = mFeatureMap.begin();
-  std::map< std::string, Feature >::iterator end = mFeatureMap.end();
+  std::vector< Feature >::iterator it = mFeatures.begin();
+  std::vector< Feature >::iterator end = mFeatures.end();
   std::vector< size_t >::const_iterator itRequired = Required.begin();
 
 
@@ -132,7 +145,7 @@ void Trait::fromJSON(const json_t * json)
        Data.setBits(start, start + *itRequired);
        start += *itRequired;
 
-       it->second.setMask(Data);
+       it->setMask(Data.to_ulong());
     }
 }
 
@@ -151,19 +164,106 @@ size_t Trait::size() const
   return mBytes;
 }
 
-const Feature & Trait::getFeature(const std::string & id) const
+const Feature & Trait::operator[](const size_t & index) const
 {
   static Feature Missing;
 
-  std::map< std::string, Feature >::const_iterator found = mFeatureMap.find(id);
-
-  if (found != mFeatureMap.end())
+  if (index < mFeatures.size())
     {
-      return found->second;
+      return mFeatures[index];
     }
 
   return Missing;
 }
+
+const Feature & Trait::operator[](const std::string & id) const
+{
+  static Feature Missing;
+
+  std::map< std::string, Feature * >::const_iterator found = mFeatureMap.find(id);
+
+  if (found != mFeatureMap.end())
+    {
+      return *found->second;
+    }
+
+  return Missing;
+}
+
+TraitData::base Trait::getDefault() const
+{
+  TraitData::base Default(0);
+
+  std::vector< Feature >::const_iterator it = mFeatures.begin();
+  std::vector< Feature >::const_iterator end = mFeatures.end();
+
+  for (; it != end; ++it)
+    {
+      Default |= it->getDefault().getMask();
+    }
+
+  return Default;
+}
+
+bool Trait::fromString(const std::string & str, TraitData::base & data) const
+{
+  bool success = true;
+  const char * ptr = str.c_str();
+
+  std::set< size_t > FeaturesFound;
+  size_t FeatureIndex;
+  size_t EnumIndex;
+  int Read;
+
+  while (1 < sscanf(ptr, "%zu:%zu%n", &FeatureIndex, &EnumIndex, &Read))
+    {
+      const Feature & F = operator[](FeatureIndex - 1);
+      const Enum & E = F[EnumIndex - 1];
+
+      if (E.isValid())
+        {
+          TraitData::setValue(data, TraitData::value(F.getMask(), E.getMask()));
+          FeaturesFound.insert(FeatureIndex);
+        }
+      else
+        {
+          success = false;
+        }
+
+      if (ptr[Read] != '|') break;
+
+      ptr += Read + 1;
+    }
+
+  success &= (FeaturesFound.size() == mFeatures.size());
+
+  return success;
+}
+
+std::string Trait::toString(TraitData::base & data) const
+{
+  std::ostringstream os;
+  std::vector< Feature >::const_iterator it = mFeatures.begin();
+  std::vector< Feature >::const_iterator end = mFeatures.end();
+  bool FirstTime = true;
+
+  for (size_t i = 1; it != end; ++it, ++i)
+    {
+      TraitData::value Value = TraitData::getValue(data, it->getMask());
+
+      size_t FirstBit = TraitData(Value.first).firstBit();
+
+      if (FirstTime)
+        FirstTime = false;
+      else
+        os << "|";
+
+      os << i << ":" << (Value.second >> FirstBit + 1);
+    }
+
+  return os.str();
+}
+
 
 
 

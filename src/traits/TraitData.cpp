@@ -12,6 +12,7 @@
 
 #include <cstring>
 #include <assert.h>
+#include <iostream>
 
 #include "TraitData.h"
 #include "Trait.h"
@@ -25,28 +26,24 @@ bool TraitData::hasValue(const TraitData::base & data, const TraitData::value & 
 // static
 void TraitData::setValue(TraitData::base & data, const TraitData::value & value)
 {
-  base Feature(value.first);
+  base F(value.first);
 
-  data &= Feature.flip();
+  data &= ~F;
   data |= value.second;
 }
 
 // static
 TraitData::value TraitData::getValue(const TraitData::base & data, const TraitData::base & feature)
 {
-  return std::make_pair(feature, data & feature);
+  return value(feature, data & feature);
 }
 
-TraitData::TraitData(unsigned long long val)
-  : std::bitset< 32 >(val)
+TraitData::TraitData(TraitData::base val)
+  : std::bitset< 32 >((unsigned long long) val)
 {}
 
 TraitData::TraitData(const TraitData & src)
   : std::bitset< 32 >(src)
-{}
-
-TraitData::TraitData(const std::bitset< 32 > & bitset)
-  : std::bitset< 32 >(bitset)
 {}
 
 TraitData::TraitData(const Trait & trait)

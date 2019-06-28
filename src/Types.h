@@ -38,7 +38,6 @@ struct transition_t {
   health_t entryState;
   health_t exitState;
   float prob;
-  // Distribution dwellTime; // TODO: class Distribution
 };
 
 #endif

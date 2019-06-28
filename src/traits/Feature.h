@@ -21,6 +21,7 @@
 #define SRC_TRAITS_FEATURE_H_
 
 #include <string>
+#include <vector>
 #include <map>
 
 #include "Enum.h"
@@ -54,17 +55,21 @@ public:
 
   size_t bitsRequired() const;
 
-  void setMask(const TraitData & mask);
+  void setMask(const TraitData::base & mask);
 
-  const TraitData & getMask() const;
+  const TraitData::base & getMask() const;
 
-  const Enum & getEnum(const std::string & ) const;
+  const Enum & operator[](const size_t & index) const;
+  const Enum & operator[](const std::string & ) const;
+
+  const Enum & getDefault() const;
 
 private:
   std::string mId;
-  std::string mDefault;
-  TraitData mMask;
-  std::map< std::string, Enum > mEnumMap;
+  Enum const * mpDefault;
+  TraitData::base mMask;
+  std::vector< Enum > mEnums;
+  std::map< std::string, Enum * > mEnumMap;
   bool mValid;
 };
 
