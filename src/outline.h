@@ -106,30 +106,6 @@ public:
 				      std::vector<Node> population);
 };
 
-class Action {
-private:
-  bool conditionsTrue;
-  std::vector<ActionCondition> conditions;
-public:
-  Action();
-  ~Action();
-  checkConditions();
-  conditionsTrue();
-};
-
-class ActionQueue {
-private:
-  std::vector<Action> actions;
-public:
-  ActionQueue();
-  ~ActionQueue();
-  void schedule(Action action);
-  // get actions scheduled for tick
-  std::vector<Action> getActions(int tick);
-  // removed actions scheduled for tick
-  void clearActions(int tick);
-};
-
 class ComputingEnvironment {
 private:
   // PE rank, master PE for global variables, etc.
