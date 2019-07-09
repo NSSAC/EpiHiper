@@ -16,6 +16,18 @@
 
 #include "Node.h"
 
+NodeData::NodeData()
+  : id(-1)
+  , pHealthState()
+  , susceptibilityFactor(1.0)
+  , susceptibility(0.0)
+  , infectivityFactor(1.0)
+  , infectivity(0.0)
+  , nodeTrait()
+  , Edges(NULL)
+  , EdgesSize(0)
+{}
+
 // static
 void Node::toBinary(std::ostream & os, const NodeData * pNode)
 {

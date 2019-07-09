@@ -26,7 +26,7 @@
 Feature::Feature()
   : Annotation()
   , mId()
-  , mpDefault(NULL)
+  , mDefaultId()
   , mMask(0)
   , mEnums()
   , mEnumMap()
@@ -37,22 +37,26 @@ Feature::Feature(const Feature & src)
   : Annotation(src)
   , mId(src.mId)
   , mMask(src.mMask)
-  , mpDefault(NULL)
+  , mDefaultId(src.mDefaultId)
   , mEnums(src.mEnums)
   , mEnumMap()
   , mValid(src.mValid)
 {
+  updateEnumMap();
+}
+
+Feature::~Feature() {}
+
+void Feature::updateEnumMap()
+{
+  mEnumMap.clear();
+
   std::vector< Enum >::iterator it = mEnums.begin();
   std::vector< Enum >::iterator end = mEnums.end();
 
   for (; it != end; ++it)
     mEnumMap[it->getId()] = &*it;
-
-  if (src.mpDefault != NULL)
-    mpDefault = mEnumMap.find(src.mpDefault->getId())->second;
 }
-
-Feature::~Feature() {}
 
 void Feature::fromJSON(const json_t * json)
 {
@@ -80,7 +84,6 @@ void Feature::fromJSON(const json_t * json)
         {
           Enum.setMask(TraitData(i).to_ulong());
           mEnums.push_back(Enum);
-          mEnumMap[Enum.getId()] = &*mEnums.rbegin();
         }
       else
         {
@@ -92,15 +95,12 @@ void Feature::fromJSON(const json_t * json)
 
   if (json_is_string(pValue))
     {
-      std::map< std::string, Enum * >::const_iterator found = mEnumMap.find(json_string_value(pValue));
-
-      if (found != mEnumMap.end())
-        {
-          mpDefault = found->second;
-        }
+      mDefaultId = json_string_value(pValue);
     }
 
-  mValid &= mpDefault != NULL;
+  updateEnumMap();
+
+  mValid &= (mEnumMap.find(json_string_value(pValue)) != mEnumMap.end());
 
   Annotation::fromJSON(json);
 }
@@ -175,7 +175,7 @@ const Enum & Feature::operator[](const std::string & id) const
 
 const Enum & Feature::getDefault() const
 {
-  return *mpDefault;
+  return operator[](mDefaultId);
 }
 
 

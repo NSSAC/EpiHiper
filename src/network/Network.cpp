@@ -387,7 +387,7 @@ void Network::load()
           break;
         }
 
-      // std::cout << pEdge->targetId << ", " << pEdge->targetActivity << ", " << pEdge->sourceId << ", " << pEdge->sourceActivity << ", " << pEdge->duration << std::endl;
+      if (pEdge->targetId < mFirstLocalNode) continue;
 
       if (FirstTime)
         {
@@ -399,6 +399,7 @@ void Network::load()
       if (pNode->id != pEdge->targetId)
         {
           pNode->EdgesSize = pEdge - pNode->Edges;
+
           ++pNode;
           *pNode = DefaultNode;
           pNode->id = pEdge->targetId;
@@ -610,7 +611,7 @@ bool Network::loadEdge(EdgeData * pEdge, std::istream & is) const
               success = false;
             }
 
-          pEdge->active = Active == '1';
+          pEdge->active = (Active == '1');
           ptr += Read;
         }
 
@@ -624,7 +625,8 @@ bool Network::loadEdge(EdgeData * pEdge, std::istream & is) const
           ptr += Read;
         }
 
-      success &= (*ptr == 0);
+      if (success)
+        success = (*ptr == 0);
     }
 
   return success;

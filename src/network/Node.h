@@ -36,6 +36,8 @@ struct NodeData {
   TraitData::base nodeTrait;
   EdgeData * Edges;
   size_t EdgesSize;
+
+  NodeData();
 };
 
 class Node

@@ -65,8 +65,10 @@ public:
   const Enum & getDefault() const;
 
 private:
+  void updateEnumMap();
+
   std::string mId;
-  Enum const * mpDefault;
+  std::string mDefaultId;
   TraitData::base mMask;
   std::vector< Enum > mEnums;
   std::map< std::string, Enum * > mEnumMap;
