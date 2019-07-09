@@ -10,6 +10,8 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#include  <algorithm>
+
 #include "Communicate.h"
 
 // static
@@ -142,16 +144,16 @@ int Communicate::sequential(int firstRank, Communicate::SequentialProcessInterfa
       (*pSequential)();
 
       signal = 1;
-      Communicate::send(&signal, 1, MPI_INT, (firstRank + 1)%Communicate::Processes, firstRank);
-      Communicate::receive(&signal, 1, MPI_INT, (firstRank - 1)%Communicate::Processes, (firstRank - 1)%Communicate::Processes, &status);
+      send(&signal, 1, MPI_INT, (firstRank + 1) % Processes, firstRank);
+      receive(&signal, 1, MPI_INT, (firstRank - 1) % Processes, (firstRank - 1) % Processes, &status);
     }
   else
     {
-      Communicate::receive(&signal, 1, MPI_INT, Communicate::Rank-1, Communicate::Rank-1,  &status);
+      receive(&signal, 1, MPI_INT, Rank-1, Rank-1,  &status);
 
       (*pSequential)();
 
-      Communicate::send(&signal, 1, MPI_INT, (Communicate::Rank+1)%Communicate::Processes, Communicate::Rank);
+      send(&signal, 1, MPI_INT, (Rank + 1) % Processes, Rank);
     }
 
   return (int) Result;
