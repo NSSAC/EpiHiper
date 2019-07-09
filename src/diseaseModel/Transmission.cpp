@@ -43,12 +43,12 @@ Transmission::Transmission(const Transmission & src)
 Transmission::~Transmission()
 {}
 
-void Transmission::fromJSON(const json_t * json, const std::map< std::string, State> & states)
+void Transmission::fromJSON(const json_t * json, const std::map< std::string, State * > & states)
 {
   mValid = true;
 
-  std::map< std::string, State>::const_iterator found;
-  std::map< std::string, State>::const_iterator notFound = states.end();
+  std::map< std::string, State * >::const_iterator found;
+  std::map< std::string, State * >::const_iterator notFound = states.end();
 
   json_t * pValue = json_object_get(json, "id");
 
@@ -65,7 +65,7 @@ void Transmission::fromJSON(const json_t * json, const std::map< std::string, St
   if (json_is_string(pValue) &&
       (found = states.find(json_string_value(pValue))) != notFound)
     {
-      mpEntryState = &found->second;
+      mpEntryState = found->second;
     }
 
   mValid &= (mpEntryState != NULL);
@@ -75,7 +75,7 @@ void Transmission::fromJSON(const json_t * json, const std::map< std::string, St
   if (json_is_string(pValue) &&
       (found = states.find(json_string_value(pValue))) != notFound)
     {
-      mpExitState = &found->second;
+      mpExitState = found->second;
     }
 
   mValid &= (mpExitState != NULL);
@@ -85,7 +85,7 @@ void Transmission::fromJSON(const json_t * json, const std::map< std::string, St
   if (json_is_string(pValue) &&
       (found = states.find(json_string_value(pValue))) != notFound)
     {
-      mpContactState = &found->second;
+      mpContactState = found->second;
     }
 
   mValid &= (mpContactState != NULL);
@@ -121,6 +121,11 @@ void Transmission::fromJSON(const json_t * json, const std::map< std::string, St
 const std::string & Transmission::getId() const
 {
   return mId;
+}
+
+const State * Transmission::getEntryState() const
+{
+  return mpEntryState;
 }
 
 const bool & Transmission::isValid() const

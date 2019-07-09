@@ -25,7 +25,7 @@
 SimConfig * SimConfig::INSTANCE(NULL);
 
 // static
-void SimConfig::init(const std::string & configFile)
+void SimConfig::load(const std::string & configFile)
 {
   if (SimConfig::INSTANCE == NULL)
     {

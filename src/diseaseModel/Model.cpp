@@ -22,7 +22,7 @@
 Model * Model::INSTANCE(NULL);
 
 // static
-void Model::init(const std::string & modelFile)
+void Model::load(const std::string & modelFile)
 {
   if (INSTANCE == NULL)
     {
@@ -44,9 +44,12 @@ void Model::release()
 Model::Model(const std::string & modelFile)
   : Annotation()
   , mStates()
+  , mId2State()
   , mpInitialState(NULL)
   , mTransmissions()
   , mProgressions()
+  , mPossibleTransmissions()
+  , mPossibleProgressions()
   , mValid(false)
 {
   json_t * pRoot = SimConfig::loadJson(modelFile, JSON_DECODE_INT_AS_REAL);
@@ -68,15 +71,16 @@ void Model::fromJSON(const json_t * json)
   mValid = true;
 
   json_t * pValue = json_object_get(json, "states");
+  mStates = new State[json_array_size(pValue)];
+  State * pState = mStates;
 
-  for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
+  for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i, ++pState)
     {
-      State State;
-      State.fromJSON(json_array_get(pValue, i));
+      pState->fromJSON(json_array_get(pValue, i));
 
-      if (State.isValid())
+      if (pState->isValid())
         {
-          mStates[State.getId()] = State;
+          mId2State[pState->getId()] = pState;
         }
       else
         {
@@ -88,11 +92,11 @@ void Model::fromJSON(const json_t * json)
 
   if (json_is_string(pValue))
     {
-      std::map< std::string, State>::const_iterator found = mStates.find(json_string_value(pValue));
+      std::map< std::string, State * >::const_iterator found = mId2State.find(json_string_value(pValue));
 
-      if (found != mStates.end())
+      if (found != mId2State.end())
         {
-          mpInitialState = &found->second;
+          mpInitialState = found->second;
         }
     }
 
@@ -106,8 +110,9 @@ void Model::fromJSON(const json_t * json)
 
   for (size_t i = 0; itTrans != endTrans; ++itTrans, ++i)
     {
-      itTrans->fromJSON(json_array_get(pValue, i), mStates);
+      itTrans->fromJSON(json_array_get(pValue, i), mId2State);
       mValid &= itTrans->isValid();
+      mPossibleTransmissions[itTrans->getEntryState()].push_back(&*itTrans);
     }
 
   pValue = json_object_get(json, "transitions");
@@ -118,8 +123,9 @@ void Model::fromJSON(const json_t * json)
 
   for (size_t i = 0; itProg != endProg; ++itProg, ++i)
     {
-      itProg->fromJSON(json_array_get(pValue, i), mStates);
+      itProg->fromJSON(json_array_get(pValue, i), mId2State);
       mValid &= itProg->isValid();
+      mPossibleProgressions[itProg->getEntryState()].push_back(&*itProg);
     }
 
   Annotation::fromJSON(json);
@@ -129,6 +135,18 @@ void Model::fromJSON(const json_t * json)
 const State & Model::getInitialState()
 {
   return *INSTANCE->mpInitialState;
+}
+
+// static
+size_t Model::stateToIndex(const State * pState)
+{
+  return pState - INSTANCE->mStates;
+}
+
+// static
+State * Model::stateFromIndex(const size_t & index)
+{
+  return INSTANCE->mStates + index;
 }
 
 // static

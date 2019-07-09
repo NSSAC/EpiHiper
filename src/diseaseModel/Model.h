@@ -47,20 +47,27 @@ private:
   virtual ~Model();
 
 public:
-  static void init(const std::string & modelFile);
+  static void load(const std::string & modelFile);
   static void release();
 
   void fromJSON(const json_t * json);
 
   static const State & getInitialState();
 
+  static size_t stateToIndex(const State * pState);
+
+  static State * stateFromIndex(const size_t & index);
+
   static const bool & isValid();
 
 private:
-  std::map< std::string, State > mStates;
+  State * mStates;
+  std::map< std::string, State * > mId2State;
   State const * mpInitialState;
   std::vector< Transmission > mTransmissions;
   std::vector< Progression > mProgressions;
+  std::map< const State *, std::vector < const Transmission * > > mPossibleTransmissions;
+  std::map< const State *, std::vector < const Progression * > > mPossibleProgressions;
   bool mValid;
 };
 

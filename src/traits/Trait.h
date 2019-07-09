@@ -33,7 +33,14 @@ class Trait: public Annotation
 public:
 
   static std::map< std::string, Trait > INSTANCES;
-	static void init(const std::string & jsonFile);
+  static Trait const * ActivityTrait;
+  static Trait const * EdgeTrait;
+  static Trait const * NodeTrait;
+
+
+  static void init();
+
+  static void load(const std::string & jsonFile);
 
 	/**
 	 * Default constructor

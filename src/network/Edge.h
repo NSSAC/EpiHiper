@@ -13,6 +13,7 @@
 #ifndef SRC_NETWORK_EDGE_H_
 #define SRC_NETWORK_EDGE_H_
 
+#include <iostream>
 #include "traits/TraitData.h"
 
 struct NodeData;
@@ -36,6 +37,12 @@ class Edge
     Edge() = delete;
     virtual ~Edge();
 
+    static bool HasEdgeTrait;
+    static bool HasActiveField;
+    static bool HasWeightField;
+
+    static void toBinary(std::ostream & os, const EdgeData * pEdge);
+    static void fromBinary(std::istream & is, EdgeData * pEdge);
     static EdgeData getDefault();
 };
 

@@ -31,9 +31,29 @@
 
 // static
 std::map< std::string, Trait > Trait::INSTANCES;
+// static
+Trait const * Trait::ActivityTrait;
 
 // static
-void Trait::init(const std::string & jsonFile)
+Trait const * Trait::EdgeTrait;
+
+// static
+Trait const * Trait::NodeTrait;
+
+// static
+void Trait::init()
+{
+  if (INSTANCES.empty())
+    {
+      Trait::ActivityTrait = &INSTANCES["activityTrait"];
+      Trait::EdgeTrait = &INSTANCES["edgeTrait"];
+      Trait::NodeTrait = &INSTANCES["nodeTrait"];
+    }
+}
+
+
+// static
+void Trait::load(const std::string & jsonFile)
 {
   std::map< std::string, Trait > Traits;
 

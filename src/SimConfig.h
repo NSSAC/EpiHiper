@@ -48,7 +48,7 @@ private:
   bool loadScenario();
 
 public:
-  static void init(const std::string & configFile);
+  static void load(const std::string & configFile);
   static void release();
 
   static bool isValid();

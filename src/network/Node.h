@@ -20,6 +20,7 @@
 #ifndef SRC_NETWORK_NODE_H_
 #define SRC_NETWORK_NODE_H_
 
+#include <iostream>
 #include "traits/TraitData.h"
 
 class State;
@@ -43,6 +44,8 @@ public:
   Node() = delete;
   virtual ~Node();
 
+  static void toBinary(std::ostream & os, const NodeData * pNode);
+  static void fromBinary(std::istream & is, NodeData * pNode);
   static NodeData getDefault();
 };
 

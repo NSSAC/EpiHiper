@@ -22,6 +22,8 @@
 #include "utilities/Random.h"
 #include "utilities/Communicate.h"
 
+std::vector<DummyTransition> transitions;
+
 // initialize according to config
 Simulation::Simulation(int seed, std::string dbconn) {
   valid = false;
@@ -232,7 +234,6 @@ void Simulation::dummyRun() {
   int T = endTick - startTick + 1;
   N = sizeSubpop[Communicate::Rank];
   std::shuffle(&subpop[0], &subpop[N], Random::G);
-  std::vector<DummyTransition> transitions;
   int totalInfection = 0;
 
   Random::uniform_int uniform;
@@ -255,42 +256,37 @@ void Simulation::dummyRun() {
     tick++;
   }
 
-  int signal = 0;
+  if (Communicate::Rank == 0)
+    {
+      std::ofstream out;
+
+      out.open(outputFile.data());
+
+      if (out.good())
+        {
+          out << "tick,pid,exit_state,contact_pid" << std::endl;
+        }
+
+      out.close();
+    }
+
+  Communicate::ClassMemberSequentialProcess< Simulation > WriteData(this, &Simulation::writedata);
+  Communicate::sequential(0, &WriteData);
+}
+
+Communicate::ErrorCode Simulation::writedata()
+{
   std::ofstream out;
-  if (Communicate::Rank == 0) {
-    signal = 1;
-    out.open(outputFile.data());
-    if (out.good()) {
-      out << "tick,pid,exit_state,contact_pid" << std::endl;
-      for (std::vector<DummyTransition>::iterator it = transitions.begin();
-	   it != transitions.end(); ++it) {
-	out << (*it).tick << "," << (*it).id << "," << (*it).exitState
-	    << "," << it->idContact << std::endl;
-      }
+  out.open(outputFile.data(), std::ios_base::app);
+
+  if (out.fail()) return Communicate::ErrorCode::FileOpenError;
+
+  for (std::vector<DummyTransition>::iterator it = transitions.begin(); it != transitions.end(); ++it)
+    {
+      out << it->tick << "," << it->id << "," << it->exitState << "," << it->idContact << std::endl;
     }
-    out.close();
-    Communicate::send(&signal, 1, MPI_INT, Communicate::Rank+1, Communicate::Rank);
-    signal = 0;
-    Communicate::receive(&signal, 1, MPI_INT, Communicate::Processes-1, Communicate::Processes-1,
-	     &status);
-    /*
-    if (signal == 1) {
-      std::cout << "complete writing output file" << std::endl;
-    }
-    */
-  }
-  else {
-    Communicate::receive(&signal, 1, MPI_INT, Communicate::Rank-1, Communicate::Rank-1,
-	     &status);
-    out.open(outputFile.data(), std::ios_base::app);
-    if (out.good()) {
-      for (std::vector<DummyTransition>::iterator it = transitions.begin();
-	   it != transitions.end(); ++it) {
-	out << (*it).tick << "," << (*it).id << "," << (*it).exitState
-	    << "," << it->idContact << std::endl;
-      }
-    }
-    out.close();
-    Communicate::send(&signal, 1, MPI_INT, (Communicate::Rank+1)%Communicate::Processes, Communicate::Rank);
-  }
+
+  out.close();
+
+  return Communicate::ErrorCode::Success;
 }

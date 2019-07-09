@@ -60,6 +60,9 @@ public:
 
   NodeData * lookupNode(const size_t & id) const;
 
+  EdgeData * lookupEdge(const size_t & targetId, const size_t & sourceId) const;
+
+
 private:
   std::string mFile;
   NodeData * mLocalNodes;
@@ -69,9 +72,6 @@ private:
   std::map< size_t, NodeData > mRemoteNodes;
   EdgeData * mEdges;
   size_t mEdgesSize;
-  bool mHasEdgeTrait;
-  bool mHasActiveField;
-  bool mHasWeightField;
   size_t mTotalNodesSize;
   size_t mTotalEdgesSize;
   size_t mSizeOfPid;
@@ -81,9 +81,6 @@ private:
   bool mValid;
 
   json_t * mpJson;
-  const Trait * mpActivityTrait;
-  const Trait * mpEdgeTrait;
-
 };
 
 #endif /* SRC_NETWORK_NETWORK_H_ */

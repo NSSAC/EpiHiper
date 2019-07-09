@@ -21,6 +21,14 @@
 #include "network/Network.h"
 #include "utilities/Communicate.h"
 
+// Uncomment the following line if you want to attache a debugger
+// #define DEBUG_WAIT 1
+
+#ifdef DEBUG_WAIT
+# include <sys/types.h>
+# include <unistd.h>
+#endif // DEBUG_WAIT
+
 std::string config = std::string();
 int seed = -1;
 std::string dbconn = std::string();
@@ -76,18 +84,27 @@ int main(int argc, char *argv[]) {
     if (Communicate::Rank == 0) {
       printUsage();
     }
-    Communicate::abort(1);
+    Communicate::abort(Communicate::ErrorCode::InvalidArguments);
     Communicate::finalize();
 
     exit(EXIT_FAILURE);
   }
 
-  SimConfig::init(config);
+#ifdef DEBUG_WAIT
+  int debugwait = (Communicate::Rank == 0);
+
+  printf("Rank: %d, PID: %d\n", Communicate::Rank, getpid());
+
+  while (debugwait) sleep(1);
+#endif
+
+  SimConfig::load(config);
 
   if (SimConfig::isValid()) {
+    Trait::init();
     Network::init();
-    Trait::init(SimConfig::getTraits());
-    Model::init(SimConfig::getDiseaseModel());
+    Trait::load(SimConfig::getTraits());
+    Model::load(SimConfig::getDiseaseModel());
 
     Network::INSTANCE->load();
     // Network::INSTANCE->write("network.bin", true);

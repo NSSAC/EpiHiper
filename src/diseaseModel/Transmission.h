@@ -30,9 +30,11 @@ public:
 
   virtual ~Transmission();
 
-  void fromJSON(const json_t * json, const std::map< std::string, State> & states);
+  void fromJSON(const json_t * json, const std::map< std::string, State * > & states);
 
   const std::string & getId() const;
+
+  const State * getEntryState() const;
 
   const bool & isValid() const;
 

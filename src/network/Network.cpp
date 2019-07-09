@@ -58,9 +58,6 @@ Network::Network(const std::string & networkFile)
   , mRemoteNodes()
   , mEdges(NULL)
   , mEdgesSize(0)
-  , mHasEdgeTrait(false)
-  , mHasActiveField(false)
-  , mHasWeightField(false)
   , mTotalNodesSize(0)
   , mTotalEdgesSize(0)
   , mSizeOfPid(0)
@@ -69,9 +66,6 @@ Network::Network(const std::string & networkFile)
   , mIsBinary(false)
   , mValid(false)
   , mpJson(NULL)
-  , mpActivityTrait(NULL)
-  , mpEdgeTrait(NULL)
-
 {
   if (mFile.empty())
     {
@@ -211,8 +205,7 @@ void Network::fromJSON(const json_t * json)
         }
     }
 
-  mpActivityTrait = &Trait::INSTANCES["activityTrait"];
-  mValid &= mpActivityTrait->isValid();
+  mValid &= Trait::ActivityTrait->isValid();
 
   pValue = json_object_get(json, "sizeofEdgeTrait");
 
@@ -233,25 +226,24 @@ void Network::fromJSON(const json_t * json)
       if (Trait.isValid())
         {
           Trait::INSTANCES[Trait.getId()] = Trait;
-          mHasEdgeTrait = (Size == 4);
+          Edge::HasEdgeTrait = (Size == 4);
         }
     }
 
-  mpEdgeTrait = &Trait::INSTANCES["edgeTrait"];
-  mValid &= Size == 0 || mpEdgeTrait->isValid();
+  mValid &= Size == 0 || Trait::EdgeTrait->isValid();
 
   pValue = json_object_get(json, "hasActiveField");
 
   if (json_is_boolean(pValue))
     {
-      mHasActiveField = json_boolean_value(pValue);
+      Edge::HasActiveField = json_boolean_value(pValue);
     }
 
   pValue = json_object_get(json, "hasWeightField");
 
   if (json_is_boolean(pValue))
     {
-      mHasWeightField = json_boolean_value(pValue);
+      Edge::HasWeightField = json_boolean_value(pValue);
     }
 
   Annotation::fromJSON(json);
@@ -459,11 +451,11 @@ void Network::write(const std::string & file, bool binary)
   os << json_dumps(mpJson, JSON_COMPACT | JSON_INDENT(0)) << std::endl;
   os << "targetPID,targetActivity,sourcePID,sourceActivity,duration";
 
-  if (mHasEdgeTrait) os << ",edgeTrait";
+  if (Edge::HasEdgeTrait) os << ",edgeTrait";
 
-  if (mHasActiveField) os << ",active";
+  if (Edge::HasActiveField) os << ",active";
 
-  if (mHasWeightField) os << ",weight";
+  if (Edge::HasWeightField) os << ",weight";
 
   os << std::endl;
 
@@ -531,37 +523,51 @@ NodeData * Network::lookupNode(const size_t & id) const
   return pCurrent;
 }
 
+EdgeData * Network::lookupEdge(const size_t & targetId, const size_t & sourceId) const
+{
+  // We only have edges for local target nodes
+  if (targetId < mFirstLocalNode || mBeyondLocalNode <= targetId) return NULL;
+
+  NodeData * pTargetNode = lookupNode(targetId);
+
+  // Handle invalid requests
+  if (pTargetNode == NULL) return NULL;
+
+  EdgeData * pLeft = pTargetNode->Edges;
+  EdgeData * pRight = pLeft + pTargetNode->EdgesSize;
+  EdgeData * pCurrent = pLeft + (pRight - pLeft)/2;
+
+  while (pCurrent->sourceId != sourceId)
+    {
+      // Handle invalid requests
+      if (pRight - pLeft < 2) return NULL;
+
+      if (pCurrent->sourceId < sourceId)
+        {
+          pLeft = pCurrent + 1;
+        }
+      else
+        {
+          pRight = pCurrent;
+        }
+
+      pCurrent = pLeft + (pRight - pLeft)/2;
+    }
+
+  return pCurrent;
+}
+
 bool Network::loadEdge(EdgeData * pEdge, std::istream & is) const
 {
   bool success = true;
 
   if (mIsBinary)
     {
-      is.read(reinterpret_cast<char *>(&pEdge->targetId), sizeof(size_t));
-      if (is.fail()) return false;
+      Edge::fromBinary(is, pEdge);
 
-      is.read(reinterpret_cast<char *>(&pEdge->targetActivity), sizeof(TraitData::base));
-      is.read(reinterpret_cast<char *>(&pEdge->sourceId), sizeof(size_t));
-      is.read(reinterpret_cast<char *>(&pEdge->sourceActivity), sizeof(TraitData::base));
-      is.read(reinterpret_cast<char *>(&pEdge->duration), sizeof(double));
-
-      if (mHasEdgeTrait)
-        {
-          is.read(reinterpret_cast<char *>(&pEdge->edgeTrait), sizeof(TraitData::base));
-        }
-
-      if (mHasActiveField)
-        {
-          is.read(reinterpret_cast<char *>(&pEdge->active), sizeof(char));
-        }
-
-      if (mHasWeightField)
-        {
-          is.read(reinterpret_cast<char *>(&pEdge->weight), sizeof(double));
-        }
-
-      success &= mFirstLocalNode == 0 ||
-          (mFirstLocalNode <= pEdge->targetId && pEdge->targetId < mBeyondLocalNode);
+      success = is.good() &&
+              (mFirstLocalNode == 0 ||
+               (mFirstLocalNode <= pEdge->targetId && pEdge->targetId < mBeyondLocalNode));
     }
   else
     {
@@ -580,22 +586,22 @@ bool Network::loadEdge(EdgeData * pEdge, std::istream & is) const
           success = false;
         }
 
-      mpActivityTrait->fromString(targetActivity, pEdge->targetActivity);
-      mpActivityTrait->fromString(sourceActivity, pEdge->sourceActivity);
+      Trait::ActivityTrait->fromString(targetActivity, pEdge->targetActivity);
+      Trait::ActivityTrait->fromString(sourceActivity, pEdge->sourceActivity);
       ptr += Read;
 
-      if (mHasEdgeTrait)
+      if (Edge::HasEdgeTrait)
         {
           if (1 != sscanf(ptr, ",%[^,]%n", edgeTrait, &Read))
             {
               success = false;
             }
 
-          mpEdgeTrait->fromString(edgeTrait, pEdge->edgeTrait);
+          Trait::EdgeTrait->fromString(edgeTrait, pEdge->edgeTrait);
           ptr += Read;
         }
 
-      if (mHasActiveField)
+      if (Edge::HasActiveField)
         {
           char Active;
 
@@ -608,7 +614,7 @@ bool Network::loadEdge(EdgeData * pEdge, std::istream & is) const
           ptr += Read;
         }
 
-      if (mHasWeightField)
+      if (Edge::HasWeightField)
         {
           if (1 != sscanf(ptr, ",%lf%n", &pEdge->weight, &Read))
             {
@@ -628,46 +634,27 @@ void Network::writeEdge(EdgeData * pEdge, std::ostream & os) const
 {
   if (mIsBinary)
     {
-      os.write(reinterpret_cast<char *>(&pEdge->targetId), sizeof(size_t));
-      os.write(reinterpret_cast<char *>(&pEdge->targetActivity), sizeof(TraitData::base));
-      os.write(reinterpret_cast<char *>(&pEdge->sourceId), sizeof(size_t));
-      os.write(reinterpret_cast<char *>(&pEdge->sourceActivity), sizeof(TraitData::base));
-      os.write(reinterpret_cast<char *>(&pEdge->duration), sizeof(double));
-
-      if (mHasEdgeTrait)
-        {
-          os.write(reinterpret_cast<char *>(&pEdge->edgeTrait), sizeof(TraitData::base));
-        }
-
-      if (mHasActiveField)
-        {
-          os.write(reinterpret_cast<char *>(&pEdge->active), sizeof(char));
-        }
-
-      if (mHasWeightField)
-        {
-          os.write(reinterpret_cast<char *>(&pEdge->weight), sizeof(double));
-        }
+      Edge::toBinary(os, pEdge);
     }
   else
     {
       os << pEdge->targetId;
-      os << "," << mpActivityTrait->toString(pEdge->targetActivity);
+      os << "," << Trait::ActivityTrait->toString(pEdge->targetActivity);
       os << "," << pEdge->sourceId;
-      os << "," << mpActivityTrait->toString(pEdge->sourceActivity);
+      os << "," << Trait::ActivityTrait->toString(pEdge->sourceActivity);
       os << "," << pEdge->duration;
 
-      if (mHasEdgeTrait)
+      if (Edge::HasEdgeTrait)
         {
-          os << "," << mpEdgeTrait->toString(pEdge->edgeTrait);
+          os << "," << Trait::EdgeTrait->toString(pEdge->edgeTrait);
         }
 
-      if (mHasActiveField)
+      if (Edge::HasActiveField)
         {
           os << "," << pEdge->active;
         }
 
-      if (mHasWeightField)
+      if (Edge::HasWeightField)
         {
           os << "," << pEdge->weight;
         }

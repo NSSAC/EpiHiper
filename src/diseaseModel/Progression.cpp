@@ -43,12 +43,12 @@ Progression::Progression(const Progression & src)
 Progression::~Progression()
 {}
 
-void Progression::fromJSON(const json_t * json, const std::map< std::string, State> & states)
+void Progression::fromJSON(const json_t * json, const std::map< std::string, State * > & states)
 {
   mValid = true;
 
-  std::map< std::string, State>::const_iterator found;
-  std::map< std::string, State>::const_iterator notFound = states.end();
+  std::map< std::string, State * >::const_iterator found;
+  std::map< std::string, State * >::const_iterator notFound = states.end();
 
   json_t * pValue = json_object_get(json, "id");
 
@@ -65,7 +65,7 @@ void Progression::fromJSON(const json_t * json, const std::map< std::string, Sta
   if (json_is_string(pValue) &&
       (found = states.find(json_string_value(pValue))) != notFound)
     {
-      mpEntryState = &found->second;
+      mpEntryState = found->second;
     }
 
   mValid &= (mpEntryState != NULL);
@@ -75,7 +75,7 @@ void Progression::fromJSON(const json_t * json, const std::map< std::string, Sta
   if (json_is_string(pValue) &&
       (found = states.find(json_string_value(pValue))) != notFound)
     {
-      mpExitState = &found->second;
+      mpExitState = found->second;
     }
 
   mValid &= (mpExitState != NULL);
@@ -120,6 +120,11 @@ void Progression::fromJSON(const json_t * json, const std::map< std::string, Sta
 const std::string & Progression::getId() const
 {
   return mId;
+}
+
+const State * Progression::getEntryState() const
+{
+  return mpEntryState;
 }
 
 const bool & Progression::isValid() const
