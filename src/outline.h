@@ -71,21 +71,6 @@ public:
   bool isLocal(pid_t id);
 };
 
-class Node {
-private:
-  pid_t id;
-  health_t currentState;
-  bool local;
-public:
-  Node(pid_t id);
-  ~Node();
-  pid_t getId();
-  health_t getCurrentState();
-  bool isLocal();
-  health_t computeInfection(DiseaseModel *disease, Network *network,
-			    Population *pop);
-};
-
 class DiseaseModel {
 private:
   // diagram

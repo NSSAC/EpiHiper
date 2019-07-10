@@ -17,6 +17,8 @@
  *      Author: shoops
  */
 
+#include <jansson.h>
+
 #include "Operation.h"
 
 OperationDefinition::OperationDefinition()
@@ -31,7 +33,12 @@ OperationDefinition::~OperationDefinition()
 
 void OperationDefinition::fromJSON(const json_t * json)
 {
-  // TODO CRITICAL Implement me!
+  json_t * pValue = json_object_get(json, "id");
+
+  if (json_is_string(pValue))
+    {
+    }
+
 }
 
 

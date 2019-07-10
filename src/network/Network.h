@@ -62,6 +62,9 @@ public:
 
   EdgeData * lookupEdge(const size_t & targetId, const size_t & sourceId) const;
 
+  NodeData * beginNode();
+
+  NodeData * endNode();
 
 private:
   std::string mFile;

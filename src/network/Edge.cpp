@@ -29,6 +29,19 @@ bool Edge::HasActiveField(false);
 // static
 bool Edge::HasWeightField(false);
 
+EdgeData::EdgeData()
+  : targetId(-1)
+  , targetActivity()
+  , sourceId(-1)
+  , sourceActivity()
+  , duration(0.0)
+  , edgeTrait()
+  , active(true)
+  , weight(1.0)
+  , pTarget(NULL)
+  , pSource(NULL)
+{}
+
 // static
 void Edge::toBinary(std::ostream & os, const EdgeData * pEdge)
 {

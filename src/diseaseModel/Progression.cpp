@@ -127,6 +127,11 @@ const State * Progression::getEntryState() const
   return mpEntryState;
 }
 
+const State * Progression::getExitState() const
+{
+  return mpExitState;
+}
+
 const bool & Progression::isValid() const
 {
   return mValid;

@@ -37,6 +37,8 @@ public:
 
   const State * getEntryState() const;
 
+  const State * getExitState() const;
+
   const bool & isValid() const;
 
 private:

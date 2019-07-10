@@ -34,7 +34,10 @@ public:
 class Action
 {
 public:
-  Action();
+  Action() = delete;
+  Action(const double & priority,
+         const Condition & condition,
+         const std::vector< Operation > & operations);
   Action(const Action & src);
   virtual ~Action();
 

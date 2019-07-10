@@ -26,23 +26,23 @@ public:
 template <class Target, class Value> class OperationInstance : public Operation
 {
 private:
-  Target * mpTarget;
+  mutable Target  mTarget;
   Value mValue;
-  bool(Target::*mMethod)(const Value &) const;
+  bool(Target::*mMethod)(Value);
 
 public:
   OperationInstance() = delete;
 
-  OperationInstance(Target * pTarget,
+  OperationInstance(Target target,
                     const Value & value,
-                    bool(Target::*method)(const Value &) const)
-    : mpTarget(pTarget)
+                    bool(Target::*method)(Value))
+    : mTarget(target)
     , mValue(value)
     , mMethod(method)
   {}
 
   OperationInstance(const OperationInstance & src)
-    : mpTarget(src.mpTarget)
+    : mTarget(src.mTarget)
     , mValue(src.mValue)
     , mMethod(src.mMethod)
   {}
@@ -51,13 +51,20 @@ public:
 
   virtual bool execute() const
   {
-   return (*mpTarget.*mMethod)(mValue);
+   return (mTarget.*mMethod)(mValue);
   }
 };
 
 class OperationDefinition
 {
 public:
+  enum struct TargetType
+  {
+    node,
+    edge,
+    variable
+  };
+
   /**
    * Default constructor
    */

@@ -36,6 +36,12 @@ public:
 
   const State * getEntryState() const;
 
+  const State * getContactState() const;
+
+  const State * getExitState() const;
+
+  const double & getTransmissibility() const;
+
   const bool & isValid() const;
 
 private:

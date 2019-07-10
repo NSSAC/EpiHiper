@@ -10,25 +10,52 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#include <jansson.h>
+
 #include "Condition.h"
 
-Condition::Condition()
+Boolean::Boolean()
+{}
+
+Boolean::Boolean(const Boolean & src)
+{}
+
+// virtual
+Boolean::~Boolean()
+{}
+
+Condition::Condition(const Boolean & boolean)
+  : Boolean(boolean)
+  , mpBoolean(boolean.copy())
 {}
 
 Condition::Condition(const Condition & src)
+  : Boolean(src)
+  , mpBoolean(src.mpBoolean->copy())
 {}
 
 // virtual
 Condition::~Condition()
-{}
+{
+  delete mpBoolean;
+}
+
+// virtual
+Boolean * Condition::copy() const
+{
+  return new Condition(*this);
+}
 
 void Condition::fromJSON(const json_t * json)
 {
-  // TODO CRITICAL Implement me!
+  json_t * pValue = json_object_get(json, "id");
+
+  if (json_is_string(pValue))
+    {
+    }
 }
 
 bool Condition::isTrue() const
 {
-  // TODO CRITICAL Implement me!
-  return false;
+  return mpBoolean->isTrue();
 }

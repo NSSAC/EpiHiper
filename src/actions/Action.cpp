@@ -19,10 +19,12 @@
 
 #include "Action.h"
 
-Action::Action()
-  : mPriority(1.0)
-  , mCondition()
-  , mOperations()
+Action::Action(const double & priority,
+               const Condition & condition,
+               const std::vector< Operation > & operations)
+  : mPriority(priority)
+  , mCondition(condition)
+  , mOperations(operations)
 {}
 
 Action::Action(const Action & src)

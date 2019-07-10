@@ -13,10 +13,18 @@
 #include <jansson.h>
 
 #include "SimConfig.h"
-#include "State.h"
-#include "Transmission.h"
-#include "Progression.h"
-#include "Model.h"
+#include "diseaseModel/State.h"
+#include "diseaseModel/Transmission.h"
+#include "diseaseModel/Progression.h"
+#include "diseaseModel/Model.h"
+
+#include "network/Network.h"
+#include "network/Node.h"
+#include "network/Edge.h"
+
+#include "utilities/Random.h"
+
+#include "actions/ActionQueue.h"
 
 // static
 Model * Model::INSTANCE(NULL);
@@ -112,7 +120,7 @@ void Model::fromJSON(const json_t * json)
     {
       itTrans->fromJSON(json_array_get(pValue, i), mId2State);
       mValid &= itTrans->isValid();
-      mPossibleTransmissions[itTrans->getEntryState()].push_back(&*itTrans);
+      mPossibleTransmissions[itTrans->getEntryState()][itTrans->getContactState()] = &*itTrans;
     }
 
   pValue = json_object_get(json, "transitions");
@@ -125,7 +133,7 @@ void Model::fromJSON(const json_t * json)
     {
       itProg->fromJSON(json_array_get(pValue, i), mId2State);
       mValid &= itProg->isValid();
-      mPossibleProgressions[itProg->getEntryState()].push_back(&*itProg);
+      mPossibleProgressions[itTrans->getEntryState()].push_back(&*itProg);
     }
 
   Annotation::fromJSON(json);
@@ -138,15 +146,15 @@ const State & Model::getInitialState()
 }
 
 // static
-size_t Model::stateToIndex(const State * pState)
+Model::state_t Model::stateToType(const State * pState)
 {
   return pState - INSTANCE->mStates;
 }
 
 // static
-State * Model::stateFromIndex(const size_t & index)
+State * Model::stateFromType(const Model::state_t & type)
 {
-  return INSTANCE->mStates + index;
+  return INSTANCE->mStates + type;
 }
 
 // static
@@ -154,3 +162,75 @@ const bool & Model::isValid()
 {
   return INSTANCE->mValid;
 }
+
+bool Model::processTransmissions() const
+{
+  bool success = true;
+
+  Random::uniform_real Uniform01(0.0, 1.0);
+
+  NodeData * pNode = Network::INSTANCE->beginNode();
+  NodeData * pNodeEnd = Network::INSTANCE->endNode();
+
+  std::map< const State *, std::map< const State *,  const Transmission * > >::const_iterator EntryStateFound;
+  std::map< const State *, std::map< const State *,  const Transmission * > >::const_iterator EntryStateNotFound = mPossibleTransmissions.end();
+
+  for (; pNode  != pNodeEnd; ++pNode)
+    if (pNode->susceptibility > 0.0 &&
+        (EntryStateFound = mPossibleTransmissions.find(pNode->pHealthState)) != EntryStateNotFound)
+      {
+        EdgeData * pEdge = pNode->Edges;
+        EdgeData * pEdgeEnd = pNode->Edges + pNode->EdgesSize;
+
+        std::map< const State *,  const Transmission * >::const_iterator ContactStateFound;
+        std::map< const State *,  const Transmission * >::const_iterator ContactStateNotFound = EntryStateFound->second.end();
+
+        struct Candidate { const NodeData * pContact; const Transmission * pTransmission; double Propensity; };
+        std::vector< Candidate > Candidates;
+        double A0 = 0.0;
+
+        for (; pEdge != pEdgeEnd; ++pEdge)
+          if (pEdge->active &&
+              pEdge->pSource->infectivity > 0.0 &&
+              (ContactStateFound = EntryStateFound->second.find(pEdge->pSource->pHealthState)) != ContactStateNotFound)
+            {
+              // ρ(P, P', Τi,j,k) = (| contactTime(P, P') ∩ [tn, tn + Δtn] |) × contactWeight(P, P') × σ(P, Χi) × ι(P',Χk) × ω(Τi,j,k)
+              Candidate Candidate;
+              Candidate.pContact = pEdge->pSource;
+              Candidate.pTransmission = ContactStateFound->second;
+              Candidate.Propensity = pEdge->duration * pEdge->weight * pNode->susceptibility
+                  * Candidate.pContact->infectivity * Candidate.pTransmission->getTransmissibility();
+
+              if (Candidate.Propensity > 0.0)
+                {
+                  A0 += Candidate.Propensity;
+                  Candidates.push_back(Candidate);
+                }
+            }
+
+        if (-log(Uniform01(Random::G)) < A0)
+          {
+            double alpha = Uniform01(Random::G) * A0;
+
+            std::vector< Candidate >::const_iterator itCandidate = Candidates.begin();
+            std::vector< Candidate >::const_iterator endCandidate = Candidates.end();
+
+            for (; itCandidate != endCandidate && alpha > 0.0; ++itCandidate)
+              {
+                alpha -= itCandidate->Propensity;
+              }
+
+            const Candidate & Candidate = (itCandidate != endCandidate) ? *itCandidate : *Candidates.rbegin();
+
+            Condition::Comparison< const State * > CheckState(Condition::ComparisonType::Equal, &pNode->pHealthState, pNode->pHealthState);
+
+            std::vector< Operation > Operations;
+            Operations.push_back(OperationInstance<Node, const State *>(Node(pNode), Candidate.pTransmission->getExitState(), &Node::set));
+
+            ActionQueue::addAction(0, Action(1.0, CheckState, Operations));
+          }
+      }
+
+  return success;
+}
+

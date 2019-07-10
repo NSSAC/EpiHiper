@@ -471,6 +471,16 @@ void Network::write(const std::string & file, bool binary)
   os.close();
 }
 
+NodeData * Network::beginNode()
+{
+  return mLocalNodes;
+}
+
+NodeData * Network::endNode()
+{
+  return mLocalNodes + mLocalNodesSize;
+}
+
 NodeData * Network::lookupNode(const size_t & id) const
 {
   static double stretch = 0.0;

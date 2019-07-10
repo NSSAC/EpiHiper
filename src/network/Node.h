@@ -44,11 +44,18 @@ class Node
 {
 public:
   Node() = delete;
+  Node(NodeData * pData);
+  Node(const Node & src);
   virtual ~Node();
 
   static void toBinary(std::ostream & os, const NodeData * pNode);
   static void fromBinary(std::istream & is, NodeData * pNode);
   static NodeData getDefault();
+
+  bool set(const State * pState);
+
+private:
+  NodeData * mpData;
 };
 
 #endif /* SRC_NETWORK_NODE_H_ */

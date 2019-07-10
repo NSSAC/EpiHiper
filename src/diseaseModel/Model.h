@@ -47,6 +47,8 @@ private:
   virtual ~Model();
 
 public:
+  typedef size_t state_t;
+
   static void load(const std::string & modelFile);
   static void release();
 
@@ -54,11 +56,13 @@ public:
 
   static const State & getInitialState();
 
-  static size_t stateToIndex(const State * pState);
+  static state_t stateToType(const State * pState);
 
-  static State * stateFromIndex(const size_t & index);
+  static State * stateFromType(const state_t & type);
 
   static const bool & isValid();
+
+  bool processTransmissions() const;
 
 private:
   State * mStates;
@@ -66,8 +70,8 @@ private:
   State const * mpInitialState;
   std::vector< Transmission > mTransmissions;
   std::vector< Progression > mProgressions;
-  std::map< const State *, std::vector < const Transmission * > > mPossibleTransmissions;
-  std::map< const State *, std::vector < const Progression * > > mPossibleProgressions;
+  std::map< const State *, std::map< const State *,  const Transmission * > > mPossibleTransmissions;
+  std::map< const State *, std::vector< const Progression * > > mPossibleProgressions;
   bool mValid;
 };
 

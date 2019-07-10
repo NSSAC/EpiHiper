@@ -29,6 +29,8 @@ struct EdgeData {
   double weight;
   NodeData * pTarget;
   NodeData * pSource;
+
+  EdgeData();
 };
 
 class Edge

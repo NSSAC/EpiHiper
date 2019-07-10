@@ -128,6 +128,21 @@ const State * Transmission::getEntryState() const
   return mpEntryState;
 }
 
+const State * Transmission::getContactState() const
+{
+  return mpContactState;
+}
+
+const State * Transmission::getExitState() const
+{
+  return mpExitState;
+}
+
+const double & Transmission::getTransmissibility() const
+{
+  return mTransmissibility;
+}
+
 const bool & Transmission::isValid() const
 {
   return mValid;
