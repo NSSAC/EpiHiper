@@ -24,6 +24,10 @@
 #include "traits/TraitData.h"
 
 class State;
+class Transmission;
+class Progression;
+class Metadata;
+
 struct EdgeData;
 
 struct NodeData {
@@ -46,13 +50,20 @@ public:
   Node() = delete;
   Node(NodeData * pData);
   Node(const Node & src);
+
   virtual ~Node();
+
+  const NodeData * getData() const;
+  void toBinary(std::ostream & os) const;
+  void fromBinary(std::istream & is);
 
   static void toBinary(std::ostream & os, const NodeData * pNode);
   static void fromBinary(std::istream & is, NodeData * pNode);
   static NodeData getDefault();
 
-  bool set(const State * pState);
+  bool set(const Transmission * pTransmission, const Metadata & metadata);
+
+  bool set(const Progression * pProgression, const Metadata & metadata);
 
 private:
   NodeData * mpData;

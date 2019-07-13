@@ -30,6 +30,7 @@ public:
 
 #include <actions/Condition.h>
 #include <actions/Operation.h>
+#include <utilities/Metadata.h>
 
 class Action
 {
@@ -37,18 +38,24 @@ public:
   Action() = delete;
   Action(const double & priority,
          const Condition & condition,
-         const std::vector< Operation > & operations);
+         const Metadata & metadata = Metadata());
   Action(const Action & src);
   virtual ~Action();
 
   double getPriority() const;
   const Condition & getCondition() const;
-  const std::vector< Operation > & getOperations() const;
+  const std::vector< Operation * > & getOperations() const;
+  void addOperation(const Operation & operation);
+  const Metadata & getMetadata() const;
+
+  void toBinary(std::ostream & os) const;
+  bool fromBinary(std::istream & is);
 
 private:
   double mPriority;
   Condition mCondition;
-  std::vector< Operation > mOperations;
+  std::vector< Operation * > mOperations;
+  Metadata mMetadata;
 };
 
 class ActionDefinition

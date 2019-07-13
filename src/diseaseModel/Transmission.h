@@ -44,6 +44,10 @@ public:
 
   const bool & isValid() const;
 
+  void updateSusceptibilityFactor(double & factor) const;
+
+  void updateInfectivityFactor(double & factor) const;
+
 private:
   std::string mId;
   const State * mpEntryState;

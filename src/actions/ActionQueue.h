@@ -13,21 +13,8 @@
 #ifndef SRC_ACTIONS_ACTIONQUEUE_H_
 #define SRC_ACTIONS_ACTIONQUEUE_H_
 
-/*
- class ActionQueue {
-private:
-  std::vector<Action> actions;
-public:
-  ActionQueue();
-  ~ActionQueue();
-  void schedule(Action action);
-  // get actions scheduled for tick
-  std::vector<Action> getActions(int tick);
-  // removed actions scheduled for tick
-  void clearActions(int tick);
-};
- */
-#include <actions/CurrentActions.h>
+#include "actions/CurrentActions.h"
+#include "utilities/Communicate.h"
 
 class ActionQueue: public std::map< size_t, CurrentActions >
 {
@@ -42,10 +29,18 @@ class ActionQueue: public std::map< size_t, CurrentActions >
 
     static void incrementTick();
 
+    static size_t pendingActions();
+
   private:
     ActionQueue();
+
+    int broadcastRemoteActions();
+
+    Communicate::ErrorCode receiveActions(std::istream & is, int sender);
+
     static ActionQueue INSTANCE;
     size_t mCurrenTick;
+    size_t mTotalPendingActions;
 };
 
 #endif /* SRC_ACTIONS_ACTIONQUEUE_H_ */

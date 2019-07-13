@@ -132,6 +132,26 @@ const State * Progression::getExitState() const
   return mpExitState;
 }
 
+const double & Progression::getPropability() const
+{
+  return mProbability;
+}
+
+unsigned int Progression::getDwellTime() const
+{
+  return mDwellTime.sample();
+}
+
+void Progression::updateSusceptibilityFactor(double & factor) const
+{
+  mSusceptibilityFactorOperation.apply(factor);
+}
+
+void Progression::updateInfectivityFactor(double & factor) const
+{
+  mInfectivityFactorOperation.apply(factor);
+}
+
 const bool & Progression::isValid() const
 {
   return mValid;

@@ -63,3 +63,26 @@ const bool & FactorOperation::isValid() const
 {
   return mValid;
 }
+
+void FactorOperation::apply(double & value) const
+{
+  switch (mType)
+  {
+    case Type::assign:
+      value = mValue;
+      break;
+
+    case Type::multiply:
+      value *= mValue;
+      break;
+
+    case Type::divide:
+      value /= mValue;
+      break;
+
+    case Type::__NONE:
+      break;
+  }
+}
+
+

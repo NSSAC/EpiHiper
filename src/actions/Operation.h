@@ -13,6 +13,10 @@
 #ifndef SRC_ACTIONS_OPERATION_H_
 #define SRC_ACTIONS_OPERATION_H_
 
+#include "actions/Changes.h"
+
+class Metadata;
+
 struct json_t;
 
 class Operation
@@ -20,7 +24,8 @@ class Operation
 public:
   virtual ~Operation() {};
 
-  virtual bool execute() const {return false;}
+  virtual bool execute(const Metadata & metadata) const = 0;
+  virtual Operation * copy() const = 0;
 };
 
 template <class Target, class Value> class OperationInstance : public Operation
@@ -28,14 +33,14 @@ template <class Target, class Value> class OperationInstance : public Operation
 private:
   mutable Target  mTarget;
   Value mValue;
-  bool(Target::*mMethod)(Value);
+  bool(Target::*mMethod)(Value, const Metadata & metadata);
 
 public:
   OperationInstance() = delete;
 
   OperationInstance(Target target,
                     const Value & value,
-                    bool(Target::*method)(Value))
+                    bool(Target::*method)(Value, const Metadata & metadata))
     : mTarget(target)
     , mValue(value)
     , mMethod(method)
@@ -49,9 +54,21 @@ public:
 
   virtual ~OperationInstance() {};
 
-  virtual bool execute() const
+  virtual bool execute(const Metadata & metadata) const
   {
-   return (mTarget.*mMethod)(mValue);
+    bool changed = (mTarget.*mMethod)(mValue, metadata);
+
+    if (changed)
+      {
+        Changes::record(mTarget, metadata);
+      }
+
+    return changed;
+  }
+
+  virtual Operation * copy() const
+  {
+    return new OperationInstance<Target, Value>(*this);
   }
 };
 
@@ -83,13 +100,13 @@ public:
 
   void fromJSON(const json_t * json);
 
-  template < class Target > Operation createOperation(Target * pTarget) const;
+  template < class Target > Operation * createOperation(Target * pTarget) const;
 };
 
-template < class Target > Operation OperationDefinition::createOperation(Target * pTarget) const
+template < class Target > Operation * OperationDefinition::createOperation(Target * pTarget) const
 {
   // TODO CRITICAL Implement me!
-  return Operation();
+  return NULL;
 }
 
 #endif /* SRC_ACTIONS_OPERATION_H_ */

@@ -57,6 +57,8 @@ public:
 
   void addAction(const Action & action);
 
+  size_t size() const;
+
   iterator begin();
   iterator end();
 

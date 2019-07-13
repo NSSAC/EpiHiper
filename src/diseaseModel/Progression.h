@@ -39,6 +39,14 @@ public:
 
   const State * getExitState() const;
 
+  const double & getPropability() const;
+
+  unsigned int getDwellTime() const;
+
+  void updateSusceptibilityFactor(double & factor) const;
+
+  void updateInfectivityFactor(double & factor) const;
+
   const bool & isValid() const;
 
 private:

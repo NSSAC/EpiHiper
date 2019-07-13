@@ -21,21 +21,39 @@
 
 Action::Action(const double & priority,
                const Condition & condition,
-               const std::vector< Operation > & operations)
+               const Metadata & metadata)
   : mPriority(priority)
   , mCondition(condition)
-  , mOperations(operations)
+  , mOperations()
+  , mMetadata(metadata)
 {}
 
 Action::Action(const Action & src)
   : mPriority(src.mPriority)
   , mCondition(src.mCondition)
-  , mOperations(src.mOperations)
-{}
+  , mOperations(src.mOperations.size())
+  , mMetadata(src.mMetadata)
+{
+  std::vector< Operation * >::const_iterator itSrc = src.mOperations.begin();
+  std::vector< Operation * >::iterator it = mOperations.begin();
+  std::vector< Operation * >::iterator end = mOperations.end();
+
+  for (; it != end; ++it, ++itSrc)
+    {
+      *it = (*itSrc)->copy();
+    }
+}
 
 // virtual
 Action::~Action()
-{}
+{
+  std::vector< Operation * >::iterator it = mOperations.begin();
+  std::vector< Operation * >::iterator end = mOperations.end();
+
+  for (; it != end; ++it)
+    if (*it != NULL)
+      delete *it;
+}
 
 double Action::getPriority() const
 {
@@ -47,10 +65,37 @@ const Condition & Action::getCondition() const
   return mCondition;
 }
 
-const std::vector< Operation > & Action::getOperations() const
+const std::vector< Operation * > & Action::getOperations() const
 {
   return mOperations;
 }
+
+void Action::addOperation(const Operation & operation)
+{
+  // TODO CRITICAL We need to deal with operations on remote objects.
+
+  mOperations.push_back(operation.copy());
+}
+
+const Metadata & Action::getMetadata() const
+{
+  return mMetadata;
+}
+
+void Action::toBinary(std::ostream & os) const
+{
+  //TODO CRITICAL Implement me!
+}
+
+bool Action::fromBinary(std::istream & is)
+{
+  bool success = true;
+
+  //TODO CRITICAL Implement me!
+
+  return success;
+}
+
 
 ActionDefinition::ActionDefinition()
 {}

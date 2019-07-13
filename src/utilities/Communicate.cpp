@@ -10,9 +10,11 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include  <algorithm>
+#include <algorithm>
+#include <unistd.h>
 
 #include "Communicate.h"
+#include "StreamBuffer.h"
 
 // static
 int Communicate::Rank(-1);
@@ -43,7 +45,7 @@ void Communicate::resizeReceiveBuffer(int size)
     }
 
   // Assure we have a valid buffer
-  ReceiveSize = std::min(1024, size);
+  ReceiveSize = std::max(1024, size);
 
   try {
       ReceiveBuffer = new char[ReceiveSize];
@@ -105,27 +107,44 @@ int Communicate::broadcast(void *buffer,
 }
 
 // static
-int Communicate::broadcast(void *buffer,
+int Communicate::broadcast(const void *buffer,
                            int count,
                            Communicate::ReceiveInterface * pReceive)
 {
   ErrorCode Result = ErrorCode::Success;
-  int rCount = -1;
+
+  int Count = -1;
 
   for (int sender = 0; sender < Processes && Result == ErrorCode::Success; ++sender)
     {
       if (sender != Rank)
         {
-          broadcast(&rCount, 1, MPI_INT, sender);
-          resizeReceiveBuffer(rCount);
+          broadcast(&Count, 1, MPI_INT, sender);
 
-          broadcast(ReceiveBuffer, rCount, MPI_CHAR, sender);
-          Result = (*pReceive)(ReceiveBuffer, rCount, sender);
+          if (Count > 0)
+            {
+              resizeReceiveBuffer(Count);
+              // std::cout << Rank << ", " << sender << ": Communicate::broadcast (receive: " << Count << ")"<< std::endl;
+              broadcast(ReceiveBuffer, Count, MPI_CHAR, sender);
+            }
+
+          StreamBuffer Buffer(ReceiveBuffer, Count);
+          std::istream is(&Buffer);
+
+          Result = (*pReceive)(is, sender);
         }
       else
         {
-          broadcast(&count, 1, MPI_INT, Rank);
-          broadcast(buffer, count, MPI_CHAR, Rank);
+          Count = count;
+          broadcast(&Count, 1, MPI_INT, sender);
+
+          if (Count > 0)
+            {
+              resizeReceiveBuffer(Count);
+              memcpy(ReceiveBuffer, buffer, Count * sizeof(char));
+              // std::cout << Rank << ", " << sender << ": Communicate::broadcast (send: " << Count << ")" << std::endl;
+              broadcast(ReceiveBuffer, Count, MPI_CHAR, sender);
+            }
         }
     }
 
@@ -171,10 +190,10 @@ Communicate::Receive::Receive(Communicate::Receive::Type method)
 Communicate::Receive::~Receive() {}
 
 // virtual
-Communicate::ErrorCode Communicate::Receive::operator()(void * rBuffer, int rCount, int sender)
+Communicate::ErrorCode Communicate::Receive::operator()(std::istream & is, int sender)
 {
   // execute member function
-  return (*mMethod)(rBuffer, rCount, sender);
+  return (*mMethod)(is, sender);
 }
 
 Communicate::SequentialProcess::SequentialProcess(Communicate::SequentialProcess::Type method)

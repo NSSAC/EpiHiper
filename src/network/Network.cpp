@@ -20,11 +20,15 @@
 #include "traits/Trait.h"
 #include "SimConfig.h"
 
-#include "Network.h"
+#include "network/Network.h"
+#include "network/Node.h"
+#include "network/Edge.h"
 
-#include "../utilities/Communicate.h"
-#include "Node.h"
-#include "Edge.h"
+#include "utilities/Communicate.h"
+#include "utilities/StreamBuffer.h"
+
+#include "actions/ActionQueue.h"
+#include "actions/Changes.h"
 
 // static
 Network * Network::INSTANCE(NULL);
@@ -65,6 +69,7 @@ Network::Network(const std::string & networkFile)
   , mTimeResolution(0)
   , mIsBinary(false)
   , mValid(false)
+  , mTotalPendingActions(0)
   , mpJson(NULL)
 {
   if (mFile.empty())
@@ -334,6 +339,7 @@ void Network::partition(std::istream & is)
   mEdgesSize = *pMine++;
   mBeyondLocalNode = *pMine;
 
+  // std::cout << Communicate::Rank << ": " << mFirstLocalNode << ", " << mBeyondLocalNode << ", " << mLocalNodesSize << ", " << mEdgesSize << std::endl;
   mLocalNodes = new NodeData[mLocalNodesSize];
   mEdges = new EdgeData[mEdgesSize];
 }
@@ -374,12 +380,13 @@ void Network::load()
   EdgeData * pEdge = mEdges;
   EdgeData * pEdgeEnd = pEdge + mEdgesSize;
   EdgeData DefaultEdge = Edge::getDefault();
-  *pEdge = DefaultEdge;
 
   bool FirstTime = true;
 
-  while (is.good() && pNode < pNodeEnd)
+  while (is.good() && pNode < pNodeEnd && pEdge < pEdgeEnd)
     {
+      *pEdge = DefaultEdge;
+
       if (!loadEdge(pEdge, is))
         {
           std::cerr << "Network file: '" << mFile << "' invalid edge (" << pEdge - mEdges << ")." << std::endl;
@@ -401,9 +408,13 @@ void Network::load()
           pNode->EdgesSize = pEdge - pNode->Edges;
 
           ++pNode;
-          *pNode = DefaultNode;
-          pNode->id = pEdge->targetId;
-          pNode->Edges = pEdge;
+
+          if (pNode < pNodeEnd)
+            {
+              *pNode = DefaultNode;
+              pNode->id = pEdge->targetId;
+              pNode->Edges = pEdge;
+            }
         }
 
       pEdge->pTarget = pNode;
@@ -417,22 +428,24 @@ void Network::load()
         }
 
       ++pEdge;
-
-      if (pEdge == pEdgeEnd) break;
-
-      *pEdge = DefaultEdge;
     }
+
+  pNode->EdgesSize = pEdge - pNode->Edges;
 
   is.close();
 
   if (mValid)
     {
-      pNode->EdgesSize = pEdge - pNode->Edges;
-
       for (pEdge = mEdges; pEdge != pEdgeEnd; ++pEdge)
         if (pEdge->pSource == NULL)
           {
             pEdge->pSource = lookupNode(pEdge->sourceId);
+
+            if (pEdge->pSource== NULL)
+              {
+                std::cerr << "Network file: '" << mFile << "' " "Source not found " << pEdge << ", " << pEdge->targetId << ", " << pEdge->sourceId << std::endl;
+                mValid = false;
+              }
           }
     }
 }
@@ -509,15 +522,21 @@ NodeData * Network::lookupNode(const size_t & id) const
   while (pCurrent->id != id)
     {
       // Handle invalid requests
-      if (pRight - pLeft < 2) return NULL;
+      if (pRight - pLeft < 2)
+        {
+          if (pLeft->id == id) return pLeft;
+          if (pRight->id == id) return pRight;
+
+          return NULL;
+        }
 
       if (pCurrent->id < id)
         {
-          pLeft = pCurrent;
+          pLeft = pCurrent + 1;
           pCurrent = pLeft + (id - pLeft->id);
 
-          // Assure that the interval shrinks
-          if(pRight <= pCurrent)
+          // Fall back to binary search
+          if(pRight < pCurrent)
             pCurrent = pLeft + (pRight - pLeft)/2;
         }
       else
@@ -525,8 +544,8 @@ NodeData * Network::lookupNode(const size_t & id) const
           pRight = pCurrent;
           pCurrent = pRight - (pRight->id - id);
 
-          // Assure that the interval shrinks
-          if(pCurrent <= pLeft)
+          // Fall back to binary search
+          if(pCurrent < pLeft)
             pCurrent = pLeft + (pRight - pLeft)/2;
         }
     }
@@ -680,4 +699,82 @@ const bool & Network::isValid() const
 {
   return mValid;
 }
+
+int Network::broadcastChanges()
+{
+  std::string Buffer = Changes::getNodes().str();
+
+  // std::cout << Communicate::Rank << ": ActionQueue::broadcastChanges (Nodes)" << std::endl;
+  Communicate::ClassMemberReceive< Network > ReceiveNode(Network::INSTANCE, &Network::receiveNodes);
+  Communicate::broadcast(Buffer.c_str(), Buffer.length(), &ReceiveNode);
+
+  Buffer = Changes::getEdges().str();
+
+  // std::cout << Communicate::Rank << ": ActionQueue::broadcastChanges (Edges)" << std::endl;
+  Communicate::ClassMemberReceive< Network > ReceiveEdge(Network::INSTANCE, &Network::receiveEdges);
+  Communicate::broadcast(Buffer.c_str(), Buffer.length(), &ReceiveEdge);
+
+  Changes::clear();
+
+  return (int) Communicate::ErrorCode::Success;
+}
+
+Communicate::ErrorCode Network::receiveNodes(std::istream & is, int sender)
+{
+  while (true)
+    {
+      NodeData Node;
+      Node::fromBinary(is, &Node);
+
+      if (is.fail())
+        {
+          break;
+        }
+
+      NodeData * pNode = lookupNode(Node.id);
+
+      if (pNode != NULL)
+        {
+          pNode->pHealthState = Node.pHealthState;
+          pNode->susceptibilityFactor = Node.susceptibilityFactor;
+          pNode->susceptibility = Node.susceptibility;
+          pNode->infectivityFactor = Node.infectivityFactor;
+          pNode->infectivity = Node.infectivity;
+          pNode->nodeTrait = Node.nodeTrait;
+        }
+    }
+
+
+  return Communicate::ErrorCode::Success;
+}
+
+Communicate::ErrorCode Network::receiveEdges(std::istream & is, int sender)
+{
+  while (true)
+    {
+      EdgeData Edge;
+      Edge::fromBinary(is, &Edge);
+
+      if (is.fail())
+        {
+          break;
+        }
+
+      EdgeData * pEdge = lookupEdge(Edge.targetId, Edge.sourceId);
+
+      if (pEdge != NULL)
+        {
+          pEdge->targetActivity = Edge.targetActivity;
+          pEdge->sourceActivity = Edge.sourceActivity;
+          pEdge->duration = Edge.duration;
+          pEdge->edgeTrait = Edge.edgeTrait;
+          pEdge->active = Edge.active;
+          pEdge->weight = Edge.weight;
+        }
+    }
+
+  return Communicate::ErrorCode::Success;
+}
+
+
 

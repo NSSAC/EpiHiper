@@ -21,6 +21,11 @@
 #include "SimConfig.h"
 #include "utilities/Random.h"
 #include "utilities/Communicate.h"
+#include "actions/ActionQueue.h"
+#include "network/Network.h"
+#include "network/Node.h"
+#include "network/Edge.h"
+#include "diseaseModel/Model.h"
 
 std::vector<DummyTransition> transitions;
 
@@ -151,12 +156,63 @@ Simulation::execute(Action action) {
 
 */
 
+void Simulation::test()
+{
+  if (randomSeed == -1)
+    {
+      Random::randomSeed();
+    }
+  else
+    {
+      Random::seed(randomSeed);
+    }
+
+  /**
+   * We just randomly pick nodes to be infective
+   */
+  NodeData * pNodes = Network::INSTANCE->beginNode();
+  int NumberOfNodes = Network::INSTANCE->endNode() - pNodes - 1;
+  Random::uniform_int uniform(0, NumberOfNodes);
+
+  const Transmission & Symptomatic = *Model::getTransmissions().begin();
+
+  ActionQueue::setCurrentTick(startTick - 1);
+  Changes::setCurrentTick(startTick - 1);
+  Changes::initDefaultOutput();
+
+  size_t perNode = std::round(100.0/Communicate::Processes);
+
+  for (size_t i = 0; i < 100; ++i)
+    {
+      NodeData * pNode = pNodes + uniform(Random::G);
+
+      bool sussess = Node(pNode).set(&Symptomatic, Metadata());
+    }
+
+  ActionQueue::processCurrentActions();
+  Changes::writeDefaultOutput();
+  Network::INSTANCE->broadcastChanges();
+  ActionQueue::incrementTick();
+  Changes::incrementTick();
+
+  for (int tick = startTick; tick < endTick; ++tick)
+    {
+      Model::processTransmissions();
+      ActionQueue::processCurrentActions();
+      Changes::writeDefaultOutput();
+      Network::INSTANCE->broadcastChanges();
+      ActionQueue::incrementTick();
+      Changes::incrementTick();
+    }
+}
+
 void Simulation::dummyRun() {
   Communicate::Status status;
 
   if (randomSeed == -1)
     {
       Random::randomSeed();
+
     }
   else
     {

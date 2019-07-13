@@ -14,6 +14,7 @@
 #define SRC_COMMUNICATE_H_
 
 #include <mpi.h>
+#include <iostream>
 
 class Communicate
 {
@@ -29,11 +30,11 @@ public:
   class ReceiveInterface
   {
   public:
-    typedef ErrorCode (*Type)(void * /* rBuffer */ , int /* rCount */ , int /* sender */);
+    typedef ErrorCode (*Type)(std::istream & /* is */, int /* sender */);
 
     virtual ~ReceiveInterface() {};
 
-    virtual ErrorCode operator()(void * /* rBuffer */ , int /* rCount */ , int /* sender */) = 0;
+    virtual ErrorCode operator()(std::istream & /* is */, int /* sender */) = 0;
   };
 
   class Receive : public ReceiveInterface
@@ -45,7 +46,7 @@ public:
     virtual ~Receive();
 
     // override operator "()"
-    virtual ErrorCode operator()(void * rBuffer, int rCount, int sender);
+    virtual ErrorCode operator()(std::istream & is, int sender);
 
   private:
     Type mMethod;
@@ -58,19 +59,19 @@ public:
     ClassMemberReceive() = delete;
 
     ClassMemberReceive(Receiver * pReceiver,
-                       ErrorCode (Receiver::*method)(void * /* rBuffer */ , int /* rCount */ , int /* sender */));
+                       ErrorCode (Receiver::*method)(std::istream &  /* is */, int /* sender */));
 
     virtual ~ClassMemberReceive();
 
     // override operator "()"
-    virtual ErrorCode operator()(void * rBuffer, int rCount, int sender);
+    virtual ErrorCode operator()(std::istream & is, int sender);
 
   private:
     /**
      * The pointer to the instance of the caller
      */
     Receiver * mpReceiver;             // pointer to object
-    ErrorCode (Receiver::*mpMethod)(void * /* rBuffer */ , int /* rCount */ , int /* sender */);
+    ErrorCode (Receiver::*mpMethod)(std::istream &  /* is */, int /* sender */);
   };
 
   class SequentialProcessInterface
@@ -144,7 +145,7 @@ public:
                        MPI_Datatype datatype,
                        int root);
 
-  static int broadcast(void *buffer,
+  static int broadcast(const void *buffer,
                        int count,
                        ReceiveInterface * pReceive);
 
@@ -166,7 +167,7 @@ public:
 
 template <class Receiver>
 Communicate::ClassMemberReceive< Receiver >::ClassMemberReceive(Receiver * pReceiver,
-                                                                ErrorCode (Receiver::*method)(void * /* rBuffer */ , int /* rCount */ , int /* sender */)):
+                                                                ErrorCode (Receiver::*method)(std::istream & /* is */, int /* sender */)):
                                                                 ReceiveInterface(),
                                                                 mpReceiver(pReceiver),
                                                                 mpMethod(method){}
@@ -178,10 +179,10 @@ Communicate::ClassMemberReceive< Receiver >::~ClassMemberReceive() {}
 // override operator "()"
 // virtual
 template <class Receiver>
-Communicate::ErrorCode Communicate::ClassMemberReceive< Receiver >::operator()(void * rBuffer, int rCount, int sender)
+Communicate::ErrorCode Communicate::ClassMemberReceive< Receiver >::operator()(std::istream & is, int sender)
 {
   // execute member function
-  return (*mpReceiver.*mpMethod)(rBuffer, rCount, sender);
+  return (*mpReceiver.*mpMethod)(is, sender);
 }
 
 template <class Processor>

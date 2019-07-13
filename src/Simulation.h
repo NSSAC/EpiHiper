@@ -50,6 +50,7 @@ public:
   void validate();
   void run();
   void dummyRun();
+  void test();
   inline bool isValid() { return valid; }
   Communicate::ErrorCode writedata();
 };

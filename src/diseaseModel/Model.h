@@ -14,6 +14,7 @@
 #define SRC_DISEASEMODEL_MODEL_H_
 
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -22,6 +23,7 @@
 class State;
 class Transmission;
 class Progression;
+class NodeData;
 
 struct json_t;
 
@@ -62,9 +64,16 @@ public:
 
   static const bool & isValid();
 
-  bool processTransmissions() const;
+  static bool processTransmissions();
+
+  static void stateChanged(NodeData * pNode);
+
+  static const std::vector< Transmission > & getTransmissions();
 
 private:
+  bool _processTransmissions() const;
+  void _stateChanged(NodeData * pNode) const;
+
   State * mStates;
   std::map< std::string, State * > mId2State;
   State const * mpInitialState;

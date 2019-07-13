@@ -113,7 +113,8 @@ int main(int argc, char *argv[]) {
     Simulation sim(seed, dbconn);
     sim.validate();
     if (sim.isValid()) {
-      sim.dummyRun();
+      sim.test();
+      // sim.dummyRun();
     }
   }
 

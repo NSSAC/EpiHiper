@@ -132,6 +132,8 @@ SimConfig::SimConfig(const std::string& configFile)
       endTick = json_real_value(pValue);
     }
 
+  json_decref(pRoot);
+
   valid = !modelScenario.empty()&&
           startTick != std::numeric_limits< int >::min() &&
           endTick != std::numeric_limits< int >::max() &&
@@ -191,6 +193,8 @@ bool SimConfig::loadScenario()
     {
       personTraitDB = DirEntry::resolve(json_string_value(pValue), modelScenario);
     }
+
+  json_decref(pRoot);
 
   return !contactNetwork.empty() &&
           !diseaseModel.empty() &&

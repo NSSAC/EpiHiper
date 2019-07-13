@@ -15,7 +15,9 @@
 
 #include <map>
 #include <iostream>
+
 #include "utilities/Annotation.h"
+#include "utilities/Communicate.h"
 
 struct json_t;
 struct NodeData;
@@ -66,6 +68,12 @@ public:
 
   NodeData * endNode();
 
+  int broadcastChanges();
+
+  Communicate::ErrorCode receiveNodes(std::istream & is, int sender);
+
+  Communicate::ErrorCode receiveEdges(std::istream & is, int sender);
+
 private:
   std::string mFile;
   NodeData * mLocalNodes;
@@ -82,7 +90,7 @@ private:
   size_t mTimeResolution;
   bool mIsBinary;
   bool mValid;
-
+  size_t mTotalPendingActions;
   json_t * mpJson;
 };
 

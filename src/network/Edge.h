@@ -37,7 +37,12 @@ class Edge
 {
   public:
     Edge() = delete;
+    Edge(EdgeData * pData);
+    Edge(const Edge & src);
     virtual ~Edge();
+
+    void toBinary(std::ostream & os) const;
+    void fromBinary(std::istream & is);
 
     static bool HasEdgeTrait;
     static bool HasActiveField;
@@ -46,6 +51,9 @@ class Edge
     static void toBinary(std::ostream & os, const EdgeData * pEdge);
     static void fromBinary(std::istream & is, EdgeData * pEdge);
     static EdgeData getDefault();
+
+  private:
+    EdgeData * mpData;
 };
 
 #endif /* SRC_NETWORK_EDGE_H_ */

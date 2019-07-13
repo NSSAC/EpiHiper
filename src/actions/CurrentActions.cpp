@@ -47,20 +47,21 @@ CurrentActions::iterator & CurrentActions::iterator::next()
       return *this;
     }
 
-  if (mItShuffled != mShuffled.end())
-    {
-      ++mItShuffled;
-      mpAction = *mItShuffled;
-
-      return *this;
-    }
-
   if (mpAction == NULL)
     {
       mIt = mpBase->begin();
     }
   else
     {
+      ++mItShuffled;
+
+      if (mItShuffled != mShuffled.end())
+        {
+          mpAction = *mItShuffled;
+
+          return *this;
+        }
+
       ++mIt;
     }
 
@@ -75,7 +76,7 @@ CurrentActions::iterator & CurrentActions::iterator::next()
   mShuffled.resize(mIt->second.size());
   std::vector< Action const * >::iterator itShuffled= mShuffled.begin();
   std::vector< Action >::const_iterator it = mIt->second.begin();
-  std::vector< Action >::const_iterator end = mIt->second.begin();
+  std::vector< Action >::const_iterator end = mIt->second.end();
 
   for (; it != end; ++it, ++itShuffled)
     {
@@ -111,6 +112,11 @@ void CurrentActions::addAction(const Action & action)
 {
   base::iterator found = insert(std::make_pair(action.getPriority(), std::vector< Action >())).first;
   found->second.push_back(action);
+}
+
+size_t CurrentActions::size() const
+{
+  return std::map< double, std::vector< Action > >::size();
 }
 
 CurrentActions::iterator CurrentActions::begin()

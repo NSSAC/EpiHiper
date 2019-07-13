@@ -111,6 +111,25 @@ EdgeData Edge::getDefault()
   return Default;
 }
 
+Edge::Edge(EdgeData * pData)
+  : mpData(pData)
+{}
+
+Edge::Edge(const Edge & src)
+  : mpData(src.mpData)
+{}
+
 Edge::~Edge()
 {}
+
+void Edge::toBinary(std::ostream & os) const
+{
+  toBinary(os, mpData);
+}
+
+void Edge::fromBinary(std::istream & is)
+{
+  fromBinary(is, mpData);
+}
+
 

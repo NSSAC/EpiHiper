@@ -25,7 +25,7 @@ Boolean::~Boolean()
 {}
 
 Condition::Condition(const Boolean & boolean)
-  : Boolean(boolean)
+  : Boolean()
   , mpBoolean(boolean.copy())
 {}
 
@@ -37,7 +37,7 @@ Condition::Condition(const Condition & src)
 // virtual
 Condition::~Condition()
 {
-  delete mpBoolean;
+  if (mpBoolean != NULL) delete mpBoolean;
 }
 
 // virtual

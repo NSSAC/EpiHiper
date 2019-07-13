@@ -12,6 +12,8 @@
 
 #include "diseaseModel/Model.h"
 #include "diseaseModel/State.h"
+#include "diseaseModel/Transmission.h"
+#include "diseaseModel/Progression.h"
 #include "traits/Trait.h"
 
 #include "Node.h"
@@ -87,10 +89,53 @@ Node::Node(const Node & src)
 Node::~Node()
 {}
 
-bool Node::set(const State * pState)
+const NodeData * Node::getData() const
 {
-  // TODO CRITICAL Implement me!
-  return false;
+  return mpData;
+}
+
+void Node::toBinary(std::ostream & os) const
+{
+  toBinary(os, mpData);
+}
+
+void Node::fromBinary(std::istream & is)
+{
+  fromBinary(is, mpData);
+}
+
+bool Node::set(const Transmission * pTransmission, const Metadata & metadata)
+{
+  if (mpData->pHealthState == pTransmission->getExitState()) return false;
+
+  mpData->pHealthState = pTransmission->getExitState();
+  pTransmission->updateSusceptibilityFactor(mpData->susceptibilityFactor);
+  mpData->susceptibility = mpData->pHealthState->getSusceptibility() * mpData->susceptibilityFactor;
+  pTransmission->updateInfectivityFactor(mpData->susceptibilityFactor);
+  mpData->infectivity = mpData->pHealthState->getInfectivity() * mpData->infectivity;
+
+  // std::cout << mpData->id << "," << pTransmission->getEntryState() << "," << pTransmission->getExitState() << "," << pTransmission->getContactState() << std::endl;
+
+  Model::stateChanged(mpData);
+
+  return true;
+}
+
+bool Node::set(const Progression * pProgression, const Metadata & metadata)
+{
+  if (mpData->pHealthState == pProgression->getExitState()) return false;
+
+  mpData->pHealthState = pProgression->getExitState();
+  pProgression->updateSusceptibilityFactor(mpData->susceptibilityFactor);
+  mpData->susceptibility = mpData->pHealthState->getSusceptibility() * mpData->susceptibilityFactor;
+  pProgression->updateInfectivityFactor(mpData->susceptibilityFactor);
+  mpData->infectivity = mpData->pHealthState->getInfectivity() * mpData->infectivityFactor;
+
+  // std::cout << mpData->id << "," << pProgression->getEntryState() << "," << pProgression->getExitState() << std::endl;
+
+  Model::stateChanged(mpData);
+
+  return true;
 }
 
 

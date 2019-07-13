@@ -147,3 +147,15 @@ const bool & Transmission::isValid() const
 {
   return mValid;
 }
+
+void Transmission::updateSusceptibilityFactor(double & factor) const
+{
+  mSusceptibilityFactorOperation.apply(factor);
+}
+
+void Transmission::updateInfectivityFactor(double & factor) const
+{
+  mInfectivityFactorOperation.apply(factor);
+}
+
+

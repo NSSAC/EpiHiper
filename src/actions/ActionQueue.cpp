@@ -26,40 +26,41 @@ bool ActionQueue::processCurrentActions()
 {
   bool success = true;
 
-  CurrentActions Actions = INSTANCE[INSTANCE.mCurrenTick];
-  INSTANCE.erase(INSTANCE.mCurrenTick);
-
-  while (true)
+  // We need to enter the loop at least once
+  do
     {
+      CurrentActions Actions = INSTANCE[INSTANCE.mCurrenTick];
+      INSTANCE.erase(INSTANCE.mCurrenTick);
+
       CurrentActions::iterator it = Actions.begin();
       CurrentActions::iterator end = Actions.end();
 
       for (; it != end; it.next())
         if (it->getCondition().isTrue())
           {
-            std::vector< Operation >::const_iterator itOperation = it->getOperations().begin();
-            std::vector< Operation >::const_iterator endOperation = it->getOperations().end();
+            std::vector< Operation * >::const_iterator itOperation = it->getOperations().begin();
+            std::vector< Operation * >::const_iterator endOperation = it->getOperations().end();
 
             for (; itOperation != endOperation; ++itOperation)
               {
-                success &= itOperation->execute();
+                success &= (*itOperation)->execute(it->getMetadata());
               }
           }
 
-      // TODO CRITICAL Implement me!
-      // MPI Broadcast scheduled remote actions
+      // MPI Broadcast scheduled remote actions and whether local actions are pending
+      INSTANCE.broadcastRemoteActions();
 
-      Actions = INSTANCE[INSTANCE.mCurrenTick];
-      INSTANCE.erase(INSTANCE.mCurrenTick);
-
-      // TODO CRITICAL Implement me!
-      // MPI Broadcast Actions size
-
-      // TODO CRITICAL Implement me!
+      // If no local actions are pending anywhere and no remote actions where broadcasted, i.e.,
       // if (Total actions size == 0) break;
-    }
+    } while (INSTANCE.mTotalPendingActions > 0);
 
   return success;
+}
+
+// static
+size_t ActionQueue::pendingActions()
+{
+  return INSTANCE[INSTANCE.mCurrenTick].size();
 }
 
 // static
@@ -77,9 +78,38 @@ void ActionQueue::incrementTick()
 ActionQueue::ActionQueue()
   : std::map< size_t, CurrentActions >()
   , mCurrenTick(-1)
+  , mTotalPendingActions(0)
 {}
 
 // virtual
 ActionQueue::~ActionQueue()
 {}
+
+int ActionQueue::broadcastRemoteActions()
+{
+  std::ostringstream os;
+
+  mTotalPendingActions = pendingActions();
+  os.write(reinterpret_cast<const char *>(&mTotalPendingActions), sizeof(size_t));
+
+  std::string Buffer = os.str();
+
+  Communicate::ClassMemberReceive< ActionQueue > Receive(&ActionQueue::INSTANCE, &ActionQueue::receiveActions);
+
+  // std::cout << Communicate::Rank << ": ActionQueue::broadcastRemoteActions" << std::endl;
+  Communicate::broadcast(Buffer.c_str(), Buffer.length(), &Receive);
+
+  return (int) Communicate::ErrorCode::Success;
+}
+
+Communicate::ErrorCode ActionQueue::receiveActions(std::istream & is, int sender)
+{
+  size_t RemotePendingActions;
+
+  is.read(reinterpret_cast<char *>(&RemotePendingActions), sizeof(size_t));
+  mTotalPendingActions += RemotePendingActions;
+
+  return Communicate::ErrorCode::Success;
+}
+
 

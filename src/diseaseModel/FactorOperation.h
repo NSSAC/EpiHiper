@@ -35,6 +35,8 @@ public:
 
   const bool & isValid() const;
 
+  void apply(double & value) const;
+
 private:
   Type mType;
   double mValue;
