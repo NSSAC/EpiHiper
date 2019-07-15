@@ -1,0 +1,1 @@
+This repository contains a base definition / example for creating SciDuct Job Service usable singularity images.  Run ./build.sh on a linux machine with singularity 2.6 and sudo access to singularity to build a new image.

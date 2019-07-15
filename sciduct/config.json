@@ -1,0 +1,11 @@
+{
+	"apps": {
+		"demo": {
+			"binds": ["input","output","job"],
+			"input_schema":{},
+			"input_files":[],
+			"output_schema": {},
+			"output_files": {}
+		}
+	}
+}

@@ -1,0 +1,42 @@
+Bootstrap: docker
+From: centos:latest
+
+%setup
+	mkdir -p $SINGULARITY_ROOTFS/input
+	mkdir -p $SINGULARITY_ROOTFS/output
+	mkdir -p $SINGULARITY_ROOTFS/job
+	mkdir -p $SINGULARITY_ROOTFS/sciduct
+
+%post
+	yum -y update
+
+	# nodejs install
+	curl -sL https://rpm.nodesource.com/setup_10.x | bash -
+	yum install -y nodejs
+
+	# jq is a processor for helping with json from bash
+	npm install -g jq-cli-wrapper
+
+%files
+	config.json /sciduct
+
+%environment
+	FOO=/data
+
+%apprun sciduct
+	cat /sciduct/config.json
+
+%apprun	demo 
+	echo Demo App Script
+	echo Job ID: $1
+
+	echo "Input Files:"
+	ls -lah /input
+	
+%apprun sciduct-demo
+	echo "SciDuct Demo App"
+	BASE_SCRIPT=/scif/apps/demo/scif/runscript
+	echo "Calling $BASE_SCRIPT"
+	$BASE_SCRIPT `cat /job/job.json | jq .id`
+
+	echo '{"demo": "complete"}' > /job/sciduct.output.json
