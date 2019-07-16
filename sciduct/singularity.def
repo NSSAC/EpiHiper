@@ -1,42 +1,91 @@
 Bootstrap: docker
-From: centos:latest
+From: centos:7.5.1804
 
 %setup
-	mkdir -p $SINGULARITY_ROOTFS/input
-	mkdir -p $SINGULARITY_ROOTFS/output
-	mkdir -p $SINGULARITY_ROOTFS/job
-	mkdir -p $SINGULARITY_ROOTFS/sciduct
+    # SciDuct Interface
+    [ -e ${SINGULARITY_ROOTFS}/input ] || mkdir -p $SINGULARITY_ROOTFS/input
+    [ -e ${SINGULARITY_ROOTFS}/output ] || mkdir -p $SINGULARITY_ROOTFS/output
+    [ -e ${SINGULARITY_ROOTFS}/job ] || mkdir -p $SINGULARITY_ROOTFS/job
+    [ -e ${SINGULARITY_ROOTFS}/sciduct ] || mkdir -p $SINGULARITY_ROOTFS/sciduct
 
-%post
-	yum -y update
+    # Download packages required for the installation
+    [ -e ${SINGULARITY_ROOTFS}/src ] || mkdir ${SINGULARITY_ROOTFS}/src
 
-	# nodejs install
-	curl -sL https://rpm.nodesource.com/setup_10.x | bash -
-	yum install -y nodejs
 
-	# jq is a processor for helping with json from bash
-	npm install -g jq-cli-wrapper
+    # Local cache
+    [ -e cache ] || mkdir -p cache
+     cd cache
+
+    # IntelOPA
+    [ -e IntelOPA-Basic.RHEL75-x86_64.10.9.3.1.1.tgz ] || \
+        wget https://downloadmirror.intel.com/28866/eng/IntelOPA-Basic.RHEL75-x86_64.10.9.3.1.1.tgz
+    
+    [ -e EpiHiper ] || \
+        (echo Missing EpiHiper binary; exit 1)
+
+    cd ..
 
 %files
-	config.json /sciduct
+    config.json /sciduct
+    CentOS-Base.repo /etc/yum.repos.d
+    cache/IntelOPA-Basic.RHEL75-x86_64.10.9.3.1.1.tgz /src
+    cache/EpiHiper /usr/bin
+    epiHiper.sh /usr/bin
+	validateSchema.sh /usr/bin
+	validateRules.sh /usr/bin
+	
+%post
+    # Ensure the the CentOS release is the same as on rivanna
+    echo 7.5.1804 > /etc/yum/vars/releasever
+    yum -y update
+        
+    echo "Installing development tools using YUM"
+    yum -y install perl atlas libpsm2 infinipath-psm libibverbs qperf pciutils tcl tcsh \
+	expect sysfsutils librdmacm libibcm perftest rdma bc \
+	elfutils-libelf-developenssh-clients openssh-server \
+	libstdc++-devel gcc-gfortran rpm-buildx \
+	compat-rdma-devel libibmad libibumad ibacm-devel \
+	libibumad-devel libibumad-static libuuid-devel \
+	pci-utils which iproute net-tools \
+	libhfi1 opensm-libs numactl-libs \
+        irqbalance openssl openssl-devel
 
+    # Install IntelOPA
+    cd /src
+    tar -xf IntelOPA-Basic.RHEL75-x86_64.10.9.3.1.1.tgz
+    cd IntelOPA-Basic.RHEL75-x86_64.10.9.3.1.1
+    ./INSTALL --user-space -n
+    cd /
+    rm -rf /src
+
+    # nodejs install
+    curl -sL https://rpm.nodesource.com/setup_10.x | bash -
+    yum install -y nodejs
+
+    # jq is a processor for helping with json from bash
+    npm install -g jq-cli-wrapper
+
+    # Install the EpiHiper validator
+    npm install -g @shoops/epi-hiper-validator
+	ls -l /usr/bin
+	    
 %environment
-	FOO=/data
+    FOO=/data
 
 %apprun sciduct
-	cat /sciduct/config.json
+    cat /sciduct/config.json
 
 %apprun	demo 
-	echo Demo App Script
-	echo Job ID: $1
+    echo Demo App Script
+    echo Job ID: $1
 
-	echo "Input Files:"
-	ls -lah /input
+    echo "Input Files:"
+    ls -lah /input
 	
 %apprun sciduct-demo
-	echo "SciDuct Demo App"
-	BASE_SCRIPT=/scif/apps/demo/scif/runscript
-	echo "Calling $BASE_SCRIPT"
-	$BASE_SCRIPT `cat /job/job.json | jq .id`
+    echo "SciDuct Demo App"
+    BASE_SCRIPT=/scif/apps/demo/scif/runscript
+    echo "Calling $BASE_SCRIPT"
+    $BASE_SCRIPT `cat /job/job.json | jq .id`
 
-	echo '{"demo": "complete"}' > /job/sciduct.output.json
+    echo '{"demo": "complete"}' > /job/sciduct.output.json
