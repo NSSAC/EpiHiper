@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: centos:7.5.1804
+From: centos:7.6.1810
 
 %setup
     # SciDuct Interface
@@ -7,6 +7,7 @@ From: centos:7.5.1804
     [ -e ${SINGULARITY_ROOTFS}/output ] || mkdir -p $SINGULARITY_ROOTFS/output
     [ -e ${SINGULARITY_ROOTFS}/job ] || mkdir -p $SINGULARITY_ROOTFS/job
     [ -e ${SINGULARITY_ROOTFS}/sciduct ] || mkdir -p $SINGULARITY_ROOTFS/sciduct
+    [ -e ${SINGULARITY_ROOTFS}/epihiper/bin ] || mkdir -p $SINGULARITY_ROOTFS/epihiper/bin
 
     # Download packages required for the installation
     [ -e ${SINGULARITY_ROOTFS}/src ] || mkdir ${SINGULARITY_ROOTFS}/src
@@ -14,47 +15,58 @@ From: centos:7.5.1804
 
     # Local cache
     [ -e cache ] || mkdir -p cache
-     cd cache
-
-    # IntelOPA
-    [ -e IntelOPA-Basic.RHEL75-x86_64.10.9.3.1.1.tgz ] || \
-        wget https://downloadmirror.intel.com/28866/eng/IntelOPA-Basic.RHEL75-x86_64.10.9.3.1.1.tgz
     
-    [ -e EpiHiper ] || \
+    [ -e bin/EpiHiper ] || \
         (echo Missing EpiHiper binary; exit 1)
 
+    cd cache
+
+    # Intel MPI
+    [ -e l_mpi_2018.5.288.tgz ] || \
+        wget http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/15614/l_mpi_2018.5.288.tgz
+        
+    # IntelOPA
+    [ -e IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz ] || \
+        wget https://downloadmirror.intel.com/28866/eng/IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz
+        
     cd ..
 
 %files
     config.json /sciduct
-    CentOS-Base.repo /etc/yum.repos.d
-    cache/IntelOPA-Basic.RHEL75-x86_64.10.9.3.1.1.tgz /src
-    cache/EpiHiper /usr/bin
-    epiHiper.sh /usr/bin
-	validateSchema.sh /usr/bin
-	validateRules.sh /usr/bin
+    cache/l_mpi_2018.5.288.tgz /src
+    cache/IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz /src
+    bin/EpiHiper /epihiper/bin
+    bin/epiHiper.sh /epihiper/bin
+    bin/validateSchema.sh /epihiper/bin
+    bin/validateRules.sh /epihiper/bin
 	
 %post
     # Ensure the the CentOS release is the same as on rivanna
-    echo 7.5.1804 > /etc/yum/vars/releasever
+    # echo 7.6.1810 > /etc/yum/vars/releasever
     yum -y update
         
     echo "Installing development tools using YUM"
     yum -y install perl atlas libpsm2 infinipath-psm libibverbs qperf pciutils tcl tcsh \
-	expect sysfsutils librdmacm libibcm perftest rdma bc \
-	elfutils-libelf-developenssh-clients openssh-server \
-	libstdc++-devel gcc-gfortran rpm-buildx \
-	compat-rdma-devel libibmad libibumad ibacm-devel \
-	libibumad-devel libibumad-static libuuid-devel \
-	pci-utils which iproute net-tools \
-	libhfi1 opensm-libs numactl-libs \
+        expect sysfsutils librdmacm libibcm perftest rdma bc \
+        elfutils-libelf-developenssh-clients openssh-server \
+        libstdc++-devel gcc-gfortran rpm-buildx \
+        compat-rdma-devel libibmad libibumad ibacm-devel \
+        libibumad-devel libibumad-static libuuid-devel \
+        pci-utils which iproute net-tools \
+        libhfi1 opensm-libs numactl-libs \
         irqbalance openssl openssl-devel
 
-    # Install IntelOPA
     cd /src
-    tar -xf IntelOPA-Basic.RHEL75-x86_64.10.9.3.1.1.tgz
-    cd IntelOPA-Basic.RHEL75-x86_64.10.9.3.1.1
+
+    # Install IntelOPA
+    tar -xf l_mpi_2018.5.288.tgz
+    yum -y install l_mpi_2018.5.288/rpm/*
+
+    # Install IntelOPA
+    tar -xf IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz
+    cd IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1
     ./INSTALL --user-space -n
+
     cd /
     rm -rf /src
 
@@ -67,25 +79,27 @@ From: centos:7.5.1804
 
     # Install the EpiHiper validator
     npm install -g @shoops/epi-hiper-validator
-	ls -l /usr/bin
+    ln -s /usr/lib/node_modules/@shoops/epi-hiper-validator/bin/epiHiper* /epihiper/bin
 	    
 %environment
-    FOO=/data
 
 %apprun sciduct
     cat /sciduct/config.json
 
-%apprun	demo 
-    echo Demo App Script
-    echo Job ID: $1
+%apprun	validateSchema 
+    echo Validating Schema
+    echo Job ID: ${SLURM_JOB_ID:-222222}
 
-    echo "Input Files:"
-    ls -lah /input
+    /epihiper/bin/validateSchema.sh
+
+%apprun	validateRules 
+    echo Validating Rules
+    echo Job ID: ${SLURM_JOB_ID:-222222}
+
+    /epihiper/bin/validateRules.sh
 	
-%apprun sciduct-demo
-    echo "SciDuct Demo App"
-    BASE_SCRIPT=/scif/apps/demo/scif/runscript
-    echo "Calling $BASE_SCRIPT"
-    $BASE_SCRIPT `cat /job/job.json | jq .id`
-
-    echo '{"demo": "complete"}' > /job/sciduct.output.json
+%apprun	epiHiper
+    echo Rank $PMI_RANK: Running EpiHiper Simulation
+    echo Rank $PMI_RANK: Job ID: ${SLURM_JOB_ID:-222222}
+    
+    /epihiper/bin/epiHiper.sh

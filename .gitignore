@@ -3,3 +3,6 @@
 .settings/
 sciduct/epihiper.simg
 sciduct/cache/
+sciduct/job/
+sciduct/input/
+sciduct/bin/EpiHiper

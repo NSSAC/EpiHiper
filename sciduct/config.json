@@ -1,7 +1,7 @@
 {
   "apps": [
     {
-      "epihiper": {
+      "epiHiper": {
         "binds": [
           "input",
           "output",
