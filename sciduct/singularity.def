@@ -80,26 +80,22 @@ From: centos:7.6.1810
     # Install the EpiHiper validator
     npm install -g @shoops/epi-hiper-validator
     ln -s /usr/lib/node_modules/@shoops/epi-hiper-validator/bin/epiHiper* /epihiper/bin
-	    
-%environment
+
 
 %apprun sciduct
     cat /sciduct/config.json
 
-%apprun	validateSchema 
+%apprun validateSchema
     echo Validating Schema
     echo Job ID: ${SLURM_JOB_ID:-222222}
-
     /epihiper/bin/validateSchema.sh
 
-%apprun	validateRules 
+%apprun validateRules
     echo Validating Rules
     echo Job ID: ${SLURM_JOB_ID:-222222}
-
     /epihiper/bin/validateRules.sh
 	
-%apprun	epiHiper
+%apprun epiHiper
     echo Rank $PMI_RANK: Running EpiHiper Simulation
     echo Rank $PMI_RANK: Job ID: ${SLURM_JOB_ID:-222222}
-    
     /epihiper/bin/epiHiper.sh

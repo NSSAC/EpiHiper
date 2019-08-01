@@ -14,11 +14,13 @@ statusFile="/job/sciduct.output.json"
 
 /epihiper/bin/epiHiperStatus -d "Validating Rules" ${statusFile}
 
-/epihiper/bin/epiHiperValidateRules "/input/runParameters.json"
+/epihiper/bin/epiHiperValidateRules "/input/runParameters"
 
-if [ $? != 0 ]; then
+let retval=$?
+
+if [ ${retval} != 0 ]; then
   /epihiper/bin/epiHiperStatus -s failed ${statusFile}
-  exit 1
+  exit ${retval}
 fi
 
 /epihiper/bin/epiHiperStatus -s completed -d "Finished" -p 100 ${statusFile}

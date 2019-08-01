@@ -11,20 +11,24 @@ jobId=${SLURM_JOB_ID:-222222}
 jobName=${SLURM_JOB_NAME:-testEpiHiper}
 statusFile="/job/sciduct.output.json"
 
+echo "MPI Rank: $PMI_RANK"
+
 if [ _$PMI_RANK == _0 ]; then
   [ -e ${statusFile} ] || \
     /epihiper/bin/epiHiperStatus -i "${jobId}" -n "${jobName}" -s running -p 0 ${statusFile}  
 
   /epihiper/bin/epiHiperStatus -d "Running EpiHiper Simulation" ${statusFile}
 
-  /epihiper/bin/EpiHiper --config "/input/runParameters.json"
+  /epihiper/bin/EpiHiper --config "/input/runParameters"
 
-  if [ $? != 0 ]; then
+  let retval=$?
+
+  if [ ${retval} != 0 ]; then
     /epihiper/bin/epiHiperStatus -s failed ${statusFile}
-    exit 1
+    exit ${retval}
   fi
 
   /epihiper/bin/epiHiperStatus -s completed -d "Finished" -p 100 ${statusFile}
 else
-  /epihiper/bin/EpiHiper --config "/input/runParameters.json"
+  /epihiper/bin/EpiHiper --config "/input/runParameters"
 fi
