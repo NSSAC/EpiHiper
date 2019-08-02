@@ -22,13 +22,12 @@
 
 #include "network/Network.h"
 #include "network/Node.h"
-#include "network/Edge.h"
-
 #include "utilities/Communicate.h"
 #include "utilities/StreamBuffer.h"
 
 #include "actions/ActionQueue.h"
 #include "actions/Changes.h"
+#include "CEdge.h"
 
 // static
 Network * Network::INSTANCE(NULL);
@@ -231,7 +230,7 @@ void Network::fromJSON(const json_t * json)
       if (Trait.isValid())
         {
           Trait::INSTANCES[Trait.getId()] = Trait;
-          Edge::HasEdgeTrait = (Size == 4);
+          CEdge::HasEdgeTrait = (Size == 4);
         }
     }
 
@@ -241,14 +240,14 @@ void Network::fromJSON(const json_t * json)
 
   if (json_is_boolean(pValue))
     {
-      Edge::HasActiveField = json_boolean_value(pValue);
+      CEdge::HasActiveField = json_boolean_value(pValue);
     }
 
   pValue = json_object_get(json, "hasWeightField");
 
   if (json_is_boolean(pValue))
     {
-      Edge::HasWeightField = json_boolean_value(pValue);
+      CEdge::HasWeightField = json_boolean_value(pValue);
     }
 
   Annotation::fromJSON(json);
@@ -276,7 +275,7 @@ void Network::partition(std::istream & is)
 
       size_t PartitionIndex(1);
 
-      EdgeData Edge = Edge::getDefault();
+      CEdge Edge = CEdge::getDefault();
 
       while (is.good() && loadEdge(&Edge, is))
         {
@@ -341,7 +340,7 @@ void Network::partition(std::istream & is)
 
   // std::cout << Communicate::Rank << ": " << mFirstLocalNode << ", " << mBeyondLocalNode << ", " << mLocalNodesSize << ", " << mEdgesSize << std::endl;
   mLocalNodes = new NodeData[mLocalNodesSize];
-  mEdges = new EdgeData[mEdgesSize];
+  mEdges = new CEdge[mEdgesSize];
 }
 
 void Network::load()
@@ -377,9 +376,9 @@ void Network::load()
   NodeData DefaultNode = Node::getDefault();
   *pNode = DefaultNode;
 
-  EdgeData * pEdge = mEdges;
-  EdgeData * pEdgeEnd = pEdge + mEdgesSize;
-  EdgeData DefaultEdge = Edge::getDefault();
+  CEdge * pEdge = mEdges;
+  CEdge * pEdgeEnd = pEdge + mEdgesSize;
+  CEdge DefaultEdge = CEdge::getDefault();
 
   bool FirstTime = true;
 
@@ -465,16 +464,16 @@ void Network::write(const std::string & file, bool binary)
   os << json_dumps(mpJson, JSON_COMPACT | JSON_INDENT(0)) << std::endl;
   os << "targetPID,targetActivity,sourcePID,sourceActivity,duration";
 
-  if (Edge::HasEdgeTrait) os << ",edgeTrait";
+  if (CEdge::HasEdgeTrait) os << ",edgeTrait";
 
-  if (Edge::HasActiveField) os << ",active";
+  if (CEdge::HasActiveField) os << ",active";
 
-  if (Edge::HasWeightField) os << ",weight";
+  if (CEdge::HasWeightField) os << ",weight";
 
   os << std::endl;
 
-  EdgeData * pEdge = mEdges;
-  EdgeData * pEdgeEnd = pEdge + mEdgesSize;
+  CEdge * pEdge = mEdges;
+  CEdge * pEdgeEnd = pEdge + mEdgesSize;
 
   for (; pEdge != pEdgeEnd; ++pEdge)
     {
@@ -553,7 +552,7 @@ NodeData * Network::lookupNode(const size_t & id) const
   return pCurrent;
 }
 
-EdgeData * Network::lookupEdge(const size_t & targetId, const size_t & sourceId) const
+CEdge * Network::lookupEdge(const size_t & targetId, const size_t & sourceId) const
 {
   // We only have edges for local target nodes
   if (targetId < mFirstLocalNode || mBeyondLocalNode <= targetId) return NULL;
@@ -563,9 +562,9 @@ EdgeData * Network::lookupEdge(const size_t & targetId, const size_t & sourceId)
   // Handle invalid requests
   if (pTargetNode == NULL) return NULL;
 
-  EdgeData * pLeft = pTargetNode->Edges;
-  EdgeData * pRight = pLeft + pTargetNode->EdgesSize;
-  EdgeData * pCurrent = pLeft + (pRight - pLeft)/2;
+  CEdge * pLeft = pTargetNode->Edges;
+  CEdge * pRight = pLeft + pTargetNode->EdgesSize;
+  CEdge * pCurrent = pLeft + (pRight - pLeft)/2;
 
   while (pCurrent->sourceId != sourceId)
     {
@@ -587,13 +586,13 @@ EdgeData * Network::lookupEdge(const size_t & targetId, const size_t & sourceId)
   return pCurrent;
 }
 
-bool Network::loadEdge(EdgeData * pEdge, std::istream & is) const
+bool Network::loadEdge(CEdge * pEdge, std::istream & is) const
 {
   bool success = true;
 
   if (mIsBinary)
     {
-      Edge::fromBinary(is, pEdge);
+      pEdge->fromBinary(is);
 
       success = is.good() &&
               (mFirstLocalNode == 0 ||
@@ -620,7 +619,7 @@ bool Network::loadEdge(EdgeData * pEdge, std::istream & is) const
       Trait::ActivityTrait->fromString(sourceActivity, pEdge->sourceActivity);
       ptr += Read;
 
-      if (Edge::HasEdgeTrait)
+      if (CEdge::HasEdgeTrait)
         {
           if (1 != sscanf(ptr, ",%[^,]%n", edgeTrait, &Read))
             {
@@ -631,7 +630,7 @@ bool Network::loadEdge(EdgeData * pEdge, std::istream & is) const
           ptr += Read;
         }
 
-      if (Edge::HasActiveField)
+      if (CEdge::HasActiveField)
         {
           char Active;
 
@@ -644,7 +643,7 @@ bool Network::loadEdge(EdgeData * pEdge, std::istream & is) const
           ptr += Read;
         }
 
-      if (Edge::HasWeightField)
+      if (CEdge::HasWeightField)
         {
           if (1 != sscanf(ptr, ",%lf%n", &pEdge->weight, &Read))
             {
@@ -661,11 +660,11 @@ bool Network::loadEdge(EdgeData * pEdge, std::istream & is) const
   return success;
 }
 
-void Network::writeEdge(EdgeData * pEdge, std::ostream & os) const
+void Network::writeEdge(CEdge * pEdge, std::ostream & os) const
 {
   if (mIsBinary)
     {
-      Edge::toBinary(os, pEdge);
+      pEdge->toBinary(os);
     }
   else
     {
@@ -675,17 +674,17 @@ void Network::writeEdge(EdgeData * pEdge, std::ostream & os) const
       os << "," << Trait::ActivityTrait->toString(pEdge->sourceActivity);
       os << "," << pEdge->duration;
 
-      if (Edge::HasEdgeTrait)
+      if (CEdge::HasEdgeTrait)
         {
           os << "," << Trait::EdgeTrait->toString(pEdge->edgeTrait);
         }
 
-      if (Edge::HasActiveField)
+      if (CEdge::HasActiveField)
         {
           os << "," << pEdge->active;
         }
 
-      if (Edge::HasWeightField)
+      if (CEdge::HasWeightField)
         {
           os << "," << pEdge->weight;
         }
@@ -752,15 +751,15 @@ Communicate::ErrorCode Network::receiveEdges(std::istream & is, int sender)
 {
   while (true)
     {
-      EdgeData Edge;
-      Edge::fromBinary(is, &Edge);
+      CEdge Edge;
+      Edge.fromBinary(is);
 
       if (is.fail())
         {
           break;
         }
 
-      EdgeData * pEdge = lookupEdge(Edge.targetId, Edge.sourceId);
+      CEdge * pEdge = lookupEdge(Edge.targetId, Edge.sourceId);
 
       if (pEdge != NULL)
         {

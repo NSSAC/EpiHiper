@@ -28,7 +28,7 @@ class Transmission;
 class Progression;
 class Metadata;
 
-struct EdgeData;
+class CEdge;
 
 struct NodeData {
   size_t id;
@@ -38,7 +38,7 @@ struct NodeData {
   double infectivityFactor;
   double infectivity;
   TraitData::base nodeTrait;
-  EdgeData * Edges;
+  CEdge * Edges;
   size_t EdgesSize;
 
   NodeData();

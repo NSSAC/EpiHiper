@@ -8,8 +8,9 @@
 #include <fstream>
 
 #include "actions/Changes.h"
+
+#include "../network/CEdge.h"
 #include "network/Node.h"
-#include "network/Edge.h"
 #include "SimConfig.h"
 #include "utilities/Metadata.h"
 #include "diseaseModel/State.h"
@@ -66,7 +67,7 @@ void Changes::record(const Node & node, const Metadata & metadata)
 }
 
 // static
-void Changes::record(const Edge & edge, const Metadata & metadata)
+void Changes::record(const CEdge & edge, const Metadata & metadata)
 {
   edge.toBinary(Edges);
   ++Size;

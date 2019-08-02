@@ -10,15 +10,29 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#ifndef SRC_NETWORK_EDGE_H_
-#define SRC_NETWORK_EDGE_H_
+#ifndef SRC_NETWORK_CEDGE_H_
+#define SRC_NETWORK_CEDGE_H_
 
 #include <iostream>
 #include "traits/TraitData.h"
 
 struct NodeData;
 
-struct EdgeData {
+class CEdge
+{
+public:
+  static bool HasEdgeTrait;
+  static bool HasActiveField;
+  static bool HasWeightField;
+  static CEdge getDefault();
+
+  CEdge();
+  CEdge(const CEdge & src);
+  virtual ~CEdge();
+
+  void toBinary(std::ostream & os) const;
+  void fromBinary(std::istream & is);
+
   size_t targetId;
   TraitData::base targetActivity;
   size_t sourceId;
@@ -29,31 +43,6 @@ struct EdgeData {
   double weight;
   NodeData * pTarget;
   NodeData * pSource;
-
-  EdgeData();
 };
 
-class Edge
-{
-  public:
-    Edge() = delete;
-    Edge(EdgeData * pData);
-    Edge(const Edge & src);
-    virtual ~Edge();
-
-    void toBinary(std::ostream & os) const;
-    void fromBinary(std::istream & is);
-
-    static bool HasEdgeTrait;
-    static bool HasActiveField;
-    static bool HasWeightField;
-
-    static void toBinary(std::ostream & os, const EdgeData * pEdge);
-    static void fromBinary(std::istream & is, EdgeData * pEdge);
-    static EdgeData getDefault();
-
-  private:
-    EdgeData * mpData;
-};
-
-#endif /* SRC_NETWORK_EDGE_H_ */
+#endif /* SRC_NETWORK_CEDGE_H_ */

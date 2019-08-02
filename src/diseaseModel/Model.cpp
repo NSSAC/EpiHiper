@@ -18,10 +18,9 @@
 #include "diseaseModel/Progression.h"
 #include "diseaseModel/Model.h"
 
+#include "../network/CEdge.h"
 #include "network/Network.h"
 #include "network/Node.h"
-#include "network/Edge.h"
-
 #include "utilities/Random.h"
 
 #include "actions/ActionQueue.h"
@@ -190,8 +189,8 @@ bool Model::_processTransmissions() const
     if (pNode->susceptibility > 0.0 &&
         (EntryStateFound = mPossibleTransmissions.find(pNode->pHealthState)) != EntryStateNotFound)
       {
-        EdgeData * pEdge = pNode->Edges;
-        EdgeData * pEdgeEnd = pNode->Edges + pNode->EdgesSize;
+        CEdge * pEdge = pNode->Edges;
+        CEdge * pEdgeEnd = pNode->Edges + pNode->EdgesSize;
 
         std::map< const State *,  const Transmission * >::const_iterator ContactStateFound;
         std::map< const State *,  const Transmission * >::const_iterator ContactStateNotFound = EntryStateFound->second.end();

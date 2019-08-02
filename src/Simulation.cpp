@@ -24,8 +24,8 @@
 #include "actions/ActionQueue.h"
 #include "network/Network.h"
 #include "network/Node.h"
-#include "network/Edge.h"
 #include "diseaseModel/Model.h"
+#include "network/CEdge.h"
 
 std::vector<DummyTransition> transitions;
 

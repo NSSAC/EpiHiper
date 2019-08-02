@@ -21,7 +21,7 @@
 
 struct json_t;
 struct NodeData;
-struct EdgeData;
+class CEdge;
 class Trait;
 
 class Network: public Annotation
@@ -43,8 +43,8 @@ private:
    */
   virtual ~Network();
 
-  bool loadEdge(EdgeData * pEdge, std::istream & is) const;
-  void writeEdge(EdgeData * pEdge, std::ostream & os) const;
+  bool loadEdge(CEdge * pEdge, std::istream & is) const;
+  void writeEdge(CEdge * pEdge, std::ostream & os) const;
 
 public:
   static Network * INSTANCE;
@@ -62,7 +62,7 @@ public:
 
   NodeData * lookupNode(const size_t & id) const;
 
-  EdgeData * lookupEdge(const size_t & targetId, const size_t & sourceId) const;
+  CEdge * lookupEdge(const size_t & targetId, const size_t & sourceId) const;
 
   NodeData * beginNode();
 
@@ -81,7 +81,7 @@ private:
   size_t mBeyondLocalNode;
   size_t mLocalNodesSize;
   std::map< size_t, NodeData > mRemoteNodes;
-  EdgeData * mEdges;
+  CEdge * mEdges;
   size_t mEdgesSize;
   size_t mTotalNodesSize;
   size_t mTotalEdgesSize;
