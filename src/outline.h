@@ -38,7 +38,7 @@ class Simulation {
 private:
   int startTick;
   int endTick;
-  std::vector<Node> population; // the set of all nodes
+  std::vector<CNode> population; // the set of all nodes
   std::vector<Intervention> initialization;
   std::vector<Intervention> interventions;
   DiseaseModel *disease;
@@ -87,8 +87,8 @@ private:
 public:
   Intervention(std::string interventionJson);
   ~Intervention();
-  std::vector<Node> computeCandidates(Network *network,
-				      std::vector<Node> population);
+  std::vector<CNode> computeCandidates(Network *network,
+				      std::vector<CNode> population);
 };
 
 class ComputingEnvironment {

@@ -19,8 +19,8 @@
 #include "diseaseModel/Model.h"
 
 #include "../network/CEdge.h"
+#include "../network/CNode.h"
 #include "network/Network.h"
-#include "network/Node.h"
 #include "utilities/Random.h"
 
 #include "actions/ActionQueue.h"
@@ -179,8 +179,8 @@ bool Model::_processTransmissions() const
 
   Random::uniform_real Uniform01(0.0, 1.0);
 
-  NodeData * pNode = Network::INSTANCE->beginNode();
-  NodeData * pNodeEnd = Network::INSTANCE->endNode();
+  CNode * pNode = Network::INSTANCE->beginNode();
+  CNode * pNodeEnd = Network::INSTANCE->endNode();
 
   std::map< const State *, std::map< const State *,  const Transmission * > >::const_iterator EntryStateFound;
   std::map< const State *, std::map< const State *,  const Transmission * > >::const_iterator EntryStateNotFound = mPossibleTransmissions.end();
@@ -195,7 +195,7 @@ bool Model::_processTransmissions() const
         std::map< const State *,  const Transmission * >::const_iterator ContactStateFound;
         std::map< const State *,  const Transmission * >::const_iterator ContactStateNotFound = EntryStateFound->second.end();
 
-        struct Candidate { const NodeData * pContact; const Transmission * pTransmission; double Propensity; };
+        struct Candidate { const CNode * pContact; const Transmission * pTransmission; double Propensity; };
         std::vector< Candidate > Candidates;
         double A0 = 0.0;
 
@@ -243,7 +243,7 @@ bool Model::_processTransmissions() const
             Info.set("ContactNode", (int) Candidate.pContact->id);
 
             Action ChangeState(1.0, CheckState, Info);
-            ChangeState.addOperation(OperationInstance<Node, const Transmission *>(Node(pNode), Candidate.pTransmission, &Node::set));
+            ChangeState.addOperation(OperationInstance<CNode, const Transmission *>(*pNode, Candidate.pTransmission, &CNode::set));
 
             ActionQueue::addAction(0, ChangeState);
           }
@@ -253,12 +253,12 @@ bool Model::_processTransmissions() const
 }
 
 // static
-void Model::stateChanged(NodeData * pNode)
+void Model::stateChanged(CNode * pNode)
 {
   INSTANCE->_stateChanged(pNode);
 }
 
-void Model::_stateChanged(NodeData * pNode) const
+void Model::_stateChanged(CNode * pNode) const
 {
 
   // std::cout << pNode->id << ": " << pNode->Edges << ", " << pNode->Edges + pNode->EdgesSize << ", " << pNode->EdgesSize << std::endl;
@@ -294,7 +294,7 @@ void Model::_stateChanged(NodeData * pNode) const
 
       Metadata Info("StateChange", true);
       Action ChangeState(1.0, CheckState, Info);
-      ChangeState.addOperation(OperationInstance<Node, const Progression *>(Node(pNode), pProgression, &Node::set));
+      ChangeState.addOperation(OperationInstance<CNode, const Progression *>(*pNode, pProgression, &CNode::set));
 
       ActionQueue::addAction(pProgression->getDwellTime(), ChangeState);
     }

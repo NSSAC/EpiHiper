@@ -23,7 +23,7 @@
 class State;
 class Transmission;
 class Progression;
-class NodeData;
+class CNode;
 
 struct json_t;
 
@@ -66,13 +66,13 @@ public:
 
   static bool processTransmissions();
 
-  static void stateChanged(NodeData * pNode);
+  static void stateChanged(CNode * pNode);
 
   static const std::vector< Transmission > & getTransmissions();
 
 private:
   bool _processTransmissions() const;
-  void _stateChanged(NodeData * pNode) const;
+  void _stateChanged(CNode * pNode) const;
 
   State * mStates;
   std::map< std::string, State * > mId2State;

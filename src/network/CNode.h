@@ -17,8 +17,8 @@
  *      Author: shoops
  */
 
-#ifndef SRC_NETWORK_NODE_H_
-#define SRC_NETWORK_NODE_H_
+#ifndef SRC_NETWORK_CNODE_H_
+#define SRC_NETWORK_CNODE_H_
 
 #include <iostream>
 #include "traits/TraitData.h"
@@ -30,7 +30,22 @@ class Metadata;
 
 class CEdge;
 
-struct NodeData {
+class CNode
+{
+public:
+  static CNode getDefault();
+
+  CNode();
+  CNode(const CNode & src);
+
+  virtual ~CNode();
+
+  void toBinary(std::ostream & os) const;
+  void fromBinary(std::istream & is);
+
+  bool set(const Transmission * pTransmission, const Metadata & metadata);
+  bool set(const Progression * pProgression, const Metadata & metadata);
+
   size_t id;
   const State * pHealthState;
   double susceptibilityFactor;
@@ -40,33 +55,6 @@ struct NodeData {
   TraitData::base nodeTrait;
   CEdge * Edges;
   size_t EdgesSize;
-
-  NodeData();
 };
 
-class Node
-{
-public:
-  Node() = delete;
-  Node(NodeData * pData);
-  Node(const Node & src);
-
-  virtual ~Node();
-
-  const NodeData * getData() const;
-  void toBinary(std::ostream & os) const;
-  void fromBinary(std::istream & is);
-
-  static void toBinary(std::ostream & os, const NodeData * pNode);
-  static void fromBinary(std::istream & is, NodeData * pNode);
-  static NodeData getDefault();
-
-  bool set(const Transmission * pTransmission, const Metadata & metadata);
-
-  bool set(const Progression * pProgression, const Metadata & metadata);
-
-private:
-  NodeData * mpData;
-};
-
-#endif /* SRC_NETWORK_NODE_H_ */
+#endif /* SRC_NETWORK_CNODE_H_ */

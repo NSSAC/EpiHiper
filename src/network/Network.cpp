@@ -21,13 +21,13 @@
 #include "SimConfig.h"
 
 #include "network/Network.h"
-#include "network/Node.h"
 #include "utilities/Communicate.h"
 #include "utilities/StreamBuffer.h"
 
 #include "actions/ActionQueue.h"
 #include "actions/Changes.h"
 #include "CEdge.h"
+#include "CNode.h"
 
 // static
 Network * Network::INSTANCE(NULL);
@@ -339,7 +339,7 @@ void Network::partition(std::istream & is)
   mBeyondLocalNode = *pMine;
 
   // std::cout << Communicate::Rank << ": " << mFirstLocalNode << ", " << mBeyondLocalNode << ", " << mLocalNodesSize << ", " << mEdgesSize << std::endl;
-  mLocalNodes = new NodeData[mLocalNodesSize];
+  mLocalNodes = new CNode[mLocalNodesSize];
   mEdges = new CEdge[mEdgesSize];
 }
 
@@ -371,9 +371,9 @@ void Network::load()
   // Skip Column Header;
   std::getline(is, Line);
 
-  NodeData * pNode = mLocalNodes;
-  NodeData * pNodeEnd = pNode + mLocalNodesSize;
-  NodeData DefaultNode = Node::getDefault();
+  CNode * pNode = mLocalNodes;
+  CNode * pNodeEnd = pNode + mLocalNodesSize;
+  CNode DefaultNode = CNode::getDefault();
   *pNode = DefaultNode;
 
   CEdge * pEdge = mEdges;
@@ -420,7 +420,7 @@ void Network::load()
 
       if (pEdge->sourceId < this->mFirstLocalNode || this->mBeyondLocalNode <= pEdge->sourceId)
         {
-          NodeData Remote = DefaultNode;
+          CNode Remote = DefaultNode;
           Remote.id = (pEdge->sourceId);
 
           pEdge->pSource = &mRemoteNodes.insert(std::make_pair(pEdge->sourceId, Remote)).first->second;
@@ -483,17 +483,17 @@ void Network::write(const std::string & file, bool binary)
   os.close();
 }
 
-NodeData * Network::beginNode()
+CNode * Network::beginNode()
 {
   return mLocalNodes;
 }
 
-NodeData * Network::endNode()
+CNode * Network::endNode()
 {
   return mLocalNodes + mLocalNodesSize;
 }
 
-NodeData * Network::lookupNode(const size_t & id) const
+CNode * Network::lookupNode(const size_t & id) const
 {
   static double stretch = 0.0;
 
@@ -504,19 +504,19 @@ NodeData * Network::lookupNode(const size_t & id) const
 
   if (id < mFirstLocalNode || mBeyondLocalNode <= id)
     {
-      std::map< size_t, NodeData >::const_iterator found = mRemoteNodes.find(id);
+      std::map< size_t, CNode >::const_iterator found = mRemoteNodes.find(id);
 
       if (found != mRemoteNodes.end())
         {
-          return const_cast< NodeData *>(&found->second);
+          return const_cast< CNode *>(&found->second);
         }
 
       return NULL;
     }
 
-  NodeData * pLeft = mLocalNodes;
-  NodeData * pRight = mLocalNodes + mLocalNodesSize - 1;
-  NodeData * pCurrent = mLocalNodes + std::min< size_t >(std::round(stretch * (id - mFirstLocalNode)), mLocalNodesSize - 1);
+  CNode * pLeft = mLocalNodes;
+  CNode * pRight = mLocalNodes + mLocalNodesSize - 1;
+  CNode * pCurrent = mLocalNodes + std::min< size_t >(std::round(stretch * (id - mFirstLocalNode)), mLocalNodesSize - 1);
 
   while (pCurrent->id != id)
     {
@@ -557,7 +557,7 @@ CEdge * Network::lookupEdge(const size_t & targetId, const size_t & sourceId) co
   // We only have edges for local target nodes
   if (targetId < mFirstLocalNode || mBeyondLocalNode <= targetId) return NULL;
 
-  NodeData * pTargetNode = lookupNode(targetId);
+  CNode * pTargetNode = lookupNode(targetId);
 
   // Handle invalid requests
   if (pTargetNode == NULL) return NULL;
@@ -722,15 +722,15 @@ Communicate::ErrorCode Network::receiveNodes(std::istream & is, int sender)
 {
   while (true)
     {
-      NodeData Node;
-      Node::fromBinary(is, &Node);
+      CNode Node;
+      Node.CNode::fromBinary(is);
 
       if (is.fail())
         {
           break;
         }
 
-      NodeData * pNode = lookupNode(Node.id);
+      CNode * pNode = lookupNode(Node.id);
 
       if (pNode != NULL)
         {

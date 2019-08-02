@@ -16,7 +16,7 @@
 #include <iostream>
 #include "traits/TraitData.h"
 
-struct NodeData;
+class CNode;
 
 class CEdge
 {
@@ -41,8 +41,8 @@ public:
   TraitData::base edgeTrait;
   bool active;
   double weight;
-  NodeData * pTarget;
-  NodeData * pSource;
+  CNode * pTarget;
+  CNode * pSource;
 };
 
 #endif /* SRC_NETWORK_CEDGE_H_ */

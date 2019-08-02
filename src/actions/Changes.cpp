@@ -10,7 +10,7 @@
 #include "actions/Changes.h"
 
 #include "../network/CEdge.h"
-#include "network/Node.h"
+#include "../network/CNode.h"
 #include "SimConfig.h"
 #include "utilities/Metadata.h"
 #include "diseaseModel/State.h"
@@ -44,14 +44,14 @@ void Changes::incrementTick()
 
 
 // static
-void Changes::record(const Node & node, const Metadata & metadata)
+void Changes::record(const CNode & node, const Metadata & metadata)
 {
   node.toBinary(Nodes);
 
   if (metadata.getBool("StateChange"))
     {
       // "tick,pid,exit_state,contact_pid"
-      DefaultOutput << (int) Tick << "," << node.getData()->id << "," << node.getData()->pHealthState->getAnnId() << ",";
+      DefaultOutput << (int) Tick << "," << node.id << "," << node.pHealthState->getAnnId() << ",";
 
       if (metadata.contains("ContactNode"))
         {

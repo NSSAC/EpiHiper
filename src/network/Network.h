@@ -20,7 +20,7 @@
 #include "utilities/Communicate.h"
 
 struct json_t;
-struct NodeData;
+struct CNode;
 class CEdge;
 class Trait;
 
@@ -60,13 +60,13 @@ public:
 
   const bool & isValid() const;
 
-  NodeData * lookupNode(const size_t & id) const;
+  CNode * lookupNode(const size_t & id) const;
 
   CEdge * lookupEdge(const size_t & targetId, const size_t & sourceId) const;
 
-  NodeData * beginNode();
+  CNode * beginNode();
 
-  NodeData * endNode();
+  CNode * endNode();
 
   int broadcastChanges();
 
@@ -76,11 +76,11 @@ public:
 
 private:
   std::string mFile;
-  NodeData * mLocalNodes;
+  CNode * mLocalNodes;
   size_t mFirstLocalNode;
   size_t mBeyondLocalNode;
   size_t mLocalNodesSize;
-  std::map< size_t, NodeData > mRemoteNodes;
+  std::map< size_t, CNode > mRemoteNodes;
   CEdge * mEdges;
   size_t mEdgesSize;
   size_t mTotalNodesSize;

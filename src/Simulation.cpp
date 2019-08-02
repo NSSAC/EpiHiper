@@ -23,9 +23,9 @@
 #include "utilities/Communicate.h"
 #include "actions/ActionQueue.h"
 #include "network/Network.h"
-#include "network/Node.h"
 #include "diseaseModel/Model.h"
 #include "network/CEdge.h"
+#include "network/CNode.h"
 
 std::vector<DummyTransition> transitions;
 
@@ -170,7 +170,7 @@ void Simulation::test()
   /**
    * We just randomly pick nodes to be infective
    */
-  NodeData * pNodes = Network::INSTANCE->beginNode();
+  CNode * pNodes = Network::INSTANCE->beginNode();
   int NumberOfNodes = Network::INSTANCE->endNode() - pNodes - 1;
   Random::uniform_int uniform(0, NumberOfNodes);
 
@@ -184,9 +184,9 @@ void Simulation::test()
 
   for (size_t i = 0; i < 100; ++i)
     {
-      NodeData * pNode = pNodes + uniform(Random::G);
+      CNode * pNode = pNodes + uniform(Random::G);
 
-      bool sussess = Node(pNode).set(&Symptomatic, Metadata());
+      bool sussess = pNode->set(&Symptomatic, Metadata());
     }
 
   ActionQueue::processCurrentActions();

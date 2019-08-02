@@ -18,8 +18,8 @@ void Simulation::run() {
   // process initialization
   for (std::vector<Intervention>::iterator init = initialization.begin();
        init != initialization.end(); ++init) {
-    std::vector<Node> candidates = init->computeCandidates(network,population);
-    for (std::vector<Node>::iterator node = candidates.begin();
+    std::vector<CNode> candidates = init->computeCandidates(network,population);
+    for (std::vector<CNode>::iterator node = candidates.begin();
 	 node != candidates.end(); ++node) {
       // schedule action for node to actionQueue
     }
@@ -48,7 +48,7 @@ void Simulation::run() {
     tick++;
 
     // process infections
-    for (std::vector<Node>::iterator node = population.begin();
+    for (std::vector<CNode>::iterator node = population.begin();
 	 node != population.end(); ++node) {
       if (node->isLocal()) {
 	nextState = node->computeInfection(disease,network,population);
@@ -66,8 +66,8 @@ void Simulation::run() {
 void Simulation::processInterventions() {
   for (std::vector<Intervention>::iterator intv = interventions.begin();
        intv != interventions.end(); ++intv) {
-    std::vector<Node> candidates = intv->computeCandidates(network,population);
-    for (std::vector<Node>::iterator node = candidates.begin();
+    std::vector<CNode> candidates = intv->computeCandidates(network,population);
+    for (std::vector<CNode>::iterator node = candidates.begin();
 	 node != candidates.end(); ++node) {
       // schedule action for node to actionQueue
     }
@@ -80,7 +80,7 @@ Simulation::execute(Action action) {
 
   if (action.isStateTransition()) {
     // compute next state transition
-    Node node = action.getTarget();
+    CNode node = action.getTarget();
     Transition transition = disease.getTransition(node.currentState);
     health_t nextState = transition.nextState;
     int delay = transition.delay; // ticks to transition
@@ -91,8 +91,8 @@ Simulation::execute(Action action) {
   processInterventions();
 }
 
-health_t Node::computeInfection
-(DiseaseModel *disease, Network *network, std::vector<Node> *population) {
+health_t CNode::computeInfection
+(DiseaseModel *disease, Network *network, std::vector<CNode> *population) {
   std::vector<pid_t> infectors = network->getNeighbors(id);
   health_t nextState = NULL;
   bool infected = false;

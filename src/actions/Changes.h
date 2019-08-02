@@ -12,7 +12,7 @@
 
 #include "utilities/Communicate.h"
 
-class Node;
+class CNode;
 class CEdge;
 class Variable;
 class Metadata;
@@ -21,7 +21,7 @@ class Metadata;
 class Changes
 {
 public:
-  static void record(const Node & node, const Metadata & metadata);
+  static void record(const CNode & node, const Metadata & metadata);
   static void record(const CEdge & edge, const Metadata & metadata);
   static void record(const Variable & variable, const Metadata & metadata);
   static void clear();
