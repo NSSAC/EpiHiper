@@ -7,7 +7,7 @@ fi
 
 jobId=${SLURM_JOB_ID:-222222}
 jobName=${SLURM_JOB_NAME:-testValidateRules}
-statusFile="/job/sciduct.output.json"
+statusFile="/job/sciduct.status.json"
 
 [ -e ${statusFile} ] || \
     /epihiper/bin/epiHiperStatus -i "${jobId}" -n "${jobName}" -s running -p 0 ${statusFile}

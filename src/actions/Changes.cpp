@@ -97,6 +97,11 @@ void Changes::initDefaultOutput()
         {
           out << "tick,pid,exit_state,contact_pid" << std::endl;
         }
+      else
+        {
+          std::cerr << "Error (Rank 0): Failed to open file '" << SimConfig::getOutput() << "'.";
+          exit(EXIT_FAILURE);
+        }
 
       out.close();
     }
