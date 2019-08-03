@@ -19,7 +19,7 @@
 
 #include "CEdge.h"
 
-#include "traits/Trait.h"
+#include "traits/CTrait.h"
 
 // static
 bool CEdge::HasEdgeTrait(false);
@@ -36,11 +36,11 @@ CEdge CEdge::getDefault()
   CEdge Default;
 
   Default.targetId = -1;
-  Default.targetActivity = Trait::ActivityTrait->getDefault();
+  Default.targetActivity = CTrait::ActivityTrait->getDefault();
   Default.sourceId = -1;
-  Default.sourceActivity = Trait::ActivityTrait->getDefault();
+  Default.sourceActivity = CTrait::ActivityTrait->getDefault();
   Default.duration = 0.0;
-  Default.edgeTrait = Trait::EdgeTrait->getDefault();
+  Default.edgeTrait = CTrait::EdgeTrait->getDefault();
   Default.active = true;
   Default.weight = 1.0;
   Default.pTarget = NULL;
@@ -81,14 +81,14 @@ CEdge::~CEdge()
 void CEdge::toBinary(std::ostream & os) const
 {
   os.write(reinterpret_cast<const char *>(&targetId), sizeof(size_t));
-  os.write(reinterpret_cast<const char *>(&targetActivity), sizeof(TraitData::base));
+  os.write(reinterpret_cast<const char *>(&targetActivity), sizeof(CTraitData::base));
   os.write(reinterpret_cast<const char *>(&sourceId), sizeof(size_t));
-  os.write(reinterpret_cast<const char *>(&sourceActivity), sizeof(TraitData::base));
+  os.write(reinterpret_cast<const char *>(&sourceActivity), sizeof(CTraitData::base));
   os.write(reinterpret_cast<const char *>(&duration), sizeof(double));
 
   if (CEdge::HasEdgeTrait)
     {
-      os.write(reinterpret_cast<const char *>(&edgeTrait), sizeof(TraitData::base));
+      os.write(reinterpret_cast<const char *>(&edgeTrait), sizeof(CTraitData::base));
     }
 
   if (CEdge::HasActiveField)
@@ -105,14 +105,14 @@ void CEdge::toBinary(std::ostream & os) const
 void CEdge::fromBinary(std::istream & is)
 {
   is.read(reinterpret_cast<char *>(&targetId), sizeof(size_t));
-  is.read(reinterpret_cast<char *>(&targetActivity), sizeof(TraitData::base));
+  is.read(reinterpret_cast<char *>(&targetActivity), sizeof(CTraitData::base));
   is.read(reinterpret_cast<char *>(&sourceId), sizeof(size_t));
-  is.read(reinterpret_cast<char *>(&sourceActivity), sizeof(TraitData::base));
+  is.read(reinterpret_cast<char *>(&sourceActivity), sizeof(CTraitData::base));
   is.read(reinterpret_cast<char *>(&duration), sizeof(double));
 
   if (CEdge::HasEdgeTrait)
     {
-      is.read(reinterpret_cast<char *>(&edgeTrait), sizeof(TraitData::base));
+      is.read(reinterpret_cast<char *>(&edgeTrait), sizeof(CTraitData::base));
     }
 
   if (CEdge::HasActiveField)

@@ -17,15 +17,16 @@
 #include <algorithm>
 #include <cmath>
 #include "Simulation.h"
+
+#include "actions/CActionQueue.h"
+#include "diseaseModel/CModel.h"
 #include "Misc.h"
 #include "SimConfig.h"
-#include "utilities/Random.h"
-#include "utilities/Communicate.h"
-#include "actions/ActionQueue.h"
-#include "network/Network.h"
-#include "diseaseModel/Model.h"
 #include "network/CEdge.h"
+#include "network/CNetwork.h"
 #include "network/CNode.h"
+#include "utilities/CCommunicate.h"
+#include "utilities/CRandom.h"
 
 std::vector<DummyTransition> transitions;
 
@@ -160,67 +161,67 @@ void Simulation::test()
 {
   if (randomSeed == -1)
     {
-      Random::randomSeed();
+      CRandom::randomSeed();
     }
   else
     {
-      Random::seed(randomSeed);
+      CRandom::seed(randomSeed);
     }
 
   /**
    * We just randomly pick nodes to be infective
    */
-  CNode * pNodes = Network::INSTANCE->beginNode();
-  int NumberOfNodes = Network::INSTANCE->endNode() - pNodes - 1;
-  Random::uniform_int uniform(0, NumberOfNodes);
+  CNode * pNodes = CNetwork::INSTANCE->beginNode();
+  int NumberOfNodes = CNetwork::INSTANCE->endNode() - pNodes - 1;
+  CRandom::uniform_int uniform(0, NumberOfNodes);
 
-  const Transmission & Symptomatic = *Model::getTransmissions().begin();
+  const CTransmission & Symptomatic = *CModel::getTransmissions().begin();
 
-  ActionQueue::setCurrentTick(startTick - 1);
+  CActionQueue::setCurrentTick(startTick - 1);
   Changes::setCurrentTick(startTick - 1);
   Changes::initDefaultOutput();
 
-  size_t perNode = std::round(100.0/Communicate::Processes);
+  size_t perNode = std::round(100.0/CCommunicate::Processes);
 
   for (size_t i = 0; i < 100; ++i)
     {
-      CNode * pNode = pNodes + uniform(Random::G);
+      CNode * pNode = pNodes + uniform(CRandom::G);
 
-      bool sussess = pNode->set(&Symptomatic, Metadata());
+      bool sussess = pNode->set(&Symptomatic, CMetadata());
     }
 
-  ActionQueue::processCurrentActions();
+  CActionQueue::processCurrentActions();
   Changes::writeDefaultOutput();
-  Network::INSTANCE->broadcastChanges();
-  ActionQueue::incrementTick();
+  CNetwork::INSTANCE->broadcastChanges();
+  CActionQueue::incrementTick();
   Changes::incrementTick();
 
   for (int tick = startTick; tick < endTick; ++tick)
     {
-      Model::processTransmissions();
-      ActionQueue::processCurrentActions();
+      CModel::processTransmissions();
+      CActionQueue::processCurrentActions();
       Changes::writeDefaultOutput();
-      Network::INSTANCE->broadcastChanges();
-      ActionQueue::incrementTick();
+      CNetwork::INSTANCE->broadcastChanges();
+      CActionQueue::incrementTick();
       Changes::incrementTick();
     }
 }
 
 void Simulation::dummyRun() {
-  Communicate::Status status;
+  CCommunicate::Status status;
 
   if (randomSeed == -1)
     {
-      Random::randomSeed();
+      CRandom::randomSeed();
 
     }
   else
     {
-      Random::seed(randomSeed);
+      CRandom::seed(randomSeed);
     }
 
   std::set<personid_t> population;
-  if (Communicate::Rank == 0) {
+  if (CCommunicate::Rank == 0) {
     std::ifstream f(networkFile.data());
     if (! f.good()) {
       std::cerr << "fail to read file " << networkFile << std::endl;
@@ -244,36 +245,36 @@ void Simulation::dummyRun() {
   }
 
   uint64_t N;
-  uint64_t sizeSubpop[Communicate::Processes];
-  if (Communicate::Rank == 0) {
+  uint64_t sizeSubpop[CCommunicate::Processes];
+  if (CCommunicate::Rank == 0) {
     N = population.size();
-    for (int i = 0; i < Communicate::Processes; i++) {
-      sizeSubpop[i] = N / Communicate::Processes;
+    for (int i = 0; i < CCommunicate::Processes; i++) {
+      sizeSubpop[i] = N / CCommunicate::Processes;
     }
-    sizeSubpop[0] += (N - (N / Communicate::Processes) * Communicate::Processes);
+    sizeSubpop[0] += (N - (N / CCommunicate::Processes) * CCommunicate::Processes);
   }
 
-  Communicate::broadcast(sizeSubpop, Communicate::Processes, MPI_UINT64_T, 0);
-  personid_t subpop[sizeSubpop[Communicate::Rank]];
+  CCommunicate::broadcast(sizeSubpop, CCommunicate::Processes, MPI_UINT64_T, 0);
+  personid_t subpop[sizeSubpop[CCommunicate::Rank]];
   /*
   std::cout << "subpop size of rank " << Communicate::Rank << "=" << sizeSubpop[Communicate::Rank]
 	    << std::endl;
   */
 
-  if (Communicate::Rank == 0) {
+  if (CCommunicate::Rank == 0) {
     // divide population and send ids
     std::set<personid_t>::iterator iter = population.begin();
     personid_t *subpopTmp;
-    for (int rank = 1; rank < Communicate::Processes; rank++) {
+    for (int rank = 1; rank < CCommunicate::Processes; rank++) {
       subpopTmp = new personid_t[sizeSubpop[rank]];
       for (uint64_t index = 0; index < sizeSubpop[rank]; index++) {
 	subpopTmp[index] = *iter;
 	++iter;
       }
-      Communicate::send(subpopTmp, sizeSubpop[rank], MPI_UINT64_T, rank, Communicate::Rank);
+      CCommunicate::send(subpopTmp, sizeSubpop[rank], MPI_UINT64_T, rank, CCommunicate::Rank);
       delete [] subpopTmp;
     }
-    for (uint64_t index = 0; index < sizeSubpop[Communicate::Rank]; index++) {
+    for (uint64_t index = 0; index < sizeSubpop[CCommunicate::Rank]; index++) {
       if (iter != population.end()) {
 	subpop[index] = *iter;
 	++iter;
@@ -284,15 +285,15 @@ void Simulation::dummyRun() {
     }
   }
   else {
-    Communicate::receive(subpop, sizeSubpop[Communicate::Rank], MPI_UINT64_T, 0, 0, &status);
+    CCommunicate::receive(subpop, sizeSubpop[CCommunicate::Rank], MPI_UINT64_T, 0, 0, &status);
   }
 
   int T = endTick - startTick + 1;
-  N = sizeSubpop[Communicate::Rank];
-  std::shuffle(&subpop[0], &subpop[N], Random::G);
+  N = sizeSubpop[CCommunicate::Rank];
+  std::shuffle(&subpop[0], &subpop[N], CRandom::G);
   int totalInfection = 0;
 
-  Random::uniform_int uniform;
+  CRandom::uniform_int uniform;
 
   std::string contact;
   int tick = startTick;
@@ -302,7 +303,7 @@ void Simulation::dummyRun() {
       if (totalInfection == 0) contact = "-1";
       else
         {
-          contact = std::to_string(transitions[uniform(Random::G, Random::uniform_int_p(0, totalInfection - 1))].id);
+          contact = std::to_string(transitions[uniform(CRandom::G, CRandom::uniform_int_p(0, totalInfection - 1))].id);
         }
       DummyTransition t = {tick, subpop[totalInfection+i],
 			   "infectious",contact};
@@ -312,7 +313,7 @@ void Simulation::dummyRun() {
     tick++;
   }
 
-  if (Communicate::Rank == 0)
+  if (CCommunicate::Rank == 0)
     {
       std::ofstream out;
 
@@ -326,16 +327,16 @@ void Simulation::dummyRun() {
       out.close();
     }
 
-  Communicate::ClassMemberSequentialProcess< Simulation > WriteData(this, &Simulation::writedata);
-  Communicate::sequential(0, &WriteData);
+  CCommunicate::ClassMemberSequentialProcess< Simulation > WriteData(this, &Simulation::writedata);
+  CCommunicate::sequential(0, &WriteData);
 }
 
-Communicate::ErrorCode Simulation::writedata()
+CCommunicate::ErrorCode Simulation::writedata()
 {
   std::ofstream out;
   out.open(outputFile.data(), std::ios_base::app);
 
-  if (out.fail()) return Communicate::ErrorCode::FileOpenError;
+  if (out.fail()) return CCommunicate::ErrorCode::FileOpenError;
 
   for (std::vector<DummyTransition>::iterator it = transitions.begin(); it != transitions.end(); ++it)
     {
@@ -344,5 +345,5 @@ Communicate::ErrorCode Simulation::writedata()
 
   out.close();
 
-  return Communicate::ErrorCode::Success;
+  return CCommunicate::ErrorCode::Success;
 }

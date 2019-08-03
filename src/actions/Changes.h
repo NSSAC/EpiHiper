@@ -10,20 +10,20 @@
 
 #include <sstream>
 
-#include "utilities/Communicate.h"
+#include "utilities/CCommunicate.h"
 
 class CNode;
 class CEdge;
 class Variable;
-class Metadata;
+class CMetadata;
 
 
 class Changes
 {
 public:
-  static void record(const CNode & node, const Metadata & metadata);
-  static void record(const CEdge & edge, const Metadata & metadata);
-  static void record(const Variable & variable, const Metadata & metadata);
+  static void record(const CNode & node, const CMetadata & metadata);
+  static void record(const CEdge & edge, const CMetadata & metadata);
+  static void record(const Variable & variable, const CMetadata & metadata);
   static void clear();
   static size_t size();
 
@@ -32,7 +32,7 @@ public:
 
   static void initDefaultOutput();
   static void writeDefaultOutput();
-  static Communicate::ErrorCode writeDefaultOutputData();
+  static CCommunicate::ErrorCode writeDefaultOutputData();
   static void setCurrentTick(size_t tick);
   static void incrementTick();
 

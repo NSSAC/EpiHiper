@@ -12,11 +12,11 @@
 
 #include "CNode.h"
 
-#include "diseaseModel/Model.h"
-#include "diseaseModel/State.h"
-#include "diseaseModel/Transmission.h"
-#include "diseaseModel/Progression.h"
-#include "traits/Trait.h"
+#include "diseaseModel/CHealthState.h"
+#include "diseaseModel/CModel.h"
+#include "diseaseModel/CProgression.h"
+#include "diseaseModel/CTransmission.h"
+#include "traits/CTrait.h"
 
 
 // static
@@ -25,12 +25,12 @@ CNode CNode::getDefault()
   CNode Default;
 
   Default.id = -1;
-  Default.pHealthState = &Model::getInitialState();
+  Default.pHealthState = &CModel::getInitialState();
   Default.susceptibilityFactor = 1.0;
   Default.susceptibility = Default.pHealthState->getSusceptibility();
   Default.infectivityFactor = 1.0;
   Default.infectivity = Default.pHealthState->getInfectivity();
-  Default.nodeTrait = Trait::NodeTrait->getDefault();
+  Default.nodeTrait = CTrait::NodeTrait->getDefault();
   Default.Edges = NULL;
   Default.EdgesSize = 0;
 
@@ -66,33 +66,33 @@ CNode::~CNode()
 
 void CNode::toBinary(std::ostream & os) const
 {
-  Model::state_t Type = Model::stateToType(pHealthState);
+  CModel::state_t Type = CModel::stateToType(pHealthState);
 
   os.write(reinterpret_cast<const char *>(&id), sizeof(size_t));
-  os.write(reinterpret_cast<const char *>(&Type), sizeof( Model::state_t));
+  os.write(reinterpret_cast<const char *>(&Type), sizeof( CModel::state_t));
   os.write(reinterpret_cast<const char *>(&susceptibilityFactor), sizeof(double));
   os.write(reinterpret_cast<const char *>(&susceptibility), sizeof(double));
   os.write(reinterpret_cast<const char *>(&infectivityFactor), sizeof(double));
   os.write(reinterpret_cast<const char *>(&infectivity), sizeof(double));
-  os.write(reinterpret_cast<const char *>(&nodeTrait), sizeof(TraitData::base));
+  os.write(reinterpret_cast<const char *>(&nodeTrait), sizeof(CTraitData::base));
 }
 
 void CNode::fromBinary(std::istream & is)
 {
-  Model::state_t Type;
+  CModel::state_t Type;
 
   is.read(reinterpret_cast<char *>(&id), sizeof(size_t));
-  is.read(reinterpret_cast<char *>(&Type), sizeof(Model::state_t));
+  is.read(reinterpret_cast<char *>(&Type), sizeof(CModel::state_t));
   is.read(reinterpret_cast<char *>(&susceptibilityFactor), sizeof(double));
   is.read(reinterpret_cast<char *>(&susceptibility), sizeof(double));
   is.read(reinterpret_cast<char *>(&infectivityFactor), sizeof(double));
   is.read(reinterpret_cast<char *>(&infectivity), sizeof(double));
-  is.read(reinterpret_cast<char *>(&nodeTrait), sizeof(TraitData::base));
+  is.read(reinterpret_cast<char *>(&nodeTrait), sizeof(CTraitData::base));
 
-  pHealthState = Model::stateFromType(Type);
+  pHealthState = CModel::stateFromType(Type);
 }
 
-bool CNode::set(const Transmission * pTransmission, const Metadata & metadata)
+bool CNode::set(const CTransmission * pTransmission, const CMetadata & metadata)
 {
   if (pHealthState == pTransmission->getExitState()) return false;
 
@@ -104,12 +104,12 @@ bool CNode::set(const Transmission * pTransmission, const Metadata & metadata)
 
   // std::cout << id << "," << pTransmission->getEntryState() << "," << pTransmission->getExitState() << "," << pTransmission->getContactState() << std::endl;
 
-  Model::stateChanged(this);
+  CModel::stateChanged(this);
 
   return true;
 }
 
-bool CNode::set(const Progression * pProgression, const Metadata & metadata)
+bool CNode::set(const CProgression * pProgression, const CMetadata & metadata)
 {
   if (pHealthState == pProgression->getExitState()) return false;
 
@@ -121,7 +121,7 @@ bool CNode::set(const Progression * pProgression, const Metadata & metadata)
 
   // std::cout << id << "," << pProgression->getEntryState() << "," << pProgression->getExitState() << std::endl;
 
-  Model::stateChanged(this);
+  CModel::stateChanged(this);
 
   return true;
 }

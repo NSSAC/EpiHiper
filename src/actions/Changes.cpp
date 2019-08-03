@@ -9,11 +9,11 @@
 
 #include "actions/Changes.h"
 
-#include "../network/CEdge.h"
-#include "../network/CNode.h"
+#include "diseaseModel/CHealthState.h"
+#include "network/CEdge.h"
+#include "network/CNode.h"
+#include "utilities/CMetadata.h"
 #include "SimConfig.h"
-#include "utilities/Metadata.h"
-#include "diseaseModel/State.h"
 
 // static
 std::ostringstream Changes::Nodes;
@@ -44,7 +44,7 @@ void Changes::incrementTick()
 
 
 // static
-void Changes::record(const CNode & node, const Metadata & metadata)
+void Changes::record(const CNode & node, const CMetadata & metadata)
 {
   node.toBinary(Nodes);
 
@@ -67,14 +67,14 @@ void Changes::record(const CNode & node, const Metadata & metadata)
 }
 
 // static
-void Changes::record(const CEdge & edge, const Metadata & metadata)
+void Changes::record(const CEdge & edge, const CMetadata & metadata)
 {
   edge.toBinary(Edges);
   ++Size;
 }
 
 // static
-void Changes::record(const Variable & variable, const Metadata & metadata)
+void Changes::record(const Variable & variable, const CMetadata & metadata)
 {}
 
 // static
@@ -88,7 +88,7 @@ void Changes::clear()
 // static
 void Changes::initDefaultOutput()
 {
-  if (Communicate::Rank == 0)
+  if (CCommunicate::Rank == 0)
     {
       std::ofstream out;
 
@@ -111,14 +111,14 @@ void Changes::initDefaultOutput()
 // static
 void Changes::writeDefaultOutput()
 {
-  Communicate::SequentialProcess WriteData(&Changes::writeDefaultOutputData);
-  Communicate::sequential(0, &WriteData);
+  CCommunicate::SequentialProcess WriteData(&Changes::writeDefaultOutputData);
+  CCommunicate::sequential(0, &WriteData);
 
   DefaultOutput.str("");
 }
 
 // static
-Communicate::ErrorCode Changes::writeDefaultOutputData()
+CCommunicate::ErrorCode Changes::writeDefaultOutputData()
 {
   std::ofstream out;
 
@@ -131,7 +131,7 @@ Communicate::ErrorCode Changes::writeDefaultOutputData()
 
   out.close();
 
-  return Communicate::ErrorCode::Success;
+  return CCommunicate::ErrorCode::Success;
 }
 
 // static

@@ -19,7 +19,7 @@
 
 #include "SimConfig.h"
 #include "Misc.h"
-#include "utilities/DirEntry.h"
+#include "utilities/CDirEntry.h"
 
 // static
 SimConfig * SimConfig::INSTANCE(NULL);
@@ -95,7 +95,7 @@ SimConfig::SimConfig(const std::string& configFile)
       return;
     }
 
-  DirEntry::makePathAbsolute(runParameters, DirEntry::getPWD());
+  CDirEntry::makePathAbsolute(runParameters, CDirEntry::getPWD());
 
   json_t * pRoot = loadJson(configFile, JSON_DECODE_INT_AS_REAL);
 
@@ -108,14 +108,14 @@ SimConfig::SimConfig(const std::string& configFile)
 
   if (json_is_string(pValue))
     {
-      modelScenario = DirEntry::resolve(json_string_value(pValue), runParameters);
+      modelScenario = CDirEntry::resolve(json_string_value(pValue), runParameters);
     }
 
   pValue = json_object_get(pRoot, "output");
 
   if (json_is_string(pValue))
     {
-      output = DirEntry::resolve(json_string_value(pValue), runParameters);
+      output = CDirEntry::resolve(json_string_value(pValue), runParameters);
     }
 
   pValue = json_object_get(pRoot, "startTick");
@@ -156,42 +156,42 @@ bool SimConfig::loadScenario()
 
   if (json_is_string(pValue))
     {
-      contactNetwork = DirEntry::resolve(json_string_value(pValue), modelScenario);
+      contactNetwork = CDirEntry::resolve(json_string_value(pValue), modelScenario);
     }
 
   pValue = json_object_get(pRoot, "diseaseModel");
 
   if (json_is_string(pValue))
     {
-      diseaseModel = DirEntry::resolve(json_string_value(pValue), modelScenario);
+      diseaseModel = CDirEntry::resolve(json_string_value(pValue), modelScenario);
     }
 
   pValue = json_object_get(pRoot, "initialization");
 
   if (json_is_string(pValue))
     {
-      initialization = DirEntry::resolve(json_string_value(pValue), modelScenario);
+      initialization = CDirEntry::resolve(json_string_value(pValue), modelScenario);
     }
 
   pValue = json_object_get(pRoot, "intervention");
 
   if (json_is_string(pValue))
     {
-      intervention = DirEntry::resolve(json_string_value(pValue), modelScenario);
+      intervention = CDirEntry::resolve(json_string_value(pValue), modelScenario);
     }
 
   pValue = json_object_get(pRoot, "traits");
 
   if (json_is_string(pValue))
     {
-      traits = DirEntry::resolve(json_string_value(pValue), modelScenario);
+      traits = CDirEntry::resolve(json_string_value(pValue), modelScenario);
     }
 
   pValue = json_object_get(pRoot, "personTraitDB");
 
   if (json_is_string(pValue))
     {
-      personTraitDB = DirEntry::resolve(json_string_value(pValue), modelScenario);
+      personTraitDB = CDirEntry::resolve(json_string_value(pValue), modelScenario);
     }
 
   json_decref(pRoot);

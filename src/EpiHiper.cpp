@@ -14,12 +14,12 @@
 #include <cstdlib>
 #include <getopt.h>
 
+#include "diseaseModel/CModel.h"
 #include "SimConfig.h"
 #include "Simulation.h"
-#include "traits/Trait.h"
-#include "diseaseModel/Model.h"
-#include "network/Network.h"
-#include "utilities/Communicate.h"
+#include "network/CNetwork.h"
+#include "traits/CTrait.h"
+#include "utilities/CCommunicate.h"
 
 // Uncomment the following line if you want to attache a debugger
 // #define DEBUG_WAIT 1
@@ -74,26 +74,26 @@ bool parseArgs(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
-  Communicate::init(&argc, &argv);
+  CCommunicate::init(&argc, &argv);
 
-  if (Communicate::Rank == 0) {
+  if (CCommunicate::Rank == 0) {
     std::cout << "EpiHiper version 0.0.1 (2019.06.14)" << std::endl;
   }
 
   if (argc < 3 || ! parseArgs(argc, argv)) {
-    if (Communicate::Rank == 0) {
+    if (CCommunicate::Rank == 0) {
       printUsage();
     }
-    Communicate::abort(Communicate::ErrorCode::InvalidArguments);
-    Communicate::finalize();
+    CCommunicate::abort(CCommunicate::ErrorCode::InvalidArguments);
+    CCommunicate::finalize();
 
     exit(EXIT_FAILURE);
   }
 
 #ifdef DEBUG_WAIT
-  int debugwait = (Communicate::Rank == 0);
+  int debugwait = (CCommunicate::Rank == 0);
 
-  printf("Rank: %d, PID: %d\n", Communicate::Rank, getpid());
+  printf("Rank: %d, PID: %d\n", CCommunicate::Rank, getpid());
 
   while (debugwait) sleep(1);
 #endif
@@ -101,12 +101,12 @@ int main(int argc, char *argv[]) {
   SimConfig::load(config);
 
   if (SimConfig::isValid()) {
-    Trait::init();
-    Network::init();
-    Trait::load(SimConfig::getTraits());
-    Model::load(SimConfig::getDiseaseModel());
+    CTrait::init();
+    CNetwork::init();
+    CTrait::load(SimConfig::getTraits());
+    CModel::load(SimConfig::getDiseaseModel());
 
-    Network::INSTANCE->load();
+    CNetwork::INSTANCE->load();
     // Network::INSTANCE->write("network.bin", true);
     // Network::INSTANCE->write("network.txt", false);
 
@@ -119,9 +119,9 @@ int main(int argc, char *argv[]) {
   }
 
   SimConfig::release();
-  Model::release();
-  Network::release();
+  CModel::release();
+  CNetwork::release();
 
-  Communicate::finalize();
+  CCommunicate::finalize();
   return 0;
 }

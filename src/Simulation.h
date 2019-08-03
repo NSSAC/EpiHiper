@@ -13,9 +13,8 @@
 #ifndef SIMULATION_H
 #define SIMULATION_H
 
-#include "utilities/Communicate.h"
-
 #include "Types.h"
+#include "utilities/CCommunicate.h"
 
 class Simulation {
 private:
@@ -52,7 +51,7 @@ public:
   void dummyRun();
   void test();
   inline bool isValid() { return valid; }
-  Communicate::ErrorCode writedata();
+  CCommunicate::ErrorCode writedata();
 };
 
 struct DummyTransition {

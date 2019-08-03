@@ -21,12 +21,13 @@
 #define SRC_NETWORK_CNODE_H_
 
 #include <iostream>
-#include "traits/TraitData.h"
 
-class State;
-class Transmission;
-class Progression;
-class Metadata;
+#include "traits/CTraitData.h"
+
+class CHealthState;
+class CTransmission;
+class CProgression;
+class CMetadata;
 
 class CEdge;
 
@@ -43,16 +44,16 @@ public:
   void toBinary(std::ostream & os) const;
   void fromBinary(std::istream & is);
 
-  bool set(const Transmission * pTransmission, const Metadata & metadata);
-  bool set(const Progression * pProgression, const Metadata & metadata);
+  bool set(const CTransmission * pTransmission, const CMetadata & metadata);
+  bool set(const CProgression * pProgression, const CMetadata & metadata);
 
   size_t id;
-  const State * pHealthState;
+  const CHealthState * pHealthState;
   double susceptibilityFactor;
   double susceptibility;
   double infectivityFactor;
   double infectivity;
-  TraitData::base nodeTrait;
+  CTraitData::base nodeTrait;
   CEdge * Edges;
   size_t EdgesSize;
 };

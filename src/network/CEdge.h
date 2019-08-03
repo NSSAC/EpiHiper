@@ -14,7 +14,8 @@
 #define SRC_NETWORK_CEDGE_H_
 
 #include <iostream>
-#include "traits/TraitData.h"
+
+#include "traits/CTraitData.h"
 
 class CNode;
 
@@ -34,11 +35,11 @@ public:
   void fromBinary(std::istream & is);
 
   size_t targetId;
-  TraitData::base targetActivity;
+  CTraitData::base targetActivity;
   size_t sourceId;
-  TraitData::base sourceActivity;
+  CTraitData::base sourceActivity;
   double duration;
-  TraitData::base edgeTrait;
+  CTraitData::base edgeTrait;
   bool active;
   double weight;
   CNode * pTarget;
