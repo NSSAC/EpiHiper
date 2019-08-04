@@ -24,6 +24,7 @@ include(actions/CMakeLists.txt)
 include(diseaseModel/CMakeLists.txt)
 include(intervention/CMakeLists.txt)
 include(network/CMakeLists.txt)
+include(sets/CMakeLists.txt)
 include(traits/CMakeLists.txt)
 include(utilities/CMakeLists.txt)
 
