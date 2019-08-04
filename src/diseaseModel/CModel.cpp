@@ -62,7 +62,7 @@ CModel::CModel(const std::string & modelFile)
 
   if (pRoot != NULL)
     {
-      fromJSON(pRoot );
+      fromJSON(pRoot);
     }
 
   json_decref(pRoot);

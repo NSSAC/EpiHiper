@@ -204,6 +204,11 @@ const bool & CValue::isValid() const
   return mValid;
 }
 
+void CValue::fromJSON(const json_t * json)
+{
+  *this = CValue(json);
+}
+
 void CValue::toBinary(std::ostream & os) const
 {
   os.write(reinterpret_cast<const char *>(&mType), sizeof(Type));
@@ -226,6 +231,11 @@ void CValue::toBinary(std::ostream & os) const
       os.write(reinterpret_cast<const char *>(mpValue), sizeof(CTraitData::value));
       break;
   }
+}
+
+void CValue::fromBinary(std::istream & is)
+{
+  *this = CValue(is);
 }
 
 void CValue::createValue()

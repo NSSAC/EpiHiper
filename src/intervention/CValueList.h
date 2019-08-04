@@ -31,7 +31,11 @@ public:
 
   const bool & isValid() const;
 
+  void fromJSON(const json_t * json);
+
   void toBinary(std::ostream & os) const;
+
+  void fromBinary(std::istream & is);
 
 private:
   Type mType;
