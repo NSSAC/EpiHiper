@@ -12,17 +12,6 @@
 
 #include "CSet.h"
 
-CSet::CSet()
-{
-  // TODO Auto-generated constructor stub
-
-}
-
-CSet::~CSet()
-{
-  // TODO Auto-generated destructor stub
-}
-
 /*
         {"$ref": "#/definitions/annotation"},
         {
@@ -43,3 +32,49 @@ CSet::~CSet()
           "additionalProperties": false
         }
  */
+
+CSet::CSet(const CSet & src)
+  : CAnnotation(src)
+  , mId()
+  , mType()
+  , mValid(true)
+{}
+
+CSet::CSet(const json_t * json)
+  : CAnnotation()
+  , mId()
+  , mType()
+  , mValid(true)
+{
+
+  CAnnotation::fromJSON(json);
+}
+
+// virtual
+CSet::~CSet()
+{}
+
+void CSet::fromJSON(const json_t * json)
+{
+
+}
+
+void CSet::toBinary(std::ostream & os) const
+{
+
+}
+
+void CSet::fromBinary(std::istream & is)
+{
+
+}
+
+const std::string & CSet::getId() const
+{
+  return mId;
+}
+
+const bool & CSet::isValid() const
+{
+  return mValid;
+}

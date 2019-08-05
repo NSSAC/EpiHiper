@@ -13,11 +13,33 @@
 #ifndef SRC_INTERVENTION_CSETLIST_H_
 #define SRC_INTERVENTION_CSETLIST_H_
 
-class CSetList
+#include <vector>
+#include <map>
+
+#include "sets/CSet.h"
+
+class CSetList: protected std::vector< CSet >
 {
 public:
   CSetList();
+
+  CSetList(const CSetList & src);
+
   virtual ~CSetList();
+
+  void fromJSON(const json_t * json);
+
+  void toBinary(std::ostream & os) const;
+
+  void fromBinary(std::istream & is);
+
+  CSet & operator[](const size_t & id);
+
+  CSet & operator[](const std::string & id);
+
+private:
+  std::map< std::string, size_t > mId2Index;
+  bool mValid;
 };
 
 #endif /* SRC_INTERVENTION_CSETLIST_H_ */

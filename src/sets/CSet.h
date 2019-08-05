@@ -13,11 +13,39 @@
 #ifndef SRC_INTERVENTION_CSET_H_
 #define SRC_INTERVENTION_CSET_H_
 
-class CSet
+#include "utilities/CAnnotation.h"
+
+class CSet: public CAnnotation
 {
 public:
-  CSet();
+  enum struct Type
+  {
+	global,
+	local
+  };
+
+  CSet() = delete;
+
+  CSet(const CSet & src);
+
+  CSet(const json_t * json);
+
   virtual ~CSet();
+
+  void fromJSON(const json_t * json);
+
+  void toBinary(std::ostream & os) const;
+
+  void fromBinary(std::istream & is);
+
+  const std::string & getId() const;
+
+  const bool & isValid() const;
+
+private:
+  std::string mId;
+  Type mType;
+  bool mValid;
 };
 
 #endif /* SRC_INTERVENTION_CSET_H_ */
