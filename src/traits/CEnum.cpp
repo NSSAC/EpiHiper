@@ -10,10 +10,9 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "CEnum.h"
-
 #include <jansson.h>
 
+#include "traits/CEnum.h"
 
 CEnum::CEnum()
   : CAnnotation()

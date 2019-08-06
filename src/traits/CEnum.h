@@ -23,7 +23,7 @@
 #include <string>
 
 #include "utilities/CAnnotation.h"
-#include "CTraitData.h"
+#include "traits/CTraitData.h"
 
 struct json_t;
 

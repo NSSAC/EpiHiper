@@ -16,8 +16,8 @@
 #include <map>
 
 #include "utilities/CAnnotation.h"
-#include "CDistribution.h"
-#include "CFactorOperation.h"
+#include "diseaseModel/CDistribution.h"
+#include "diseaseModel/CFactorOperation.h"
 
 struct json_t;
 class CHealthState;

@@ -24,7 +24,7 @@
 #include <map>
 #include <utility>
 
-#include "CFeature.h"
+#include "traits/CFeature.h"
 
 struct json_t;
 

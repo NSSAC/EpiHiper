@@ -29,8 +29,8 @@ public:
 #include <vector>
 
 #include "utilities/CMetadata.h"
-#include "CCondition.h"
-#include "COperation.h"
+#include "actions/CCondition.h"
+#include "actions/COperation.h"
 
 class CAction
 {

@@ -10,11 +10,10 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "CProgression.h"
-
 #include <jansson.h>
 
-#include "CHealthState.h"
+#include "diseaseModel/CProgression.h"
+#include "diseaseModel/CHealthState.h"
 
 CProgression::CProgression()
   : CAnnotation()

@@ -18,15 +18,14 @@
 #include <jansson.h>
 
 #include "SimConfig.h"
-
 #include "actions/CActionQueue.h"
 #include "traits/CTrait.h"
 #include "utilities/CCommunicate.h"
 #include "utilities/CStreamBuffer.h"
 #include "actions/Changes.h"
-#include "CEdge.h"
-#include "CNetwork.h"
-#include "CNode.h"
+#include "network/CEdge.h"
+#include "network/CNetwork.h"
+#include "network/CNode.h"
 
 // static
 CNetwork * CNetwork::INSTANCE(NULL);
@@ -471,8 +470,8 @@ void CNetwork::write(const std::string & file, bool binary)
 
   os << std::endl;
 
-  CEdge * pEdge = mEdges;
-  CEdge * pEdgeEnd = pEdge + mEdgesSize;
+  CEdge * pEdge = beginEdge();
+  CEdge * pEdgeEnd = endEdge();
 
   for (; pEdge != pEdgeEnd; ++pEdge)
     {
@@ -490,6 +489,16 @@ CNode * CNetwork::beginNode()
 CNode * CNetwork::endNode()
 {
   return mLocalNodes + mLocalNodesSize;
+}
+
+CEdge * CNetwork::beginEdge()
+{
+  return mEdges;
+}
+
+CEdge * CNetwork::endEdge()
+{
+  return mEdges + mEdgesSize;
 }
 
 CNode * CNetwork::lookupNode(const size_t & id) const

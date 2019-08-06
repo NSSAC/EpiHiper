@@ -29,6 +29,8 @@ struct json_t;
 class CVariableList: protected std::vector< CVariable>
 {
 public:
+  static CVariableList INSTANCE;
+
   CVariableList();
 
   CVariableList(const CVariableList & src);

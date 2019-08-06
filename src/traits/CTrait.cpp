@@ -17,8 +17,6 @@
  *      Author: shoops
  */
 
-#include "CTrait.h"
-
 #include <vector>
 #include <set>
 #include <fstream>
@@ -29,6 +27,7 @@
 #include <jansson.h>
 
 #include "SimConfig.h"
+#include "traits/CTrait.h"
 
 // static
 std::map< std::string, CTrait > CTrait::INSTANCES;

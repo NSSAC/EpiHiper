@@ -10,12 +10,11 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "CCommunicate.h"
-
 #include <algorithm>
 #include <unistd.h>
 
-#include "CStreamBuffer.h"
+#include "utilities/CCommunicate.h"
+#include "utilities/CStreamBuffer.h"
 
 // static
 int CCommunicate::Rank(-1);

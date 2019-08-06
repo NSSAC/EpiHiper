@@ -24,7 +24,7 @@
 #include <vector>
 #include <map>
 
-#include "CEnum.h"
+#include "traits/CEnum.h"
 
 class CFeature: public CAnnotation
 {

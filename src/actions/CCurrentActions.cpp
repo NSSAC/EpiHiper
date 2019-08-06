@@ -10,10 +10,9 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "CCurrentActions.h"
-
 #include <algorithm>
 
+#include "actions/CCurrentActions.h"
 #include "utilities/CRandom.h"
 
 CCurrentActions::iterator::iterator(const CCurrentActions::base & actions, bool begin)

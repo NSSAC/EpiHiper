@@ -32,7 +32,7 @@ typedef struct stat STAT;
 # include <unistd.h>
 #endif // WIN32
 
-#include "CDirEntry.h"
+#include "utilities/CDirEntry.h"
 
 #ifdef WIN32
 const std::string CDirEntry::Separator = "\\";

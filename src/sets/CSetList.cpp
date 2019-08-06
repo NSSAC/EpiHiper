@@ -13,7 +13,13 @@
 #include <iostream>
 #include <jansson.h>
 
-#include "CSetList.h"
+#include "sets/CSetList.h"
+
+// static
+CSetList CSetList::INSTANCE;
+
+// static
+CSet CSetList::Invalid(NULL);
 
 CSetList::CSetList()
   : std::vector< CSet >()
@@ -48,10 +54,10 @@ void CSetList::fromJSON(const json_t * json)
 
   for (size_t i = 0, imax = json_array_size(json); i < imax; ++i)
     {
-      CSet Variable(json_array_get(json, i));
-      mValid &= Variable.isValid();
-      mId2Index[Variable.getId()] = i;
-      push_back(Variable);
+      CSet Set(json_array_get(json, i));
+      mValid &= Set.isValid();
+      mId2Index[Set.getId()] = i;
+      push_back(Set);
     }
 }
 
@@ -66,7 +72,7 @@ void CSetList::toBinary(std::ostream & os) const
 
   for (; it != itEnd; ++it)
     {
-      it->toBinary(os);
+      // it->toBinary(os);
     }
 }
 
@@ -85,14 +91,12 @@ void CSetList::fromBinary(std::istream & is)
 
   for (; it != itEnd; ++it)
     {
-      it->fromBinary(is);
+      // it->fromBinary(is);
     }
 }
 
 CSet & CSetList::operator[](const size_t & index)
 {
-  static CSet Invalid(NULL);
-
   if (index < size())
     return std::vector< CSet >::operator[](index);
 
@@ -101,8 +105,6 @@ CSet & CSetList::operator[](const size_t & index)
 
 CSet & CSetList::operator[](const std::string & id)
 {
-  static CSet Invalid(NULL);
-
   std::map< std::string, size_t >::iterator found = mId2Index.find(id);
 
   if (found != mId2Index.end())

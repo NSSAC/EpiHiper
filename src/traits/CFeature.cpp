@@ -17,12 +17,11 @@
  *      Author: shoops
  */
 
-#include "CFeature.h"
-
 #include <cmath>
 #include <iostream>
 #include <jansson.h>
 
+#include "traits/CFeature.h"
 
 CFeature::CFeature()
   : CAnnotation()

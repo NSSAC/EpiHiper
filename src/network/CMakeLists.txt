@@ -16,7 +16,7 @@ file(GLOB HEADERS_NETWORK network/*.h)
 file(GLOB SOURCES_NETWORK network/*.cpp)
 
 # create source group for IDEs
-source_group(traits FILES ${SOURCES_NETWORK} ${HEADERS_NETWORK})
+source_group(network FILES ${SOURCES_NETWORK} ${HEADERS_NETWORK})
 
 # add files to main EPIHIPER sources
 set(SOURCES_EPIHIPER ${SOURCES_EPIHIPER} ${SOURCES_NETWORK})

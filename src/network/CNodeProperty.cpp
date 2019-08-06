@@ -10,21 +10,25 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#ifndef SRC_SETS_CSETOPERATION_H_
-#define SRC_SETS_CSETOPERATION_H_
+/*
+ * CNodeProperty.cpp
+ *
+ *  Created on: Aug 6, 2019
+ *      Author: shoops
+ */
 
-#include "sets/CSetContent.h"
+#include <jansson.h>
 
-class CSetOperation: public CSetContent
+#include "network/CNodeProperty.h"
+
+CNodeProperty::CNodeProperty()
 {
-public:
-  CSetOperation();
+  // TODO Auto-generated constructor stub
 
-  CSetOperation(const CSetOperation & src);
+}
 
-  CSetOperation(const json_t * json);
+CNodeProperty::~CNodeProperty()
+{
+  // TODO Auto-generated destructor stub
+}
 
-  virtual ~CSetOperation();
-};
-
-#endif /* SRC_SETS_CSETOPERATION_H_ */

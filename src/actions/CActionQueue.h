@@ -14,7 +14,7 @@
 #define SRC_ACTIONS_CACTIONQUEUE_H_
 
 #include "utilities/CCommunicate.h"
-#include "CCurrentActions.h"
+#include "actions/CCurrentActions.h"
 
 class CActionQueue: public std::map< size_t, CCurrentActions >
 {

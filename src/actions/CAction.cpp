@@ -17,7 +17,7 @@
  *      Author: shoops
  */
 
-#include "CAction.h"
+#include "actions/CAction.h"
 
 CAction::CAction(const double & priority,
                const CCondition & condition,

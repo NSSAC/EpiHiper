@@ -15,7 +15,7 @@
 #include <cmath>
 #include <jansson.h>
 
-#include "CVariable.h"
+#include "intervention/CVariable.h"
 
 CVariable::CVariable(const CVariable & src)
   : CAnnotation(src)
@@ -61,7 +61,6 @@ CVariable::CVariable(const json_t * json)
     {
       std::string(json_string_value(pValue));
       mType = std::string(json_string_value(pValue)) == "global" ? Type::global : Type::local;
-      mResetValue = json_real_value(pValue);
     }
   else
     {

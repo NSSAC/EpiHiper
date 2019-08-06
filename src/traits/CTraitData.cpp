@@ -14,8 +14,8 @@
 #include <assert.h>
 #include <iostream>
 
-#include "CTrait.h"
-#include "CTraitData.h"
+#include "traits/CTrait.h"
+#include "traits/CTraitData.h"
 
 // static
 bool CTraitData::hasValue(const CTraitData::base & data, const CTraitData::value & value)

@@ -10,36 +10,42 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "CSetOperation.h"
+#include "sets/CSetOperation.h"
 
 CSetOperation::CSetOperation()
-{
-  // TODO Auto-generated constructor stub
+  : CSetContent()
+{}
 
+CSetOperation::CSetOperation(const CSetOperation & src)
+  : CSetContent(src)
+{}
+
+CSetOperation::CSetOperation(const json_t * json)
+  : CSetContent()
+{
+  /*
+         "required": [
+          "operation",
+          "sets"
+        ],
+        "properties": {
+          "operation": {
+            "type": "string",
+            "enum": [
+              "union",
+              "intersection"
+            ]
+          },
+          "sets": {
+            "type": "array",
+            "items": {"$ref": "#/definitions/setContent"}
+          }
+        },
+
+  */
 }
+
 
 CSetOperation::~CSetOperation()
-{
-  // TODO Auto-generated destructor stub
-}
+{}
 
-/*
-       "required": [
-        "operation",
-        "sets"
-      ],
-      "properties": {
-        "operation": {
-          "type": "string",
-          "enum": [
-            "union",
-            "intersection"
-          ]
-        },
-        "sets": {
-          "type": "array",
-          "items": {"$ref": "#/definitions/setContent"}
-        }
-      },
-
- */

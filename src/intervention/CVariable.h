@@ -14,8 +14,9 @@
 #define SRC_INTERVENTION_CVARIABLE_H_
 
 #include "utilities/CAnnotation.h"
+#include "dependencies/CComputable.h"
 
-class CVariable: public CAnnotation
+class CVariable: public CAnnotation, public CComputable
 {
 public:
   enum struct Type

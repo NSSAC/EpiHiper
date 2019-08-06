@@ -31,7 +31,7 @@ class CTraitData: public std::bitset< 32 >
 public:
   typedef unsigned int base;
 
-  typedef std::pair< const base, const base > value;
+  typedef std::pair< base, base > value;
 
   CTraitData(base val = 0);
 

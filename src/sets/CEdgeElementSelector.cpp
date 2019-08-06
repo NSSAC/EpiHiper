@@ -10,97 +10,79 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "CEdgeElementSelector.h"
+#include <cstring>
+#include <jansson.h>
+
+#include "sets/CEdgeElementSelector.h"
 
 CEdgeElementSelector::CEdgeElementSelector()
-{
-  // TODO Auto-generated constructor stub
+  : CSetContent()
+{}
 
+CEdgeElementSelector::CEdgeElementSelector(const CEdgeElementSelector & src)
+  : CSetContent(src)
+{}
+
+CEdgeElementSelector::CEdgeElementSelector(const json_t * json)
+  : CSetContent()
+{
+  json_t * pValue = json_object_get(json, "elementType");
+
+  mValid = (json_is_string(pValue) && strcmp(json_string_value(pValue), "edge") == 0);
+
+  if (!mValid) return;
+
+  pValue = json_object_get(json, "operator");
+
+  mValid &= json_is_string(pValue);
+
+  if (!mValid) return;
+
+  if (strcmp(json_string_value(pValue), "==") == 0 ||
+      strcmp(json_string_value(pValue), "!=") == 0 ||
+      strcmp(json_string_value(pValue), "<=") == 0 ||
+      strcmp(json_string_value(pValue), "<") == 0 ||
+      strcmp(json_string_value(pValue), ">=") == 0 ||
+      strcmp(json_string_value(pValue), ">") == 0)
+    {
+      /*
+          "left": {
+            "type": "object",
+            "required": ["edge"],
+            "properties": {
+              "edge": {"$ref": "#/definitions/edgeProperty"}
+            }
+          },
+          "right": {"$ref": "#/definitions/value"}
+       */
+    }
+  else if (strcmp(json_string_value(pValue), "withPropertyIn") == 0)
+    {
+      /*
+            "left": {
+              "type": "object",
+              "required": ["edge"],
+              "properties": {
+                "edge": {"$ref": "#/definitions/edgeProperty"}
+              }
+            },
+            "right": {"$ref": "#/definitions/valueList"}
+       */
+
+    }
+  else if (strcmp(json_string_value(pValue), "withTargetNodeIn") == 0 ||
+      strcmp(json_string_value(pValue), "withSourceNodeIn") == 0)
+    {
+      /*
+            "selector": {"$ref": "#/definitions/setContent"}
+       */
+    }
+  else
+    {
+      mValid = false;
+    }
 }
 
 CEdgeElementSelector::~CEdgeElementSelector()
-{
-  // TODO Auto-generated destructor stub
-}
+{}
 
-/*
-      "allOf": [
-        {
-          "required": ["elementType"],
-          "properties": {
-            "elementType": {
-              "type": "string",
-              "enum": ["edge"]
-            }
-          }
-        },
-        {
-          "oneOf": [
-            {
-              "description": "",
-              "type": "object",
-              "required": [
-                "operator",
-                "left",
-                "right"
-              ],
-              "properties": {
-                "operator": {"$ref": "#/definitions/comparisonOperator"},
-                "left": {
-                  "type": "object",
-                  "required": ["edge"],
-                  "properties": {
-                    "edge": {"$ref": "#/definitions/edgeProperty"}
-                  }
-                },
-                "right": {"$ref": "#/definitions/value"}
-              }
-            },
-            {
-              "description": "",
-              "type": "object",
-              "required": [
-                "operator",
-                "left",
-                "right"
-              ],
-              "properties": {
-                "operator": {
-                  "description": "",
-                  "type": "string",
-                  "enum": ["withPropertyIn"]
-                },
-                "left": {
-                  "type": "object",
-                  "required": ["edge"],
-                  "properties": {
-                    "edge": {"$ref": "#/definitions/edgeProperty"}
-                  }
-                },
-                "right": {"$ref": "#/definitions/valueList"}
-              }
-            },
-            {
-              "description": "",
-              "type": "object",
-              "required": [
-                "operator",
-                "selector"
-              ],
-              "properties": {
-                "operator": {
-                  "description": "",
-                  "type": "string",
-                  "enum": [
-                    "withTargetNodeIn",
-                    "withSourceNodeIn"
-                  ]
-                },
-                "selector": {"$ref": "#/definitions/setContent"}
-              }
-            }
-          ]
-        }
-      ]
-
- */

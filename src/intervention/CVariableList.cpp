@@ -13,7 +13,10 @@
 #include <iostream>
 #include <jansson.h>
 
-#include "CVariableList.h"
+#include "intervention/CVariableList.h"
+
+// static
+CVariableList CVariableList::INSTANCE;
 
 CVariableList::CVariableList()
   : std::vector< CVariable >()
@@ -87,7 +90,6 @@ void CVariableList::fromBinary(std::istream & is)
     {
       it->fromBinary(is);
     }
-
 }
 
 CVariable & CVariableList::operator[](const size_t & index)

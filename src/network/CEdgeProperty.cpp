@@ -10,21 +10,29 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#ifndef SRC_SETS_CSETOPERATION_H_
-#define SRC_SETS_CSETOPERATION_H_
+/*
+ * CEdgeProperty.cpp
+ *
+ *  Created on: Aug 6, 2019
+ *      Author: shoops
+ */
 
-#include "sets/CSetContent.h"
+#include <jansson.h>
 
-class CSetOperation: public CSetContent
+#include "network/CEdgeProperty.h"
+
+CEdgeProperty::CEdgeProperty()
 {
-public:
-  CSetOperation();
+}
 
-  CSetOperation(const CSetOperation & src);
+CEdgeProperty::~CEdgeProperty()
+{
+}
 
-  CSetOperation(const json_t * json);
+void CEdgeProperty::fronJSON(const json_t * json)
+{
+  /*
+   *
+   */
+}
 
-  virtual ~CSetOperation();
-};
-
-#endif /* SRC_SETS_CSETOPERATION_H_ */

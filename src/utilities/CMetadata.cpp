@@ -17,13 +17,11 @@
  *      Author: shoops
  */
 
-#include "CMetadata.h"
-
 #include <limits>
 #include <iostream>
-
 #include <jansson.h>
 
+#include "utilities/CMetadata.h"
 
 CMetadata::CMetadata()
   : mpJson(NULL)

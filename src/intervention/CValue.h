@@ -28,7 +28,8 @@ public:
     boolean,
     number,
     healthState,
-    traitValue
+    traitValue,
+    string
   };
 
   CValue(const Type & type = Type::number);
@@ -40,6 +41,8 @@ public:
   CValue(const CModel::state_t & healthState);
 
   CValue(const CTraitData::value & traitValue);
+
+  CValue(const std::string & str);
 
   CValue(const CValue & src);
 
@@ -56,6 +59,8 @@ public:
   const CModel::state_t & toHealthState() const;
 
   const CTraitData::value & toTraitValue() const;
+
+  const std::string & toString() const;
 
   const Type & getType() const;
 

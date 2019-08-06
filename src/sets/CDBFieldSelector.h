@@ -13,11 +13,23 @@
 #ifndef SRC_SETS_CDBFIELDSELECTOR_H_
 #define SRC_SETS_CDBFIELDSELECTOR_H_
 
-class CDBFieldSelector
+#include "sets/CSetContent.h"
+
+class CDBFieldSelector : public CSetContent
 {
 public:
   CDBFieldSelector();
+
+  CDBFieldSelector(const CDBFieldSelector & src);
+
+  CDBFieldSelector(const json_t * json);
+
   virtual ~CDBFieldSelector();
+
+private:
+  std::string mTable;
+  std::string mField;
+  CSetContent * mpSetContent;
 };
 
 #endif /* SRC_SETS_CDBFIELDSELECTOR_H_ */

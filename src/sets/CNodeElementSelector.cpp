@@ -10,20 +10,20 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "CNodeElementSelector.h"
+#include "sets/CNodeElementSelector.h"
 
 CNodeElementSelector::CNodeElementSelector()
+  : CSetContent()
+{}
+
+CNodeElementSelector::CNodeElementSelector(const CNodeElementSelector & src)
+  : CSetContent(src)
+{}
+
+CNodeElementSelector::CNodeElementSelector(const json_t * json)
+  : CSetContent()
 {
-  // TODO Auto-generated constructor stub
-
-}
-
-CNodeElementSelector::~CNodeElementSelector()
-{
-  // TODO Auto-generated destructor stub
-}
-
-/*
+  /*
       "oneOf": [
         {
           "required": [
@@ -208,3 +208,8 @@ CNodeElementSelector::~CNodeElementSelector()
       ]
 
  */
+}
+
+CNodeElementSelector::~CNodeElementSelector()
+{}
+

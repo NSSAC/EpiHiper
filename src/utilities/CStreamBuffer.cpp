@@ -17,7 +17,7 @@
  *      Author: shoops
  */
 
-#include "CStreamBuffer.h"
+#include "utilities/CStreamBuffer.h"
 
 CStreamBuffer::CStreamBuffer(char * pBuffer, size_t size)
   : std::streambuf()

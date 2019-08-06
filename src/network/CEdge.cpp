@@ -17,8 +17,7 @@
  *      Author: shoops
  */
 
-#include "CEdge.h"
-
+#include "network/CEdge.h"
 #include "traits/CTrait.h"
 
 // static

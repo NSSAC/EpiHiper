@@ -51,6 +51,7 @@ public:
 
   static void init();
   static void release();
+
   void load();
   void write(const std::string & file, bool binary);
 
@@ -67,6 +68,10 @@ public:
   CNode * beginNode();
 
   CNode * endNode();
+
+  CEdge * beginEdge();
+
+  CEdge * endEdge();
 
   int broadcastChanges();
 

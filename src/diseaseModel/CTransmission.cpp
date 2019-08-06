@@ -10,11 +10,10 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "CTransmission.h"
-
 #include <jansson.h>
 
-#include "CHealthState.h"
+#include "diseaseModel/CTransmission.h"
+#include "diseaseModel/CHealthState.h"
 
 CTransmission::CTransmission()
   : CAnnotation()

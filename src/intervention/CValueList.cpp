@@ -12,7 +12,7 @@
 
 #include <jansson.h>
 
-#include "CValueList.h"
+#include "intervention/CValueList.h"
 #include "traits/CTrait.h"
 
 CValueList::CValueList(const Type & type)

@@ -10,10 +10,9 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "CHealthState.h"
-
 #include <jansson.h>
 
+#include "diseaseModel/CHealthState.h"
 
 CHealthState::CHealthState()
   : CAnnotation()

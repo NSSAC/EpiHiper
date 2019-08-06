@@ -10,8 +10,7 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "CNode.h"
-
+#include "network/CNode.h"
 #include "diseaseModel/CHealthState.h"
 #include "diseaseModel/CModel.h"
 #include "diseaseModel/CProgression.h"

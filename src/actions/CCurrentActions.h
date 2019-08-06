@@ -23,7 +23,7 @@
 #include <map>
 #include <vector>
 
-#include "CAction.h"
+#include "actions/CAction.h"
 
 class CCurrentActions: protected std::map< double, std::vector< CAction > >
 {

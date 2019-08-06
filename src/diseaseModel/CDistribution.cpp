@@ -10,11 +10,10 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "CDistribution.h"
-
 #include <string>
 #include <jansson.h>
 
+#include "diseaseModel/CDistribution.h"
 
 CDistribution::CDistribution()
   : mType(Type::__NONE)

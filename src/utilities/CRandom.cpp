@@ -10,9 +10,8 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "CRandom.h"
-
-#include "CCommunicate.h"
+#include "utilities/CRandom.h"
+#include "utilities/CCommunicate.h"
 
 // static
 CRandom::generator_t CRandom::G;

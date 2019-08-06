@@ -58,6 +58,14 @@ CValue::CValue(const CTraitData::value & traitValue)
   mpValue = new CTraitData::value(traitValue);
 }
 
+CValue::CValue(const std::string & str)
+  : mType(Type::string)
+  , mpValue(NULL)
+  , mValid(true)
+{
+  mpValue = new std::string(str);
+}
+
 CValue::CValue(const CValue & src)
   : mType(src.mType)
   , mpValue(NULL)
@@ -174,6 +182,18 @@ CValue::CValue(std::istream & is)
       is.read(reinterpret_cast<char *>(&mpValue), sizeof(CTraitData::value));
       break;
 
+    case Type::string:
+      {
+        size_t Size = 0;
+        is.read(reinterpret_cast<char *>(&Size), sizeof(size_t));
+
+        char str[Size + 1];
+        str[Size] = 0;
+        is.read(str, Size * sizeof(char));
+        *static_cast< std::string * >(mpValue) = str;
+      }
+      break;
+
     default:
       mValid = false;
       break;
@@ -204,6 +224,11 @@ const CModel::state_t & CValue::toHealthState() const
 const CTraitData::value & CValue::toTraitValue() const
 {
   return * static_cast< CTraitData::value * >(mpValue);
+}
+
+const std::string & CValue::toString() const
+{
+  return * static_cast< std::string * >(mpValue);
 }
 
 const CValue::Type & CValue::getType() const
@@ -242,6 +267,15 @@ void CValue::toBinary(std::ostream & os) const
     case Type::traitValue:
       os.write(reinterpret_cast<const char *>(mpValue), sizeof(CTraitData::value));
       break;
+
+    case Type::string:
+      {
+        std::string * pStr = static_cast< std::string * >(mpValue);
+        size_t Size = pStr->length();
+        os.write(reinterpret_cast<const char *>(&Size), sizeof(size_t));
+        os.write(reinterpret_cast<const char *>(pStr->c_str()), Size * sizeof(char));
+      }
+      break;
   }
 }
 
@@ -271,6 +305,10 @@ void CValue::createValue()
     case Type::traitValue:
       mpValue = new CTraitData::value(0, 0);
       break;
+
+    case Type::string:
+      mpValue = new std::string();
+      break;
   }
 }
 
@@ -281,19 +319,23 @@ void CValue::assignValue(const void * pValue)
   switch (mType)
   {
     case Type::boolean:
-      memcpy(mpValue, pValue, sizeof(bool));
+      *static_cast< bool * >(mpValue) = *static_cast< const bool * >(pValue);
       break;
 
     case Type::number:
-      memcpy(mpValue, pValue, sizeof(double));
+      *static_cast< double * >(mpValue) = *static_cast< const double * >(pValue);
       break;
 
     case Type::healthState:
-      memcpy(mpValue, pValue, sizeof(CModel::state_t));
+      *static_cast< CModel::state_t * >(mpValue) = *static_cast< const CModel::state_t * >(pValue);
       break;
 
     case Type::traitValue:
-      memcpy(mpValue, pValue, sizeof(CTraitData::value));
+      *static_cast< CTraitData::value * >(mpValue) = *static_cast< const CTraitData::value * >(pValue);
+      break;
+
+    case Type::string:
+      *static_cast< std::string * >(mpValue) = *static_cast< const std::string * >(pValue);
       break;
   }
 }
@@ -305,19 +347,24 @@ void CValue::destroyValue()
   switch (mType)
   {
     case Type::boolean:
-      delete (bool *) mpValue;
+      delete static_cast< bool * >(mpValue);
       break;
 
     case Type::number:
-      delete (double *) mpValue;
+      delete static_cast< double * >(mpValue);
       break;
 
     case Type::healthState:
-      delete (CModel::state_t *) mpValue;
+      delete static_cast< CModel::state_t * >(mpValue);
       break;
 
     case Type::traitValue:
-      delete (CTraitData::value *) mpValue;
+      delete static_cast< CTraitData::value * >(mpValue);
+      break;
+
+
+    case Type::string:
+      delete static_cast< std::string * >(mpValue);
       break;
   }
 }
@@ -343,6 +390,10 @@ bool CValue::operator<(const CValue & rhs) const
 
     case Type::traitValue:
       return * static_cast< const CTraitData::value * >(mpValue) < * static_cast< const CTraitData::value * >(rhs.mpValue);
+      break;
+
+    case Type::string:
+      return * static_cast< std::string * >(mpValue) < * static_cast< const std::string * >(rhs.mpValue);
       break;
   }
 
@@ -370,6 +421,10 @@ bool CValue::operator==(const CValue & rhs) const
 
     case Type::traitValue:
       return * static_cast< const CTraitData::value * >(mpValue) == * static_cast< const CTraitData::value * >(rhs.mpValue);
+      break;
+
+    case Type::string:
+      return * static_cast< std::string * >(mpValue) == * static_cast< const std::string * >(rhs.mpValue);
       break;
   }
 

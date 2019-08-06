@@ -10,7 +10,12 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "CSet.h"
+#include <jansson.h>
+
+#include "sets/CSet.h"
+#include "network/CNetwork.h"
+#include "network/CNode.h"
+#include "network/CEdge.h"
 
 /*
         {"$ref": "#/definitions/annotation"},
@@ -35,38 +40,60 @@
 
 CSet::CSet(const CSet & src)
   : CAnnotation(src)
-  , mId()
-  , mType()
-  , mValid(true)
+  , CSetContent(src)
+  , mId(src.mId)
+  , mType(src.mType)
+  , mpSetContent(CSetContent::copy(src.mpSetContent))
 {}
 
 CSet::CSet(const json_t * json)
   : CAnnotation()
+  , CSetContent()
   , mId()
   , mType()
-  , mValid(true)
+  , mpSetContent(NULL)
 {
+  json_t * pValue = json_object_get(json, "id");
+
+  if (json_is_string(pValue))
+    {
+      mId = json_string_value(pValue);
+      mAnnId = mId;
+    }
+
+  mValid &= !mId.empty();
+
+  pValue = json_object_get(json, "scope");
+
+  if (json_is_string(pValue))
+    {
+      std::string(json_string_value(pValue));
+      mType = std::string(json_string_value(pValue)) == "global" ? Type::global : Type::local;
+    }
+  else
+    {
+      mValid = false;
+    }
+
+  pValue = json_object_get(json, "content");
+
+  if (json_is_object(pValue))
+    {
+      mpSetContent = CSetContent::create(pValue);
+      mValid &= (mpSetContent != NULL && mpSetContent->isValid());
+    }
+  else
+    {
+      mValid = false;
+    }
 
   CAnnotation::fromJSON(json);
 }
 
 // virtual
 CSet::~CSet()
-{}
-
-void CSet::fromJSON(const json_t * json)
 {
-
-}
-
-void CSet::toBinary(std::ostream & os) const
-{
-
-}
-
-void CSet::fromBinary(std::istream & is)
-{
-
+  CSetContent::destroy(mpSetContent);
 }
 
 const std::string & CSet::getId() const
@@ -74,7 +101,3 @@ const std::string & CSet::getId() const
   return mId;
 }
 
-const bool & CSet::isValid() const
-{
-  return mValid;
-}

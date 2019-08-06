@@ -10,12 +10,10 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "CFactorOperation.h"
-
 #include <string>
-
 #include <jansson.h>
 
+#include "diseaseModel/CFactorOperation.h"
 
 CFactorOperation::CFactorOperation()
   : mType(Type::__NONE)

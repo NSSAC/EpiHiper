@@ -10,19 +10,18 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "CModel.h"
-
 #include <jansson.h>
 
+#include "diseaseModel/CModel.h"
+#include "diseaseModel/CHealthState.h"
+#include "diseaseModel/CProgression.h"
+#include "diseaseModel/CTransmission.h"
 #include "SimConfig.h"
 #include "actions/CActionQueue.h"
 #include "network/CEdge.h"
 #include "network/CNetwork.h"
 #include "network/CNode.h"
 #include "utilities/CRandom.h"
-#include "CHealthState.h"
-#include "CProgression.h"
-#include "CTransmission.h"
 
 // static
 CModel * CModel::INSTANCE(NULL);

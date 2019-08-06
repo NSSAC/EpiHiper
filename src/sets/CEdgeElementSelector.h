@@ -13,11 +13,25 @@
 #ifndef SRC_SETS_CEDGEELEMENTSELECTOR_H_
 #define SRC_SETS_CEDGEELEMENTSELECTOR_H_
 
-class CEdgeElementSelector
+#include "sets/CSetContent.h"
+#include "network/CEdgeProperty.h"
+#include "intervention/CValueList.h"
+
+class CEdgeElementSelector: public CSetContent
 {
 public:
   CEdgeElementSelector();
+
+  CEdgeElementSelector(const CEdgeElementSelector & src);
+
+  CEdgeElementSelector(const json_t * json);
+
   virtual ~CEdgeElementSelector();
+
+private:
+  CEdgeProperty mLeft;
+  CSetContent * mpSetContent;
+  CValueList mValueList;
 };
 
 #endif /* SRC_SETS_CEDGEELEMENTSELECTOR_H_ */

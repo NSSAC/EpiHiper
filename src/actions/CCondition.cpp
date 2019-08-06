@@ -10,7 +10,7 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "CCondition.h"
+#include "actions/CCondition.h"
 
 #include <jansson.h>
 

@@ -17,10 +17,9 @@
  *      Author: shoops
  */
 
-#include "COperation.h"
-
 #include <jansson.h>
 
+#include "actions/COperation.h"
 
 COperationDefinition::COperationDefinition()
 {}

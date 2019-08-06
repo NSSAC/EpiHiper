@@ -21,6 +21,9 @@
 class CSetList: protected std::vector< CSet >
 {
 public:
+  static CSetList INSTANCE;
+  static CSet Invalid;
+
   CSetList();
 
   CSetList(const CSetList & src);

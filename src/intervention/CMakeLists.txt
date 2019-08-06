@@ -16,7 +16,7 @@ file(GLOB HEADERS_INTERVENTION intervention/*.h)
 file(GLOB SOURCES_INTERVENTION intervention/*.cpp)
 
 # create source group for IDEs
-source_group(traits FILES ${SOURCES_INTERVENTION} ${HEADERS_INTERVENTION})
+source_group(intervention FILES ${SOURCES_INTERVENTION} ${HEADERS_INTERVENTION})
 
 # add files to main EPIHIPER sources
 set(SOURCES_EPIHIPER ${SOURCES_EPIHIPER} ${SOURCES_INTERVENTION})

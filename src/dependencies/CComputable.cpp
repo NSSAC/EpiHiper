@@ -10,21 +10,21 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#ifndef SRC_SETS_CSETOPERATION_H_
-#define SRC_SETS_CSETOPERATION_H_
+#include "dependencies/CComputable.h"
 
-#include "sets/CSetContent.h"
+CComputable::CComputable()
+  : mPrerequisites()
+{}
 
-class CSetOperation: public CSetContent
+CComputable::CComputable(const CComputable & src)
+  : mPrerequisites(src.mPrerequisites)
+{}
+
+CComputable::~CComputable()
+{}
+
+const CComputable::Set & CComputable::getPrerequisites() const
 {
-public:
-  CSetOperation();
+  return mPrerequisites;
+}
 
-  CSetOperation(const CSetOperation & src);
-
-  CSetOperation(const json_t * json);
-
-  virtual ~CSetOperation();
-};
-
-#endif /* SRC_SETS_CSETOPERATION_H_ */

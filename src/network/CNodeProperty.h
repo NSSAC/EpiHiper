@@ -10,21 +10,26 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#ifndef SRC_SETS_CSETOPERATION_H_
-#define SRC_SETS_CSETOPERATION_H_
+/*
+ * CNodeProperty.h
+ *
+ *  Created on: Aug 6, 2019
+ *      Author: shoops
+ */
 
-#include "sets/CSetContent.h"
+#ifndef SRC_NETWORK_CNODEPROPERTY_H_
+#define SRC_NETWORK_CNODEPROPERTY_H_
 
-class CSetOperation: public CSetContent
+struct json_t;
+
+class CNodeProperty
 {
 public:
-  CSetOperation();
+  CNodeProperty();
 
-  CSetOperation(const CSetOperation & src);
+  virtual ~CNodeProperty();
 
-  CSetOperation(const json_t * json);
-
-  virtual ~CSetOperation();
+  void fronJSON(const json_t * json);
 };
 
-#endif /* SRC_SETS_CSETOPERATION_H_ */
+#endif /* SRC_NETWORK_CNODEPROPERTY_H_ */
