@@ -10,20 +10,21 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "dependencies/CComputable.h"
-#include "dependencies/CDependencyNode.h"
-#include "dependencies/CDependencyNodeIterator.h"
+#include "math/CDependencyNode.h"
+
+#include "math/CComputable.h"
+#include "math/CDependencyNodeIterator.h"
 
 CDependencyNode::CDependencyNode():
-  mpObject(NULL),
+  mpComputable(NULL),
   mPrerequisites(),
   mDependents(),
   mChanged(false),
   mRequested(false)
 {}
 
-CDependencyNode::CDependencyNode(const CComputable * pObject):
-  mpObject(pObject),
+CDependencyNode::CDependencyNode(const CComputable * pComputable):
+  mpComputable(pComputable),
   mPrerequisites(),
   mDependents(),
   mChanged(false),
@@ -31,7 +32,7 @@ CDependencyNode::CDependencyNode(const CComputable * pObject):
 {}
 
 CDependencyNode::CDependencyNode(const CDependencyNode & src):
-  mpObject(src.mpObject),
+  mpComputable(src.mpComputable),
   mPrerequisites(src.mPrerequisites),
   mDependents(src.mDependents),
   mChanged(src.mChanged),
@@ -41,14 +42,14 @@ CDependencyNode::CDependencyNode(const CDependencyNode & src):
 CDependencyNode::~CDependencyNode()
 {}
 
-const CComputable * CDependencyNode::getObject() const
+const CComputable * CDependencyNode::getComputable() const
 {
-  return mpObject;
+  return mpComputable;
 }
 
-void CDependencyNode::addPrerequisite(CDependencyNode * pObject)
+void CDependencyNode::addPrerequisite(CDependencyNode * pComputable)
 {
-  mPrerequisites.push_back(pObject);
+  mPrerequisites.push_back(pComputable);
 }
 
 void CDependencyNode::removePrerequisite(CDependencyNode * pNode)
@@ -92,7 +93,7 @@ std::vector< CDependencyNode * > & CDependencyNode::getDependents()
   return mDependents;
 }
 
-bool CDependencyNode::updateDependentState(const CComputable::Set & changedObjects,
+bool CDependencyNode::updateDependentState(const CComputable::Set & changedComputables,
     bool ignoreCircularDependecies)
 {
   bool success = true;
@@ -131,7 +132,7 @@ bool CDependencyNode::updateDependentState(const CComputable::Set & changedObjec
   return success;
 }
 
-bool CDependencyNode::updatePrerequisiteState(const CComputable::Set & changedObjects,
+bool CDependencyNode::updatePrerequisiteState(const CComputable::Set & changedComputables,
     bool ignoreCircularDependecies)
 {
   bool success = true;
@@ -158,7 +159,7 @@ bool CDependencyNode::updatePrerequisiteState(const CComputable::Set & changedOb
       // We are guaranteed that the current node has a parent as the only node without is this,
       // which is handled above.
       if (!itNode->isRequested() &&
-          changedObjects.find(const_cast< CComputable * >(itNode->getObject())) == changedObjects.end())
+          changedComputables.find(const_cast< CComputable * >(itNode->getComputable())) == changedComputables.end())
         {
           itNode->setRequested(true);
         }
@@ -171,7 +172,7 @@ bool CDependencyNode::updatePrerequisiteState(const CComputable::Set & changedOb
   return success;
 }
 
-bool CDependencyNode::updateCalculatedState(const CComputable::Set & changedObjects,
+bool CDependencyNode::updateCalculatedState(const CComputable::Set & changedComputables,
     bool ignoreCircularDependecies)
 {
   bool success = true;
@@ -210,7 +211,7 @@ bool CDependencyNode::updateCalculatedState(const CComputable::Set & changedObje
   return success;
 }
 
-bool CDependencyNode::updateIgnoredState(const CComputable::Set & changedObjects,
+bool CDependencyNode::updateIgnoredState(const CComputable::Set & changedComputables,
     bool ignoreCircularDependecies)
 {
   bool success = true;
@@ -251,7 +252,7 @@ bool CDependencyNode::updateIgnoredState(const CComputable::Set & changedObjects
 
           if (!PrerequisiteChanged)
             {
-              itNode->updateIgnoredState(changedObjects, ignoreCircularDependecies);
+              itNode->updateIgnoredState(changedComputables, ignoreCircularDependecies);
             }
         }
 
@@ -274,7 +275,7 @@ bool CDependencyNode::buildUpdateSequence(std::vector < CComputable * > & update
 
   while (itNode.next())
     {
-      const CComputable * pMathObject = itNode->getObject();
+      const CComputable * pMathComputable = itNode->getComputable();
 
       switch (itNode.state())
         {
@@ -295,9 +296,9 @@ bool CDependencyNode::buildUpdateSequence(std::vector < CComputable * > & update
 
             // This check is not needed as unchanged or unrequested nodes
             // are skipped in Before processing.
-            if (itNode->isChanged() && itNode->isRequested() && pMathObject != NULL)
+            if (itNode->isChanged() && itNode->isRequested() && pMathComputable != NULL)
               {
-                updateSequence.push_back(const_cast< CComputable * >(itNode->getObject()));
+                updateSequence.push_back(const_cast< CComputable * >(itNode->getComputable()));
                 itNode->setChanged(false);
               }
 
@@ -383,9 +384,9 @@ bool CDependencyNode::createMessage(bool ignoreCircularDependecies)
 {
   if (!ignoreCircularDependecies)
     {
-      if (getObject() != NULL)
+      if (getComputable() != NULL)
         {
-          // CCopasiMessage(CCopasiMessage::ERROR, MCMathModel + 3, getObject()->getCN().c_str());
+          // CCopasiMessage(CCopasiMessage::ERROR, MCMathModel + 3, getComputable()->getCN().c_str());
         }
       else
         {

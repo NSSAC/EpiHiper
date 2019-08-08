@@ -10,37 +10,38 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#include "math/CDependencyGraph.h"
+
 #include <sstream>
 
-#include "dependencies/CDependencyGraph.h"
-#include "dependencies/CDependencyNode.h"
+#include "math/CDependencyNode.h"
 
 // Uncomment this line below to get debug print out.
 // #define DEBUG_OUTPUT 1
 
 CDependencyGraph::CDependencyGraph()
-  : mObjects2Nodes()
-  , mObject2Index()
+  : mComputables2Nodes()
+  , mComputable2Index()
 {}
 
 CDependencyGraph::CDependencyGraph(const CDependencyGraph & src):
-  mObjects2Nodes(),
-  mObject2Index()
+  mComputables2Nodes(),
+  mComputable2Index()
 {
   std::map< CDependencyNode *, CDependencyNode * > Src2New;
 
-  NodeMap::const_iterator itSrc = src.mObjects2Nodes.begin();
-  NodeMap::const_iterator endSrc = src.mObjects2Nodes.end();
+  NodeMap::const_iterator itSrc = src.mComputables2Nodes.begin();
+  NodeMap::const_iterator endSrc = src.mComputables2Nodes.end();
 
   for (; itSrc != endSrc; ++itSrc)
     {
       CDependencyNode * pNode = new CDependencyNode(*itSrc->second);
-      mObjects2Nodes.insert(std::make_pair(itSrc->first, pNode));
+      mComputables2Nodes.insert(std::make_pair(itSrc->first, pNode));
       Src2New.insert(std::make_pair(itSrc->second, pNode));
     }
 
-  NodeMap::iterator it = mObjects2Nodes.begin();
-  NodeMap::iterator end = mObjects2Nodes.end();
+  NodeMap::iterator it = mComputables2Nodes.begin();
+  NodeMap::iterator end = mComputables2Nodes.end();
 
   for (; it != end; ++it)
     {
@@ -55,36 +56,36 @@ CDependencyGraph::~CDependencyGraph()
 
 void CDependencyGraph::clear()
 {
-  iterator it = mObjects2Nodes.begin();
-  iterator end = mObjects2Nodes.end();
+  iterator it = mComputables2Nodes.begin();
+  iterator end = mComputables2Nodes.end();
 
   for (; it != end; ++it)
     {
       delete (it->second);
     }
 
-  mObjects2Nodes.clear();
+  mComputables2Nodes.clear();
 }
 
-CDependencyGraph::iterator CDependencyGraph::addObject(const CComputable * pObject)
+CDependencyGraph::iterator CDependencyGraph::addComputable(const CComputable * pComputable)
 {
-  iterator found = mObjects2Nodes.find(pObject);
+  iterator found = mComputables2Nodes.find(pComputable);
 
-  if (found == mObjects2Nodes.end())
+  if (found == mComputables2Nodes.end())
     {
-      found = mObjects2Nodes.insert(std::make_pair(pObject, new CDependencyNode(pObject))).first;
+      found = mComputables2Nodes.insert(std::make_pair(pComputable, new CDependencyNode(pComputable))).first;
 
-      const CComputable::Set & Prerequisites = pObject->getPrerequisites();
+      const CComputable::Set & Prerequisites = pComputable->getPrerequisites();
       CComputable::Set::const_iterator it = Prerequisites.begin();
       CComputable::Set::const_iterator end = Prerequisites.end();
 
       for (; it != end; ++it)
         {
-          iterator foundPrerequisite = mObjects2Nodes.find(*it);
+          iterator foundPrerequisite = mComputables2Nodes.find(*it);
 
-          if (foundPrerequisite == mObjects2Nodes.end())
+          if (foundPrerequisite == mComputables2Nodes.end())
             {
-              foundPrerequisite = addObject(*it);
+              foundPrerequisite = addComputable(*it);
             }
 
           foundPrerequisite->second->addDependent(found->second);
@@ -95,39 +96,39 @@ CDependencyGraph::iterator CDependencyGraph::addObject(const CComputable * pObje
   return found;
 }
 
-void CDependencyGraph::removeObject(const CComputable * pObject)
+void CDependencyGraph::removeComputable(const CComputable * pComputable)
 {
-  iterator found = mObjects2Nodes.find(pObject);
+  iterator found = mComputables2Nodes.find(pComputable);
 
-  if (found == mObjects2Nodes.end()) return;
+  if (found == mComputables2Nodes.end()) return;
 
   found->second->remove();
   delete found->second;
-  mObjects2Nodes.erase(found);
+  mComputables2Nodes.erase(found);
 }
 
-void CDependencyGraph::removePrerequisite(const CComputable * pObject, const CComputable * pPrerequisite)
+void CDependencyGraph::removePrerequisite(const CComputable * pComputable, const CComputable * pPrerequisite)
 {
-  iterator foundObject = mObjects2Nodes.find(pObject);
-  iterator foundPrerequisite = mObjects2Nodes.find(pPrerequisite);
+  iterator foundComputable = mComputables2Nodes.find(pComputable);
+  iterator foundPrerequisite = mComputables2Nodes.find(pPrerequisite);
 
-  if (foundObject == mObjects2Nodes.end() ||
-      foundPrerequisite == mObjects2Nodes.end())
+  if (foundComputable == mComputables2Nodes.end() ||
+      foundPrerequisite == mComputables2Nodes.end())
     return;
 
-  foundObject->second->removePrerequisite(foundPrerequisite->second);
-  foundPrerequisite->second->removeDependent(foundObject->second);
+  foundComputable->second->removePrerequisite(foundPrerequisite->second);
+  foundPrerequisite->second->removeDependent(foundComputable->second);
 }
 
 bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
-    const CComputable::Set & changedObjects,
-    const CComputable::Set & requestedObjects,
-    const CComputable::Set & calculatedObjects) const
+    const CComputable::Set & changedComputables,
+    const CComputable::Set & requestedComputables,
+    const CComputable::Set & calculatedComputables) const
 {
   bool success = true;
 
   const_iterator found;
-  const_iterator notFound = mObjects2Nodes.end();
+  const_iterator notFound = mComputables2Nodes.end();
 
   std::vector<CComputable*> UpdateSequence;
 
@@ -137,14 +138,14 @@ bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
 
   if (found != notFound)
     {
-      success &= found->second->updateDependentState(changedObjects, true);
+      success &= found->second->updateDependentState(changedComputables, true);
 #ifdef DEBUG_OUTPUT
-      std::cout << *static_cast< const CDataObject * >(mpContainer->getRandomObject()) << std::endl;
+      std::cout << *static_cast< const CDataComputable * >(mpContainer->getRandomComputable()) << std::endl;
 #endif // DEBUG_OUTPUT
     }
 
-  CComputable::Set::const_iterator it = changedObjects.begin();
-  CComputable::Set::const_iterator end = changedObjects.end();
+  CComputable::Set::const_iterator it = changedComputables.begin();
+  CComputable::Set::const_iterator end = changedComputables.end();
 
   // Mark all nodes which are changed or need to be calculated
   for (; it != end && success; ++it)
@@ -152,30 +153,30 @@ bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
       // Issue 1170: We need to add elements of the stoichiometry, reduced stoichiometry,
       // and link matrices, i.e., we have data objects which may change
 #ifdef DEBUG_OUTPUT
-      if ((*it)->getDataObject() != *it)
+      if ((*it)->getDataComputable() != *it)
         {
-          std::cout << *static_cast< const CMathObject * >(*it) << std::endl;
+          std::cout << *static_cast< const CMathComputable * >(*it) << std::endl;
         }
       else
         {
-          std::cout << *static_cast< const CDataObject * >(*it) << std::endl;
+          std::cout << *static_cast< const CDataComputable * >(*it) << std::endl;
         }
 
 #endif // DEBUG_OUTPUT
 
-      found = mObjects2Nodes.find(*it);
+      found = mComputables2Nodes.find(*it);
 
       if (found != notFound)
         {
-          success &= found->second->updateDependentState(changedObjects, true);
+          success &= found->second->updateDependentState(changedComputables, true);
         }
     }
 
   if (!success) goto finish;
 
   // Mark all nodes which have already been calculated and its prerequisites as not changed.
-  it = calculatedObjects.begin();
-  end = calculatedObjects.end();
+  it = calculatedComputables.begin();
+  end = calculatedComputables.end();
 
 #ifdef DEBUG_OUTPUT
   std::cout << "Up To Date:" << std::endl;
@@ -188,29 +189,29 @@ bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
 
       // Issue 1170: We need to add elements of the stoichiometry, reduced stoichiometry,
       // and link matrices, i.e., we have data objects which may change
-      if ((*it)->getDataObject() != *it)
+      if ((*it)->getDataComputable() != *it)
         {
-          std::cout << *static_cast< const CMathObject * >(*it) << std::endl;
+          std::cout << *static_cast< const CMathComputable * >(*it) << std::endl;
         }
       else
         {
-          std::cout << *static_cast< const CDataObject * >(*it) << std::endl;
+          std::cout << *static_cast< const CDataComputable * >(*it) << std::endl;
         }
 
-      std::cout << *static_cast< const CMathObject * >(*it) << std::endl;
+      std::cout << *static_cast< const CMathComputable * >(*it) << std::endl;
 #endif // DEBUG_OUTPUT
 
-      found = mObjects2Nodes.find(*it);
+      found = mComputables2Nodes.find(*it);
 
       if (found != notFound)
         {
           found->second->setChanged(false);
-          success &= found->second->updateCalculatedState(changedObjects, true);
+          success &= found->second->updateCalculatedState(changedComputables, true);
         }
     }
 
-  it = requestedObjects.begin();
-  end = requestedObjects.end();
+  it = requestedComputables.begin();
+  end = requestedComputables.end();
 
 #ifdef DEBUG_OUTPUT
   std::cout << "Requested:" << std::endl;
@@ -230,15 +231,15 @@ bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
         }
 
 #ifdef DEBUG_OUTPUT
-      std::cout << *static_cast< const CMathObject * >(*it) << std::endl;
+      std::cout << *static_cast< const CMathComputable * >(*it) << std::endl;
 #endif // DEBUG_OUTPUT
 
-      found = mObjects2Nodes.find(*it);
+      found = mComputables2Nodes.find(*it);
 
       if (found != notFound)
         {
           found->second->setRequested(true);
-          success &= found->second->updatePrerequisiteState(changedObjects, true);
+          success &= found->second->updatePrerequisiteState(changedComputables, true);
         }
     }
 
@@ -252,12 +253,12 @@ bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
   }
 #endif // DEBUG_OUTPUT
 
-  it = requestedObjects.begin();
-  end = requestedObjects.end();
+  it = requestedComputables.begin();
+  end = requestedComputables.end();
 
   for (; it != end; ++it)
     {
-      found = mObjects2Nodes.find(*it);
+      found = mComputables2Nodes.find(*it);
 
       if (found != notFound)
         {
@@ -272,8 +273,8 @@ bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
   if (!success) goto finish;
 
 finish:
-  const_iterator itCheck = mObjects2Nodes.begin();
-  const_iterator endCheck = mObjects2Nodes.end();
+  const_iterator itCheck = mComputables2Nodes.begin();
+  const_iterator endCheck = mComputables2Nodes.end();
 
   for (; itCheck != endCheck; ++itCheck)
     {
@@ -296,9 +297,9 @@ finish:
 
   for (; itSeq != endSeq; ++itSeq)
     {
-      if (dynamic_cast< const CMathObject * >(*itSeq))
+      if (dynamic_cast< const CMathComputable * >(*itSeq))
         {
-          std::cout << *static_cast< const CMathObject * >(*itSeq);
+          std::cout << *static_cast< const CMathComputable * >(*itSeq);
         }
       else
         {
@@ -312,114 +313,114 @@ finish:
   return success;
 }
 
-bool CDependencyGraph::dependsOn(const CComputable * pObject,
-                                     const CComputable * pChangedObject) const
+bool CDependencyGraph::dependsOn(const CComputable * pComputable,
+                                     const CComputable * pChangedComputable) const
 {
   CComputable::Sequence UpdateSequence;
-  CComputable::Set ChangedObjects;
+  CComputable::Set ChangedComputables;
 
-  if (pChangedObject != NULL)
+  if (pChangedComputable != NULL)
     {
-      ChangedObjects.insert(pChangedObject);
+      ChangedComputables.insert(pChangedComputable);
     }
 
-  CComputable::Set RequestedObjects;
+  CComputable::Set RequestedComputables;
 
-  if (pObject != NULL)
+  if (pComputable != NULL)
     {
-      RequestedObjects.insert(pObject);
+      RequestedComputables.insert(pComputable);
     }
 
-  getUpdateSequence(UpdateSequence, ChangedObjects, RequestedObjects);
+  getUpdateSequence(UpdateSequence, ChangedComputables, RequestedComputables);
 
   return !UpdateSequence.empty();
 }
 
-bool CDependencyGraph::dependsOn(const CComputable * pObject,
-                                     const CComputable::Set & changedObjects) const
+bool CDependencyGraph::dependsOn(const CComputable * pComputable,
+                                     const CComputable::Set & changedComputables) const
 {
   CComputable::Sequence UpdateSequence;
-  CComputable::Set RequestedObjects;
+  CComputable::Set RequestedComputables;
 
-  if (pObject != NULL)
+  if (pComputable != NULL)
     {
-      RequestedObjects.insert(pObject);
+      RequestedComputables.insert(pComputable);
     }
 
-  getUpdateSequence(UpdateSequence, changedObjects, RequestedObjects);
+  getUpdateSequence(UpdateSequence, changedComputables, RequestedComputables);
 
   return !UpdateSequence.empty();
 }
 
-bool CDependencyGraph::hasCircularDependencies(const CComputable * pObject,
-    const CComputable * pChangedObject) const
+bool CDependencyGraph::hasCircularDependencies(const CComputable * pComputable,
+    const CComputable * pChangedComputable) const
 {
   CComputable::Sequence UpdateSequence;
-  CComputable::Set ChangedObjects;
+  CComputable::Set ChangedComputables;
 
-  if (pChangedObject != NULL)
+  if (pChangedComputable != NULL)
     {
-      ChangedObjects.insert(pChangedObject);
+      ChangedComputables.insert(pChangedComputable);
     }
 
-  CComputable::Set RequestedObjects;
+  CComputable::Set RequestedComputables;
 
-  if (pObject != NULL)
+  if (pComputable != NULL)
     {
-      RequestedObjects.insert(pObject);
+      RequestedComputables.insert(pComputable);
     }
 
-  bool hasCircularDependencies = !getUpdateSequence(UpdateSequence, ChangedObjects, RequestedObjects);
+  bool hasCircularDependencies = !getUpdateSequence(UpdateSequence, ChangedComputables, RequestedComputables);
 
   return hasCircularDependencies;
 }
 
-bool CDependencyGraph::appendDirectDependents(const CComputable::Set & changedObjects,
-    CComputable::Set & dependentObjects) const
+bool CDependencyGraph::appendDirectDependents(const CComputable::Set & changedComputables,
+    CComputable::Set & dependentComputables) const
 {
-  dependentObjects.erase(NULL);
-  size_t Size = dependentObjects.size();
+  dependentComputables.erase(NULL);
+  size_t Size = dependentComputables.size();
 
-  CComputable::Set::const_iterator it = changedObjects.begin();
-  CComputable::Set::const_iterator end = changedObjects.end();
+  CComputable::Set::const_iterator it = changedComputables.begin();
+  CComputable::Set::const_iterator end = changedComputables.end();
 
   for (; it != end; ++it)
     {
-      NodeMap::const_iterator found = mObjects2Nodes.find(*it);
+      NodeMap::const_iterator found = mComputables2Nodes.find(*it);
 
-      if (found != mObjects2Nodes.end())
+      if (found != mComputables2Nodes.end())
         {
           std::vector< CDependencyNode * >::const_iterator itNode = found->second->getDependents().begin();
           std::vector< CDependencyNode * >::const_iterator endNode = found->second->getDependents().end();
 
           for (; itNode != endNode; ++itNode)
             {
-              dependentObjects.insert((*itNode)->getObject());
+              dependentComputables.insert((*itNode)->getComputable());
             }
         }
     }
 
-  dependentObjects.erase(NULL);
+  dependentComputables.erase(NULL);
 
-  return dependentObjects.size() > Size;
+  return dependentComputables.size() > Size;
 }
 
-bool CDependencyGraph::appendAllDependents(const CComputable::Set & changedObjects,
-    CComputable::Set & dependentObjects,
-    const CComputable::Set & ignoredObjects) const
+bool CDependencyGraph::appendAllDependents(const CComputable::Set & changedComputables,
+    CComputable::Set & dependentComputables,
+    const CComputable::Set & ignoredComputables) const
 {
   bool success = true;
 
-  dependentObjects.erase(NULL);
-  size_t Size = dependentObjects.size();
+  dependentComputables.erase(NULL);
+  size_t Size = dependentComputables.size();
 
   const_iterator found;
-  const_iterator notFound = mObjects2Nodes.end();
+  const_iterator notFound = mComputables2Nodes.end();
 
   std::vector<CComputable*> UpdateSequence;
 
-  CComputable::Set::const_iterator it = changedObjects.begin();
-  CComputable::Set::const_iterator end = changedObjects.end();
+  CComputable::Set::const_iterator it = changedComputables.begin();
+  CComputable::Set::const_iterator end = changedComputables.end();
 
 #ifdef DEBUG_OUTPUT
   std::cout << "Changed:" << std::endl;
@@ -431,28 +432,28 @@ bool CDependencyGraph::appendAllDependents(const CComputable::Set & changedObjec
       // Issue 1170: We need to add elements of the stoichiometry, reduced stoichiometry,
       // and link matrices, i.e., we have data objects which may change
 #ifdef DEBUG_OUTPUT
-      if ((*it)->getDataObject() != *it)
+      if ((*it)->getDataComputable() != *it)
         {
-          std::cout << *static_cast< const CMathObject * >(*it) << std::endl;
+          std::cout << *static_cast< const CMathComputable * >(*it) << std::endl;
         }
       else
         {
-          std::cout << *static_cast< const CDataObject * >(*it) << std::endl;
+          std::cout << *static_cast< const CDataComputable * >(*it) << std::endl;
         }
 
 #endif // DEBUG_OUTPUT
 
-      found = mObjects2Nodes.find(*it);
+      found = mComputables2Nodes.find(*it);
 
       if (found != notFound)
         {
-          success &= found->second->updateDependentState(changedObjects, true);
+          success &= found->second->updateDependentState(changedComputables, true);
         }
     }
 
   // Mark all nodes which are ignored and thus break dependencies.
-  it = ignoredObjects.begin();
-  end = ignoredObjects.end();
+  it = ignoredComputables.begin();
+  end = ignoredComputables.end();
 
 #ifdef DEBUG_OUTPUT
   std::cout << "Ignored:" << std::endl;
@@ -465,22 +466,22 @@ bool CDependencyGraph::appendAllDependents(const CComputable::Set & changedObjec
 
       // Issue 1170: We need to add elements of the stoichiometry, reduced stoichiometry,
       // and link matrices, i.e., we have data objects which may change
-      if ((*it)->getDataObject() != *it)
+      if ((*it)->getDataComputable() != *it)
         {
-          std::cout << *static_cast< const CMathObject * >(*it) << std::endl;
+          std::cout << *static_cast< const CMathComputable * >(*it) << std::endl;
         }
       else
         {
-          std::cout << *static_cast< const CDataObject * >(*it) << std::endl;
+          std::cout << *static_cast< const CDataComputable * >(*it) << std::endl;
         }
 
 #endif // DEBUG_OUTPUT
 
-      found = mObjects2Nodes.find(*it);
+      found = mComputables2Nodes.find(*it);
 
       if (found != notFound)
         {
-          success &= found->second->updateIgnoredState(changedObjects, true);
+          success &= found->second->updateIgnoredState(changedComputables, true);
         }
     }
 
@@ -492,23 +493,23 @@ bool CDependencyGraph::appendAllDependents(const CComputable::Set & changedObjec
   }
 #endif // DEBUG_OUTPUT
 
-  const_iterator itCheck = mObjects2Nodes.begin();
-  const_iterator endCheck = mObjects2Nodes.end();
+  const_iterator itCheck = mComputables2Nodes.begin();
+  const_iterator endCheck = mComputables2Nodes.end();
 
   for (; itCheck != endCheck; ++itCheck)
     {
       if (itCheck->second->isChanged())
         {
-          dependentObjects.insert(itCheck->first);
+          dependentComputables.insert(itCheck->first);
         }
 
       // Reset the dependency nodes for the next call.
       itCheck->second->reset();
     }
 
-  dependentObjects.erase(NULL);
+  dependentComputables.erase(NULL);
 
-  return dependentObjects.size() > Size;
+  return dependentComputables.size() > Size;
 }
 
 void CDependencyGraph::exportDOTFormat(std::ostream & os, const std::string & name) const
@@ -516,14 +517,14 @@ void CDependencyGraph::exportDOTFormat(std::ostream & os, const std::string & na
   os << "digraph " << name << " {" << std::endl;
   os << "rankdir=LR;" << std::endl;
 
-  mObject2Index.clear();
+  mComputable2Index.clear();
 
-  const_iterator it = mObjects2Nodes.begin();
-  const_iterator end = mObjects2Nodes.end();
+  const_iterator it = mComputables2Nodes.begin();
+  const_iterator end = mComputables2Nodes.end();
 
   for (; it != end; ++it)
     {
-      const CComputable * pObject = it->second->getObject();
+      const CComputable * pComputable = it->second->getComputable();
 
       const std::vector< CDependencyNode * > & Dependents = it->second->getDependents();
       std::vector< CDependencyNode * >::const_iterator itDep = Dependents.begin();
@@ -532,13 +533,13 @@ void CDependencyGraph::exportDOTFormat(std::ostream & os, const std::string & na
       for (; itDep != endDep; ++itDep)
         {
           os << "\"";
-          os << getDOTNodeId(pObject);
+          os << getDOTNodeId(pComputable);
           os << ((it->second->isChanged()) ? "\\nC" : "\\no");
           os << ((it->second->isRequested()) ? "R" : "o");
           os << "\"";
           os << " -> ";
           os << "\"";
-          os << getDOTNodeId((*itDep)->getObject());
+          os << getDOTNodeId((*itDep)->getComputable());
           os << (((*itDep)->isChanged()) ? "\\nC" : "\\no");
           os << (((*itDep)->isRequested()) ? "R" : "o");
           os << "\"";
@@ -550,7 +551,7 @@ void CDependencyGraph::exportDOTFormat(std::ostream & os, const std::string & na
 }
 
 // static
-std::string CDependencyGraph::getDOTNodeId(const CComputable * pObject) const
+std::string CDependencyGraph::getDOTNodeId(const CComputable * pComputable) const
 {
 
 }

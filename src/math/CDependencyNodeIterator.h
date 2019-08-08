@@ -10,8 +10,8 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#ifndef SRC_DEPENDENCIES_CDEPENDENCYNODEITERATOR_H_
-#define SRC_DEPENDENCIES_CDEPENDENCYNODEITERATOR_H_
+#ifndef SRC_MATH_CDEPENDENCYNODEITERATOR_H_
+#define SRC_MATH_CDEPENDENCYNODEITERATOR_H_
 
 #include <stack>
 #include <set>
@@ -249,4 +249,4 @@ private:
   Flag mProcessingModes;
 };
 
-#endif /* SRC_DEPENDENCIES_CDEPENDENCYNODEITERATOR_H_ */
+#endif /* SRC_MATH_CDEPENDENCYNODEITERATOR_H_ */

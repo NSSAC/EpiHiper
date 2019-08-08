@@ -13,8 +13,8 @@
 #ifndef SRC_INTERVENTION_CVARIABLE_H_
 #define SRC_INTERVENTION_CVARIABLE_H_
 
+#include "math/CComputable.h"
 #include "utilities/CAnnotation.h"
-#include "dependencies/CComputable.h"
 
 class CVariable: public CAnnotation, public CComputable
 {

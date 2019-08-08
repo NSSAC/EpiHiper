@@ -18,6 +18,7 @@
 #include "traits/CTraitData.h"
 
 class CNode;
+class CMetadata;
 
 class CEdge
 {
@@ -33,6 +34,12 @@ public:
 
   void toBinary(std::ostream & os) const;
   void fromBinary(std::istream & is);
+
+  bool setTargetActivity(CTraitData::value value, const CMetadata & metadata);
+  bool setSourceActivity(CTraitData::value value, const CMetadata & metadata);
+  bool setEdgeTrait(CTraitData::value value, const CMetadata & metadata);
+  bool setActive(bool value, const CMetadata & metadata);
+  bool setWeight(double value, const CMetadata & metadata);
 
   size_t targetId;
   CTraitData::base targetActivity;

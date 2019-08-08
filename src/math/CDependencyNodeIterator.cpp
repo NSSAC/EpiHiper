@@ -10,8 +10,9 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "dependencies/CDependencyNodeIterator.h"
-#include "dependencies/CDependencyNode.h"
+#include "math/CDependencyNodeIterator.h"
+
+#include "math/CDependencyNode.h"
 
 CDependencyNodeIterator::CStackElement::CStackElement():
   mpNode(NULL),

@@ -42,8 +42,8 @@ public:
   COperationInstance() = delete;
 
   COperationInstance(Target target,
-                    const Value & value,
-                    bool(Target::*method)(Value, const CMetadata & metadata))
+                    Value value,
+                    bool(Target::*method)(Value, const CMetadata &))
     : mTarget(target)
     , mValue(value)
     , mMethod(method)

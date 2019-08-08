@@ -35,7 +35,7 @@ void CCommunicate::resizeReceiveBuffer(int size)
 
   if (size < 0)
     {
-      abort(ErrorCode::AllocationError);
+      FatalError(ErrorCode::AllocationError, "");
     }
 
   if (ReceiveBuffer != NULL)
@@ -52,7 +52,7 @@ void CCommunicate::resizeReceiveBuffer(int size)
   }
 
   catch (...) {
-      abort(ErrorCode::AllocationError);
+      FatalError(ErrorCode::AllocationError, "");
   }
 }
 
@@ -62,6 +62,14 @@ void CCommunicate::init(int *argc, char ***argv)
   MPI_Init(argc, argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &Rank);
   MPI_Comm_size(MPI_COMM_WORLD, &Processes);
+}
+
+// static
+int CCommunicate::abortMessage(ErrorCode err, const std::string & msg, const char * file, int line)
+{
+  std::cerr << "Rank: " << Rank << ", " << file << "(" << line << "): " << msg << std::endl;
+
+  return abort(err);
 }
 
 // static

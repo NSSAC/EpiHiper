@@ -98,7 +98,7 @@ bool CNode::set(const CTransmission * pTransmission, const CMetadata & metadata)
   pHealthState = pTransmission->getExitState();
   pTransmission->updateSusceptibilityFactor(susceptibilityFactor);
   susceptibility = pHealthState->getSusceptibility() * susceptibilityFactor;
-  pTransmission->updateInfectivityFactor(susceptibilityFactor);
+  pTransmission->updateInfectivityFactor(infectivityFactor);
   infectivity = pHealthState->getInfectivity() * infectivity;
 
   // std::cout << id << "," << pTransmission->getEntryState() << "," << pTransmission->getExitState() << "," << pTransmission->getContactState() << std::endl;
@@ -115,12 +115,46 @@ bool CNode::set(const CProgression * pProgression, const CMetadata & metadata)
   pHealthState = pProgression->getExitState();
   pProgression->updateSusceptibilityFactor(susceptibilityFactor);
   susceptibility = pHealthState->getSusceptibility() * susceptibilityFactor;
-  pProgression->updateInfectivityFactor(susceptibilityFactor);
+  pProgression->updateInfectivityFactor(infectivityFactor);
   infectivity = pHealthState->getInfectivity() * infectivityFactor;
 
   // std::cout << id << "," << pProgression->getEntryState() << "," << pProgression->getExitState() << std::endl;
 
   CModel::stateChanged(this);
+
+  return true;
+}
+
+bool CNode::setSusceptibilityFactor(double value, const CMetadata & metadata)
+{
+  susceptibilityFactor = value;
+  susceptibility = pHealthState->getSusceptibility() * susceptibilityFactor;
+
+  return true;
+}
+
+bool CNode::setInfectivityFactor(double value, const CMetadata & metadata)
+{
+  infectivityFactor = value;
+  infectivity = pHealthState->getInfectivity() * infectivityFactor;
+
+  return true;
+}
+
+bool CNode::setHealthState(CModel::state_t value, const CMetadata & metadata)
+{
+  pHealthState = CModel::stateFromType(value);
+  susceptibility = pHealthState->getSusceptibility() * susceptibilityFactor;
+  infectivity = pHealthState->getInfectivity() * infectivityFactor;
+
+  CModel::stateChanged(this);
+
+  return true;
+}
+
+bool CNode::setNodeTrait(CTraitData::value value, const CMetadata & metadata)
+{
+  CTraitData::setValue(nodeTrait, value);
 
   return true;
 }

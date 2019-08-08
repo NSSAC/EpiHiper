@@ -10,29 +10,21 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-/*
- * CEdgeProperty.cpp
- *
- *  Created on: Aug 6, 2019
- *      Author: shoops
- */
+#include "math/CComputable.h"
 
-#include <jansson.h>
+CComputable::CComputable()
+  : mPrerequisites()
+{}
 
-#include "network/CEdgeProperty.h"
+CComputable::CComputable(const CComputable & src)
+  : mPrerequisites(src.mPrerequisites)
+{}
 
-CEdgeProperty::CEdgeProperty()
+CComputable::~CComputable()
+{}
+
+const CComputable::Set & CComputable::getPrerequisites() const
 {
-}
-
-CEdgeProperty::~CEdgeProperty()
-{
-}
-
-void CEdgeProperty::fronJSON(const json_t * json)
-{
-  /*
-   *
-   */
+  return mPrerequisites;
 }
 

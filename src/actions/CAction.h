@@ -45,7 +45,8 @@ public:
   double getPriority() const;
   const CCondition & getCondition() const;
   const std::vector< COperation * > & getOperations() const;
-  void addOperation(const COperation & operation);
+  void addOperation(COperation * pOperation);
+  // void addOperation(const COperation & operation);
   const CMetadata & getMetadata() const;
 
   void toBinary(std::ostream & os) const;

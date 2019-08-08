@@ -16,6 +16,8 @@
 #include <mpi.h>
 #include <iostream>
 
+#define FatalError(err, msg) {CCommunicate::abortMessage((err), (msg), __FILE__, __LINE__);}
+
 class CCommunicate
 {
 public:
@@ -24,7 +26,9 @@ public:
     // space for MPI_ERR_... see mpi.h
     InvalidArguments = MPI_ERR_LASTCODE + 1,
     AllocationError,
-    FileOpenError
+    FileOpenError,
+    TypeMissmatch,
+    InvalidOperation
   };
 
   class ReceiveInterface
@@ -150,6 +154,8 @@ public:
                        ReceiveInterface * pReceive);
 
   static int sequential(int firstRank, SequentialProcessInterface * pSequential);
+
+  static int abortMessage(ErrorCode err, const std::string & msg, const char * file, int line);
 
   static int abort(ErrorCode errorcode);
 

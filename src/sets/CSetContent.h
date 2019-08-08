@@ -13,8 +13,8 @@
 #ifndef SRC_INTERVENTION_CSETCONTENT_H_
 #define SRC_INTERVENTION_CSETCONTENT_H_
 
-#include "intervention/CValueList.h"
-#include "dependencies/CComputable.h"
+#include "math/CValueList.h"
+#include "math/CComputable.h"
 
 class CNode;
 class CEdge;

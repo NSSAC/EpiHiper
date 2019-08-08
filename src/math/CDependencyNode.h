@@ -10,14 +10,14 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#ifndef SRC_DEPENDENCIES_CDEPENDENCYNODE_H_
-#define SRC_DEPENDENCIES_CDEPENDENCYNODE_H_
+#ifndef SRC_MATH_CDEPENDENCYNODE_H_
+#define SRC_MATH_CDEPENDENCYNODE_H_
 
 #include <set>
 #include <vector>
 #include <map>
 
-#include "dependencies/CComputable.h"
+#include "math/CComputable.h"
 
 class CDependencyNode
 {
@@ -28,9 +28,9 @@ private:
 public:
   /**
    * Specific constructor
-   * @param const CComputable * pObject
+   * @param const CComputable * pComputable
    */
-  CDependencyNode(const CComputable * pObject);
+  CDependencyNode(const CComputable * pComputable);
 
   /**
    * Copy constructor
@@ -44,9 +44,9 @@ public:
 
   /**
    * Retrieve a pointer to the object the node is representing
-   * @return   const CComputable * pObject
+   * @return   const CComputable * pComputable
    */
-  const CComputable * getObject() const;
+  const CComputable * getComputable() const;
 
   /**
    * Add a prerequisite
@@ -86,38 +86,38 @@ public:
 
   /**
    * Update the state of all dependents (and dependents thereof) to changed,
-   * @param const CComputable::Set & changedObjects
+   * @param const CComputable::Set & changedComputables
    * @param bool ignoreCircularDependecies
    * @return bool success
    */
-  bool updateDependentState(const CComputable::Set & changedObjects,
+  bool updateDependentState(const CComputable::Set & changedComputables,
                             bool ignoreCircularDependecies);
 
   /**
    * Update the state of all prerequisites (and prerequisites thereof) to requested.
-   * @param const CComputable::Set & changedObjects
+   * @param const CComputable::Set & changedComputables
    * @param bool ignoreCircularDependecies
    * @return bool success
    */
-  bool updatePrerequisiteState(const CComputable::Set & changedObjects,
+  bool updatePrerequisiteState(const CComputable::Set & changedComputables,
                                bool ignoreCircularDependecies);
 
   /**
    * Update the state of all prerequisites (and prerequisites thereof) to calculate.
-   * @param const CComputable::Set & changedObjects
+   * @param const CComputable::Set & changedComputables
    * @param bool ignoreCircularDependecies
    * @return bool success
    */
-  bool updateCalculatedState(const CComputable::Set & changedObjects,
+  bool updateCalculatedState(const CComputable::Set & changedComputables,
                              bool ignoreCircularDependecies);
 
   /**
    * Update the state of all dependents (and dependents thereof) to changed,
-   * @param const CComputable::Set & changedObjects
+   * @param const CComputable::Set & changedComputables
    * @param bool ignoreCircularDependecies
    * @return bool success
    */
-  bool updateIgnoredState(const CComputable::Set & changedObjects,
+  bool updateIgnoredState(const CComputable::Set & changedComputables,
                           bool ignoreCircularDependecies);
 
   /**
@@ -166,11 +166,11 @@ public:
 private:
   bool createMessage(bool ignoreCircularDependecies);
 
-  const CComputable * mpObject;
+  const CComputable * mpComputable;
   std::vector< CDependencyNode * > mPrerequisites;
   std::vector< CDependencyNode * > mDependents;
   bool mChanged;
   bool mRequested;
 };
 
-#endif /* SRC_DEPENDENCIES_CDEPENDENCYNODE_H_ */
+#endif /* SRC_MATH_CDEPENDENCYNODE_H_ */

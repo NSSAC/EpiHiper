@@ -10,8 +10,8 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#ifndef SRC_DEPENDENCIES_CCOMPUTABLE_H_
-#define SRC_DEPENDENCIES_CCOMPUTABLE_H_
+#ifndef SRC_MATH_CCOMPUTABLE_H_
+#define SRC_MATH_CCOMPUTABLE_H_
 
 #include <set>
 #include <vector>
@@ -34,4 +34,4 @@ protected:
   Set mPrerequisites;
 };
 
-#endif /* SRC_DEPENDENCIES_CCOMPUTABLE_H_ */
+#endif /* SRC_MATH_CCOMPUTABLE_H_ */

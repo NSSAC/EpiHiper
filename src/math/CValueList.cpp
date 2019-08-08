@@ -10,9 +10,10 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#include "math/CValueList.h"
+
 #include <jansson.h>
 
-#include "intervention/CValueList.h"
 #include "traits/CTrait.h"
 
 CValueList::CValueList(const Type & type)
@@ -189,7 +190,7 @@ CValueList::CValueList(std::istream & is)
       for (size_t i = 0; i < Size; ++i)
         {
           bool Value;
-          is.read(reinterpret_cast<char *>(&Value), sizeof(Value));
+          is.read(reinterpret_cast<char *>(&Value), sizeof(bool));
           insert(Value);
         }
       break;
@@ -198,16 +199,17 @@ CValueList::CValueList(std::istream & is)
       for (size_t i = 0; i < Size; ++i)
         {
           double Value;
-          is.read(reinterpret_cast<char *>(&Value), sizeof(Value));
+          is.read(reinterpret_cast<char *>(&Value), sizeof(double));
           insert(Value);
         }
       break;
 
     case Type::healthState:
+    case Type::id:
       for (size_t i = 0; i < Size; ++i)
         {
-          CModel::state_t Value;
-          is.read(reinterpret_cast<char *>(&Value), sizeof(Value));
+          size_t Value;
+          is.read(reinterpret_cast<char *>(&Value), sizeof(size_t));
           insert(Value);
         }
       break;
@@ -216,7 +218,7 @@ CValueList::CValueList(std::istream & is)
       for (size_t i = 0; i < Size; ++i)
         {
           CTraitData::value Value;
-          is.read(reinterpret_cast<char *>(&Value), sizeof(Value));
+          is.read(reinterpret_cast<char *>(&Value), sizeof(CTraitData::value));
           insert(Value);
         }
       break;
@@ -288,8 +290,9 @@ void CValueList::toBinary(std::ostream & os) const
       break;
 
     case Type::healthState:
+    case Type::id:
       for (; it != itEnd; ++it)
-        os.write(reinterpret_cast<const char *>(&it->toHealthState()), sizeof(CModel::state_t));
+        os.write(reinterpret_cast<const char *>(&it->toId()), sizeof(size_t));
       break;
 
     case Type::traitValue:

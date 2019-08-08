@@ -13,9 +13,9 @@
 #ifndef SRC_SETS_CEDGEELEMENTSELECTOR_H_
 #define SRC_SETS_CEDGEELEMENTSELECTOR_H_
 
+#include "../math/CEdgeProperty.h"
+#include "math/CValueList.h"
 #include "sets/CSetContent.h"
-#include "network/CEdgeProperty.h"
-#include "intervention/CValueList.h"
 
 class CEdgeElementSelector: public CSetContent
 {

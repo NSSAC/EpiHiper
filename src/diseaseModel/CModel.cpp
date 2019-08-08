@@ -252,7 +252,7 @@ bool CModel::_processTransmissions() const
             Info.set("ContactNode", (int) Candidate.pContact->id);
 
             CAction ChangeState(1.0, CheckState, Info);
-            ChangeState.addOperation(COperationInstance<CNode, const CTransmission *>(*pNode, Candidate.pTransmission, &CNode::set));
+            ChangeState.addOperation(new COperationInstance<CNode, const CTransmission *>(*pNode, Candidate.pTransmission, &CNode::set));
 
             CActionQueue::addAction(0, ChangeState);
           }
@@ -303,7 +303,7 @@ void CModel::_stateChanged(CNode * pNode) const
 
       CMetadata Info("StateChange", true);
       CAction ChangeState(1.0, CheckState, Info);
-      ChangeState.addOperation(COperationInstance<CNode, const CProgression *>(*pNode, pProgression, &CNode::set));
+      ChangeState.addOperation(new COperationInstance<CNode, const CProgression *>(*pNode, pProgression, &CNode::set));
 
       CActionQueue::addAction(pProgression->getDwellTime(), ChangeState);
     }

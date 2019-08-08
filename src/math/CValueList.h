@@ -10,17 +10,17 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#ifndef SRC_INTERVENTION_CVALUELIST_H_
-#define SRC_INTERVENTION_CVALUELIST_H_
+#ifndef SRC_MATH_CVALUELIST_H_
+#define SRC_MATH_CVALUELIST_H_
 
 #include <set>
 
-#include "intervention/CValue.h"
+#include "math/CValue.h"
 
 class CValueList : protected std::set< CValue >
 {
 public:
-  typedef CValue::Type Type;
+  typedef CValueInterface::Type Type;
   typedef std::set< CValue >::const_iterator const_iterator;
 
   CValueList(const Type & type = Type::number);
@@ -54,4 +54,4 @@ private:
   bool mValid;
 };
 
-#endif /* SRC_INTERVENTION_CVALUELIST_H_ */
+#endif /* SRC_MATH_CVALUELIST_H_ */

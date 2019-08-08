@@ -124,3 +124,33 @@ void CEdge::fromBinary(std::istream & is)
       is.read(reinterpret_cast<char *>(&weight), sizeof(double));
     }
 }
+
+bool CEdge::setTargetActivity(CTraitData::value value, const CMetadata & metadata)
+{
+  CTraitData::setValue(targetActivity, value);
+  return true;
+}
+
+bool CEdge::setSourceActivity(CTraitData::value value, const CMetadata & metadata)
+{
+  CTraitData::setValue(sourceActivity, value);
+  return true;
+}
+
+bool CEdge::setEdgeTrait(CTraitData::value value, const CMetadata & metadata)
+{
+  CTraitData::setValue(edgeTrait, value);
+  return true;
+}
+
+bool CEdge::setActive(bool value, const CMetadata & metadata)
+{
+  active = value;
+  return true;
+}
+
+bool CEdge::setWeight(double value, const CMetadata & metadata)
+{
+  weight = value;
+  return true;
+}

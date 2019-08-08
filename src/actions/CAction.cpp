@@ -70,12 +70,19 @@ const std::vector< COperation * > & CAction::getOperations() const
   return mOperations;
 }
 
+void CAction::addOperation(COperation * pOperation)
+{
+  mOperations.push_back(pOperation);
+}
+
+/*
 void CAction::addOperation(const COperation & operation)
 {
   // TODO CRITICAL We need to deal with operations on remote objects.
 
   mOperations.push_back(operation.copy());
 }
+*/
 
 const CMetadata & CAction::getMetadata() const
 {
