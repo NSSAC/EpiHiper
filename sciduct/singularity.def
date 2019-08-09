@@ -54,7 +54,8 @@ From: centos:7.6.1810
         libibumad-devel libibumad-static libuuid-devel \
         pci-utils which iproute net-tools \
         libhfi1 opensm-libs numactl-libs \
-        irqbalance openssl openssl-devel
+        irqbalance openssl openssl-devel \
+        postgresql-devel 
 
     cd /src
 

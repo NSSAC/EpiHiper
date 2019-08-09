@@ -1,3 +1,6 @@
 [submodule "dependencies/jansson"]
 	path = dependencies/jansson
 	url = git@github.com:akheron/jansson.git
+[submodule "dependencies/libpqxx"]
+	path = dependencies/libpqxx
+	url = git@github.com:jtv/libpqxx.git

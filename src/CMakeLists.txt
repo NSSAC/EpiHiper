@@ -32,5 +32,15 @@ include(utilities/CMakeLists.txt)
 
 add_executable (EpiHiper ${SOURCES_EPIHIPER})
 
-add_dependencies(EpiHiper jansson)
-target_link_libraries (EpiHiper ${MPI_LIBRARIES} ${CMAKE_BINARY_DIR}/lib/libjansson.a)
+add_dependencies(EpiHiper jansson libpqxx)
+
+find_package(jansson CONFIG QUIET
+	PATHS ${CMAKE_BINARY_DIR}/lib
+)
+
+target_link_libraries (EpiHiper 
+	${MPI_LIBRARIES} 
+	${PGSQL_LIBRARY} 
+	${CMAKE_BINARY_DIR}/lib/libjansson.a 
+	${CMAKE_BINARY_DIR}/lib64/libpqxx.a
+)

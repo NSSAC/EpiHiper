@@ -19,27 +19,38 @@ include(GNUInstallDirs)
 set(CMAKE_CXX_STANDARD 11)
 
 find_package (MPI REQUIRED)
-
 include_directories(BEFORE ${MPI_INCLUDE_PATH})
+
+find_package (PGSQL REQUIRED)
+include_directories(BEFORE ${PGSQL_INCLUDE_DIR})
+
 include_directories(BEFORE ${PROJECT_BINARY_DIR}/include)
 
 add_subdirectory(dependencies)
 add_subdirectory(src)
 
 message(STATUS "-----------------------------------------------------------
+
  Building EpiHiper 
 
-   Source Dir        = ${CMAKE_SOURCE_DIR}
-   Binary Dir        = ${CMAKE_BINARY_DIR}
-   Install Prefix    = ${CMAKE_INSTALL_PREFIX}
+   Source Dir         = ${CMAKE_SOURCE_DIR}
+   Binary Dir         = ${CMAKE_BINARY_DIR}
+   Install Prefix     = ${CMAKE_INSTALL_PREFIX}
 
  Dependencies:
-   MPI Libs          = ${MPI_LIBRARIES}
-   MPI LDFLAGS       = ${MPI_LINKER_FLAGS}
-   MPI include       = ${MPI_INCLUDE_PATH}
+
+   MPI Libs           = ${MPI_LIBRARIES}
+   MPI LDFLAGS        = ${MPI_LINKER_FLAGS}
+   MPI include        = ${MPI_INCLUDE_PATH}
+
+   PostgreSQL Libs    = ${PGSQL_LIBRARY}
+   PostgreSQL include = ${PGSQL_INCLUDE_DIR}
    
-   jansson Libs      = ${CMAKE_BINARY_DIR}/lib
-   jansson include   = ${CMAKE_BINARY_DIR}/include
+   libpqxx Libs       = ${CMAKE_BINARY_DIR}/lib64/libpqxx.a
+   libpqxx include    = ${CMAKE_BINARY_DIR}/include
+
+   jansson Libs       = ${CMAKE_BINARY_DIR}/lib/libjansson.a
+   jansson include    = ${CMAKE_BINARY_DIR}/include
 
 -----------------------------------------------------------
 ")
