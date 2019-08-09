@@ -27,7 +27,7 @@ ExternalProject_Add(libpqxx
   PREFIX            ${CMAKE_BINARY_DIR}/dependencies
   SOURCE_DIR        ${CMAKE_CURRENT_SOURCE_DIR}/libpqxx
   
-  CONFIGURE_COMMAND  ${CMAKE_CURRENT_SOURCE_DIR}/libpqxx/configure --prefix=${CMAKE_BINARY_DIR} --with-postgres-include=${PGSQL_INCLUDE_DIR} --disable-documentation
+  CONFIGURE_COMMAND  ${CMAKE_CURRENT_SOURCE_DIR}/libpqxx/configure --prefix=${CMAKE_BINARY_DIR} --libdir=${CMAKE_BINARY_DIR}/lib --with-postgres-include=${PGSQL_INCLUDE_DIR} --disable-documentation
   BUILD_COMMAND      make 
   INSTALL_COMMAND    make install
 )

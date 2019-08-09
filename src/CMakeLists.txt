@@ -42,5 +42,5 @@ target_link_libraries (EpiHiper
 	${MPI_LIBRARIES} 
 	${PGSQL_LIBRARY} 
 	${CMAKE_BINARY_DIR}/lib/libjansson.a 
-	${CMAKE_BINARY_DIR}/lib64/libpqxx.a
+	${CMAKE_BINARY_DIR}/lib/libpqxx.a
 )

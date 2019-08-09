@@ -46,7 +46,7 @@ message(STATUS "-----------------------------------------------------------
    PostgreSQL Libs    = ${PGSQL_LIBRARY}
    PostgreSQL include = ${PGSQL_INCLUDE_DIR}
    
-   libpqxx Libs       = ${CMAKE_BINARY_DIR}/lib64/libpqxx.a
+   libpqxx Libs       = ${CMAKE_BINARY_DIR}/lib/libpqxx.a
    libpqxx include    = ${CMAKE_BINARY_DIR}/include
 
    jansson Libs       = ${CMAKE_BINARY_DIR}/lib/libjansson.a
