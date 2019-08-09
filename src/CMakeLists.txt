@@ -21,6 +21,7 @@ source_group(EpiHiper FILES ${SOURCES_EPIHIPER} ${HEADERS_EPIHIPER})
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR})
 
 include(actions/CMakeLists.txt)
+include(db/CMakeLists.txt)
 include(diseaseModel/CMakeLists.txt)
 include(intervention/CMakeLists.txt)
 include(math/CMakeLists.txt)

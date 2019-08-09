@@ -13,6 +13,8 @@
 #ifndef SRC_SETS_CNODEELEMENTSELECTOR_H_
 #define SRC_SETS_CNODEELEMENTSELECTOR_H_
 
+#include "math/CNodeProperty.h"
+#include "math/CValueList.h"
 #include "sets/CSetContent.h"
 
 class CNodeElementSelector: public CSetContent
@@ -25,6 +27,17 @@ public:
   CNodeElementSelector(const json_t * json);
 
   virtual ~CNodeElementSelector();
+
+  virtual void fromJSON(const json_t * json);
+
+  virtual void compute();
+
+private:
+  CNodeProperty mLeft;
+  CValue * mpValue;
+  CValueList * mpValueList;
+  CSetContent * mpSetContent;
+  CValueInterface::pComparison mpComparison;
 };
 
 #endif /* SRC_SETS_CNODEELEMENTSELECTOR_H_ */

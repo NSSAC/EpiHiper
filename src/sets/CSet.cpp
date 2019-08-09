@@ -16,6 +16,7 @@
 #include "network/CNetwork.h"
 #include "network/CNode.h"
 #include "network/CEdge.h"
+#include "sets/CSetContent.h"
 
 /*
         {"$ref": "#/definitions/annotation"},
@@ -40,18 +41,46 @@
 
 CSet::CSet(const CSet & src)
   : CAnnotation(src)
-  , CSetContent(src)
   , mId(src.mId)
   , mType(src.mType)
   , mpSetContent(CSetContent::copy(src.mpSetContent))
+  , mValid(src.mValid)
 {}
 
 CSet::CSet(const json_t * json)
   : CAnnotation()
-  , CSetContent()
   , mId()
   , mType()
   , mpSetContent(NULL)
+  , mValid(true)
+{
+  fromJSON(json);
+}
+
+// virtual
+CSet::~CSet()
+{
+  CSetContent::destroy(mpSetContent);
+}
+
+const std::string & CSet::getId() const
+{
+  return mId;
+}
+
+const bool & CSet::isValid() const
+{
+  return mValid;
+}
+
+CSetContent * CSet::getSetContent() const
+{
+  return mpSetContent;
+}
+
+
+// virtual
+void CSet::fromJSON(const json_t * json)
 {
   json_t * pValue = json_object_get(json, "id");
 
@@ -90,14 +119,4 @@ CSet::CSet(const json_t * json)
   CAnnotation::fromJSON(json);
 }
 
-// virtual
-CSet::~CSet()
-{
-  CSetContent::destroy(mpSetContent);
-}
-
-const std::string & CSet::getId() const
-{
-  return mId;
-}
 

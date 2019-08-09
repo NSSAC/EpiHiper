@@ -28,7 +28,7 @@ public:
 
   virtual ~CHealthState();
 
-  void fromJSON(const json_t * json);
+  virtual void fromJSON(const json_t * json);
 
   const std::string & getId() const;
 

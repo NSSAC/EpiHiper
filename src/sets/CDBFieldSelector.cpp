@@ -14,11 +14,13 @@
 #include <jansson.h>
 
 #include "sets/CDBFieldSelector.h"
+#include "db/CSchema.h"
 
 CDBFieldSelector::CDBFieldSelector()
   : CSetContent()
   , mTable()
   , mField()
+  , mFieldType()
   , mpSetContent(NULL)
 {}
 
@@ -26,6 +28,7 @@ CDBFieldSelector::CDBFieldSelector(const CDBFieldSelector & src)
   : CSetContent(src)
   , mTable()
   , mField()
+  , mFieldType(src.mFieldType)
   , mpSetContent(CSetContent::copy(src.mpSetContent))
 {}
 
@@ -33,7 +36,19 @@ CDBFieldSelector::CDBFieldSelector(const json_t * json)
   : CSetContent()
   , mTable()
   , mField()
+  , mFieldType()
   , mpSetContent(NULL)
+{
+  fromJSON(json);
+}
+
+CDBFieldSelector::~CDBFieldSelector()
+{
+  CSetContent::destroy(mpSetContent);
+}
+
+// virtual
+void CDBFieldSelector::fromJSON(const json_t * json)
 {
   json_t * pValue = json_object_get(json, "elementType");
 
@@ -45,7 +60,8 @@ CDBFieldSelector::CDBFieldSelector(const json_t * json)
 
   if (json_is_string(pValue))
     {
-
+      mTable = json_string_value(pValue);
+      mValid &= CSchema::INSTANCE.getTable(mTable).isValid();
     }
   else
     {
@@ -56,7 +72,11 @@ CDBFieldSelector::CDBFieldSelector(const json_t * json)
 
   if (json_is_string(pValue))
     {
+      mField = json_string_value(pValue);
 
+      const CField & Field = CSchema::INSTANCE.getTable(mTable).getField(mField);
+      mFieldType = Field.getType();
+      mValid &= Field.isValid();
     }
   else
     {
@@ -76,8 +96,11 @@ CDBFieldSelector::CDBFieldSelector(const json_t * json)
     }
 }
 
-CDBFieldSelector::~CDBFieldSelector()
+
+// virtual
+void CDBFieldSelector::compute()
 {
-  CSetContent::destroy(mpSetContent);
+  // TODO CRITICAL Implement me!
 }
+
 

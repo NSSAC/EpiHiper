@@ -10,6 +10,9 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#include <cstring>
+#include <jansson.h>
+
 #include "sets/CNodeElementSelector.h"
 
 CNodeElementSelector::CNodeElementSelector()
@@ -23,110 +26,87 @@ CNodeElementSelector::CNodeElementSelector(const CNodeElementSelector & src)
 CNodeElementSelector::CNodeElementSelector(const json_t * json)
   : CSetContent()
 {
+  fromJSON(json);
+}
+
+CNodeElementSelector::~CNodeElementSelector()
+{}
+
+// virtual
+void CNodeElementSelector::fromJSON(const json_t * json)
+{
+  json_t * pValue = json_object_get(json, "elementType");
+
+  mValid = (json_is_string(pValue) && strcmp(json_string_value(pValue), "node") == 0);
+
+  if (!mValid) return;
+
+  pValue = json_object_get(json, "operator");
+
+  if (strcmp(json_string_value(pValue), "==") == 0)
+    {
+      mpComparison = &operator==;
+    }
+  else if(strcmp(json_string_value(pValue), "!=") == 0)
+    {
+      mpComparison = &operator!=;
+    }
+  else if(strcmp(json_string_value(pValue), "<=") == 0)
+    {
+      mpComparison = &operator<=;
+    }
+  else if(strcmp(json_string_value(pValue), "<") == 0)
+    {
+      mpComparison = &operator<;
+    }
+  else if(strcmp(json_string_value(pValue), ">=") == 0)
+    {
+      mpComparison = &operator>=;
+    }
+  else if(strcmp(json_string_value(pValue), ">") == 0)
+    {
+      mpComparison = &operator>;
+    }
+
+  // Select node where the node property value comparison with the provided value is true.
+  if (mpComparison != NULL)
+    {
+      mLeft.fromJSON(json_object_get(json, "left"));
+      mValid &= mLeft.isValid();
+      mpValue = new CValue(json_object_get(json, "right"));
+      mValid &= (mpValue != NULL && mpValue->isValid());
+
+      return;
+    }
+
+  // Select nodes where the node property value in in the provided list.
+  if (strcmp(json_string_value(pValue), "withPropertyIn") == 0)
+    {
+      mLeft.fromJSON(json_object_get(json, "left"));
+      mValid &= mLeft.isValid();
+      mpValueList = new CValueList(json_object_get(json, "right"));
+      mValid &= (mpValueList != NULL && mpValueList->isValid());
+
+      return;
+    }
+
+  // Select nodes where the node property value in in the provided list.
+  if (strcmp(json_string_value(pValue), "withIncomingEdgeIn") == 0)
+    {
+      // We need to identify that we have this case
+      mpSetContent = CSetContent::create(json_object_get(json, "selector"));
+      mValid &= (mpSetContent != NULL && mpSetContent->isValid());
+
+      if (mValid)
+        mPrerequisites.insert(mpSetContent);
+
+      return;
+    }
+
+
   /*
+   // All nodes in a table
       "oneOf": [
-        {
-          "required": [
-            "elementType",
-            "operator",
-            "left",
-            "right"
-          ],
-          "properties": {
-            "elementType": {
-              "type": "string",
-              "enum": ["node"]
-            },
-            "operator": {"$ref": "#/definitions/comparisonOperator"},
-            "left": {
-              "type": "object",
-              "required": ["node"],
-              "properties": {
-                "node": {"$ref": "#/definitions/nodeProperty"}
-              }
-            },
-            "right": {"$ref": "#/definitions/value"}
-          }
-        },
-        {
-          "description": "",
-          "required": [
-            "elementType",
-            "operator",
-            "left",
-            "right"
-          ],
-          "properties": {
-            "elementType": {
-              "type": "string",
-              "enum": ["node"]
-            },
-            "operator": {
-              "description": "",
-              "type": "string",
-              "enum": [
-                "in",
-                "not in"
-              ]
-            },
-            "left": {
-              "type": "object",
-              "required": ["node"],
-              "properties": {
-                "node": {"$ref": "#/definitions/nodeProperty"}
-              }
-            },
-            "right": {"$ref": "#/definitions/valueList"}
-          }
-        },
-        {
-          "description": "",
-          "required": [
-            "elementType",
-            "operator",
-            "left",
-            "right"
-          ],
-          "properties": {
-            "elementType": {
-              "type": "string",
-              "enum": ["node"]
-            },
-            "operator": {
-              "description": "",
-              "type": "string",
-              "enum": ["withPropertyIn"]
-            },
-            "left": {
-              "type": "object",
-              "required": ["node"],
-              "properties": {
-                "node": {"$ref": "#/definitions/nodeProperty"}
-              }
-            },
-            "right": {"$ref": "#/definitions/valueList"}
-          }
-        },
-        {
-          "description": "",
-          "required": [
-            "elementType",
-            "operator",
-            "selector"
-          ],
-          "properties": {
-            "elementType": {
-              "type": "string",
-              "enum": ["node"]
-            },
-            "operator": {
-              "description": "",
-              "type": "string",
-              "enum": ["withIncomingEdgeIn"]
-            },
-            "selector": {"$ref": "#/definitions/setContent"}
-          }
-        },
         {
           "description": "A filter selecting nodes from the external person trait database.",
           "oneOf": [
@@ -146,6 +126,8 @@ CNodeElementSelector::CNodeElementSelector(const json_t * json)
                 "table": {"$ref": "#/definitions/uniqueIdRef"}
               }
             },
+
+
             {
               "description": "A filter returining nodes if the result of comparing left and right values with the operator is true.",
               "required": [
@@ -206,10 +188,13 @@ CNodeElementSelector::CNodeElementSelector(const json_t * json)
           ]
         }
       ]
-
  */
 }
 
-CNodeElementSelector::~CNodeElementSelector()
-{}
+// virtual
+void CNodeElementSelector::compute()
+{
+  // TODO CRITICAL Implement me!
+}
+
 

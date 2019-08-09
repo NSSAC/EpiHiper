@@ -27,7 +27,16 @@
 
 class CValueInterface
 {
+  friend bool operator<(const CValueInterface & lhs, const CValueInterface & rhs);
+  friend bool operator<=(const CValueInterface & lhs, const CValueInterface & rhs);
+  friend bool operator>(const CValueInterface & lhs, const CValueInterface & rhs);
+  friend bool operator>=(const CValueInterface & lhs, const CValueInterface & rhs);
+  friend bool operator==(const CValueInterface & lhs, const CValueInterface & rhs);
+  friend bool operator!=(const CValueInterface & lhs, const CValueInterface & rhs);
+
 public:
+  typedef bool (*pComparison)(const CValueInterface &, const CValueInterface &);
+
   enum struct Type
   {
     boolean,
@@ -79,23 +88,16 @@ public:
 
   void fromBinary(std::istream & is);
 
-  bool operator<(const CValueInterface & rhs) const;
-
-  bool operator<=(const CValueInterface & rhs) const;
-
-  bool operator>(const CValueInterface & rhs) const;
-
-  bool operator>=(const CValueInterface & rhs) const;
-
-  bool operator==(const CValueInterface & rhs) const;
-
-  bool operator!=(const CValueInterface & rhs) const;
-
 protected:
   Type mType;
   void * mpValue;
-
-
 };
+
+bool operator<(const CValueInterface & lhs, const CValueInterface & rhs);
+bool operator<=(const CValueInterface & lhs, const CValueInterface & rhs);
+bool operator>(const CValueInterface & lhs, const CValueInterface & rhs);
+bool operator>=(const CValueInterface & lhs, const CValueInterface & rhs);
+bool operator==(const CValueInterface & lhs, const CValueInterface & rhs);
+bool operator!=(const CValueInterface & lhs, const CValueInterface & rhs);
 
 #endif /* SRC_MATH_CVALUEINTERFACE_H_ */

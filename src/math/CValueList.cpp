@@ -33,6 +33,67 @@ CValueList::CValueList(const json_t * json)
   , mType()
   , mValid(true)
 {
+  fromJSON(json);
+}
+
+
+CValueList::CValueList(std::istream & is)
+  : std::set< CValue >()
+  , mType()
+  , mValid(true)
+{
+  fromBinary(is);
+}
+
+
+bool CValueList::append(const CValue & value)
+{
+  if (value.getType() != mType) return false;
+
+  if (mType == Type::traitValue
+      && size() > 0
+      && begin()->toTraitValue().first != value.toTraitValue().first) return false;
+
+  insert(value);
+
+  return true;
+}
+
+bool CValueList::contains(const CValueInterface & value) const
+{
+  if (value.getType() != mType) return false;
+
+  const CValue * pValue = reinterpret_cast< const CValue * >(&value);
+
+  return (find(*pValue) != end());
+}
+
+// virtual
+CValueList::~CValueList()
+{}
+
+CValueList::const_iterator CValueList::begin() const
+{
+  return std::set< CValue >::begin();
+}
+
+CValueList::const_iterator CValueList::end() const
+{
+  return std::set< CValue >::end();
+}
+
+size_t CValueList::size() const
+{
+  return std::set< CValue >::size();
+}
+
+const bool & CValueList::isValid() const
+{
+  return mValid;
+}
+
+void CValueList::fromJSON(const json_t * json)
+{
   const CTrait * pTrait = NULL;
   const CFeature * pFeature = NULL;
 
@@ -174,11 +235,41 @@ CValueList::CValueList(const json_t * json)
   }
 }
 
+void CValueList::toBinary(std::ostream & os) const
+{
+  os.write(reinterpret_cast<const char *>(&mType), sizeof(Type));
+  size_t Size = size();
+  os.write(reinterpret_cast<const char *>(&Size), sizeof(size_t));
 
-CValueList::CValueList(std::istream & is)
-  : std::set< CValue >()
-  , mType()
-  , mValid(true)
+  const_iterator it = begin();
+  const_iterator itEnd = end();
+
+  switch (mType)
+  {
+    case Type::boolean:
+      for (; it != itEnd; ++it)
+        os.write(reinterpret_cast<const char *>(&it->toBoolean()), sizeof(bool));
+      break;
+
+    case Type::number:
+      for (; it != itEnd; ++it)
+        os.write(reinterpret_cast<const char *>(&it->toNumber()), sizeof(double));
+      break;
+
+    case Type::healthState:
+    case Type::id:
+      for (; it != itEnd; ++it)
+        os.write(reinterpret_cast<const char *>(&it->toId()), sizeof(size_t));
+      break;
+
+    case Type::traitValue:
+      for (; it != itEnd; ++it)
+        os.write(reinterpret_cast<const char *>(&it->toTraitValue()), sizeof(CTraitData::value));
+      break;
+  }
+}
+
+void CValueList::fromBinary(std::istream & is)
 {
   is.read(reinterpret_cast<char *>(&mType), sizeof(Type));
   size_t Size = 0;
@@ -223,88 +314,6 @@ CValueList::CValueList(std::istream & is)
         }
       break;
   }
-}
-
-
-bool CValueList::append(const CValue & value)
-{
-  if (value.getType() != mType) return false;
-
-  if (mType == Type::traitValue
-      && size() > 0
-      && begin()->toTraitValue().first != value.toTraitValue().first) return false;
-
-  insert(value);
-
-  return true;
-}
-
-// virtual
-CValueList::~CValueList()
-{}
-
-CValueList::const_iterator CValueList::begin() const
-{
-  return std::set< CValue >::begin();
-}
-
-CValueList::const_iterator CValueList::end() const
-{
-  return std::set< CValue >::end();
-}
-
-size_t CValueList::size() const
-{
-  return std::set< CValue >::size();
-}
-
-const bool & CValueList::isValid() const
-{
-  return mValid;
-}
-
-void CValueList::fromJSON(const json_t * json)
-{
-  *this = CValueList(json);
-}
-
-void CValueList::toBinary(std::ostream & os) const
-{
-  os.write(reinterpret_cast<const char *>(&mType), sizeof(Type));
-  size_t Size = size();
-  os.write(reinterpret_cast<const char *>(&Size), sizeof(size_t));
-
-  const_iterator it = begin();
-  const_iterator itEnd = end();
-
-  switch (mType)
-  {
-    case Type::boolean:
-      for (; it != itEnd; ++it)
-        os.write(reinterpret_cast<const char *>(&it->toBoolean()), sizeof(bool));
-      break;
-
-    case Type::number:
-      for (; it != itEnd; ++it)
-        os.write(reinterpret_cast<const char *>(&it->toNumber()), sizeof(double));
-      break;
-
-    case Type::healthState:
-    case Type::id:
-      for (; it != itEnd; ++it)
-        os.write(reinterpret_cast<const char *>(&it->toId()), sizeof(size_t));
-      break;
-
-    case Type::traitValue:
-      for (; it != itEnd; ++it)
-        os.write(reinterpret_cast<const char *>(&it->toTraitValue()), sizeof(CTraitData::value));
-      break;
-  }
-}
-
-void CValueList::fromBinary(std::istream & is)
-{
-  *this = CValueList(is);
 }
 
 

@@ -29,7 +29,7 @@ CEdgeProperty::CEdgeProperty()
 CEdgeProperty::~CEdgeProperty()
 {}
 
-void CEdgeProperty::fronJSON(const json_t * json)
+void CEdgeProperty::fromJSON(const json_t * json)
 {
   json_t * pValue = json_object_get(json, "property");
 
@@ -73,31 +73,6 @@ void CEdgeProperty::fronJSON(const json_t * json)
       return;
     }
 
-  pValue = json_object_get(json, "targetNode");
-  if (json_is_object(pValue))
-    {
-      mpPropertyOf = &CEdgeProperty::targetNode;
-      mpCreateOperation = &CEdgeProperty::setTargetNode;
-      mNodeProperty.fronJSON(pValue);
-      mType = mNodeProperty.getType();
-      mValid = mNodeProperty.isValid();
-
-      return;
-    }
-
-
-  pValue = json_object_get(json, "targetNode");
-  if (json_is_object(pValue))
-    {
-      mpPropertyOf = &CEdgeProperty::sourceNode;
-      mpCreateOperation = &CEdgeProperty::setSourceNode;
-      mNodeProperty.fronJSON(pValue);
-      mType = mNodeProperty.getType();
-      mValid = mNodeProperty.isValid();
-
-      return;
-    }
-
   mValid = false;
 }
 
@@ -106,26 +81,43 @@ const bool & CEdgeProperty::isValid() const
   return mValid;
 }
 
+// static
+CNode * CEdgeProperty::targetNode(CEdge * pEdge)
+{
+  return pEdge->pTarget;
+}
+
+// static
+CNode * CEdgeProperty::sourceNode(CEdge * pEdge)
+{
+  return pEdge->pSource;
+}
+
 CValueInterface & CEdgeProperty::propertyOf(CEdge * pEdge)
 {
   return (this->*mpPropertyOf)(pEdge);
 }
 
+COperation * CEdgeProperty::createOperation(CEdge * pEdge, const CValueInterface & value)
+{
+  return (this->*mpCreateOperation)(pEdge, value);
+}
+
 CValueInterface &  CEdgeProperty::targetActivity(CEdge * pEdge)
 {
-
+  mpValue = &pEdge->targetActivity;
   return *this;
 }
 
 CValueInterface &  CEdgeProperty::sourceActivity(CEdge * pEdge)
 {
-
+  mpValue = &pEdge->sourceActivity;
   return *this;
 }
 
 CValueInterface &  CEdgeProperty::edgeTrait(CEdge * pEdge)
 {
-
+  mpValue = &pEdge->edgeTrait;
   return *this;
 }
 
@@ -139,16 +131,6 @@ CValueInterface &  CEdgeProperty::weight(CEdge * pEdge)
 {
   mpValue = &pEdge->weight;
   return *this;
-}
-
-CValueInterface &  CEdgeProperty::targetNode(CEdge * pEdge)
-{
-  return mNodeProperty.propertyOf(pEdge->pTarget);
-}
-
-CValueInterface &  CEdgeProperty::sourceNode(CEdge * pEdge)
-{
-  return mNodeProperty.propertyOf(pEdge->pSource);
 }
 
 COperation * CEdgeProperty::setTargetActivity(CEdge * pEdge, const CValueInterface & value)
@@ -175,15 +157,3 @@ COperation * CEdgeProperty::setWeight(CEdge * pEdge, const CValueInterface & val
 {
   return new COperationInstance< CEdge, double >(*pEdge, value.toNumber(), &CEdge::setWeight);
 }
-
-COperation * CEdgeProperty::setTargetNode(CEdge * pEdge, const CValueInterface & value)
-{
-  return mNodeProperty.createOperation(pEdge->pTarget, value);
-}
-
-COperation * CEdgeProperty::setSourceNode(CEdge * pEdge, const CValueInterface & value)
-{
-  return mNodeProperty.createOperation(pEdge->pSource, value);
-}
-
-

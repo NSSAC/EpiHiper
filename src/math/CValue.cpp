@@ -65,6 +65,17 @@ CValue::CValue(const json_t * json)
   : CValueInterface(Type::boolean, NULL)
   , mValid(true)
 {
+  fromJSON(json);
+}
+
+// virtual
+CValue::~CValue()
+{
+  destroyValue();
+}
+
+void CValue::fromJSON(const json_t * json)
+{
   json_t * pValue = json_object_get(json, "boolean");
 
   if (json_is_boolean(pValue))
@@ -139,17 +150,6 @@ CValue::CValue(const json_t * json)
 
   mType = Type::traitValue;
   mpValue = new CTraitData::value(pFeature->getMask(), pEnum->getMask());
-}
-
-// virtual
-CValue::~CValue()
-{
-  destroyValue();
-}
-
-void CValue::fromJSON(const json_t * json)
-{
-  *this = CValue(json);
 }
 
 const bool & CValue::isValid() const

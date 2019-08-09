@@ -16,6 +16,7 @@
 #include "math/CValueInterface.h"
 
 class CNode;
+class CEdge;
 class COperation;
 struct json_t;
 
@@ -26,12 +27,14 @@ public:
 
   virtual ~CNodeProperty();
 
-  void fronJSON(const json_t * json);
+  void fromJSON(const json_t * json);
 
   const bool & isValid() const;
 
   CValueInterface & propertyOf(CNode * pNode);
   COperation * createOperation(CNode * pNode, const CValueInterface & value);
+
+  static std::pair< CEdge *, CEdge * > edges(CNode * pNode);
 
 private:
   CValueInterface & id(CNode * pNode);

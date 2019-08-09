@@ -10,13 +10,6 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-/*
- * Edge.cpp
- *
- *  Created on: Jun 26, 2019
- *      Author: shoops
- */
-
 #include "network/CEdge.h"
 #include "traits/CTrait.h"
 

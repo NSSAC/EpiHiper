@@ -10,25 +10,21 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#ifndef SRC_SETS_CSETOPERATION_H_
-#define SRC_SETS_CSETOPERATION_H_
+/*
+ * CQuery.h
+ *
+ *  Created on: Aug 8, 2019
+ *      Author: shoops
+ */
 
-#include "sets/CSetContent.h"
+#ifndef SRC_DB_CQUERY_H_
+#define SRC_DB_CQUERY_H_
 
-class CSetOperation: public CSetContent
+class CQuery
 {
 public:
-  CSetOperation();
-
-  CSetOperation(const CSetOperation & src);
-
-  CSetOperation(const json_t * json);
-
-  virtual ~CSetOperation();
-
-  virtual void fromJSON(const json_t * json);
-
-  virtual void compute();
+  CQuery();
+  virtual ~CQuery();
 };
 
-#endif /* SRC_SETS_CSETOPERATION_H_ */
+#endif /* SRC_DB_CQUERY_H_ */

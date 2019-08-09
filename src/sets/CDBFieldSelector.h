@@ -14,6 +14,7 @@
 #define SRC_SETS_CDBFIELDSELECTOR_H_
 
 #include "sets/CSetContent.h"
+#include "math/CValue.h"
 
 class CDBFieldSelector : public CSetContent
 {
@@ -26,9 +27,14 @@ public:
 
   virtual ~CDBFieldSelector();
 
+  virtual void fromJSON(const json_t * json);
+
+  virtual void compute();
+
 private:
   std::string mTable;
   std::string mField;
+  CValue::Type mFieldType;
   CSetContent * mpSetContent;
 };
 

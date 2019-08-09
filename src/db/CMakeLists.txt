@@ -12,12 +12,12 @@
 
 cmake_minimum_required (VERSION 3.11)
 
-file(GLOB HEADERS_SETS sets/*.h)
-file(GLOB SOURCES_SETS sets/*.cpp)
+file(GLOB HEADERS_DB db/*.h)
+file(GLOB SOURCES_DB db/*.cpp)
 
 # create source group for IDEs
-source_group(sets FILES ${SOURCES_SETS} ${HEADERS_SETS})
+source_group(db FILES ${SOURCES_DB} ${HEADERS_DB})
 
 # add files to main EPIHIPER sources
-set(SOURCES_EPIHIPER ${SOURCES_EPIHIPER} ${SOURCES_SETS})
-set(HEADERS_EPIHIPER ${HEADERS_EPIHIPER} ${HEADERS_SETS})
+set(SOURCES_EPIHIPER ${SOURCES_EPIHIPER} ${SOURCES_DB})
+set(HEADERS_EPIHIPER ${HEADERS_EPIHIPER} ${HEADERS_DB})

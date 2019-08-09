@@ -33,6 +33,8 @@ public:
 
   bool append(const CValue & value);
 
+  bool contains(const CValueInterface & value) const;
+
   virtual ~CValueList();
 
   const_iterator begin() const;
@@ -43,13 +45,13 @@ public:
 
   const bool & isValid() const;
 
-  void fromJSON(const json_t * json);
+  virtual void fromJSON(const json_t * json);
 
   void toBinary(std::ostream & os) const;
 
   void fromBinary(std::istream & is);
 
-private:
+protected:
   Type mType;
   bool mValid;
 };

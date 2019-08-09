@@ -79,7 +79,7 @@ CSetContent * CSetContent::create(const json_t * json)
 
       if (json_is_string(pIdRef))
         {
-          return &CSetList::INSTANCE[json_string_value(pIdRef)];
+          return CSetList::INSTANCE[json_string_value(pIdRef)].getSetContent();
         }
 
       return NULL;
@@ -103,9 +103,6 @@ CSetContent * CSetContent::copy(const CSetContent * pSetContent)
   if (dynamic_cast< const CSetOperation * >(pSetContent) != NULL)
     return new CSetOperation(*static_cast<const  CSetOperation * >(pSetContent));
 
-  if (dynamic_cast< const CSet * >(pSetContent) != NULL)
-    return const_cast< CSetContent * >(pSetContent);
-
   return NULL;
 }
 
@@ -124,3 +121,30 @@ const bool & CSetContent::isValid() const
 {
   return mValid;
 }
+
+// virtual
+void CSetContent::fromJSON(const json_t * json)
+{
+  mValid = false;
+}
+
+bool CSetContent::contains(CNode * pNode) const
+{
+  return (mNodes.find(pNode) != mNodes.end());
+}
+
+bool CSetContent::contains(CEdge * pEdge) const
+{
+  return (mEdges.find(pEdge) != mEdges.end());
+}
+
+bool CSetContent::contains(const CValueInterface & value) const
+{
+  std::map< CValueList::Type, CValueList >::const_iterator found = mDBFieldValues.find(value.getType());
+
+  if (found != mDBFieldValues.end())
+    return found->second.contains(value);
+
+  return false;
+}
+

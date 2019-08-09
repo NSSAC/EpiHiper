@@ -171,139 +171,141 @@ void CValueInterface::fromBinary(std::istream & is)
   }
 }
 
-bool CValueInterface::operator<(const CValueInterface & rhs) const
+bool operator<(const CValueInterface & lhs, const CValueInterface & rhs)
 {
-  if (mType != rhs.mType)
-    return mType < rhs.mType;
+  if (lhs.mType != rhs.mType)
+    return lhs.mType < rhs.mType;
 
-  switch (mType)
+  switch (lhs.mType)
   {
-    case Type::boolean:
-      return * static_cast< const bool * >(mpValue) < * static_cast< const bool * >(rhs.mpValue);
+    case CValueInterface::Type::boolean:
+      return * static_cast< const bool * >(lhs.mpValue) < * static_cast< const bool * >(rhs.mpValue);
       break;
 
-    case Type::number:
-      return * static_cast< const double * >(mpValue) < * static_cast< const double * >(rhs.mpValue);
+    case CValueInterface::Type::number:
+      return * static_cast< const double * >(lhs.mpValue) < * static_cast< const double * >(rhs.mpValue);
       break;
 
-    case Type::healthState:
-    case Type::id:
-      return * static_cast< const size_t * >(mpValue) < * static_cast< const size_t * >(rhs.mpValue);
+    case CValueInterface::Type::healthState:
+    case CValueInterface::Type::id:
+      return * static_cast< const size_t * >(lhs.mpValue) < * static_cast< const size_t * >(rhs.mpValue);
       break;
 
-    case Type::traitData:
-      return * static_cast< const CTraitData::base * >(mpValue) < * static_cast< const CTraitData::base * >(rhs.mpValue);
+    case CValueInterface::Type::traitData:
+      return * static_cast< const CTraitData::base * >(lhs.mpValue) < * static_cast< const CTraitData::base * >(rhs.mpValue);
       break;
 
-    case Type::traitValue:
-      return * static_cast< const CTraitData::value * >(mpValue) < * static_cast< const CTraitData::value * >(rhs.mpValue);
+    case CValueInterface::Type::traitValue:
+      return * static_cast< const CTraitData::value * >(lhs.mpValue) < * static_cast< const CTraitData::value * >(rhs.mpValue);
       break;
 
-    case Type::string:
-      return * static_cast< std::string * >(mpValue) < * static_cast< const std::string * >(rhs.mpValue);
+    case CValueInterface::Type::string:
+      return * static_cast< std::string * >(lhs.mpValue) < * static_cast< const std::string * >(rhs.mpValue);
       break;
   }
 
-  return mpValue < rhs.mpValue;
+  return lhs.mpValue < rhs.mpValue;
 }
 
-bool CValueInterface::operator<=(const CValueInterface & rhs) const
+bool operator<=(const CValueInterface & lhs, const CValueInterface & rhs)
 {
-  if (mType != rhs.mType)
-    return mType <= rhs.mType;
+  if (lhs.mType != rhs.mType)
+    return lhs.mType <= rhs.mType;
 
-  switch (mType)
+  switch (lhs.mType)
   {
-    case Type::boolean:
-      return * static_cast< const bool * >(mpValue) <= * static_cast< const bool * >(rhs.mpValue);
+    case CValueInterface::Type::boolean:
+      return * static_cast< const bool * >(lhs.mpValue) <= * static_cast< const bool * >(rhs.mpValue);
       break;
 
-    case Type::number:
-      return * static_cast< const double * >(mpValue) <= * static_cast< const double * >(rhs.mpValue);
+    case CValueInterface::Type::number:
+      return * static_cast< const double * >(lhs.mpValue) <= * static_cast< const double * >(rhs.mpValue);
       break;
 
-    case Type::healthState:
-    case Type::id:
-      return * static_cast< const size_t * >(mpValue) <= * static_cast< const size_t * >(rhs.mpValue);
+    case CValueInterface::Type::healthState:
+    case CValueInterface::Type::id:
+      return * static_cast< const size_t * >(lhs.mpValue) <= * static_cast< const size_t * >(rhs.mpValue);
       break;
 
-    case Type::traitData:
-      return * static_cast< const CTraitData::base * >(mpValue) <= * static_cast< const CTraitData::base * >(rhs.mpValue);
+    case CValueInterface::Type::traitData:
+      return * static_cast< const CTraitData::base * >(lhs.mpValue) <= * static_cast< const CTraitData::base * >(rhs.mpValue);
       break;
 
-    case Type::traitValue:
-      return * static_cast< const CTraitData::value * >(mpValue) <= * static_cast< const CTraitData::value * >(rhs.mpValue);
+    case CValueInterface::Type::traitValue:
+      return * static_cast< const CTraitData::value * >(lhs.mpValue) <= * static_cast< const CTraitData::value * >(rhs.mpValue);
       break;
 
-    case Type::string:
-      return * static_cast< std::string * >(mpValue) <= * static_cast< const std::string * >(rhs.mpValue);
+    case CValueInterface::Type::string:
+      return * static_cast< std::string * >(lhs.mpValue) <= * static_cast< const std::string * >(rhs.mpValue);
       break;
   }
 
-  return mpValue <= rhs.mpValue;
+  return lhs.mpValue <= rhs.mpValue;
 }
 
-bool CValueInterface::operator>(const CValueInterface & rhs) const
+// static
+bool operator>(const CValueInterface & lhs, const CValueInterface & rhs)
 {
-  return rhs.operator<(*this);
+  return operator<(rhs, lhs);
 }
 
-bool CValueInterface::operator>=(const CValueInterface & rhs) const
+// static
+bool operator>=(const CValueInterface & lhs, const CValueInterface & rhs)
 {
-  return rhs.operator<=(*this);
+  return operator<=(rhs, lhs);
 }
 
-bool CValueInterface::operator==(const CValueInterface & rhs) const
+bool operator==(const CValueInterface & lhs, const CValueInterface & rhs)
 {
-  if (mType == Type::traitData && rhs.mType == Type::traitValue)
+  if (lhs.mType == CValueInterface::Type::traitData && rhs.mType == CValueInterface::Type::traitValue)
     {
-      return CTraitData::hasValue(* static_cast< const CTraitData::base * >(mpValue),
+      return CTraitData::hasValue(* static_cast< const CTraitData::base * >(lhs.mpValue),
                                    * static_cast< const CTraitData::value * >(rhs.mpValue));
     }
 
-  if (mType == Type::traitValue && rhs.mType == Type::traitData)
+  if (lhs.mType == CValueInterface::Type::traitValue && rhs.mType == CValueInterface::Type::traitData)
     {
       return CTraitData::hasValue(* static_cast< const CTraitData::base * >(rhs.mpValue),
-                                   * static_cast< const CTraitData::value * >(mpValue));
+                                   * static_cast< const CTraitData::value * >(lhs.mpValue));
     }
 
-  if (mType != rhs.mType)
+  if (lhs.mType != rhs.mType)
     return false;
 
-  switch (mType)
+  switch (lhs.mType)
   {
-    case Type::boolean:
-      return * static_cast< const bool * >(mpValue) == * static_cast< const bool * >(rhs.mpValue);
+    case CValueInterface::Type::boolean:
+      return * static_cast< const bool * >(lhs.mpValue) == * static_cast< const bool * >(rhs.mpValue);
       break;
 
-    case Type::number:
-      return * static_cast< const double * >(mpValue) == * static_cast< const double * >(rhs.mpValue);
+    case CValueInterface::Type::number:
+      return * static_cast< const double * >(lhs.mpValue) == * static_cast< const double * >(rhs.mpValue);
       break;
 
-    case Type::healthState:
-    case Type::id:
-      return * static_cast< const size_t * >(mpValue) == * static_cast< const size_t * >(rhs.mpValue);
+    case CValueInterface::Type::healthState:
+    case CValueInterface::Type::id:
+      return * static_cast< const size_t * >(lhs.mpValue) == * static_cast< const size_t * >(rhs.mpValue);
       break;
 
-    case Type::traitData:
-      return * static_cast< const CTraitData::base * >(mpValue) == * static_cast< const CTraitData::base * >(rhs.mpValue);
+    case CValueInterface::Type::traitData:
+      return * static_cast< const CTraitData::base * >(lhs.mpValue) == * static_cast< const CTraitData::base * >(rhs.mpValue);
       break;
 
-    case Type::traitValue:
-      return * static_cast< const CTraitData::value * >(mpValue) == * static_cast< const CTraitData::value * >(rhs.mpValue);
+    case CValueInterface::Type::traitValue:
+      return * static_cast< const CTraitData::value * >(lhs.mpValue) == * static_cast< const CTraitData::value * >(rhs.mpValue);
       break;
 
-    case Type::string:
-      return * static_cast< std::string * >(mpValue) == * static_cast< const std::string * >(rhs.mpValue);
+    case CValueInterface::Type::string:
+      return * static_cast< std::string * >(lhs.mpValue) == * static_cast< const std::string * >(rhs.mpValue);
       break;
   }
 
-  return mpValue == rhs.mpValue;
+  return lhs.mpValue == rhs.mpValue;
 }
 
-bool CValueInterface::operator!=(const CValueInterface & rhs) const
+bool operator!=(const CValueInterface & lhs, const CValueInterface & rhs)
 {
-  return !this->operator==(rhs);
+  return !operator==(lhs, rhs);
 }
 
 /*

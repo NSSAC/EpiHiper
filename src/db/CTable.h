@@ -10,47 +10,43 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#ifndef SRC_INTERVENTION_CSET_H_
-#define SRC_INTERVENTION_CSET_H_
+/*
+ * CTable.h
+ *
+ *  Created on: Aug 8, 2019
+ *      Author: shoops
+ */
 
-#include <set>
+#ifndef SRC_DB_CTABLE_H_
+#define SRC_DB_CTABLE_H_
+
 #include <map>
+#include "db/CField.h"
 
-#include "utilities/CAnnotation.h"
-#include "math/CComputable.h"
+struct json_t;
 
-class CSetContent;
-
-class CSet: public CAnnotation
+class CTable
 {
 public:
-  enum struct Type
-  {
-    global,
-    local
-  };
+  CTable();
 
-  CSet() = delete;
+  CTable(const CTable &src);
 
-  CSet(const CSet & src);
+  virtual ~CTable();
 
-  CSet(const json_t * json);
+  const CField & getField(const std::string & field) const;
 
-  virtual ~CSet();
+  void fromJSON(const json_t * json);
 
   const std::string & getId() const;
 
   const bool & isValid() const;
 
-  CSetContent * getSetContent() const;
-
-  virtual void fromJSON(const json_t * json);
-
 private:
   std::string mId;
-  Type mType;
-  CSetContent * mpSetContent;
+  std::string mLabel;
+  std::map< std::string, CField > mFields;
   bool mValid;
 };
 
-#endif /* SRC_INTERVENTION_CSET_H_ */
+#endif /* SRC_DB_CTABLE_H_ */

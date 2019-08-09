@@ -54,7 +54,7 @@ public:
   static void load(const std::string & modelFile);
   static void release();
 
-  void fromJSON(const json_t * json);
+  virtual void fromJSON(const json_t * json);
 
   static const CHealthState & getInitialState();
 

@@ -34,6 +34,15 @@ CVariable::CVariable(const json_t * json)
   , mResetValue(std::numeric_limits< double >::quiet_NaN())
   , mValid(true)
 {
+  fromJSON(json);
+}
+
+// virtual
+CVariable::~CVariable()
+{}
+
+void CVariable::fromJSON(const json_t * json)
+{
   json_t * pValue = json_object_get(json, "id");
 
   if (json_is_string(pValue))
@@ -78,12 +87,9 @@ CVariable::CVariable(const json_t * json)
 }
 
 // virtual
-CVariable::~CVariable()
-{}
-
-void CVariable::fromJSON(const json_t * json)
+void CVariable::compute()
 {
-  *this = CVariable(json);
+  // TODO CRITICAL Implement me!
 }
 
 void CVariable::toBinary(std::ostream & os) const

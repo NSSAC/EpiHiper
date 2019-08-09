@@ -11,55 +11,43 @@
 // END: License 
 
 /*
- * Enum.h
+ * CField.h
  *
- *  Created on: Jun 22, 2019
+ *  Created on: Aug 8, 2019
  *      Author: shoops
  */
 
-#ifndef SRC_TRAITS_CENUM_H_
-#define SRC_TRAITS_CENUM_H_
+#ifndef SRC_DB_CFIELD_H_
+#define SRC_DB_CFIELD_H_
 
 #include <string>
 
-#include "utilities/CAnnotation.h"
-#include "traits/CTraitData.h"
+#include "math/CValue.h"
 
 struct json_t;
 
-class CEnum: public CAnnotation
+class CField
 {
 public:
-  /**
-   * Default constructor
-   */
-  CEnum();
+  CField();
 
-  /**
-   * Copy construnctor
-   * @param const Feature & src
-   */
-  CEnum(const CEnum & src);
+  CField(const CField &src);
 
-  /**
-   * Destructor
-   */
-  virtual ~CEnum();
+  virtual ~CField();
 
-  virtual void fromJSON(const json_t * json);
+  void fromJSON(const json_t * json);
 
   const std::string & getId() const;
 
   const bool & isValid() const;
 
-  void setMask(const CTraitData::base & mask);
-
-  const CTraitData::base & getMask() const;
+  const CValue::Type & getType() const;
 
 private:
   std::string mId;
-  CTraitData::base mMask;
+  std::string mLabel;
+  CValue::Type mType;
   bool mValid;
 };
 
-#endif /* SRC_TRAITS_CENUM_H_ */
+#endif /* SRC_DB_CFIELD_H_ */

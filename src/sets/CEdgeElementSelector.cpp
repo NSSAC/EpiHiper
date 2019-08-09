@@ -14,17 +14,47 @@
 #include <jansson.h>
 
 #include "sets/CEdgeElementSelector.h"
+#include "network/CNetwork.h"
+#include "network/CEdge.h"
+#include "network/CNode.h"
 
 CEdgeElementSelector::CEdgeElementSelector()
   : CSetContent()
+  , mLeft()
+  , mpValue(NULL)
+  , mpValueList(NULL)
+  , mpSetContent(NULL)
+  , mpComparison(NULL)
+  , mpGetNode(NULL)
 {}
 
 CEdgeElementSelector::CEdgeElementSelector(const CEdgeElementSelector & src)
   : CSetContent(src)
+  , mLeft(src.mLeft)
+  , mpValue(src.mpValue != NULL ? new CValue(*src.mpValue) : NULL)
+  , mpValueList(src.mpValueList != NULL ? new CValueList(*src.mpValueList) : NULL)
+  , mpSetContent(CSetContent::copy(src.mpSetContent))
+  , mpComparison(src.mpComparison)
+  , mpGetNode(src.mpGetNode)
 {}
 
 CEdgeElementSelector::CEdgeElementSelector(const json_t * json)
   : CSetContent()
+  , mLeft()
+  , mpValue(NULL)
+  , mpValueList(NULL)
+  , mpSetContent(NULL)
+  , mpComparison(NULL)
+  , mpGetNode(NULL)
+{
+  fromJSON(json);
+}
+
+CEdgeElementSelector::~CEdgeElementSelector()
+{}
+
+// virtual
+void CEdgeElementSelector::fromJSON(const json_t * json)
 {
   json_t * pValue = json_object_get(json, "elementType");
 
@@ -38,51 +68,120 @@ CEdgeElementSelector::CEdgeElementSelector(const json_t * json)
 
   if (!mValid) return;
 
-  if (strcmp(json_string_value(pValue), "==") == 0 ||
-      strcmp(json_string_value(pValue), "!=") == 0 ||
-      strcmp(json_string_value(pValue), "<=") == 0 ||
-      strcmp(json_string_value(pValue), "<") == 0 ||
-      strcmp(json_string_value(pValue), ">=") == 0 ||
-      strcmp(json_string_value(pValue), ">") == 0)
+  if (strcmp(json_string_value(pValue), "==") == 0)
     {
-      /*
-          "left": {
-            "type": "object",
-            "required": ["edge"],
-            "properties": {
-              "edge": {"$ref": "#/definitions/edgeProperty"}
-            }
-          },
-          "right": {"$ref": "#/definitions/value"}
-       */
+      mpComparison = &operator==;
     }
-  else if (strcmp(json_string_value(pValue), "withPropertyIn") == 0)
+  else if(strcmp(json_string_value(pValue), "!=") == 0)
     {
-      /*
-            "left": {
-              "type": "object",
-              "required": ["edge"],
-              "properties": {
-                "edge": {"$ref": "#/definitions/edgeProperty"}
-              }
-            },
-            "right": {"$ref": "#/definitions/valueList"}
-       */
+      mpComparison = &operator!=;
+    }
+  else if(strcmp(json_string_value(pValue), "<=") == 0)
+    {
+      mpComparison = &operator<=;
+    }
+  else if(strcmp(json_string_value(pValue), "<") == 0)
+    {
+      mpComparison = &operator<;
+    }
+  else if(strcmp(json_string_value(pValue), ">=") == 0)
+    {
+      mpComparison = &operator>=;
+    }
+  else if(strcmp(json_string_value(pValue), ">") == 0)
+    {
+      mpComparison = &operator>;
+    }
 
-    }
-  else if (strcmp(json_string_value(pValue), "withTargetNodeIn") == 0 ||
-      strcmp(json_string_value(pValue), "withSourceNodeIn") == 0)
+  // Select edges where the edge property value comparison with the provided value is true.
+  if (mpComparison != NULL)
     {
-      /*
-            "selector": {"$ref": "#/definitions/setContent"}
-       */
+      mLeft.fromJSON(json_object_get(json, "left"));
+      mValid &= mLeft.isValid();
+      mpValue = new CValue(json_object_get(json, "right"));
+      mValid &= (mpValue != NULL && mpValue->isValid());
+
+      return;
     }
-  else
+
+  // Select edges where the edge property value in in the provided list.
+  if (strcmp(json_string_value(pValue), "withPropertyIn") == 0)
     {
-      mValid = false;
+      mLeft.fromJSON(json_object_get(json, "left"));
+      mValid &= mLeft.isValid();
+      mpValueList = new CValueList(json_object_get(json, "right"));
+      mValid &= (mpValueList != NULL && mpValueList->isValid());
+
+      return;
+    }
+
+  if (strcmp(json_string_value(pValue), "withTargetNodeIn") == 0)
+    {
+      mpGetNode = &CEdgeProperty::targetNode;
+    }
+  else if (strcmp(json_string_value(pValue), "withSourceNodeIn") == 0)
+    {
+      mpGetNode = &CEdgeProperty::sourceNode;
+    }
+
+  if (mpGetNode != NULL)
+    {
+      mpSetContent = CSetContent::create(json_object_get(json, "selector"));
+      mValid &= (mpSetContent != NULL && mpSetContent->isValid());
+
+      if (mValid)
+        mPrerequisites.insert(mpSetContent);
+
+      return;
+    }
+
+  mValid = false;
+  return;
+}
+
+// virtual
+void CEdgeElementSelector::compute()
+{
+  // We need to loop through all edges and select the ones fitting the specification
+  mEdges.clear();
+
+  if (!mValid) return;
+
+  CEdge * pEdge = CNetwork::INSTANCE->beginEdge();
+  CEdge * pEdgeEnd = CNetwork::INSTANCE->endEdge();;
+
+  if (mpValue != NULL)
+    {
+      for (; pEdge != pEdgeEnd; ++pEdge)
+        if ((*mpComparison)(mLeft.propertyOf(pEdge), *mpValue))
+          {
+            mEdges.insert(pEdge);
+          }
+
+      return;
+    }
+
+  if (mpValueList != NULL)
+    {
+      for (; pEdge != pEdgeEnd; ++pEdge)
+        if(mpValueList->contains(mLeft.propertyOf(pEdge)))
+          {
+            mEdges.insert(pEdge);
+          }
+
+      return;
+    }
+
+  if (mpSetContent != NULL)
+    {
+      for (; pEdge != pEdgeEnd; ++pEdge)
+        if(mpSetContent->contains((*mpGetNode)(pEdge)))
+          {
+            mEdges.insert(pEdge);
+          }
+
+      return;
     }
 }
 
-CEdgeElementSelector::~CEdgeElementSelector()
-{}
 

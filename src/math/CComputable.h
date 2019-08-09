@@ -30,6 +30,8 @@ public:
 
   const Set & getPrerequisites() const;
 
+  virtual void compute() = 0;
+
 protected:
   Set mPrerequisites;
 };

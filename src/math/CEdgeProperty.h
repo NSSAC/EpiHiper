@@ -23,11 +23,13 @@ struct json_t;
 class CEdgeProperty: public CValueInterface
 {
 public:
+  typedef CNode * (*pGetNode)(CEdge *);
+
   CEdgeProperty();
 
   virtual ~CEdgeProperty();
 
-  void fronJSON(const json_t * json);
+  void fromJSON(const json_t * json);
 
   const bool & isValid() const;
 
@@ -35,22 +37,22 @@ public:
 
   COperation * createOperation(CEdge * pEdge, const CValueInterface & value);
 
+  static CNode * targetNode(CEdge * pEdge);
+
+  static CNode * sourceNode(CEdge * pEdge);
+
 private:
   CValueInterface & targetActivity(CEdge * pEdge);
   CValueInterface & sourceActivity(CEdge * pEdge);
   CValueInterface & edgeTrait(CEdge * pEdge);
   CValueInterface & active(CEdge * pEdge);
   CValueInterface & weight(CEdge * pEdge);
-  CValueInterface & targetNode(CEdge * pEdge);
-  CValueInterface & sourceNode(CEdge * pEdge);
 
   COperation * setTargetActivity(CEdge * pEdge, const CValueInterface & value);
   COperation * setSourceActivity(CEdge * pEdge, const CValueInterface & value);
   COperation * setEdgeTrait(CEdge * pEdge, const CValueInterface & value);
   COperation * setActive(CEdge * pEdge, const CValueInterface & value);
   COperation * setWeight(CEdge * pEdge, const CValueInterface & value);
-  COperation * setTargetNode(CEdge * pEdge, const CValueInterface & value);
-  COperation * setSourceNode(CEdge * pEdge, const CValueInterface & value);
 
   CValueInterface & (CEdgeProperty::*mpPropertyOf)(CEdge *);
   COperation * (CEdgeProperty::*mpCreateOperation)(CEdge *, const CValueInterface &);

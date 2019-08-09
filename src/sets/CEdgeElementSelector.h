@@ -13,7 +13,7 @@
 #ifndef SRC_SETS_CEDGEELEMENTSELECTOR_H_
 #define SRC_SETS_CEDGEELEMENTSELECTOR_H_
 
-#include "../math/CEdgeProperty.h"
+#include "math/CEdgeProperty.h"
 #include "math/CValueList.h"
 #include "sets/CSetContent.h"
 
@@ -28,10 +28,17 @@ public:
 
   virtual ~CEdgeElementSelector();
 
+  virtual void fromJSON(const json_t * json);
+
+  virtual void compute();
+
 private:
   CEdgeProperty mLeft;
+  CValue * mpValue;
+  CValueList * mpValueList;
   CSetContent * mpSetContent;
-  CValueList mValueList;
+  CValueInterface::pComparison mpComparison;
+  CEdgeProperty::pGetNode mpGetNode;
 };
 
 #endif /* SRC_SETS_CEDGEELEMENTSELECTOR_H_ */

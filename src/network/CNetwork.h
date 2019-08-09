@@ -57,7 +57,7 @@ public:
 
   void partition(std::istream & is);
 
-  void fromJSON(const json_t * json);
+  virtual void fromJSON(const json_t * json);
 
   const bool & isValid() const;
 

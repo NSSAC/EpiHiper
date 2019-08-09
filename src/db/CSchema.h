@@ -10,47 +10,43 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#ifndef SRC_INTERVENTION_CSET_H_
-#define SRC_INTERVENTION_CSET_H_
+/*
+ * CDBDefinition.h
+ *
+ *  Created on: Aug 8, 2019
+ *      Author: shoops
+ */
 
-#include <set>
+#ifndef SRC_DB_CSCHEMA_H_
+#define SRC_DB_CSCHEMA_H_
+
 #include <map>
+#include "db/CTable.h"
 
-#include "utilities/CAnnotation.h"
-#include "math/CComputable.h"
-
-class CSetContent;
-
-class CSet: public CAnnotation
+class CSchema
 {
 public:
-  enum struct Type
-  {
-    global,
-    local
-  };
+  static CSchema INSTANCE;
 
-  CSet() = delete;
+  CSchema();
 
-  CSet(const CSet & src);
+  CSchema(const CSchema & src);
 
-  CSet(const json_t * json);
-
-  virtual ~CSet();
+  virtual ~CSchema();
+  
+  void fromJSON(const json_t * json);
 
   const std::string & getId() const;
 
   const bool & isValid() const;
 
-  CSetContent * getSetContent() const;
-
-  virtual void fromJSON(const json_t * json);
+  const CTable & getTable(const std::string & table) const;
 
 private:
   std::string mId;
-  Type mType;
-  CSetContent * mpSetContent;
+  std::string mLabel;
+  std::map< std::string, CTable > mTables;
   bool mValid;
 };
 
-#endif /* SRC_INTERVENTION_CSET_H_ */
+#endif /* SRC_DB_CSCHEMA_H_ */

@@ -23,6 +23,16 @@ CSetOperation::CSetOperation(const CSetOperation & src)
 CSetOperation::CSetOperation(const json_t * json)
   : CSetContent()
 {
+  fromJSON(json);
+}
+
+
+CSetOperation::~CSetOperation()
+{}
+
+// virtual
+void CSetOperation::fromJSON(const json_t * json)
+{
   /*
          "required": [
           "operation",
@@ -45,7 +55,9 @@ CSetOperation::CSetOperation(const json_t * json)
   */
 }
 
-
-CSetOperation::~CSetOperation()
-{}
+// virtual
+void CSetOperation::compute()
+{
+  // TODO CRITICAL Implement me!
+}
 

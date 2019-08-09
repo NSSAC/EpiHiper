@@ -32,12 +32,20 @@ public:
 
   virtual ~CSetContent();
 
+  virtual void fromJSON(const json_t * json);
+
   const bool & isValid() const;
+
+  bool contains(CNode * pNode) const;
+
+  bool contains(CEdge * pEdge) const;
+
+  bool contains(const CValueInterface & value) const;
 
 protected:
   std::set< CNode * > mNodes;
   std::set< CEdge * > mEdges;
-  std::map< CValueList::Type, std::set< CValue > > mDBFieldValues;
+  std::map< CValueList::Type, CValueList > mDBFieldValues;
   bool mValid;
 };
 

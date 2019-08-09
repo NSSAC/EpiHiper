@@ -553,5 +553,6 @@ void CDependencyGraph::exportDOTFormat(std::ostream & os, const std::string & na
 // static
 std::string CDependencyGraph::getDOTNodeId(const CComputable * pComputable) const
 {
-
+  // TODO CRITICAL Implment me!
+  return "";
 }

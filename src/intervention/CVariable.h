@@ -33,7 +33,9 @@ public:
 
   virtual ~CVariable();
 
-  void fromJSON(const json_t * json);
+  virtual void fromJSON(const json_t * json);
+
+  virtual void compute();
 
   void toBinary(std::ostream & os) const;
 

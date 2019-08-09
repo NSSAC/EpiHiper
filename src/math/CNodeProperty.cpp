@@ -15,6 +15,7 @@
 
 #include "math/CNodeProperty.h"
 #include "network/CNode.h"
+#include "network/CEdge.h"
 #include "diseaseModel/CModel.h"
 #include "actions/COperation.h"
 
@@ -29,7 +30,7 @@ CNodeProperty::CNodeProperty()
 CNodeProperty::~CNodeProperty()
 {}
 
-void CNodeProperty::fronJSON(const json_t * json)
+void CNodeProperty::fromJSON(const json_t * json)
 {
   json_t * pValue = json_object_get(json, "property");
 
@@ -91,6 +92,12 @@ CValueInterface & CNodeProperty::propertyOf(CNode * pNode)
 COperation * CNodeProperty::createOperation(CNode * pNode, const CValueInterface & value)
 {
   return (this->*mpCreateOperation)(pNode, value);
+}
+
+// static
+std::pair< CEdge *, CEdge * > CNodeProperty::edges(CNode * pNode)
+{
+  return std::make_pair(pNode->Edges, pNode->Edges + pNode->EdgesSize);
 }
 
 CValueInterface & CNodeProperty::id(CNode * pNode)
