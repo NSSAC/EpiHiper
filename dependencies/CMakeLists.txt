@@ -18,7 +18,11 @@ ExternalProject_Add(jansson
   PREFIX            ${CMAKE_BINARY_DIR}/dependencies
   SOURCE_DIR        ${CMAKE_CURRENT_SOURCE_DIR}/jansson
   
-  CONFIGURE_COMMAND  cmake -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR} -DJANSSON_BUILD_DOCS=OFF ${CMAKE_CURRENT_SOURCE_DIR}/jansson
+  CONFIGURE_COMMAND  cmake 
+  	-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR} 
+  	-DJANSSON_BUILD_DOCS=OFF 
+  	${CMAKE_CURRENT_SOURCE_DIR}/jansson
+  	
   BUILD_COMMAND      make 
   INSTALL_COMMAND    make install
 )
@@ -27,7 +31,13 @@ ExternalProject_Add(libpqxx
   PREFIX            ${CMAKE_BINARY_DIR}/dependencies
   SOURCE_DIR        ${CMAKE_CURRENT_SOURCE_DIR}/libpqxx
   
-  CONFIGURE_COMMAND  ${CMAKE_CURRENT_SOURCE_DIR}/libpqxx/configure --prefix=${CMAKE_BINARY_DIR} --libdir=${CMAKE_BINARY_DIR}/lib --with-postgres-include=${PGSQL_INCLUDE_DIR} --disable-documentation
+  CONFIGURE_COMMAND  CXXFLAGS=-std=c++11 ${CMAKE_CURRENT_SOURCE_DIR}/libpqxx/configure 
+  	--prefix=${CMAKE_BINARY_DIR} 
+  	--libdir=${CMAKE_BINARY_DIR}/lib 
+  	--with-postgres-include=${PGSQL_INCLUDE_DIR} 
+  	--with-postgres-lib=${PGSQL_LIBRARY} 
+  	--disable-documentation
+  	
   BUILD_COMMAND      make 
   INSTALL_COMMAND    make install
 )
