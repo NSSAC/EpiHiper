@@ -10,7 +10,11 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
- #include "db/CTable.h"
+#include <cstring>
+#include <jansson.h>
+
+#include "db/CTable.h"
+#include "db/CField.h"
 
 CTable::CTable()
   : mId()
@@ -32,7 +36,59 @@ CTable::~CTable()
 
 void CTable::fromJSON(const json_t * json)
 {
+  json_t * pValue = json_object_get(json, "name");
 
+  if (json_is_string(pValue))
+    {
+      mId = json_string_value(pValue);
+    }
+
+  mValid = !mId.empty();
+  mLabel = mId;
+
+  pValue = json_object_get(json, "title");
+
+  if (json_is_string(pValue))
+    {
+      mLabel = json_string_value(pValue);
+    }
+
+  json_t * pSchema = json_object_get(json, "schema");
+
+  if (!json_is_object(pSchema))
+    {
+      mValid = false;
+      return;
+    }
+
+  pValue = json_object_get(pSchema, "fields");
+
+  if (!json_is_array(pValue))
+    {
+      mValid = false;
+      return;
+    }
+
+  for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
+    {
+      CField Field;
+      Field.fromJSON(json_array_get(pValue, i));
+      mValid &= Field.isValid();
+
+      mFields.insert(std::make_pair(Field.getId(), Field));
+    }
+
+  pValue = json_object_get(pSchema, "primaryKey");
+
+  if (json_is_string(pValue))
+    {
+      mValid &= strcmp(json_string_value(pValue), "pid") == 0;
+    }
+  else if (json_is_array(pValue) && json_array_size(pValue) == 1)
+    {
+      json_t * pKey = json_array_get(pValue, 0);
+      mValid &= json_is_string(pKey) && strcmp(json_string_value(pKey), "pid") == 0;
+    }
 }
 
 const std::string & CTable::getId() const

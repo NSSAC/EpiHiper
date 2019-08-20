@@ -53,25 +53,25 @@ int SimConfig::getStartTick() { return SimConfig::INSTANCE->startTick; }
 int SimConfig::getEndTick() { return SimConfig::INSTANCE->endTick; }
 
 // static
-const std::string& SimConfig::getDiseaseModel() { return SimConfig::INSTANCE->diseaseModel; }
+const std::string & SimConfig::getDiseaseModel() { return SimConfig::INSTANCE->diseaseModel; }
 
 // static
-const std::string& SimConfig::getContactNetwork() { return SimConfig::INSTANCE->contactNetwork; }
+const std::string & SimConfig::getContactNetwork() { return SimConfig::INSTANCE->contactNetwork; }
 
 // static
-const std::string& SimConfig::getInitialization() { return SimConfig::INSTANCE->initialization; }
+const std::string & SimConfig::getInitialization() { return SimConfig::INSTANCE->initialization; }
 
 // static
-const std::string& SimConfig::getTraits() { return SimConfig::INSTANCE->traits; }
+const std::string & SimConfig::getTraits() { return SimConfig::INSTANCE->traits; }
 
 // static
-const std::string& SimConfig::getPersonTraitDB() { return SimConfig::INSTANCE->personTraitDB; }
+const std::vector< std::string > & SimConfig::getPersonTraitDB() { return SimConfig::INSTANCE->personTraitDB; }
 
 // static
-const std::string& SimConfig::getOutput() { return SimConfig::INSTANCE->output; }
+const std::string & SimConfig::getOutput() { return SimConfig::INSTANCE->output; }
 
 // static
-const std::string& SimConfig::getIntervention() { return SimConfig::INSTANCE->intervention; }
+const std::string & SimConfig::getIntervention() { return SimConfig::INSTANCE->intervention; }
 
 // constructor: parse JSON
 SimConfig::SimConfig(const std::string& configFile)
@@ -189,10 +189,16 @@ bool SimConfig::loadScenario()
 
   pValue = json_object_get(pRoot, "personTraitDB");
 
-  if (json_is_string(pValue))
-    {
-      personTraitDB = CDirEntry::resolve(json_string_value(pValue), modelScenario);
-    }
+  if (json_is_array(pValue))
+    for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
+      {
+        json_t * pDB = json_array_get(pValue, i);
+
+        if (json_is_string(pDB))
+          {
+            personTraitDB.push_back(CDirEntry::resolve(json_string_value(pDB), modelScenario));
+          }
+      }
 
   json_decref(pRoot);
 

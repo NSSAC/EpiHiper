@@ -10,6 +10,9 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#include <cstring>
+#include <jansson.h>
+
 #include "db/CField.h"
 
 CField::CField()
@@ -31,7 +34,39 @@ CField::~CField()
 {}
 
 void CField::fromJSON(const json_t * json)
-{}
+{
+  json_t * pValue = json_object_get(json, "name");
+
+  if (json_is_string(pValue))
+    {
+      mId = json_string_value(pValue);
+    }
+
+  mValid = !mId.empty();
+  mLabel = mId;
+
+  pValue = json_object_get(json, "type");
+
+  if (json_is_string(pValue))
+    {
+      if (strcmp(json_string_value(pValue), "string") == 0)
+        {
+          mType = CValue::Type::string;
+        }
+      else if (strcmp(json_string_value(pValue), "number") == 0)
+        {
+          mType = CValue::Type::number;
+        }
+      else if (strcmp(json_string_value(pValue), "integer") == 0)
+        {
+          mType = CValue::Type::id;
+        }
+      else
+        {
+          mValid = false;
+        }
+    }
+}
 
 const std::string & CField::getId() const
 {

@@ -17,7 +17,7 @@
  *      Author: shoops
  */
 
-#include "CQuery.h"
+#include "db/CQuery.h"
 
 CQuery::CQuery()
 {

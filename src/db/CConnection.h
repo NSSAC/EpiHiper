@@ -10,21 +10,21 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-/*
- * CConnection.h
- *
- *  Created on: Aug 8, 2019
- *      Author: shoops
- */
-
 #ifndef SRC_DB_CCONNECTION_H_
 #define SRC_DB_CCONNECTION_H_
+
+#ifndef PQXX_CONNECTION
+#define PQXX_CONNECTION void
+#endif /* PQXX_CONNECTION */
 
 class CConnection
 {
 public:
   CConnection();
   virtual ~CConnection();
+
+private:
+  PQXX_CONNECTION * mpConnection;
 };
 
 #endif /* SRC_DB_CCONNECTION_H_ */

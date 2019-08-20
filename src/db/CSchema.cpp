@@ -13,15 +13,36 @@
 #include <jansson.h>
 
 #include "db/CSchema.h"
+#include "db/CTable.h"
+#include "SimConfig.h"
 
 // static
 CSchema CSchema::INSTANCE;
+
+// static
+void CSchema::load(const std::vector< std::string > & schemaFiles)
+{
+  std::vector< std::string >::const_iterator it = schemaFiles.begin();
+  std::vector< std::string >::const_iterator end = schemaFiles.end();
+
+  for (; it != end; ++it)
+    {
+      json_t * pRoot = SimConfig::loadJson(*it, JSON_DECODE_INT_AS_REAL);
+
+      if (pRoot != NULL)
+        {
+          INSTANCE.fromJSON(pRoot);
+        }
+
+      json_decref(pRoot);
+    }
+}
 
 CSchema::CSchema()
   : mId()
   , mLabel()
   , mTables()
-  , mValid(false)
+  , mValid(true)
 {}
 
 CSchema::CSchema(const CSchema & src)
@@ -37,7 +58,28 @@ CSchema::~CSchema()
 
 void CSchema::fromJSON(const json_t * json)
 {
+  if (json_is_array(json))
+    {
+      for (size_t i = 0, imax = json_array_size(json); i < imax; ++i)
+        {
+          CTable Table;
+          Table.fromJSON(json_array_get(json, i));
+          mValid &= Table.isValid();
 
+          mTables.insert(std::make_pair(Table.getId(), Table));
+        }
+
+      return;
+    }
+
+  if (json_is_object(json))
+    {
+      CTable Table;
+      Table.fromJSON(json);
+      mValid &= Table.isValid();
+
+      mTables.insert(std::make_pair(Table.getId(), Table));
+    }
 }
 
 const std::string & CSchema::getId() const

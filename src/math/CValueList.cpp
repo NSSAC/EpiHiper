@@ -221,7 +221,7 @@ void CValueList::fromJSON(const json_t * json)
 
           if (json_is_string(pValue))
             {
-              const CEnum & Enum = pFeature->operator [](json_string_value(pValue));
+              const CEnum & Enum = pFeature->operator[](json_string_value(pValue));
 
               if (Enum.isValid())
                 insert(CTraitData::value(pFeature->getMask(), Enum.getMask()));

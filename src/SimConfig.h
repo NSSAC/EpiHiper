@@ -13,6 +13,7 @@
 #ifndef SIM_CONFIG_H
 #define SIM_CONFIG_H
 
+#include <vector>
 #include <string>
 
 struct json_t;
@@ -29,7 +30,7 @@ private:
   std::string contactNetwork;
   std::string initialization;
   std::string traits;
-  std::string personTraitDB;
+  std::vector< std::string > personTraitDB;
   int startTick;
   int endTick;
 
@@ -54,13 +55,13 @@ public:
   static bool isValid();
   static int getStartTick();
   static int getEndTick();
-  static const std::string& getDiseaseModel();
-  static const std::string& getContactNetwork();
-  static const std::string& getInitialization();
-  static const std::string& getTraits();
-  static const std::string& getPersonTraitDB();
-  static const std::string& getOutput();
-  static const std::string& getIntervention();
+  static const std::string & getDiseaseModel();
+  static const std::string & getContactNetwork();
+  static const std::string & getInitialization();
+  static const std::string & getTraits();
+  static const std::vector< std::string > & getPersonTraitDB();
+  static const std::string & getOutput();
+  static const std::string & getIntervention();
   static json_t * loadJson(const std::string & jsonFile, int flags);
 
 

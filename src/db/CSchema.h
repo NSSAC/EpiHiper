@@ -28,6 +28,8 @@ class CSchema
 public:
   static CSchema INSTANCE;
 
+  static void load(const std::vector< std::string > & schemaFiles);
+
   CSchema();
 
   CSchema(const CSchema & src);

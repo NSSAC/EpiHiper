@@ -17,16 +17,18 @@
  *      Author: shoops
  */
 
-#include "CConnection.h"
+#include <pqxx/pqxx>
+
+#define PQXX_CONNECTION pqxx::connection
+
+#include "db/CConnection.h"
 
 CConnection::CConnection()
-{
-  // TODO Auto-generated constructor stub
-
-}
+  : mpConnection(new pqxx::connection())
+{}
 
 CConnection::~CConnection()
 {
-  // TODO Auto-generated destructor stub
+  delete mpConnection;
 }
 

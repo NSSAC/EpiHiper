@@ -20,6 +20,7 @@
 #include "network/CNetwork.h"
 #include "traits/CTrait.h"
 #include "utilities/CCommunicate.h"
+#include "db/CSchema.h"
 
 // Uncomment the following line if you want to attache a debugger
 // #define DEBUG_WAIT 1
@@ -105,6 +106,7 @@ int main(int argc, char *argv[]) {
     CNetwork::init();
     CTrait::load(SimConfig::getTraits());
     CModel::load(SimConfig::getDiseaseModel());
+    CSchema::load(SimConfig::getPersonTraitDB());
 
     CNetwork::INSTANCE->load();
     // Network::INSTANCE->write("network.bin", true);

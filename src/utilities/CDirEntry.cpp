@@ -246,7 +246,7 @@ bool CDirEntry::makePathRelative(std::string & absolutePath,
 
   while (RelativeTo != "")
     {
-      relativePath += "";
+      relativePath += "../";
       RelativeTo = dirName(RelativeTo);
     }
 
@@ -272,7 +272,7 @@ bool CDirEntry::makePathAbsolute(std::string & relativePath,
 
   relativePath = normalize(relativePath);
 
-  while (!relativePath.compare(0, 3, ""))
+  while (!relativePath.compare(0, 3, "../"))
     {
       AbsoluteTo = dirName(AbsoluteTo);
       relativePath = relativePath.substr(3);
@@ -337,12 +337,12 @@ std::string CDirEntry::normalize(const std::string & path)
       Normalized.erase(pos, 2);
     }
 
-  // Collapse '[^/]+/' to '/'
+  // Collapse '[^/]+/../' to '/'
   std::string::size_type start = Normalized.length();
 
   while (true)
     {
-      pos = Normalized.rfind("/", start);
+      pos = Normalized.rfind("/../", start);
 
       if (pos == std::string::npos) break;
 
@@ -350,7 +350,7 @@ std::string CDirEntry::normalize(const std::string & path)
 
       if (start == std::string::npos) break;
 
-      if (!Normalized.compare(start, 4, "/")) continue;
+      if (!Normalized.compare(start, 4, "/../")) continue;
 
       Normalized.erase(start, pos - start + 3);
       start = Normalized.length();
