@@ -20,11 +20,22 @@
 #ifndef SRC_DB_CQUERY_H_
 #define SRC_DB_CQUERY_H_
 
-class CQuery
+#include <string>
+
+class CFieldValueList;
+
+struct CQuery
 {
 public:
-  CQuery();
-  virtual ~CQuery();
+  static bool exec(const std::string & table,
+                   const std::string & resultField,
+                   CFieldValueList & result);
+
+  static bool exec(const std::string & table,
+                   const std::string & resultField,
+                   CFieldValueList & result,
+                   const std::string & constraintField,
+                   const CFieldValueList & constraint);
 };
 
 #endif /* SRC_DB_CQUERY_H_ */

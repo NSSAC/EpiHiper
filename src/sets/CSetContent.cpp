@@ -35,9 +35,7 @@ CSetContent::CSetContent(const CSetContent & src)
 {}
 
 CSetContent::~CSetContent()
-{
-  // TODO Auto-generated destructor stub
-}
+{}
 
 // static
 CSetContent * CSetContent::create(const json_t * json)

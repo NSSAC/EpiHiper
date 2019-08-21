@@ -159,15 +159,6 @@ Simulation::execute(Action action) {
 
 void Simulation::test()
 {
-  if (randomSeed == -1)
-    {
-      CRandom::randomSeed();
-    }
-  else
-    {
-      CRandom::seed(randomSeed);
-    }
-
   /**
    * We just randomly pick nodes to be infective
    */
@@ -209,16 +200,6 @@ void Simulation::test()
 
 void Simulation::dummyRun() {
   CCommunicate::Status status;
-
-  if (randomSeed == -1)
-    {
-      CRandom::randomSeed();
-
-    }
-  else
-    {
-      CRandom::seed(randomSeed);
-    }
 
   std::set<personid_t> population;
   if (CCommunicate::Rank == 0) {

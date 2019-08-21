@@ -17,18 +17,37 @@
  *      Author: shoops
  */
 
-#include <pqxx/pqxx>
-
-#define PQXX_CONNECTION pqxx::connection
-
 #include "db/CConnection.h"
+#include "SimConfig.h"
 
-CConnection::CConnection()
-  : mpConnection(new pqxx::connection())
+// static
+CConnection * CConnection::pINSTANCE = NULL;
+
+// static
+void CConnection::init()
+{
+  if (pINSTANCE != NULL) return;
+
+  const SimConfig::db_connection & dbConnection = SimConfig::getDBConnection();
+
+  // postgresql://[user[:password]@][netloc][:port][,...][/dbname][?param1=value1&...]
+  std::string URI = "postgresql://" + dbConnection.user + ":" + dbConnection.password + "@" + dbConnection.host + "/" + dbConnection.name;
+
+  pINSTANCE = new CConnection(URI);
+}
+
+// static
+pqxx::work * CConnection::work()
+{
+  init();
+
+  return new pqxx::work(pINSTANCE->mConnection);
+}
+
+CConnection::CConnection(const std::string & uri)
+  : mConnection(uri)
 {}
 
 CConnection::~CConnection()
-{
-  delete mpConnection;
-}
+{}
 

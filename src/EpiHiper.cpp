@@ -20,6 +20,7 @@
 #include "network/CNetwork.h"
 #include "traits/CTrait.h"
 #include "utilities/CCommunicate.h"
+#include "utilities/CRandom.h"
 #include "db/CSchema.h"
 
 // Uncomment the following line if you want to attache a debugger
@@ -48,8 +49,6 @@ bool parseArgs(int argc, char *argv[]) {
   const char* const short_opts = "c:s:d:";
   const option long_opts[] = {
     {"config", required_argument, nullptr, 'c'},
-    {"seed", required_argument, nullptr, 's'},
-    {"dbconn", required_argument, nullptr, 'd'},
     {nullptr, no_argument, nullptr, 0}
   };
   while (true) {
@@ -59,12 +58,6 @@ bool parseArgs(int argc, char *argv[]) {
     switch(opt) {
     case 'c':
       config = std::string(optarg);
-      break;
-    case 's':
-      seed = std::stoi(optarg);
-      break;
-    case 'd':
-      dbconn = std::string(optarg);
       break;
     case '?':
     default:
@@ -102,6 +95,7 @@ int main(int argc, char *argv[]) {
   SimConfig::load(config);
 
   if (SimConfig::isValid()) {
+    CRandom::init();
     CTrait::init();
     CNetwork::init();
     CTrait::load(SimConfig::getTraits());

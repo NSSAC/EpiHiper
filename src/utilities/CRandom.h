@@ -28,8 +28,9 @@ public:
   typedef normal::param_type normal_p;
 
   static generator_t G;
-  static void randomSeed();
+
   static void seed(result_t seed);
+  static void init();
 };
 
 #endif /* SRC_UTILITIES_CRANDOM_H_ */

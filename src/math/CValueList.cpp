@@ -82,6 +82,11 @@ CValueList::const_iterator CValueList::end() const
   return std::set< CValue >::end();
 }
 
+const CValueList::Type & CValueList::getType() const
+{
+  return mType;
+}
+
 size_t CValueList::size() const
 {
   return std::set< CValue >::size();

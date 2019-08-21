@@ -73,6 +73,15 @@ const std::string & SimConfig::getOutput() { return SimConfig::INSTANCE->output;
 // static
 const std::string & SimConfig::getIntervention() { return SimConfig::INSTANCE->intervention; }
 
+// static
+const size_t & SimConfig::getSeed() { return SimConfig::INSTANCE->seed; }
+
+// static
+const size_t & SimConfig::getReplicate() { return SimConfig::INSTANCE->replicate; }
+
+// static
+const SimConfig::db_connection & SimConfig::getDBConnection() { return SimConfig::INSTANCE->dbConnection; }
+
 // constructor: parse JSON
 SimConfig::SimConfig(const std::string& configFile)
   : valid(false)
@@ -88,6 +97,9 @@ SimConfig::SimConfig(const std::string& configFile)
   , output()
   , logFile()
   , intervention()
+  , seed(-1)
+  , replicate(-1)
+  , dbConnection()
 {
   if (runParameters.empty())
     {
@@ -104,12 +116,16 @@ SimConfig::SimConfig(const std::string& configFile)
       return;
     }
 
+  valid = true;
+
   json_t * pValue = json_object_get(pRoot, "modelScenario");
 
   if (json_is_string(pValue))
     {
       modelScenario = CDirEntry::resolve(json_string_value(pValue), runParameters);
     }
+
+  valid &= !modelScenario.empty();
 
   pValue = json_object_get(pRoot, "output");
 
@@ -125,6 +141,8 @@ SimConfig::SimConfig(const std::string& configFile)
       startTick = json_real_value(pValue);
     }
 
+  valid &= startTick != std::numeric_limits< int >::min();
+
   pValue = json_object_get(pRoot, "endTick");
 
   if (json_is_real(pValue))
@@ -132,12 +150,52 @@ SimConfig::SimConfig(const std::string& configFile)
       endTick = json_real_value(pValue);
     }
 
-  json_decref(pRoot);
+  valid &= endTick != std::numeric_limits< int >::max()
+      && startTick < endTick;
 
-  valid = !modelScenario.empty()&&
-          startTick != std::numeric_limits< int >::min() &&
-          endTick != std::numeric_limits< int >::max() &&
-          startTick < endTick;
+  pValue = json_object_get(pRoot, "seed");
+
+  if (json_is_real(pValue))
+    {
+      seed = json_real_value(pValue);
+    }
+
+  pValue = json_object_get(pRoot, "replicate");
+
+  if (json_is_real(pValue))
+    {
+      replicate = json_real_value(pValue);
+    }
+
+  pValue = json_object_get(pRoot, "dbName");
+
+  if (json_is_string(pValue))
+    {
+      dbConnection.name = json_string_value(pValue);
+    }
+
+  pValue = json_object_get(pRoot, "dbHost");
+
+  if (json_is_string(pValue))
+    {
+      dbConnection.host = json_string_value(pValue);
+    }
+
+  pValue = json_object_get(pRoot, "dbUser");
+
+  if (json_is_string(pValue))
+    {
+      dbConnection.user = json_string_value(pValue);
+    }
+
+  pValue = json_object_get(pRoot, "dbPassword");
+
+  if (json_is_string(pValue))
+    {
+      dbConnection.password = json_string_value(pValue);
+    }
+
+  json_decref(pRoot);
 
   valid &= loadScenario();
 }

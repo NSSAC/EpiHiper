@@ -19,6 +19,15 @@
 struct json_t;
 
 class SimConfig {
+public:
+  struct db_connection
+  {
+    std::string name;
+    std::string host;
+    std::string user;
+    std::string password;
+  };
+
 private:
   bool valid;
 
@@ -38,6 +47,9 @@ private:
   std::string output;
   std::string logFile;
   std::string intervention;
+  size_t seed;
+  size_t replicate;
+  db_connection dbConnection;
 
 private:
   static SimConfig * INSTANCE;
@@ -62,6 +74,10 @@ public:
   static const std::vector< std::string > & getPersonTraitDB();
   static const std::string & getOutput();
   static const std::string & getIntervention();
+  static const size_t & getSeed();
+  static const size_t & getReplicate();
+  static const db_connection & getDBConnection();
+
   static json_t * loadJson(const std::string & jsonFile, int flags);
 
 

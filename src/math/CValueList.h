@@ -41,6 +41,8 @@ public:
 
   const_iterator end() const;
 
+  const Type & getType() const;
+
   size_t size() const;
 
   const bool & isValid() const;

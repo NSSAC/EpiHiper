@@ -12,15 +12,31 @@
 
 #include "utilities/CRandom.h"
 #include "utilities/CCommunicate.h"
+#include "SimConfig.h"
 
 // static
 CRandom::generator_t CRandom::G;
 
 // static
-void CRandom::randomSeed()
+void CRandom::init()
 {
-  std::random_device rd;
-  seed(rd());
+  const size_t & Seed = SimConfig::getSeed();
+
+  if (Seed == -1)
+    {
+      CRandom::seed(std::random_device()());
+      return;
+    }
+
+  const size_t & Replicate = SimConfig::getReplicate();
+
+  if (Replicate == -1)
+    {
+      CRandom::seed(Seed);
+      return;
+    }
+
+  CRandom::seed(Seed + Replicate);
 }
 
 // static

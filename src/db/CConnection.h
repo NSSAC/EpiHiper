@@ -13,18 +13,19 @@
 #ifndef SRC_DB_CCONNECTION_H_
 #define SRC_DB_CCONNECTION_H_
 
-#ifndef PQXX_CONNECTION
-#define PQXX_CONNECTION void
-#endif /* PQXX_CONNECTION */
+#include <pqxx/pqxx>
 
 class CConnection
 {
 public:
-  CConnection();
+  static void init();
+  static pqxx::work * work();
   virtual ~CConnection();
 
 private:
-  PQXX_CONNECTION * mpConnection;
+  static CConnection * pINSTANCE;
+  CConnection(const std::string & uri = "");
+  pqxx::connection mConnection;
 };
 
 #endif /* SRC_DB_CCONNECTION_H_ */
