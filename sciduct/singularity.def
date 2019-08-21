@@ -12,30 +12,11 @@ From: centos:7.6.1810
     # Download packages required for the installation
     [ -e ${SINGULARITY_ROOTFS}/src ] || mkdir ${SINGULARITY_ROOTFS}/src
 
-
-    # Local cache
-    [ -e cache ] || mkdir -p cache
-    
-    [ -e bin/EpiHiper ] || \
-        (echo Missing EpiHiper binary; exit 1)
-
-    cd cache
-
-    # Intel MPI
-    [ -e l_mpi_2018.5.288.tgz ] || \
-        wget http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/15614/l_mpi_2018.5.288.tgz
-        
-    # IntelOPA
-    [ -e IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz ] || \
-        wget https://downloadmirror.intel.com/28866/eng/IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz
-        
-    cd ..
-
 %files
     config.json /sciduct
     cache/l_mpi_2018.5.288.tgz /src
     cache/IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz /src
-    bin/EpiHiper /epihiper/bin
+    cache/EpiHiper /epihiper/bin
     bin/epiHiper.sh /epihiper/bin
     bin/validateSchema.sh /epihiper/bin
     bin/validateRules.sh /epihiper/bin
