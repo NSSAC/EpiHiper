@@ -14,6 +14,10 @@
 
 #include "db/CFieldValue.h"
 
+CFieldValue::CFieldValue(const size_t & id)
+  : CValue(id)
+{}
+
 CFieldValue::CFieldValue(const double & number)
   : CValue(number)
 {}

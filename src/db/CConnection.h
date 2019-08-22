@@ -19,7 +19,7 @@ class CConnection
 {
 public:
   static void init();
-  static pqxx::work * work();
+  static pqxx::read_transaction * work();
   virtual ~CConnection();
 
 private:

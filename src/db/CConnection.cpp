@@ -37,11 +37,11 @@ void CConnection::init()
 }
 
 // static
-pqxx::work * CConnection::work()
+pqxx::read_transaction * CConnection::work()
 {
   init();
 
-  return new pqxx::work(pINSTANCE->mConnection);
+  return new pqxx::read_transaction(pINSTANCE->mConnection);
 }
 
 CConnection::CConnection(const std::string & uri)

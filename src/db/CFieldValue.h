@@ -27,6 +27,8 @@ class CFieldValue: public CValue
 public:
   CFieldValue() = delete;
 
+  CFieldValue(const size_t & id);
+
   CFieldValue(const double & number);
 
   CFieldValue(const std::string & str);
