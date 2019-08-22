@@ -25,6 +25,7 @@ CEdgeElementSelector::CEdgeElementSelector()
   , mpValueList(NULL)
   , mpSetContent(NULL)
   , mpComparison(NULL)
+  , mSQLComparison()
   , mpGetNode(NULL)
 {}
 
@@ -35,6 +36,7 @@ CEdgeElementSelector::CEdgeElementSelector(const CEdgeElementSelector & src)
   , mpValueList(src.mpValueList != NULL ? new CValueList(*src.mpValueList) : NULL)
   , mpSetContent(CSetContent::copy(src.mpSetContent))
   , mpComparison(src.mpComparison)
+  , mSQLComparison(src.mSQLComparison)
   , mpGetNode(src.mpGetNode)
 {}
 
@@ -45,6 +47,7 @@ CEdgeElementSelector::CEdgeElementSelector(const json_t * json)
   , mpValueList(NULL)
   , mpSetContent(NULL)
   , mpComparison(NULL)
+  , mSQLComparison()
   , mpGetNode(NULL)
 {
   fromJSON(json);
@@ -71,26 +74,32 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
   if (strcmp(json_string_value(pValue), "==") == 0)
     {
       mpComparison = &operator==;
+      mSQLComparison = "=";
     }
   else if(strcmp(json_string_value(pValue), "!=") == 0)
     {
       mpComparison = &operator!=;
+      mSQLComparison = "<>";
     }
   else if(strcmp(json_string_value(pValue), "<=") == 0)
     {
       mpComparison = &operator<=;
+      mSQLComparison = "<=";
     }
   else if(strcmp(json_string_value(pValue), "<") == 0)
     {
       mpComparison = &operator<;
+      mSQLComparison = "<";
     }
   else if(strcmp(json_string_value(pValue), ">=") == 0)
     {
       mpComparison = &operator>=;
+      mSQLComparison = ">=";
     }
   else if(strcmp(json_string_value(pValue), ">") == 0)
     {
       mpComparison = &operator>;
+      mSQLComparison = ">";
     }
 
   // Select edges where the edge property value comparison with the provided value is true.

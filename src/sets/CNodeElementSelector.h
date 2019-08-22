@@ -16,6 +16,11 @@
 #include "math/CNodeProperty.h"
 #include "math/CValueList.h"
 #include "sets/CSetContent.h"
+#include "db/CField.h"
+
+class CFieldValue;
+class CFieldValueList;
+class CObservable;
 
 class CNodeElementSelector: public CSetContent
 {
@@ -37,7 +42,14 @@ private:
   CValue * mpValue;
   CValueList * mpValueList;
   CSetContent * mpSetContent;
+  CField mDBField;
+  CObservable * mpObservable;
+  CFieldValue * mpDBFieldValue;
+  CFieldValueList * mpDBFieldValueList;
+
   CValueInterface::pComparison mpComparison;
+  std::string mSQLComparison;
+  bool mLocalScope;
 };
 
 #endif /* SRC_SETS_CNODEELEMENTSELECTOR_H_ */

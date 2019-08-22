@@ -64,7 +64,7 @@ void toFieldValueList(const CField & field, const pqxx::result & result, CFieldV
 }
 
 // static
-bool CQuery::exec(const std::string & table,
+bool CQuery::all(const std::string & table,
                    const std::string & resultField,
                    CFieldValueList & result)
 {
@@ -80,7 +80,6 @@ bool CQuery::exec(const std::string & table,
 
   if (!ResultField.isValid()) return false;
 
-  // TODO CRITICAL Execute qurey and compile result
   std::ostringstream Query;
   Query << "select " << resultField << " from " << table << ";";
 
@@ -88,15 +87,16 @@ bool CQuery::exec(const std::string & table,
 
   delete pWork;
 
-  return false;
+  return true;
 }
 
 // static
-bool CQuery::exec(const std::string & table,
+bool CQuery::in(const std::string & table,
                    const std::string & resultField,
                    CFieldValueList & result,
                    const std::string & constraintField,
-                   const CFieldValueList & constraints)
+                   const CFieldValueList & constraints,
+                   const bool & in)
 {
   pqxx::read_transaction * pWork = CConnection::work();
 
@@ -117,7 +117,7 @@ bool CQuery::exec(const std::string & table,
   if (constraints.size() > 0 && constraints.getType() != ConstraintField.getType()) return false;
 
   std::ostringstream Query;
-  Query << "select " << resultField << " from " << table << " where " << constraintField << " in (";
+  Query << "select " << resultField << " from " << table << " where " << constraintField << (!in) ? " not  in (" : " in (";
 
   bool FirstTime = true;
   CFieldValueList::const_iterator it = constraints.begin();
@@ -156,5 +156,70 @@ bool CQuery::exec(const std::string & table,
 
   delete pWork;
 
-  return false;
+  return true;
 }
+
+
+// static
+bool CQuery::notIn(const std::string & table,
+                 const std::string & resultField,
+                 CFieldValueList & result,
+                 const std::string & constraintField,
+                 const CFieldValueList & constraint)
+{
+  return in(table, resultField, result, constraintField, constraint, false);
+}
+
+// static
+bool CQuery::where(const std::string & table,
+                 const std::string & resultField,
+                 CFieldValueList & result,
+                 const std::string & constraintField,
+                 const CFieldValue & constraint,
+                 const std::string & cmp)
+{
+  pqxx::read_transaction * pWork = CConnection::work();
+
+  if (pWork == NULL) return false;
+
+  const CTable & Table = CSchema::INSTANCE.getTable(table);
+
+  if (!Table.isValid()) return false;
+
+  const CField & ResultField = Table.getField(resultField);
+
+  if (!ResultField.isValid()) return false;
+
+  const CField & ConstraintField = Table.getField(constraintField);
+
+  if (!ConstraintField.isValid()) return false;
+
+  if (constraint.getType() != ConstraintField.getType()) return false;
+
+  std::ostringstream Query;
+  Query << "select " << resultField << " from " << table << " where " << constraintField << " " << cmp << " ";
+
+  switch (constraint.getType())
+  {
+    case CFieldValueList::Type::id:
+      Query << constraint.toId();
+      break;
+
+    case CFieldValueList::Type::string:
+      Query << "'" << constraint.toString() << "'";
+      break;
+
+    case CFieldValueList::Type::number:
+      Query << constraint.toNumber();
+      break;
+  }
+
+  Query << ";";
+
+  toFieldValueList(ResultField, pWork->exec(Query.str()), result);
+
+  delete pWork;
+
+  return true;
+}
+

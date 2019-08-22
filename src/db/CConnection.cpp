@@ -10,13 +10,6 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-/*
- * CConnection.cpp
- *
- *  Created on: Aug 8, 2019
- *      Author: shoops
- */
-
 #include "db/CConnection.h"
 #include "SimConfig.h"
 
@@ -31,7 +24,18 @@ void CConnection::init()
   const SimConfig::db_connection & dbConnection = SimConfig::getDBConnection();
 
   // postgresql://[user[:password]@][netloc][:port][,...][/dbname][?param1=value1&...]
-  std::string URI = "postgresql://" + dbConnection.user + ":" + dbConnection.password + "@" + dbConnection.host + "/" + dbConnection.name;
+  std::string URI = "postgresql://";
+
+  if (!dbConnection.user.empty())
+    {
+      URI += dbConnection.user;
+
+      if (!dbConnection.password.empty()) URI += ":" + dbConnection.password;
+
+      URI += "@";
+    }
+
+  URI += dbConnection.host + "/" + dbConnection.name;
 
   pINSTANCE = new CConnection(URI);
 }

@@ -17,14 +17,35 @@
 
 CNodeElementSelector::CNodeElementSelector()
   : CSetContent()
+  , mLeft()
+  , mpValue(NULL)
+  , mpValueList(NULL)
+  , mpSetContent(NULL)
+  , mpComparison(NULL)
+  , mSQLComparison("")
+  , mLocalScope(true)
 {}
 
 CNodeElementSelector::CNodeElementSelector(const CNodeElementSelector & src)
   : CSetContent(src)
+  , mLeft(src.mLeft)
+  , mpValue(src.mpValue != NULL ? new CValue(*src.mpValue) : NULL)
+  , mpValueList(src.mpValueList != NULL ? new CValueList(*src.mpValueList) : NULL)
+  , mpSetContent(CSetContent::copy(src.mpSetContent))
+  , mpComparison(src.mpComparison)
+  , mSQLComparison(src.mSQLComparison)
+  , mLocalScope(src.mLocalScope)
 {}
 
 CNodeElementSelector::CNodeElementSelector(const json_t * json)
   : CSetContent()
+  , mLeft()
+  , mpValue(NULL)
+  , mpValueList(NULL)
+  , mpSetContent(NULL)
+  , mpComparison(NULL)
+  , mSQLComparison("")
+  , mLocalScope(true)
 {
   fromJSON(json);
 }
@@ -41,40 +62,117 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
   if (!mValid) return;
 
+  pValue = json_object_get(json, "scope");
+
+  if (strcmp(json_string_value(pValue), "local") == 0)
+    {
+      mLocalScope = true;
+    }
+  else if(strcmp(json_string_value(pValue), "global") == 0)
+    {
+      mLocalScope = false;
+    }
+  else
+    {
+      mValid = false;
+    }
+
   pValue = json_object_get(json, "operator");
 
   if (strcmp(json_string_value(pValue), "==") == 0)
     {
       mpComparison = &operator==;
+      mSQLComparison = "=";
     }
   else if(strcmp(json_string_value(pValue), "!=") == 0)
     {
       mpComparison = &operator!=;
+      mSQLComparison = "<>";
     }
   else if(strcmp(json_string_value(pValue), "<=") == 0)
     {
       mpComparison = &operator<=;
+      mSQLComparison = "<=";
     }
   else if(strcmp(json_string_value(pValue), "<") == 0)
     {
       mpComparison = &operator<;
+      mSQLComparison = "<";
     }
   else if(strcmp(json_string_value(pValue), ">=") == 0)
     {
       mpComparison = &operator>=;
+      mSQLComparison = ">=";
     }
   else if(strcmp(json_string_value(pValue), ">") == 0)
     {
       mpComparison = &operator>;
+      mSQLComparison = ">";
     }
 
   // Select node where the node property value comparison with the provided value is true.
   if (mpComparison != NULL)
     {
+      /*
+        {
+          "required": [
+            "operator",
+            "left",
+            "right"
+          ],
+          "properties": {
+            "operator": {"$ref": "#/definitions/comparisonOperator"},
+            "left": {
+              "type": "object",
+              "required": ["node"],
+              "properties": {
+                "node": {"$ref": "#/definitions/nodeProperty"}
+              }
+            },
+            "right": {"$ref": "#/definitions/value"}
+          }
+        }
+      */
+
       mLeft.fromJSON(json_object_get(json, "left"));
-      mValid &= mLeft.isValid();
-      mpValue = new CValue(json_object_get(json, "right"));
-      mValid &= (mpValue != NULL && mpValue->isValid());
+
+      if (mLeft.isValid())
+        {
+          mpValue = new CValue(json_object_get(json, "right"));
+          mValid &= (mpValue != NULL && mpValue->isValid());
+
+          if (mValid) return;
+        }
+
+      /*
+        {
+          "description": "A filter returning nodes if the result of comparing left and right values with the operator is true.",
+          "required": [
+            "operator",
+            "left",
+            "right"
+          ],
+          "properties": {
+            "operator": {"$ref": "#/definitions/comparisonOperator"},
+            "left": {"$ref": "#/definitions/dbField"},
+            "right": {
+              "type": "object",
+              "description": "",
+              "oneOf": [
+                {"$ref": "#/definitions/dbFieldValue"},
+                {"$ref": "#/definitions/observable"}
+              ]
+            }
+          }
+        },
+      */
+
+      mDBField.fromJSON(json_object_get(json, "left"));
+
+      if (mDBField.isValid())
+        {
+
+        }
 
       return;
     }
@@ -82,6 +180,32 @@ void CNodeElementSelector::fromJSON(const json_t * json)
   // Select nodes where the node property value in in the provided list.
   if (strcmp(json_string_value(pValue), "withPropertyIn") == 0)
     {
+      /*
+        {
+          "description": "",
+          "required": [
+            "operator",
+            "left",
+            "right"
+          ],
+          "properties": {
+            "operator": {
+              "description": "",
+              "type": "string",
+              "enum": ["withPropertyIn"]
+            },
+            "left": {
+              "type": "object",
+              "required": ["node"],
+              "properties": {
+                "node": {"$ref": "#/definitions/nodeProperty"}
+              }
+            },
+            "right": {"$ref": "#/definitions/valueList"}
+          }
+        },
+      */
+
       mLeft.fromJSON(json_object_get(json, "left"));
       mValid &= mLeft.isValid();
       mpValueList = new CValueList(json_object_get(json, "right"));
@@ -93,6 +217,23 @@ void CNodeElementSelector::fromJSON(const json_t * json)
   // Select nodes where the node property value in in the provided list.
   if (strcmp(json_string_value(pValue), "withIncomingEdgeIn") == 0)
     {
+      /*
+        {
+          "description": "",
+          "required": [
+            "operator",
+            "selector"
+          ],
+          "properties": {
+            "operator": {
+              "description": "",
+              "type": "string",
+              "enum": ["withIncomingEdgeIn"]
+            },
+            "selector": {"$ref": "#/definitions/setContent"}
+          }
+        },
+      */
       // We need to identify that we have this case
       mpSetContent = CSetContent::create(json_object_get(json, "selector"));
       mValid &= (mpSetContent != NULL && mpSetContent->isValid());
@@ -105,90 +246,55 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
 
   /*
-   // All nodes in a table
-      "oneOf": [
-        {
-          "description": "A filter selecting nodes from the external person trait database.",
-          "oneOf": [
+"nodeElementSelector": {
+      "$id": "#nodeElementSelector",
+      "description": "The specification of node elements of a set.",
+      "type": "object",
+      "allOf": [
             {
-              "description": "A table in the external person trait database.",
-              "type": "object",
-              "required": [
-                "elementType",
-                "table"
-              ],
-              "additionalProperties": false,
-              "properties": {
-                "elementType": {
-                  "type": "string",
-                  "enum": ["node"]
-                },
-                "table": {"$ref": "#/definitions/uniqueIdRef"}
-              }
-            },
-
-
-            {
-              "description": "A filter returining nodes if the result of comparing left and right values with the operator is true.",
-              "required": [
-                "elementType",
-                "operator",
-                "left",
-                "right"
-              ],
-              "properties": {
-                "elementType": {
-                  "type": "string",
-                  "enum": ["node"]
-                },
-                "operator": {"$ref": "#/definitions/comparisonOperator"},
-                "left": {"$ref": "#/definitions/dbField"},
-                "right": {
+              "description": "A filter selecting nodes from the external person trait database.",
+              "oneOf": [
+                {
+                  "description": "A table in the external person trait database.",
                   "type": "object",
-                  "description": "",
-                  "oneOf": [
-                    {"$ref": "#/definitions/dbFieldValue"},
-                    {"$ref": "#/definitions/observable"}
-                  ]
-                }
-              }
-            },
-            {
-              "description": "A filter returining nodes if the left field value is or is not in the right list.",
-              "required": [
-                "elementType",
-                "operator",
-                "left",
-                "right"
-              ],
-              "properties": {
-                "elementType": {
-                  "type": "string",
-                  "enum": ["node"]
+                  "required": ["table"],
+                  "properties": {
+                    "table": {"$ref": "#/definitions/uniqueIdRef"}
+                  }
                 },
-                "operator": {
-                  "description": "",
-                  "type": "string",
-                  "enum": [
-                    "in",
-                    "not in"
-                  ]
-                },
-                "left": {"$ref": "#/definitions/dbField"},
-                "right": {
-                  "type": "object",
-                  "description": "",
-                  "oneOf": [
-                    {"$ref": "#/definitions/dbFieldValueList"},
-                    {"$ref": "#/definitions/dbFieldValueSelector"}
-                  ]
+                {
+                  "description": "A filter returning nodes if the left field value is or is not in the right list.",
+                  "required": [
+                    "operator",
+                    "left",
+                    "right"
+                  ],
+                  "properties": {
+                    "operator": {
+                      "description": "",
+                      "type": "string",
+                      "enum": [
+                        "in",
+                        "not in"
+                      ]
+                    },
+                    "left": {"$ref": "#/definitions/dbField"},
+                    "right": {
+                      "type": "object",
+                      "description": "",
+                      "oneOf": [
+                        {"$ref": "#/definitions/dbFieldValueList"},
+                        {"$ref": "#/definitions/dbFieldValueSelector"}
+                      ]
+                    }
+                  }
                 }
-              }
+              ]
             }
           ]
         }
       ]
- */
+    } */
 }
 
 // virtual

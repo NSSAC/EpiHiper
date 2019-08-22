@@ -38,6 +38,7 @@ private:
   CValueList * mpValueList;
   CSetContent * mpSetContent;
   CValueInterface::pComparison mpComparison;
+  std::string mSQLComparison;
   CEdgeProperty::pGetNode mpGetNode;
 };
 

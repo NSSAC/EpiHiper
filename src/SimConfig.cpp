@@ -173,6 +173,10 @@ SimConfig::SimConfig(const std::string& configFile)
     {
       dbConnection.name = json_string_value(pValue);
     }
+  else
+  	{
+	  dbConnection.name = "epihiper";
+  	}
 
   pValue = json_object_get(pRoot, "dbHost");
 

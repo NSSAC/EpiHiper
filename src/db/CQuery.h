@@ -22,20 +22,35 @@
 
 #include <string>
 
+class CFieldValue;
 class CFieldValueList;
 
 struct CQuery
 {
 public:
-  static bool exec(const std::string & table,
+  static bool all(const std::string & table,
                    const std::string & resultField,
                    CFieldValueList & result);
 
-  static bool exec(const std::string & table,
+  static bool in(const std::string & table,
+                   const std::string & resultField,
+                   CFieldValueList & result,
+                   const std::string & constraintField,
+                   const CFieldValueList & constraint,
+                   const bool & in = true);
+
+  static bool notIn(const std::string & table,
                    const std::string & resultField,
                    CFieldValueList & result,
                    const std::string & constraintField,
                    const CFieldValueList & constraint);
+
+  static bool where(const std::string & table,
+                   const std::string & resultField,
+                   CFieldValueList & result,
+                   const std::string & constraintField,
+                   const CFieldValue & constraint,
+                   const std::string & cmp);
 };
 
 #endif /* SRC_DB_CQUERY_H_ */
