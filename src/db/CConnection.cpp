@@ -37,13 +37,20 @@ void CConnection::init()
 
   URI += dbConnection.host + "/" + dbConnection.name;
 
-  pINSTANCE = new CConnection(URI);
+  try
+  {
+    pINSTANCE = new CConnection(URI);
+  }
+
+  catch (...)
+  {}
 }
 
 // static
 pqxx::read_transaction * CConnection::work()
 {
-  init();
+  if (pINSTANCE == NULL)
+    return NULL;
 
   return new pqxx::read_transaction(pINSTANCE->mConnection);
 }

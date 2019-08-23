@@ -303,6 +303,17 @@ json_t * SimConfig::loadJson(const std::string & jsonFile, int flags)
       return pRoot;
     }
 
+  // Read only first line:
+  std::string Line;
+  std::getline(is, Line);
+
+  json_error_t error;
+
+  pRoot = json_loads(Line.c_str(), flags, &error);
+
+  if (pRoot != NULL)
+    return pRoot;
+
   // get length of file:
   is.seekg (0, is.end);
   size_t length = is.tellg();
@@ -311,8 +322,6 @@ json_t * SimConfig::loadJson(const std::string & jsonFile, int flags)
   char * buffer = new char [length + 1];
   is.read(buffer, length);
   buffer[length] = 0;
-
-  json_error_t error;
 
   pRoot = json_loads(buffer, flags, &error);
   delete [] buffer;

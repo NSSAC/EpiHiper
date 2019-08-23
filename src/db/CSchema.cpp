@@ -28,25 +28,7 @@ void CSchema::load(const std::vector< std::string > & schemaFiles)
 
   for (; it != end; ++it)
     {
-	  std::ifstream is(it->c_str());
-
-	  if (is.fail())
-	    {
-	      std::cerr << "Network file: '" << *it << "' cannot be opened." << std::endl;
-	      return;
-	    }
-
-	  std::string Line;
-	  std::getline(is, Line);
-
-	  json_error_t error;
-
-	  json_t * pRoot = json_loads(Line.c_str(), 0, &error);
-
-	  if (pRoot == NULL)
-	    {
-	      std::cerr << "Network file: '" << *it << "' error on line " << error.line << ": " << error.text << std::endl;;
-	    }
+      json_t * pRoot = SimConfig::loadJson(*it, JSON_DECODE_INT_AS_REAL);
 
       if (pRoot != NULL)
         {

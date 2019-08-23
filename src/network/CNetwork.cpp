@@ -75,37 +75,22 @@ CNetwork::CNetwork(const std::string & networkFile)
       return;
     }
 
-  std::ifstream is(mFile.c_str());
-
-  if (is.fail())
-    {
-      std::cerr << "Network file: '" << mFile << "' cannot be opened." << std::endl;
-      return;
-    }
-
-  std::string Line;
-  std::getline(is, Line);
-
-  json_error_t error;
-
-  mpJson = json_loads(Line.c_str(), 0, &error);
-
-  if (mpJson == NULL)
-    {
-      std::cerr << "Network file: '" << mFile << "' error on line " << error.line << ": " << error.text << std::endl;;
-    }
+  mpJson = SimConfig::loadJson(mFile, 0);
 
   fromJSON(mpJson);
 
   if (mValid)
     {
+      std::ifstream is(mFile.c_str());
+      std::string Line;
+      // Skip JSON Header
+      std::getline(is, Line);
       // Skip Column Header
       std::getline(is, Line);
 
       partition(is);
+      is.close();
     }
-
-  is.close();
 }
 
 // virtual
