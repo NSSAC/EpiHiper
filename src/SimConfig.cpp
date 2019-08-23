@@ -175,7 +175,7 @@ SimConfig::SimConfig(const std::string& configFile)
     }
   else
   	{
-	  dbConnection.name = "epihiper";
+      dbConnection.name = "epihiper_db";
   	}
 
   pValue = json_object_get(pRoot, "dbHost");
@@ -184,6 +184,10 @@ SimConfig::SimConfig(const std::string& configFile)
     {
       dbConnection.host = json_string_value(pValue);
     }
+  else
+    {
+      dbConnection.host = "localhost:5432";
+    }
 
   pValue = json_object_get(pRoot, "dbUser");
 
@@ -191,12 +195,21 @@ SimConfig::SimConfig(const std::string& configFile)
     {
       dbConnection.user = json_string_value(pValue);
     }
+  else
+    {
+      dbConnection.user = "epihiper";
+    }
+
 
   pValue = json_object_get(pRoot, "dbPassword");
 
   if (json_is_string(pValue))
     {
       dbConnection.password = json_string_value(pValue);
+    }
+  else
+    {
+      dbConnection.password.clear();
     }
 
   json_decref(pRoot);
