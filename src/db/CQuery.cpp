@@ -17,6 +17,8 @@
 #include "db/CSchema.h"
 #include "db/CFieldValueList.h"
 #include "db/CFieldValue.h"
+#include "network/CNetwork.h"
+#include "network/CNode.h"
 
 void toIdFieldValueList(const pqxx::result & result, CFieldValueList & list)
 {
@@ -64,10 +66,30 @@ void toFieldValueList(const CField & field, const pqxx::result & result, CFieldV
 }
 
 // static
+std::string CQuery::LocalConstraint = "";
+
+// static
+void CQuery::init()
+{
+  if (LocalConstraint.empty())
+    {
+      std::ostringstream Query;
+
+      CNode * pBegin = CNetwork::INSTANCE->beginNode();
+      CNode * pEnd = CNetwork::INSTANCE->endNode();
+      Query << "pid BETWEEN " << pBegin->id << " AND " <<  --pEnd->id;
+
+      LocalConstraint = Query.str();
+    }
+}
+// static
 bool CQuery::all(const std::string & table,
                    const std::string & resultField,
-                   CFieldValueList & result)
+                   CFieldValueList & result,
+                   const bool & local)
 {
+  init();
+
   pqxx::read_transaction * pWork = CConnection::work();
 
   if (pWork == NULL) return false;
@@ -81,7 +103,14 @@ bool CQuery::all(const std::string & table,
   if (!ResultField.isValid()) return false;
 
   std::ostringstream Query;
-  Query << "select " << resultField << " from " << table << ";";
+  Query << "SELECT " << resultField << " FROM " << table;
+
+  if (local)
+    {
+      Query << " WHERE " << LocalConstraint;
+    }
+
+  Query << ";";
 
   toFieldValueList(ResultField, pWork->exec(Query.str()), result);
 
@@ -94,10 +123,12 @@ bool CQuery::all(const std::string & table,
 bool CQuery::in(const std::string & table,
                    const std::string & resultField,
                    CFieldValueList & result,
+                   const bool & local,
                    const std::string & constraintField,
                    const CFieldValueList & constraints,
                    const bool & in)
 {
+  init();
   pqxx::read_transaction * pWork = CConnection::work();
 
   if (pWork == NULL) return false;
@@ -117,7 +148,7 @@ bool CQuery::in(const std::string & table,
   if (constraints.size() > 0 && constraints.getType() != ConstraintField.getType()) return false;
 
   std::ostringstream Query;
-  Query << "select " << resultField << " from " << table << " where " << constraintField << (!in) ? " not  in (" : " in (";
+  Query << "SELECT " << resultField << " FROM " << table << " WHERE " << constraintField << (!in) ? " NOT  IN (" : " IN (";
 
   bool FirstTime = true;
   CFieldValueList::const_iterator it = constraints.begin();
@@ -150,6 +181,11 @@ bool CQuery::in(const std::string & table,
       }
     }
 
+  if (local)
+    {
+      Query << " AND " << LocalConstraint;
+    }
+
   Query << ");";
 
   toFieldValueList(ResultField, pWork->exec(Query.str()), result);
@@ -164,20 +200,23 @@ bool CQuery::in(const std::string & table,
 bool CQuery::notIn(const std::string & table,
                  const std::string & resultField,
                  CFieldValueList & result,
+                 const bool & local,
                  const std::string & constraintField,
                  const CFieldValueList & constraint)
 {
-  return in(table, resultField, result, constraintField, constraint, false);
+  return in(table, resultField, result, local, constraintField, constraint, false);
 }
 
 // static
 bool CQuery::where(const std::string & table,
                  const std::string & resultField,
                  CFieldValueList & result,
+                 const bool & local,
                  const std::string & constraintField,
                  const CFieldValue & constraint,
                  const std::string & cmp)
 {
+  init();
   pqxx::read_transaction * pWork = CConnection::work();
 
   if (pWork == NULL) return false;
@@ -197,7 +236,7 @@ bool CQuery::where(const std::string & table,
   if (constraint.getType() != ConstraintField.getType()) return false;
 
   std::ostringstream Query;
-  Query << "select " << resultField << " from " << table << " where " << constraintField << " " << cmp << " ";
+  Query << "SELECT " << resultField << " FROM " << table << " WHERE " << constraintField << " " << cmp << " ";
 
   switch (constraint.getType())
   {
@@ -213,6 +252,11 @@ bool CQuery::where(const std::string & table,
       Query << constraint.toNumber();
       break;
   }
+
+  if (local)
+    {
+      Query << " AND " << LocalConstraint;
+    }
 
   Query << ";";
 

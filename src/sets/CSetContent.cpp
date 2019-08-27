@@ -146,3 +146,24 @@ bool CSetContent::contains(const CValueInterface & value) const
   return false;
 }
 
+std::set< CEdge * >::const_iterator CSetContent::beginEdges() const
+{
+  return mEdges.begin();
+}
+
+std::set< CEdge * >::const_iterator CSetContent::endEdges() const
+{
+  return mEdges.end();
+}
+
+std::set< CNode * >::const_iterator CSetContent::beginNodes() const
+{
+  return mNodes.begin();
+}
+
+std::set< CNode * >::const_iterator CSetContent::endNodes() const
+{
+  return mNodes.end();
+}
+
+

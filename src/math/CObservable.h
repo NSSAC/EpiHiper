@@ -13,11 +13,29 @@
 #ifndef SRC_MATH_COBSERVABLE_H_
 #define SRC_MATH_COBSERVABLE_H_
 
-class CObservable
+#include "math/CComputable.h"
+#include "math/CValueInterface.h"
+
+struct json_t;
+class CObservable : public CValueInterface, public CComputable
 {
 public:
-  CObservable();
+  CObservable() = delete;
+
+  CObservable(const CObservable & src);
+
+  // CObservable(const json_t * json);
+
   virtual ~CObservable();
+
+  virtual void compute();
+
+  void fromJSON(const json_t * json);
+
+  const bool & isValid() const;
+
+private:
+  bool mValid;
 };
 
 #endif /* SRC_MATH_COBSERVABLE_H_ */

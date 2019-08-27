@@ -42,6 +42,14 @@ public:
 
   bool contains(const CValueInterface & value) const;
 
+  std::set< CEdge * >::const_iterator beginEdges() const;
+
+  std::set< CEdge * >::const_iterator endEdges() const;
+
+  std::set< CNode * >::const_iterator beginNodes() const;
+
+  std::set< CNode * >::const_iterator endNodes() const;
+
 protected:
   std::set< CNode * > mNodes;
   std::set< CEdge * > mEdges;

@@ -30,11 +30,13 @@ struct CQuery
 public:
   static bool all(const std::string & table,
                    const std::string & resultField,
-                   CFieldValueList & result);
+                   CFieldValueList & result,
+                   const bool & local);
 
   static bool in(const std::string & table,
                    const std::string & resultField,
                    CFieldValueList & result,
+                   const bool & local,
                    const std::string & constraintField,
                    const CFieldValueList & constraint,
                    const bool & in = true);
@@ -42,15 +44,21 @@ public:
   static bool notIn(const std::string & table,
                    const std::string & resultField,
                    CFieldValueList & result,
+                   const bool & local,
                    const std::string & constraintField,
                    const CFieldValueList & constraint);
 
   static bool where(const std::string & table,
                    const std::string & resultField,
                    CFieldValueList & result,
+                   const bool & local,
                    const std::string & constraintField,
                    const CFieldValue & constraint,
                    const std::string & cmp);
+
+private:
+  static std::string LocalConstraint;
+  static void init();
 };
 
 #endif /* SRC_DB_CQUERY_H_ */

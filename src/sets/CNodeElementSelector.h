@@ -13,10 +13,11 @@
 #ifndef SRC_SETS_CNODEELEMENTSELECTOR_H_
 #define SRC_SETS_CNODEELEMENTSELECTOR_H_
 
+#include <string>
+
 #include "math/CNodeProperty.h"
 #include "math/CValueList.h"
 #include "sets/CSetContent.h"
-#include "db/CField.h"
 
 class CFieldValue;
 class CFieldValueList;
@@ -38,18 +39,28 @@ public:
   virtual void compute();
 
 private:
-  CNodeProperty mLeft;
+  void nodeAll();
+  void nodePropertySelection();
+  void nodePropertyWithin();
+  void nodeWithIncomingEdge();
+  void nodeInDBTable();
+  void nodeWithDBFieldSelection();
+  void nodeWithDBFieldWithin();
+  void nodeWithDBFieldNotWithin();
+
+  CNodeProperty mNodeProperty;
   CValue * mpValue;
   CValueList * mpValueList;
   CSetContent * mpSetContent;
-  CField mDBField;
+  std::string mDBTable;
+  std::string mDBField;
   CObservable * mpObservable;
   CFieldValue * mpDBFieldValue;
   CFieldValueList * mpDBFieldValueList;
-
   CValueInterface::pComparison mpComparison;
   std::string mSQLComparison;
   bool mLocalScope;
+  void (CNodeElementSelector::*mpCompute)();
 };
 
 #endif /* SRC_SETS_CNODEELEMENTSELECTOR_H_ */
