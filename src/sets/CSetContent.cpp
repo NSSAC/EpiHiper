@@ -14,6 +14,8 @@
 #include <jansson.h>
 
 #include "sets/CSetContent.h"
+
+#include "sets/CSetReference.h"
 #include "sets/CEdgeElementSelector.h"
 #include "sets/CNodeElementSelector.h"
 #include "sets/CDBFieldSelector.h"
@@ -73,14 +75,7 @@ CSetContent * CSetContent::create(const json_t * json)
 
   if (json_is_string(pContentType))
     {
-      json_t * pIdRef = json_object_get(json, "idRef");
-
-      if (json_is_string(pIdRef))
-        {
-          return CSetList::INSTANCE[json_string_value(pIdRef)].getSetContent();
-        }
-
-      return NULL;
+      return new CSetReference(json);
     }
 
   return NULL;
@@ -100,6 +95,9 @@ CSetContent * CSetContent::copy(const CSetContent * pSetContent)
 
   if (dynamic_cast< const CSetOperation * >(pSetContent) != NULL)
     return new CSetOperation(*static_cast<const  CSetOperation * >(pSetContent));
+
+  if (dynamic_cast< const CSetReference * >(pSetContent) != NULL)
+    return new CSetReference(*static_cast<const  CSetReference * >(pSetContent));
 
   return NULL;
 }
@@ -166,4 +164,8 @@ std::set< CNode * >::const_iterator CSetContent::endNodes() const
   return mNodes.end();
 }
 
+const std::map< CValueList::Type, CValueList > & CSetContent::getDBFieldValues() const
+{
+  return mDBFieldValues;
+}
 

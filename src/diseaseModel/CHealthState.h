@@ -38,11 +38,25 @@ public:
 
   const bool & isValid() const;
 
+  const size_t & getLocalCount() const;
+
+  const size_t & getGlobalCount() const;
+
+  inline void increment() const {++mLocalCount;};
+
+  void decrement() const {--mLocalCount;};
+
+  void resetGlobalCount();
+
+  void incrementGlobalCount(const size_t & i);
+
 private:
   std::string mId;
   double mSusceptibility;
   double mInfectivity;
   bool mValid;
+  mutable size_t mLocalCount;
+  size_t mGlobalCount;
 };
 
 #endif /* SRC_DISEASEMODEL_CHEALTHSTATE_H_ */

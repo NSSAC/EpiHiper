@@ -486,6 +486,11 @@ CEdge * CNetwork::endEdge()
   return mEdges + mEdgesSize;
 }
 
+bool CNetwork::isRemoteNode(const CNode * pNode) const
+{
+  return pNode < mLocalNodes || mLocalNodes + mLocalNodesSize <= pNode;
+}
+
 CNode * CNetwork::lookupNode(const size_t & id) const
 {
   static double stretch = 0.0;
@@ -727,7 +732,7 @@ CCommunicate::ErrorCode CNetwork::receiveNodes(std::istream & is, int sender)
 
       if (pNode != NULL)
         {
-          pNode->pHealthState = Node.pHealthState;
+          pNode->setHealthState(Node.getHealthState());
           pNode->susceptibilityFactor = Node.susceptibilityFactor;
           pNode->susceptibility = Node.susceptibility;
           pNode->infectivityFactor = Node.infectivityFactor;
@@ -735,7 +740,6 @@ CCommunicate::ErrorCode CNetwork::receiveNodes(std::istream & is, int sender)
           pNode->nodeTrait = Node.nodeTrait;
         }
     }
-
 
   return CCommunicate::ErrorCode::Success;
 }
@@ -766,6 +770,11 @@ CCommunicate::ErrorCode CNetwork::receiveEdges(std::istream & is, int sender)
     }
 
   return CCommunicate::ErrorCode::Success;
+}
+
+const size_t & CNetwork::getTotalNodes() const
+{
+  return mTotalNodesSize;
 }
 
 

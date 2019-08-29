@@ -28,6 +28,11 @@ public:
   typedef NodeMap::iterator iterator;
   typedef NodeMap::const_iterator const_iterator;
 
+
+  static void rebuildGraph();
+
+  static void applyUpdateSequence();
+
   // Operations
   /**
    * Constructor
@@ -61,6 +66,13 @@ public:
    * @param const CComputable * pComputable
    */
   void removeComputable(const CComputable * pComputable);
+
+  /**
+   * Remove a prerequisite of an object
+   * @param const CComputable * pComputable
+   * @param const CComputable * pPrerequisite
+   */
+  void addPrerequisite(const CComputable * pComputable, const CComputable * pPrerequisite);
 
   /**
    * Remove a prerequisite of an object
@@ -131,6 +143,10 @@ public:
   void exportDOTFormat(std::ostream & os, const std::string & name) const;
 
 private:
+  static CDependencyGraph INSTANCE;
+  static CComputable::Sequence UPDATE_SEQUENCE;
+
+
   std::string getDOTNodeId(const CComputable * pComputable) const;
 
   // Attributes

@@ -22,7 +22,8 @@
 
 #include <string>
 
-class CFieldValue;
+class CValue;
+class CValueList;
 class CFieldValueList;
 
 struct CQuery
@@ -38,7 +39,7 @@ public:
                    CFieldValueList & result,
                    const bool & local,
                    const std::string & constraintField,
-                   const CFieldValueList & constraint,
+                   const CValueList & constraint,
                    const bool & in = true);
 
   static bool notIn(const std::string & table,
@@ -46,14 +47,14 @@ public:
                    CFieldValueList & result,
                    const bool & local,
                    const std::string & constraintField,
-                   const CFieldValueList & constraint);
+                   const CValueList & constraint);
 
   static bool where(const std::string & table,
                    const std::string & resultField,
                    CFieldValueList & result,
                    const bool & local,
                    const std::string & constraintField,
-                   const CFieldValue & constraint,
+                   const CValue & constraint,
                    const std::string & cmp);
 
 private:

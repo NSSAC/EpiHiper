@@ -73,11 +73,15 @@ public:
 
   CEdge * endEdge();
 
+  bool isRemoteNode(const CNode * pNode) const;
+
   int broadcastChanges();
 
   CCommunicate::ErrorCode receiveNodes(std::istream & is, int sender);
 
   CCommunicate::ErrorCode receiveEdges(std::istream & is, int sender);
+
+  const size_t & getTotalNodes() const;
 
 private:
   std::string mFile;

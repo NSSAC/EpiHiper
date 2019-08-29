@@ -183,6 +183,7 @@ void Simulation::test()
 
   CActionQueue::processCurrentActions();
   Changes::writeDefaultOutput();
+  CModel::updateGlobalStateCounts();
   CNetwork::INSTANCE->broadcastChanges();
   CActionQueue::incrementTick();
   Changes::incrementTick();
@@ -192,6 +193,7 @@ void Simulation::test()
       CModel::processTransmissions();
       CActionQueue::processCurrentActions();
       Changes::writeDefaultOutput();
+      CModel::updateGlobalStateCounts();
       CNetwork::INSTANCE->broadcastChanges();
       CActionQueue::incrementTick();
       Changes::incrementTick();

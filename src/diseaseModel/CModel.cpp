@@ -196,7 +196,7 @@ bool CModel::_processTransmissions() const
 
   for (pNode = CNetwork::INSTANCE->beginNode(); pNode  != pNodeEnd; ++pNode)
     if (pNode->susceptibility > 0.0 &&
-        (EntryStateFound = mPossibleTransmissions.find(pNode->pHealthState)) != EntryStateNotFound)
+        (EntryStateFound = mPossibleTransmissions.find(pNode->getHealthState())) != EntryStateNotFound)
       {
         CEdge * pEdge = pNode->Edges;
         CEdge * pEdgeEnd = pNode->Edges + pNode->EdgesSize;
@@ -212,7 +212,7 @@ bool CModel::_processTransmissions() const
           {
             if (pEdge->active &&
                 pEdge->pSource->infectivity > 0.0 &&
-                (ContactStateFound = EntryStateFound->second.find(pEdge->pSource->pHealthState)) != ContactStateNotFound)
+                (ContactStateFound = EntryStateFound->second.find(pEdge->pSource->getHealthState())) != ContactStateNotFound)
               {
                 // ρ(P, P', Τi,j,k) = (| contactTime(P, P') ∩ [tn, tn + Δtn] |) × contactWeight(P, P') × σ(P, Χi) × ι(P',Χk) × ω(Τi,j,k)
                 Candidate Candidate;
@@ -246,13 +246,13 @@ bool CModel::_processTransmissions() const
 
             const Candidate & Candidate = (itCandidate != endCandidate) ? *itCandidate : *Candidates.rbegin();
 
-            CCondition::CComparison< const CHealthState * > CheckState(CCondition::ComparisonType::Equal, &pNode->pHealthState, pNode->pHealthState);
+            CCondition::CComparison< const CHealthState * > CheckState(CCondition::ComparisonType::Equal, &pNode->getHealthState(), pNode->getHealthState());
 
             CMetadata Info("StateChange", true);
             Info.set("ContactNode", (int) Candidate.pContact->id);
 
             CAction ChangeState(1.0, CheckState, Info);
-            ChangeState.addOperation(new COperationInstance<CNode, const CTransmission *>(*pNode, Candidate.pTransmission, &CNode::set));
+            ChangeState.addOperation(new COperationInstance<CNode, const CTransmission *>(pNode, Candidate.pTransmission, &CNode::set));
 
             CActionQueue::addAction(0, ChangeState);
           }
@@ -272,7 +272,7 @@ void CModel::_stateChanged(CNode * pNode) const
 
   // std::cout << pNode->id << ": " << pNode->Edges << ", " << pNode->Edges + pNode->EdgesSize << ", " << pNode->EdgesSize << std::endl;
 
-  std::map< const CHealthState *, std::vector< const CProgression * > >::const_iterator EntryStateFound = mPossibleProgressions.find(pNode->pHealthState);
+  std::map< const CHealthState *, std::vector< const CProgression * > >::const_iterator EntryStateFound = mPossibleProgressions.find(pNode->getHealthState());
 
   if (EntryStateFound == mPossibleProgressions.end()) return;
 
@@ -299,11 +299,11 @@ void CModel::_stateChanged(CNode * pNode) const
 
       const CProgression * pProgression = (it != end) ? *it : *EntryStateFound->second.rbegin();
 
-      CCondition::CComparison< const CHealthState * > CheckState(CCondition::ComparisonType::Equal, &pNode->pHealthState, pNode->pHealthState);
+      CCondition::CComparison< const CHealthState * > CheckState(CCondition::ComparisonType::Equal, &pNode->getHealthState(), pNode->getHealthState());
 
       CMetadata Info("StateChange", true);
       CAction ChangeState(1.0, CheckState, Info);
-      ChangeState.addOperation(new COperationInstance<CNode, const CProgression *>(*pNode, pProgression, &CNode::set));
+      ChangeState.addOperation(new COperationInstance<CNode, const CProgression *>(pNode, pProgression, &CNode::set));
 
       CActionQueue::addAction(pProgression->getDwellTime(), ChangeState);
     }
@@ -314,3 +314,45 @@ const std::vector< CTransmission > & CModel::getTransmissions()
 {
   return INSTANCE->mTransmissions;
 }
+
+// static
+int CModel::updateGlobalStateCounts()
+{
+  size_t Size = INSTANCE->mId2State.size();
+  size_t LocalStateCounts[Size];
+
+  CHealthState * pState = INSTANCE->mStates;
+  CHealthState * pStateEnd = pState + Size;
+  size_t * pLocalCount = LocalStateCounts;
+
+  for (; pState != pStateEnd; ++pState, ++pLocalCount)
+    {
+      *pLocalCount = pState->getLocalCount();
+      pState->resetGlobalCount();
+    }
+
+  CCommunicate::Receive ReceiveCounts(&CModel::receiveGlobalStateCounts);
+  CCommunicate::broadcast(LocalStateCounts, Size * sizeof(size_t), &ReceiveCounts);
+
+  return (int) CCommunicate::ErrorCode::Success;
+}
+
+
+// static
+CCommunicate::ErrorCode CModel::receiveGlobalStateCounts(std::istream & is, int sender)
+{
+  size_t Size = INSTANCE->mId2State.size();
+
+  size_t Increment;
+  CHealthState * pState = INSTANCE->mStates;
+  CHealthState * pStateEnd = pState + Size;
+
+  for (; pState != pStateEnd; ++pState)
+    {
+      is.read(reinterpret_cast<char *>(&Increment), sizeof(size_t));
+      pState->incrementGlobalCount(Increment);
+    }
+
+  return CCommunicate::ErrorCode::Success;
+}
+

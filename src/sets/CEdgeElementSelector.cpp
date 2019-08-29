@@ -23,9 +23,8 @@ CEdgeElementSelector::CEdgeElementSelector()
   , mLeft()
   , mpValue(NULL)
   , mpValueList(NULL)
-  , mpSetContent(NULL)
+  , mpSelector(NULL)
   , mpComparison(NULL)
-  , mSQLComparison()
   , mpGetNode(NULL)
 {}
 
@@ -34,9 +33,8 @@ CEdgeElementSelector::CEdgeElementSelector(const CEdgeElementSelector & src)
   , mLeft(src.mLeft)
   , mpValue(src.mpValue != NULL ? new CValue(*src.mpValue) : NULL)
   , mpValueList(src.mpValueList != NULL ? new CValueList(*src.mpValueList) : NULL)
-  , mpSetContent(CSetContent::copy(src.mpSetContent))
+  , mpSelector(CSetContent::copy(src.mpSelector))
   , mpComparison(src.mpComparison)
-  , mSQLComparison(src.mSQLComparison)
   , mpGetNode(src.mpGetNode)
 {}
 
@@ -45,16 +43,25 @@ CEdgeElementSelector::CEdgeElementSelector(const json_t * json)
   , mLeft()
   , mpValue(NULL)
   , mpValueList(NULL)
-  , mpSetContent(NULL)
+  , mpSelector(NULL)
   , mpComparison(NULL)
-  , mSQLComparison()
   , mpGetNode(NULL)
 {
   fromJSON(json);
 }
 
 CEdgeElementSelector::~CEdgeElementSelector()
-{}
+{
+  if (mpValue != NULL)
+    delete mpValue;
+
+  if (mpValueList != NULL)
+    delete mpValueList;
+
+  CSetContent::destroy(mpSelector);
+  if (mpSelector != NULL)
+    delete mpSelector;
+}
 
 // virtual
 void CEdgeElementSelector::fromJSON(const json_t * json)
@@ -67,39 +74,35 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
 
   pValue = json_object_get(json, "operator");
 
-  mValid &= json_is_string(pValue);
-
-  if (!mValid) return;
+  if (!json_is_string(pValue))
+    {
+      // We need to return all edges
+      return;
+    }
 
   if (strcmp(json_string_value(pValue), "==") == 0)
     {
       mpComparison = &operator==;
-      mSQLComparison = "=";
     }
   else if(strcmp(json_string_value(pValue), "!=") == 0)
     {
       mpComparison = &operator!=;
-      mSQLComparison = "<>";
     }
   else if(strcmp(json_string_value(pValue), "<=") == 0)
     {
       mpComparison = &operator<=;
-      mSQLComparison = "<=";
     }
   else if(strcmp(json_string_value(pValue), "<") == 0)
     {
       mpComparison = &operator<;
-      mSQLComparison = "<";
     }
   else if(strcmp(json_string_value(pValue), ">=") == 0)
     {
       mpComparison = &operator>=;
-      mSQLComparison = ">=";
     }
   else if(strcmp(json_string_value(pValue), ">") == 0)
     {
       mpComparison = &operator>;
-      mSQLComparison = ">";
     }
 
   // Select edges where the edge property value comparison with the provided value is true.
@@ -135,11 +138,11 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
 
   if (mpGetNode != NULL)
     {
-      mpSetContent = CSetContent::create(json_object_get(json, "selector"));
-      mValid &= (mpSetContent != NULL && mpSetContent->isValid());
+      mpSelector = CSetContent::create(json_object_get(json, "selector"));
+      mValid &= (mpSelector != NULL && mpSelector->isValid());
 
       if (mValid)
-        mPrerequisites.insert(mpSetContent);
+        mPrerequisites.insert(mpSelector);
 
       return;
     }
@@ -181,16 +184,19 @@ void CEdgeElementSelector::compute()
       return;
     }
 
-  if (mpSetContent != NULL)
+  if (mpSelector != NULL)
     {
       for (; pEdge != pEdgeEnd; ++pEdge)
-        if(mpSetContent->contains((*mpGetNode)(pEdge)))
+        if(mpSelector->contains((*mpGetNode)(pEdge)))
           {
             mEdges.insert(pEdge);
           }
 
       return;
     }
+
+  for (; pEdge != pEdgeEnd; ++pEdge)
+    mEdges.insert(pEdge);
 }
 
 

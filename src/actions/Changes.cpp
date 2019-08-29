@@ -63,7 +63,7 @@ void Changes::record(const CNode & node, const CMetadata & metadata)
   if (metadata.getBool("StateChange"))
     {
       // "tick,pid,exit_state,contact_pid"
-      DefaultOutput << (int) Tick << "," << node.id << "," << node.pHealthState->getAnnId() << ",";
+      DefaultOutput << (int) Tick << "," << node.id << "," << node.getHealthState()->getAnnId() << ",";
 
       if (metadata.contains("ContactNode"))
         {

@@ -103,20 +103,3 @@ bool CAction::fromBinary(std::istream & is)
   return success;
 }
 
-
-CActionDefinition::CActionDefinition()
-{}
-
-CActionDefinition::CActionDefinition(const CActionDefinition & src)
-{}
-
-// virtual
-CActionDefinition::~CActionDefinition()
-{}
-
-void CActionDefinition::fromJSON(const json_t * json)
-{
-  // TODO CRITICAL Implement me!
-}
-
-

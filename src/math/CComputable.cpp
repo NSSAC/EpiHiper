@@ -12,16 +12,26 @@
 
 #include "math/CComputable.h"
 
+// static
+CComputable::Set CComputable::COMPUTABLES;
+
+
 CComputable::CComputable()
   : mPrerequisites()
-{}
+{
+  COMPUTABLES.insert(this);
+}
 
 CComputable::CComputable(const CComputable & src)
   : mPrerequisites(src.mPrerequisites)
-{}
+{
+  COMPUTABLES.insert(this);
+}
 
 CComputable::~CComputable()
-{}
+{
+  COMPUTABLES.erase(this);
+}
 
 const CComputable::Set & CComputable::getPrerequisites() const
 {

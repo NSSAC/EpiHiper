@@ -42,6 +42,8 @@ public:
 
   virtual ~CNode();
 
+  CNode & operator = (const CNode & rhs);
+
   void toBinary(std::ostream & os) const;
   void fromBinary(std::istream & is);
 
@@ -52,8 +54,15 @@ public:
   bool setHealthState(CModel::state_t value, const CMetadata & metadata);
   bool setNodeTrait(CTraitData::value value, const CMetadata & metadata);
 
+  inline const CHealthState *const  & getHealthState() const {return pHealthState;}
+  void setHealthState(const CHealthState * pHealthState);
+
   size_t id;
+
+private:
   const CHealthState * pHealthState;
+
+public:
   double susceptibilityFactor;
   double susceptibility;
   double infectivityFactor;

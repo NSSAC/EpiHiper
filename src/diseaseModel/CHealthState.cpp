@@ -20,6 +20,8 @@ CHealthState::CHealthState()
   , mSusceptibility(-1.0)
   , mInfectivity(-1.0)
   , mValid(false)
+  , mLocalCount(0)
+  , mGlobalCount(0)
 {}
 
 CHealthState::CHealthState(const CHealthState & src)
@@ -28,6 +30,8 @@ CHealthState::CHealthState(const CHealthState & src)
   , mSusceptibility(src.mSusceptibility)
   , mInfectivity(src.mInfectivity)
   , mValid(src.mValid)
+  , mLocalCount(src.mLocalCount)
+  , mGlobalCount(src.mGlobalCount)
 {}
 
 // virtual
@@ -85,3 +89,24 @@ const bool & CHealthState::isValid() const
 {
   return mValid;
 }
+
+const size_t & CHealthState::getLocalCount() const
+{
+  return mLocalCount;
+}
+
+const size_t & CHealthState::getGlobalCount() const
+{
+  return mGlobalCount;
+}
+
+void CHealthState::resetGlobalCount()
+{
+  mGlobalCount = mLocalCount;
+}
+
+void CHealthState::incrementGlobalCount(const size_t & i)
+{
+  mGlobalCount += i;
+}
+

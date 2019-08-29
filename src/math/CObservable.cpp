@@ -10,44 +10,120 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#include <cstring>
+#include <jansson.h>
+
 #include "math/CObservable.h"
+#include "diseaseModel/CModel.h"
+#include "diseaseModel/CHealthState.h"
+#include "actions/CActionQueue.h"
+#include "network/CNetwork.h"
 
+// static
+std::set< CObservable > CObservable::Observables;
 
-/*
+// static
+CObservable * CObservable::get(const CObservable::ObservableType & observableType, const size_t & id)
+{
+  CObservable Observable(observableType, id);
+  std::set< CObservable >::iterator found = Observables.find(Observable);
+
+  if (found != Observables.end())
+    return const_cast< CObservable * >(&(*found));
+
+  return NULL;
+}
+
+// static
+CObservable * CObservable::get(const json_t * json)
+{
+  CObservable Observable(json);
+
+  return const_cast< CObservable * >(&(*Observables.insert(Observable).first));
+}
+
 CObservable::CObservable()
-  : CComputable()
-  , mValid(false)
-{}
-*/
+  : CValue(false)
+  , CComputable()
+  , mObservableType()
+  , mId(-1)
+  , mpCompute(NULL)
+{
+  mValid = false;
+}
 
 CObservable::CObservable(const CObservable & src)
-  : CValueInterface(src)
+  : CValue(src)
   , CComputable(src)
-  , mValid(src.mValid)
+  , mObservableType(src.mObservableType)
+  , mId(src.mId)
+  , mpCompute(src.mpCompute)
 {}
 
-/*
-CObservable::CObservable(const json_t * json)
-  : CValueInterface(src)
+CObservable::CObservable(const ObservableType & observableType, const size_t & id)
+  : CValue(false)
   , CComputable()
-  , mValid(false)
+  , mObservableType(observableType)
+  , mId(id)
+  , mpCompute(NULL)
+{}
+
+CObservable::CObservable(const json_t * json)
+  : CValue(false)
+  , CComputable()
+  , mObservableType()
+  , mId(-1)
+  , mpCompute(NULL)
 {
   fromJSON(json);
 }
-*/
 
 // virtual
 CObservable::~CObservable()
-{
-  // TODO Auto-generated destructor stub
-}
-
+{}
 
 // virtual
 void CObservable::compute()
 {
-  // TODO CRITICAL Implement me!
+  if (mValid &&
+      mpCompute != NULL)
+    (this->*mpCompute)();
 }
+
+bool CObservable::operator < (const CObservable & rhs) const
+{
+  if (mObservableType != rhs.mObservableType)
+    return mObservableType < rhs.mObservableType;
+
+  return mId < rhs.mId;
+}
+
+void CObservable::computeTime()
+{
+  assignValue(&CActionQueue::getCurrentTick());
+}
+
+void CObservable::computeHealthStateAbsolute()
+{
+  const CHealthState * pHealthState = CModel::stateFromType(mId);
+
+  if (pHealthState != NULL)
+    {
+      assignValue(&pHealthState->getGlobalCount());
+    }
+}
+
+void CObservable::computeHealthStateRelative()
+{
+  const CHealthState * pHealthState = CModel::stateFromType(mId);
+
+  if (pHealthState != NULL)
+    {
+      double Relative = ((double) pHealthState->getGlobalCount())/CNetwork::INSTANCE->getTotalNodes();
+      assignValue(&Relative);
+    }
+}
+
 
 void CObservable::fromJSON(const json_t * json)
 {
@@ -87,10 +163,77 @@ void CObservable::fromJSON(const json_t * json)
       }
     },
   */
-  // TODO CRITICAL Implement me!
+
+  json_t * pObservable = json_object_get(json, "observable");
+
+  if (!json_is_object(pObservable))
+    {
+      mValid = false;
+      return;
+    }
+
+  json_t * pValue = json_object_get(pObservable, "type");
+
+  if (!json_is_string(pValue))
+    {
+      mValid = false;
+      return;
+    }
+
+  if (strcmp(json_string_value(pValue), "time") == 0)
+    {
+      mObservableType = ObservableType::time;
+      mpCompute = &CObservable::computeTime;
+      mId = 0;
+
+      destroyValue();
+      mType = Type::id;
+      mpValue = createValue(mType);
+
+      mValid = true;
+      return;
+    }
+  else if (strcmp(json_string_value(pValue), "absolute") == 0)
+    {
+      mObservableType = ObservableType::healthStateAbsolute;
+      mpCompute = &CObservable::computeHealthStateAbsolute;
+
+      destroyValue();
+      mType = Type::id;
+      mpValue = createValue(mType);
+    }
+  else if (strcmp(json_string_value(pValue), "relative") == 0)
+    {
+      mObservableType = ObservableType::healthStateRelative;
+      mpCompute = &CObservable::computeHealthStateRelative;
+
+      destroyValue();
+      mType = Type::number;
+      mpValue = createValue(mType);
+    }
+  else
+    {
+      mValid = false;
+      return;
+    }
+
+  pValue = json_object_get(pObservable, "healthState");
+
+  if (!json_is_string(pValue))
+    {
+      mValid = false;
+      return;
+    }
+
+  const CHealthState * pHealthState = CModel::getState(json_string_value(pValue));
+
+  if (pHealthState == NULL)
+    {
+      mValid = false;
+      return;
+    }
+
+  mId = CModel::stateToType(pHealthState);
+  mValid = true;
 }
 
-const bool & CObservable::isValid() const
-{
-  return mValid;
-}

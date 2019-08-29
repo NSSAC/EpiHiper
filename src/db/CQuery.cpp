@@ -89,7 +89,6 @@ bool CQuery::all(const std::string & table,
                    const bool & local)
 {
   init();
-
   pqxx::read_transaction * pWork = CConnection::work();
 
   if (pWork == NULL) return false;
@@ -103,7 +102,7 @@ bool CQuery::all(const std::string & table,
   if (!ResultField.isValid()) return false;
 
   std::ostringstream Query;
-  Query << "SELECT " << resultField << " FROM " << table;
+  Query << "SELECT DISTINCT " << resultField << " FROM " << table;
 
   if (local)
     {
@@ -125,7 +124,7 @@ bool CQuery::in(const std::string & table,
                    CFieldValueList & result,
                    const bool & local,
                    const std::string & constraintField,
-                   const CFieldValueList & constraints,
+                   const CValueList & constraints,
                    const bool & in)
 {
   init();
@@ -148,7 +147,7 @@ bool CQuery::in(const std::string & table,
   if (constraints.size() > 0 && constraints.getType() != ConstraintField.getType()) return false;
 
   std::ostringstream Query;
-  Query << "SELECT " << resultField << " FROM " << table << " WHERE " << constraintField << (!in) ? " NOT  IN (" : " IN (";
+  Query << "SELECT DISTINCT " << resultField << " FROM " << table << " WHERE " << constraintField << (!in) ? " NOT  IN (" : " IN (";
 
   bool FirstTime = true;
   CFieldValueList::const_iterator it = constraints.begin();
@@ -202,7 +201,7 @@ bool CQuery::notIn(const std::string & table,
                  CFieldValueList & result,
                  const bool & local,
                  const std::string & constraintField,
-                 const CFieldValueList & constraint)
+                 const CValueList & constraint)
 {
   return in(table, resultField, result, local, constraintField, constraint, false);
 }
@@ -213,7 +212,7 @@ bool CQuery::where(const std::string & table,
                  CFieldValueList & result,
                  const bool & local,
                  const std::string & constraintField,
-                 const CFieldValue & constraint,
+                 const CValue & constraint,
                  const std::string & cmp)
 {
   init();
@@ -236,7 +235,7 @@ bool CQuery::where(const std::string & table,
   if (constraint.getType() != ConstraintField.getType()) return false;
 
   std::ostringstream Query;
-  Query << "SELECT " << resultField << " FROM " << table << " WHERE " << constraintField << " " << cmp << " ";
+  Query << "SELECT DISTINCT " << resultField << " FROM " << table << " WHERE " << constraintField << " " << cmp << " ";
 
   switch (constraint.getType())
   {

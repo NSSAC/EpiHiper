@@ -22,6 +22,8 @@ public:
   typedef std::set< const CComputable * > Set;
   typedef std::vector< CComputable * > Sequence;
 
+  static Set COMPUTABLES;
+
   CComputable();
 
   CComputable(const CComputable & src);

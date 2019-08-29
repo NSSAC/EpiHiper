@@ -13,29 +13,55 @@
 #ifndef SRC_MATH_COBSERVABLE_H_
 #define SRC_MATH_COBSERVABLE_H_
 
+#include <set>
 #include "math/CComputable.h"
-#include "math/CValueInterface.h"
+#include "math/CValue.h"
 
 struct json_t;
-class CObservable : public CValueInterface, public CComputable
+class CObservable : public CValue, public CComputable
 {
 public:
-  CObservable() = delete;
+  enum struct ObservableType
+  {
+    time,
+    healthStateAbsolute,
+    healthStateRelative
+  };
+
+  static CObservable * get(const ObservableType & observableType, const size_t & id);
+
+  static CObservable * get(const json_t * json);
+
+  CObservable();
 
   CObservable(const CObservable & src);
-
-  // CObservable(const json_t * json);
 
   virtual ~CObservable();
 
   virtual void compute();
 
-  void fromJSON(const json_t * json);
-
-  const bool & isValid() const;
+  bool operator < (const CObservable & rhs) const;
 
 private:
-  bool mValid;
+  static std::set< CObservable > Observables;
+
+  CObservable(const ObservableType & observableType, const size_t & id);
+
+  CObservable(const json_t * json);
+
+  void fromJSON(const json_t * json);
+
+  void computeTime();
+
+  void computeHealthStateAbsolute();
+
+  void computeHealthStateRelative();
+
+  ObservableType mObservableType;
+  size_t mId;
+
+  void (CObservable::*mpCompute)();
+
 };
 
 #endif /* SRC_MATH_COBSERVABLE_H_ */

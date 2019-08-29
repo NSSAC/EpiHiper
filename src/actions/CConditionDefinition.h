@@ -11,10 +11,20 @@
 // END: License 
 
 /*
- * Operation.cpp
+ * CConditionDefinition.h
  *
- *  Created on: Jul 1, 2019
+ *  Created on: Aug 29, 2019
  *      Author: shoops
  */
 
+#ifndef SRC_ACTIONS_CCONDITIONDEFINITION_H_
+#define SRC_ACTIONS_CCONDITIONDEFINITION_H_
 
+class CConditionDefinition
+{
+public:
+  CConditionDefinition();
+  virtual ~CConditionDefinition();
+};
+
+#endif /* SRC_ACTIONS_CCONDITIONDEFINITION_H_ */

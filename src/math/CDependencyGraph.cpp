@@ -19,6 +19,45 @@
 // Uncomment this line below to get debug print out.
 // #define DEBUG_OUTPUT 1
 
+// static
+CDependencyGraph CDependencyGraph::INSTANCE;
+
+// static
+CComputable::Sequence CDependencyGraph::UPDATE_SEQUENCE;
+
+// static
+void CDependencyGraph::rebuildGraph()
+{
+  INSTANCE.clear();
+
+  CComputable::Set Changed;
+  CComputable::Set Requested;
+  CComputable::Set::const_iterator it = CComputable::COMPUTABLES.begin();
+  CComputable::Set::const_iterator end = CComputable::COMPUTABLES.end();
+
+  for (; it != end; ++it)
+    {
+      INSTANCE.addComputable(*it);
+
+      if ((*it)->getPrerequisites().empty())
+        Changed.insert(*it);
+      else
+        Requested.insert(*it);
+    }
+
+  INSTANCE.getUpdateSequence(UPDATE_SEQUENCE, Changed, Requested);
+}
+
+// static
+void CDependencyGraph::applyUpdateSequence()
+{
+  CComputable::Sequence::iterator it = UPDATE_SEQUENCE.begin();
+  CComputable::Sequence::iterator end = UPDATE_SEQUENCE.end();
+
+  for (; it != end; ++it)
+    (*it)->compute();
+}
+
 CDependencyGraph::CDependencyGraph()
   : mComputables2Nodes()
   , mComputable2Index()
@@ -105,6 +144,27 @@ void CDependencyGraph::removeComputable(const CComputable * pComputable)
   found->second->remove();
   delete found->second;
   mComputables2Nodes.erase(found);
+}
+
+void CDependencyGraph::addPrerequisite(const CComputable * pComputable, const CComputable * pPrerequisite)
+{
+  iterator found = mComputables2Nodes.find(pComputable);
+
+  if (found == mComputables2Nodes.end())
+    {
+      addComputable(pComputable);
+      return;
+    }
+
+  iterator foundPrerequisite = mComputables2Nodes.find(pPrerequisite);
+
+  if (foundPrerequisite == mComputables2Nodes.end())
+    {
+      foundPrerequisite = addComputable(pPrerequisite);
+    }
+
+  foundPrerequisite->second->addDependent(found->second);
+  found->second->addPrerequisite(foundPrerequisite->second);
 }
 
 void CDependencyGraph::removePrerequisite(const CComputable * pComputable, const CComputable * pPrerequisite)

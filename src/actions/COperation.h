@@ -34,23 +34,23 @@ public:
 template <class Target, class Value> class COperationInstance : public COperation
 {
 private:
-  mutable Target  mTarget;
+  mutable Target  * mpTarget;
   Value mValue;
   bool(Target::*mMethod)(Value, const CMetadata & metadata);
 
 public:
   COperationInstance() = delete;
 
-  COperationInstance(Target target,
+  COperationInstance(Target *pTarget,
                     Value value,
                     bool(Target::*method)(Value, const CMetadata &))
-    : mTarget(target)
+    : mpTarget(pTarget)
     , mValue(value)
     , mMethod(method)
   {}
 
   COperationInstance(const COperationInstance & src)
-    : mTarget(src.mTarget)
+    : mpTarget(src.mpTarget)
     , mValue(src.mValue)
     , mMethod(src.mMethod)
   {}
@@ -59,11 +59,11 @@ public:
 
   virtual bool execute(const CMetadata & metadata) const
   {
-    bool changed = (mTarget.*mMethod)(mValue, metadata);
+    bool changed = (mpTarget->*mMethod)(mValue, metadata);
 
     if (changed)
       {
-        Changes::record(mTarget, metadata);
+        Changes::record(*mpTarget, metadata);
       }
 
     return changed;
@@ -74,42 +74,5 @@ public:
     return new COperationInstance<Target, Value>(*this);
   }
 };
-
-class COperationDefinition
-{
-public:
-  enum struct TargetType
-  {
-    node,
-    edge,
-    variable
-  };
-
-  /**
-   * Default constructor
-   */
-  COperationDefinition();
-
-  /**
-   * Copy construnctor
-   * @param const Feature & src
-   */
-  COperationDefinition(const COperationDefinition & src);
-
-  /**
-   * Destructor
-   */
-  virtual ~COperationDefinition();
-
-  void fromJSON(const json_t * json);
-
-  template < class Target > COperation * createOperation(Target * pTarget) const;
-};
-
-template < class Target > COperation * COperationDefinition::createOperation(Target * pTarget) const
-{
-  // TODO CRITICAL Implement me!
-  return NULL;
-}
 
 #endif /* SRC_ACTIONS_COPERATION_H_ */

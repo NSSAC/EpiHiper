@@ -11,6 +11,7 @@
 // END: License 
 
 #include "network/CNode.h"
+#include "network/CNetwork.h"
 #include "diseaseModel/CHealthState.h"
 #include "diseaseModel/CModel.h"
 #include "diseaseModel/CProgression.h"
@@ -38,7 +39,7 @@ CNode CNode::getDefault()
 
 CNode::CNode()
   : id(-1)
-  , pHealthState()
+  , pHealthState(NULL)
   , susceptibilityFactor(1.0)
   , susceptibility(0.0)
   , infectivityFactor(1.0)
@@ -50,7 +51,7 @@ CNode::CNode()
 
 CNode::CNode(const CNode & src)
   : id(src.id)
-  , pHealthState(src.pHealthState)
+  , pHealthState(NULL)
   , susceptibilityFactor(src.susceptibilityFactor)
   , susceptibility(src.susceptibility)
   , infectivityFactor(src.infectivityFactor)
@@ -58,10 +59,30 @@ CNode::CNode(const CNode & src)
   , nodeTrait(src.nodeTrait)
   , Edges(src.Edges)
   , EdgesSize(src.EdgesSize)
-{}
+{
+  setHealthState(src.pHealthState);
+}
 
 CNode::~CNode()
 {}
+
+CNode & CNode::operator = (const CNode & rhs)
+{
+  if (this != &rhs)
+    {
+      id = rhs.id;
+      setHealthState(rhs.pHealthState);
+      susceptibilityFactor = rhs.susceptibilityFactor;
+      susceptibility = rhs.susceptibility;
+      infectivityFactor = rhs.infectivityFactor;
+      infectivity = rhs.infectivity;
+      nodeTrait = rhs.nodeTrait;
+      Edges = rhs.Edges;
+      EdgesSize = rhs.EdgesSize;
+    }
+
+  return *this;
+}
 
 void CNode::toBinary(std::ostream & os) const
 {
@@ -95,7 +116,8 @@ bool CNode::set(const CTransmission * pTransmission, const CMetadata & metadata)
 {
   if (pHealthState == pTransmission->getExitState()) return false;
 
-  pHealthState = pTransmission->getExitState();
+  setHealthState(pTransmission->getExitState());
+
   pTransmission->updateSusceptibilityFactor(susceptibilityFactor);
   susceptibility = pHealthState->getSusceptibility() * susceptibilityFactor;
   pTransmission->updateInfectivityFactor(infectivityFactor);
@@ -112,7 +134,8 @@ bool CNode::set(const CProgression * pProgression, const CMetadata & metadata)
 {
   if (pHealthState == pProgression->getExitState()) return false;
 
-  pHealthState = pProgression->getExitState();
+  setHealthState(pProgression->getExitState());
+
   pProgression->updateSusceptibilityFactor(susceptibilityFactor);
   susceptibility = pHealthState->getSusceptibility() * susceptibilityFactor;
   pProgression->updateInfectivityFactor(infectivityFactor);
@@ -143,7 +166,8 @@ bool CNode::setInfectivityFactor(double value, const CMetadata & metadata)
 
 bool CNode::setHealthState(CModel::state_t value, const CMetadata & metadata)
 {
-  pHealthState = CModel::stateFromType(value);
+  setHealthState(CModel::stateFromType(value));
+
   susceptibility = pHealthState->getSusceptibility() * susceptibilityFactor;
   infectivity = pHealthState->getInfectivity() * infectivityFactor;
 
@@ -157,6 +181,20 @@ bool CNode::setNodeTrait(CTraitData::value value, const CMetadata & metadata)
   CTraitData::setValue(nodeTrait, value);
 
   return true;
+}
+
+void CNode::setHealthState(const CHealthState * pNewHealthState)
+{
+  if (CNetwork::INSTANCE->isRemoteNode(this))
+    pHealthState = pNewHealthState;
+
+  if (pHealthState != NULL)
+    pHealthState->decrement();
+
+  pHealthState = pNewHealthState;
+
+  if (pHealthState != NULL)
+    pHealthState->increment();
 }
 
 

@@ -58,7 +58,7 @@ public:
 
   CValueInterface(double & number);
 
-  CValueInterface(size_t & healthState);
+  CValueInterface(size_t & id);
 
   CValueInterface(CTraitData::base & traitData);
 

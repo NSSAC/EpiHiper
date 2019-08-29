@@ -10,11 +10,22 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-/*
- * Operation.cpp
- *
- *  Created on: Jul 1, 2019
- *      Author: shoops
- */
+#ifndef SRC_ACTIONS_CACTIONDEFINITION_H_
+#define SRC_ACTIONS_CACTIONDEFINITION_H_
+
+class CActionDefinition
+{
+public:
+  CActionDefinition();
+
+  CActionDefinition(const CActionDefinition & src);
+
+  CActionDefinition(const json_t * json);
+
+  virtual ~CActionDefinition();
+
+  void fromJSON(const json_t * json);
+};
 
 
+#endif /* SRC_ACTIONS_CACTIONDEFINITION_H_ */

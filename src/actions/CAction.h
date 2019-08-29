@@ -59,26 +59,4 @@ private:
   CMetadata mMetadata;
 };
 
-class CActionDefinition
-{
-public:
-  /**
-   * Default constructor
-   */
-  CActionDefinition();
-
-  /**
-   * Copy construnctor
-   * @param const Feature & src
-   */
-  CActionDefinition(const CActionDefinition & src);
-
-  /**
-   * Destructor
-   */
-  virtual ~CActionDefinition();
-
-  void fromJSON(const json_t * json);
-};
-
 #endif /* SRC_ACTIONS_CACTION_H_ */

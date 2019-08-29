@@ -18,27 +18,6 @@
 #include "network/CEdge.h"
 #include "sets/CSetContent.h"
 
-/*
-        {"$ref": "#/definitions/annotation"},
-        {
-          "type": "object",
-          "required": [
-            "id",
-            "content",
-            "scope"
-          ],
-          "properties": {
-            "id": {"$ref": "#/definitions/uniqueId"},
-            "content": {"$ref": "#/definitions/setContent"},
-            "scope": {"$ref": "#/definitions/scope"}
-          },
-          "patternProperties": {
-            "^ann:": {}
-          },
-          "additionalProperties": false
-        }
- */
-
 CSet::CSet(const CSet & src)
   : CAnnotation(src)
   , mId(src.mId)
@@ -73,15 +52,30 @@ const bool & CSet::isValid() const
   return mValid;
 }
 
-CSetContent * CSet::getSetContent() const
-{
-  return mpSetContent;
-}
-
-
 // virtual
 void CSet::fromJSON(const json_t * json)
 {
+  /*
+    {"$ref": "#/definitions/annotation"},
+    {
+      "type": "object",
+      "required": [
+        "id",
+        "content",
+        "scope"
+      ],
+      "properties": {
+        "id": {"$ref": "#/definitions/uniqueId"},
+        "content": {"$ref": "#/definitions/setContent"},
+        "scope": {"$ref": "#/definitions/scope"}
+      },
+      "patternProperties": {
+        "^ann:": {}
+      },
+      "additionalProperties": false
+    }
+  */
+
   json_t * pValue = json_object_get(json, "id");
 
   if (json_is_string(pValue))
@@ -109,6 +103,7 @@ void CSet::fromJSON(const json_t * json)
   if (json_is_object(pValue))
     {
       mpSetContent = CSetContent::create(pValue);
+      mPrerequisites.insert(mpSetContent);
       mValid &= (mpSetContent != NULL && mpSetContent->isValid());
     }
   else
@@ -117,6 +112,82 @@ void CSet::fromJSON(const json_t * json)
     }
 
   CAnnotation::fromJSON(json);
+}
+
+// virtual
+void CSet::compute()
+{}
+
+// virtual
+bool CSet::contains(CNode * pNode) const
+{
+  if (mValid)
+    return mpSetContent->contains(pNode);
+
+  return CSetContent::contains(pNode);
+}
+
+// virtual
+bool CSet::contains(CEdge * pEdge) const
+{
+  if (mValid)
+    return mpSetContent->contains(pEdge);
+
+  return CSetContent::contains(pEdge);
+}
+
+// virtual
+bool CSet::contains(const CValueInterface & value) const
+{
+  if (mValid)
+    return mpSetContent->contains(value);
+
+  return CSetContent::contains(value);
+}
+
+// virtual
+std::set< CEdge * >::const_iterator CSet::beginEdges() const
+{
+  if (mValid)
+    return mpSetContent->beginEdges();
+
+  return CSetContent::beginEdges();
+}
+
+// virtual
+std::set< CEdge * >::const_iterator CSet::endEdges() const
+{
+  if (mValid)
+    return mpSetContent->endEdges();
+
+  return CSetContent::endEdges();
+}
+
+// virtual
+std::set< CNode * >::const_iterator CSet::beginNodes() const
+{
+  if (mValid)
+    return mpSetContent->beginNodes();
+
+  return CSetContent::beginNodes();
+}
+
+// virtual
+std::set< CNode * >::const_iterator CSet::endNodes() const
+
+{
+  if (mValid)
+    return mpSetContent->endNodes();
+
+  return CSetContent::endNodes();
+}
+
+const std::map< CValueList::Type, CValueList > & CSet::getDBFieldValues() const
+{
+  if (mValid)
+    return mpSetContent->getDBFieldValues();
+
+  return mDBFieldValues;
 }
 
 

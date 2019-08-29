@@ -35,7 +35,7 @@ private:
   std::string mTable;
   std::string mField;
   CValue::Type mFieldType;
-  CSetContent * mpSetContent;
+  CSetContent * mpSelector;
 };
 
 #endif /* SRC_SETS_CDBFIELDSELECTOR_H_ */

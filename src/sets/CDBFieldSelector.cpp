@@ -15,13 +15,17 @@
 
 #include "sets/CDBFieldSelector.h"
 #include "db/CSchema.h"
+#include "db/CQuery.h"
+#include "db/CFieldValue.h"
+#include "db/CFieldValueList.h"
+#include "network/CNode.h"
 
 CDBFieldSelector::CDBFieldSelector()
   : CSetContent()
   , mTable()
   , mField()
   , mFieldType()
-  , mpSetContent(NULL)
+  , mpSelector(NULL)
 {}
 
 CDBFieldSelector::CDBFieldSelector(const CDBFieldSelector & src)
@@ -29,7 +33,7 @@ CDBFieldSelector::CDBFieldSelector(const CDBFieldSelector & src)
   , mTable()
   , mField()
   , mFieldType(src.mFieldType)
-  , mpSetContent(CSetContent::copy(src.mpSetContent))
+  , mpSelector(CSetContent::copy(src.mpSelector))
 {}
 
 CDBFieldSelector::CDBFieldSelector(const json_t * json)
@@ -37,19 +41,42 @@ CDBFieldSelector::CDBFieldSelector(const json_t * json)
   , mTable()
   , mField()
   , mFieldType()
-  , mpSetContent(NULL)
+  , mpSelector(NULL)
 {
   fromJSON(json);
 }
 
 CDBFieldSelector::~CDBFieldSelector()
 {
-  CSetContent::destroy(mpSetContent);
+  CSetContent::destroy(mpSelector);
 }
 
 // virtual
 void CDBFieldSelector::fromJSON(const json_t * json)
 {
+  /*
+    "dbFieldValueSelector": {
+      "$id": "#dbFieldValueSelector",
+      "description": "A filter returning a list dbFieldValues from the external person trait database.",
+      "type": "object",
+      "required": [
+        "elementType",
+        "table",
+        "field",
+        "selector"
+      ],
+      "properties": {
+        "elementType": {
+          "type": "string",
+          "enum": ["dbField"]
+        },
+        "table": {"$ref": "#/definitions/uniqueIdRef"},
+        "field": {"$ref": "#/definitions/uniqueIdRef"},
+        "selector": {"$ref": "#/definitions/setContent"}
+      }
+    },
+  */
+
   json_t * pValue = json_object_get(json, "elementType");
 
   mValid = (json_is_string(pValue) && strcmp(json_string_value(pValue), "dbField") == 0);
@@ -87,8 +114,11 @@ void CDBFieldSelector::fromJSON(const json_t * json)
 
   if (json_is_object(pValue))
     {
-      mpSetContent = CSetContent::create(pValue);
-      mValid &= (mpSetContent != NULL && mpSetContent->isValid());
+      mpSelector = CSetContent::create(pValue);
+      mValid &= (mpSelector != NULL && mpSelector->isValid());
+
+      if (mValid)
+        mPrerequisites.insert(mpSelector);
     }
   else
     {
@@ -100,7 +130,25 @@ void CDBFieldSelector::fromJSON(const json_t * json)
 // virtual
 void CDBFieldSelector::compute()
 {
-  // TODO CRITICAL Implement me!
+  mDBFieldValues.clear();
+
+  CFieldValueList FieldValueList;
+  CFieldValueList ConstraintValueList;
+
+  std::set< CNode * >::const_iterator itConstraint = mpSelector->beginNodes();
+  std::set< CNode * >::const_iterator endConstraint = mpSelector->endNodes();
+
+  for (; itConstraint != endConstraint; ++itConstraint)
+    {
+      ConstraintValueList.append(CFieldValue((*itConstraint)->id));
+    }
+
+  CQuery::in(mTable, mField, FieldValueList, false, "pid", ConstraintValueList);
+
+  if (FieldValueList.size() > 0)
+    {
+      mDBFieldValues.insert(std::make_pair(FieldValueList.getType(), FieldValueList));
+    }
 }
 
 

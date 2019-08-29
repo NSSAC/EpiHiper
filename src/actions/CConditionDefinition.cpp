@@ -10,11 +10,18 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-/*
- * Operation.cpp
- *
- *  Created on: Jul 1, 2019
- *      Author: shoops
- */
+#include <jansson.h>
 
+#include "actions/CConditionDefinition.h"
+
+CConditionDefinition::CConditionDefinition()
+{
+  // TODO Auto-generated constructor stub
+
+}
+
+CConditionDefinition::~CConditionDefinition()
+{
+  // TODO Auto-generated destructor stub
+}
 

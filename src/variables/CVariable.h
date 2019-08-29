@@ -10,8 +10,8 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#ifndef SRC_INTERVENTION_CVARIABLE_H_
-#define SRC_INTERVENTION_CVARIABLE_H_
+#ifndef SRC_VARIABLES_CVARIABLE_H_
+#define SRC_VARIABLES_CVARIABLE_H_
 
 #include "math/CComputable.h"
 #include "utilities/CAnnotation.h"
@@ -61,4 +61,4 @@ private:
   bool mValid;
 };
 
-#endif /* SRC_INTERVENTION_CVARIABLE_H_ */
+#endif /* SRC_VARIABLES_CVARIABLE_H_ */

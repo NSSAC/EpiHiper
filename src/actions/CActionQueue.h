@@ -25,6 +25,8 @@ class CActionQueue: public std::map< size_t, CCurrentActions >
 
     static bool processCurrentActions();
 
+    static const size_t & getCurrentTick();
+
     static void setCurrentTick(const size_t & currentTick);
 
     static void incrementTick();

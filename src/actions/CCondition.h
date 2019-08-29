@@ -64,10 +64,10 @@ public:
   {
   public:
     CComparison() = delete;
-    CComparison(ComparisonType operation, Value & left, Value & right);
-    CComparison(ComparisonType operation, Value & left, Value * right);
-    CComparison(ComparisonType operation, Value * pLeft, Value & right);
-    CComparison(ComparisonType operation, Value * left, Value * right);
+    CComparison(ComparisonType operation, Value const & left, Value const & right);
+    CComparison(ComparisonType operation, Value const & left, Value const * right);
+    CComparison(ComparisonType operation, Value const * pLeft, Value const & right);
+    CComparison(ComparisonType operation, Value const * left, Value const * right);
     CComparison(const CComparison & src);
     virtual ~CComparison();
     virtual CBoolean * copy() const;
@@ -78,9 +78,9 @@ public:
   private:
     ComparisonType mType;
     bool mOwnLeft;
-    Value * mpLeft;
+    Value const * mpLeft;
     bool mOwnRight;
-    Value * mpRight;
+    Value const * mpRight;
   };
 
   class CBooleanOperation : protected CBoolean
@@ -140,7 +140,7 @@ public:
 
 };
 
-template < class Value > CCondition::CComparison< Value >::CComparison(ComparisonType operation, Value & left, Value & right)
+template < class Value > CCondition::CComparison< Value >::CComparison(ComparisonType operation, Value const & left, Value const & right)
   : CBoolean()
   , mType(operation)
   , mOwnLeft(true)
@@ -149,7 +149,7 @@ template < class Value > CCondition::CComparison< Value >::CComparison(Compariso
   , mpRight(new Value(right))
 {}
 
-template < class Value > CCondition::CComparison< Value >::CComparison(ComparisonType operation, Value & left, Value * pRight)
+template < class Value > CCondition::CComparison< Value >::CComparison(ComparisonType operation, Value const & left, Value const * pRight)
   : CBoolean()
   , mType(operation)
   , mOwnLeft(true)
@@ -158,7 +158,7 @@ template < class Value > CCondition::CComparison< Value >::CComparison(Compariso
   , mpRight(pRight)
 {}
 
-template < class Value > CCondition::CComparison< Value >::CComparison(ComparisonType operation, Value * pLeft, Value & right)
+template < class Value > CCondition::CComparison< Value >::CComparison(ComparisonType operation, Value const * pLeft, Value const & right)
   : CBoolean()
   , mType(operation)
   , mOwnLeft(false)
@@ -167,7 +167,7 @@ template < class Value > CCondition::CComparison< Value >::CComparison(Compariso
   , mpRight(new Value(right))
 {}
 
-template < class Value > CCondition::CComparison< Value >::CComparison(ComparisonType operation, Value * pLeft, Value * pRight)
+template < class Value > CCondition::CComparison< Value >::CComparison(ComparisonType operation, Value const * pLeft, Value const * pRight)
   : CBoolean()
   , mType(operation)
   , mOwnLeft(false)

@@ -120,7 +120,7 @@ CValueInterface & CNodeProperty::infectivityFactor(CNode * pNode)
 
 CValueInterface & CNodeProperty::healthState(CNode * pNode)
 {
-  mHealthState = CModel::stateToType(pNode->pHealthState);
+  mHealthState = CModel::stateToType(pNode->getHealthState());
 
   return *this;
 }
@@ -144,22 +144,22 @@ COperation * CNodeProperty::setId(CNode * pNode, const CValueInterface & value)
 
 COperation * CNodeProperty::setSusceptibilityFactor(CNode * pNode, const CValueInterface & value)
 {
-  return new COperationInstance< CNode, double >(*pNode, value.toNumber(), &CNode::setSusceptibilityFactor);
+  return new COperationInstance< CNode, double >(pNode, value.toNumber(), &CNode::setSusceptibilityFactor);
 }
 
 COperation * CNodeProperty::setInfectivityFactor(CNode * pNode, const CValueInterface & value)
 {
-  return new COperationInstance< CNode, double >(*pNode, value.toNumber(), &CNode::setInfectivityFactor);
+  return new COperationInstance< CNode, double >(pNode, value.toNumber(), &CNode::setInfectivityFactor);
 }
 
 COperation * CNodeProperty::setHealthState(CNode * pNode, const CValueInterface & value)
 {
-  return new COperationInstance< CNode, size_t >(*pNode, value.toId(), &CNode::setHealthState);
+  return new COperationInstance< CNode, size_t >(pNode, value.toId(), &CNode::setHealthState);
 }
 
 COperation * CNodeProperty::setNodeTrait(CNode * pNode, const CValueInterface & value)
 {
-  return new COperationInstance< CNode, CTraitData::value >(*pNode, value.toTraitValue(), &CNode::setNodeTrait);
+  return new COperationInstance< CNode, CTraitData::value >(pNode, value.toTraitValue(), &CNode::setNodeTrait);
 }
 
 

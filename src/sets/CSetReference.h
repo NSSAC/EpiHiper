@@ -10,31 +10,28 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#ifndef SRC_INTERVENTION_CSETCONTENT_H_
-#define SRC_INTERVENTION_CSETCONTENT_H_
+#ifndef SRC_SETS_CSETREFERENCE_H_
+#define SRC_SETS_CSETREFERENCE_H_
 
-#include "math/CValueList.h"
-#include "math/CComputable.h"
+#include "sets/CSetContent.h"
 
-class CNode;
-class CEdge;
+struct json_t;
+class CSet;
 
-class CSetContent: public CComputable
+class CSetReference : public CSetContent
 {
 public:
-  static CSetContent * create(const json_t * json);
-  static CSetContent * copy(const CSetContent * pSetContent);
-  static void destroy(CSetContent *& pSetContent);
+  CSetReference();
 
-  CSetContent();
+  CSetReference(const CSetReference & src);
 
-  CSetContent(const CSetContent & src);
+  CSetReference(const json_t * json);
 
-  virtual ~CSetContent();
+  virtual ~CSetReference();
 
   virtual void fromJSON(const json_t * json);
 
-  const bool & isValid() const;
+  virtual void compute();
 
   virtual bool contains(CNode * pNode) const;
 
@@ -52,11 +49,9 @@ public:
 
   virtual const std::map< CValueList::Type, CValueList > & getDBFieldValues() const;
 
-protected:
-  std::set< CNode * > mNodes;
-  std::set< CEdge * > mEdges;
-  std::map< CValueList::Type, CValueList > mDBFieldValues;
-  bool mValid;
+private:
+  std::string mIdRef;
+  CSet * mpSet;
 };
 
-#endif /* SRC_INTERVENTION_CSETCONTENT_H_ */
+#endif /* SRC_SETS_CSETREFERENCE_H_ */

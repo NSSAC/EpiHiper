@@ -10,11 +10,27 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-/*
- * Operation.cpp
- *
- *  Created on: Jul 1, 2019
- *      Author: shoops
- */
+#include <jansson.h>
 
+#include "actions/CActionDefinition.h"
+
+CActionDefinition::CActionDefinition()
+{}
+
+CActionDefinition::CActionDefinition(const CActionDefinition & src)
+{}
+
+CActionDefinition::CActionDefinition(const json_t * json)
+{
+  fromJSON(json);
+}
+
+// virtual
+CActionDefinition::~CActionDefinition()
+{}
+
+void CActionDefinition::fromJSON(const json_t * json)
+{
+  // TODO CRITICAL Implement me!
+}
 

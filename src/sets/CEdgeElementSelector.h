@@ -36,9 +36,8 @@ private:
   CEdgeProperty mLeft;
   CValue * mpValue;
   CValueList * mpValueList;
-  CSetContent * mpSetContent;
+  CSetContent * mpSelector;
   CValueInterface::pComparison mpComparison;
-  std::string mSQLComparison;
   CEdgeProperty::pGetNode mpGetNode;
 };
 

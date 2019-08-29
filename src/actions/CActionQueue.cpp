@@ -64,6 +64,13 @@ size_t CActionQueue::pendingActions()
 }
 
 // static
+const size_t & CActionQueue::getCurrentTick()
+{
+  return INSTANCE.mCurrenTick;
+}
+
+
+// static
 void CActionQueue::setCurrentTick(const size_t & currentTick)
 {
   INSTANCE.mCurrenTick = currentTick;

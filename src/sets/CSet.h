@@ -19,9 +19,9 @@
 #include "utilities/CAnnotation.h"
 #include "math/CComputable.h"
 
-class CSetContent;
+#include "sets/CSetContent.h"
 
-class CSet: public CAnnotation
+class CSet : public CSetContent, public CAnnotation
 {
 public:
   enum struct Type
@@ -42,9 +42,26 @@ public:
 
   const bool & isValid() const;
 
-  CSetContent * getSetContent() const;
-
   virtual void fromJSON(const json_t * json);
+
+  virtual void compute();
+
+  virtual bool contains(CNode * pNode) const;
+
+  virtual bool contains(CEdge * pEdge) const;
+
+  virtual bool contains(const CValueInterface & value) const;
+
+  virtual std::set< CEdge * >::const_iterator beginEdges() const;
+
+  virtual std::set< CEdge * >::const_iterator endEdges() const;
+
+  virtual std::set< CNode * >::const_iterator beginNodes() const;
+
+  virtual std::set< CNode * >::const_iterator endNodes() const;
+
+  virtual const std::map< CValueList::Type, CValueList > & getDBFieldValues() const;
+
 
 private:
   std::string mId;

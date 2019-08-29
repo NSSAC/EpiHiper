@@ -17,12 +17,13 @@
  *      Author: shoops
  */
 
-#ifndef SRC_INTERVENTION_CVARIABLELIST_H_
-#define SRC_INTERVENTION_CVARIABLELIST_H_
+#ifndef SRC_VARIABLES_CVARIABLELIST_H_
+#define SRC_VARIABLES_CVARIABLELIST_H_
 
 #include <vector>
 #include <map>
-#include "intervention/CVariable.h"
+
+#include "variables/CVariable.h"
 
 struct json_t;
 
@@ -52,4 +53,4 @@ private:
   bool mValid;
 };
 
-#endif /* SRC_INTERVENTION_CVARIABLELIST_H_ */
+#endif /* SRC_VARIABLES_CVARIABLELIST_H_ */

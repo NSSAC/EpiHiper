@@ -51,7 +51,7 @@ private:
   CNodeProperty mNodeProperty;
   CValue * mpValue;
   CValueList * mpValueList;
-  CSetContent * mpSetContent;
+  CSetContent * mpSelector;
   std::string mDBTable;
   std::string mDBField;
   CObservable * mpObservable;

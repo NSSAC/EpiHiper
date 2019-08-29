@@ -15,7 +15,7 @@
 #include <cmath>
 #include <jansson.h>
 
-#include "intervention/CVariable.h"
+#include "variables/CVariable.h"
 
 CVariable::CVariable(const CVariable & src)
   : CAnnotation(src)

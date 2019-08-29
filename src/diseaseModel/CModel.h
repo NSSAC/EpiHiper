@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "utilities/CAnnotation.h"
+#include "utilities/CCommunicate.h"
 
 class CHealthState;
 class CTransmission;
@@ -71,6 +72,10 @@ public:
   static void stateChanged(CNode * pNode);
 
   static const std::vector< CTransmission > & getTransmissions();
+
+  static int updateGlobalStateCounts();
+
+  static CCommunicate::ErrorCode receiveGlobalStateCounts(std::istream & is, int sender);
 
 private:
   bool _processTransmissions() const;

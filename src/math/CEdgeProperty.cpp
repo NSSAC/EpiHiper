@@ -135,25 +135,25 @@ CValueInterface &  CEdgeProperty::weight(CEdge * pEdge)
 
 COperation * CEdgeProperty::setTargetActivity(CEdge * pEdge, const CValueInterface & value)
 {
-  return new COperationInstance< CEdge, CTraitData::value >(*pEdge, value.toTraitValue(), &CEdge::setTargetActivity);
+  return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), &CEdge::setTargetActivity);
 }
 
 COperation * CEdgeProperty::setSourceActivity(CEdge * pEdge, const CValueInterface & value)
 {
-  return new COperationInstance< CEdge, CTraitData::value >(*pEdge, value.toTraitValue(), &CEdge::setSourceActivity);
+  return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), &CEdge::setSourceActivity);
 }
 
 COperation * CEdgeProperty::setEdgeTrait(CEdge * pEdge, const CValueInterface & value)
 {
-  return new COperationInstance< CEdge, CTraitData::value >(*pEdge, value.toTraitValue(), &CEdge::setEdgeTrait);
+  return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), &CEdge::setEdgeTrait);
 }
 
 COperation * CEdgeProperty::setActive(CEdge * pEdge, const CValueInterface & value)
 {
-  return new COperationInstance< CEdge, bool >(*pEdge, value.toBoolean(), &CEdge::setActive);
+  return new COperationInstance< CEdge, bool >(pEdge, value.toBoolean(), &CEdge::setActive);
 }
 
 COperation * CEdgeProperty::setWeight(CEdge * pEdge, const CValueInterface & value)
 {
-  return new COperationInstance< CEdge, double >(*pEdge, value.toNumber(), &CEdge::setWeight);
+  return new COperationInstance< CEdge, double >(pEdge, value.toNumber(), &CEdge::setWeight);
 }

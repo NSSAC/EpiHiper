@@ -10,6 +10,9 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#include <cstring>
+#include <jansson.h>
+
 #include "sets/CSetOperation.h"
 
 CSetOperation::CSetOperation()
@@ -34,30 +37,72 @@ CSetOperation::~CSetOperation()
 void CSetOperation::fromJSON(const json_t * json)
 {
   /*
-         "required": [
-          "operation",
-          "sets"
-        ],
-        "properties": {
-          "operation": {
-            "type": "string",
-            "enum": [
-              "union",
-              "intersection"
-            ]
-          },
-          "sets": {
-            "type": "array",
-            "items": {"$ref": "#/definitions/setContent"}
-          }
-        },
-
+    "required": [
+      "operation",
+      "sets"
+    ],
+    "properties": {
+      "operation": {
+        "type": "string",
+        "enum": [
+          "union",
+          "intersection"
+        ]
+      },
+      "sets": {
+        "type": "array",
+        "items": {"$ref": "#/definitions/setContent"}
+      }
+    },
   */
+
+  json_t * pValue = json_object_get(json, "operation");
+
+  if (!json_is_string(pValue))
+    {
+      mValid = false;
+      return;
+    }
+
+  if (strcmp(json_string_value(pValue), "union") == 0)
+    {
+      mpCompute = &CSetOperation::computeUnion;
+    }
+  else if (strcmp(json_string_value(pValue), "intersection") == 0)
+    {
+      mpCompute = &CSetOperation::computeIntersection;
+    }
+  else
+    {
+      mValid = false;
+      return;
+    }
+
+  pValue = json_object_get(json, "sets");
+
+  if (!json_is_array(pValue))
+    {
+      mValid = false;
+      return;
+    }
+
 }
 
 // virtual
 void CSetOperation::compute()
 {
-  // TODO CRITICAL Implement me!
+  if (mValid &&
+      mpCompute != NULL)
+    (this->*mpCompute)();
+}
+
+void CSetOperation::computeUnion()
+{
+
+}
+
+void CSetOperation::computeIntersection()
+{
+
 }
 

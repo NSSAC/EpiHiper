@@ -28,7 +28,7 @@ CNodeElementSelector::CNodeElementSelector()
   , mNodeProperty()
   , mpValue(NULL)
   , mpValueList(NULL)
-  , mpSetContent(NULL)
+  , mpSelector(NULL)
   , mDBTable()
   , mDBField()
   , mpObservable(NULL)
@@ -45,7 +45,7 @@ CNodeElementSelector::CNodeElementSelector(const CNodeElementSelector & src)
   , mNodeProperty(src.mNodeProperty)
   , mpValue(src.mpValue != NULL ? new CValue(*src.mpValue) : NULL)
   , mpValueList(src.mpValueList != NULL ? new CValueList(*src.mpValueList) : NULL)
-  , mpSetContent(CSetContent::copy(src.mpSetContent))
+  , mpSelector(CSetContent::copy(src.mpSelector))
   , mDBTable(src.mDBTable)
   , mDBField(src.mDBField)
   , mpObservable(src.mpObservable != NULL ? new CObservable(*src.mpObservable) : NULL)
@@ -62,7 +62,7 @@ CNodeElementSelector::CNodeElementSelector(const json_t * json)
   , mNodeProperty()
   , mpValue(NULL)
   , mpValueList(NULL)
-  , mpSetContent(NULL)
+  , mpSelector(NULL)
   , mDBTable()
   , mDBField()
   , mpObservable(NULL)
@@ -80,8 +80,7 @@ CNodeElementSelector::~CNodeElementSelector()
 {
   if (mpValue == NULL) delete mpValue;
   if (mpValueList == NULL) delete mpValueList;
-  if (mpSetContent == NULL) delete mpSetContent;
-  if (mpObservable == NULL) delete mpObservable;
+  CSetContent::destroy(mpSelector);
   if (mpDBFieldValue == NULL) delete mpDBFieldValue;
   if (mpDBFieldValueList == NULL) delete mpDBFieldValueList;
 }
@@ -199,11 +198,11 @@ void CNodeElementSelector::fromJSON(const json_t * json)
         },
       */
       // We need to identify that we have this case
-      mpSetContent = CSetContent::create(json_object_get(json, "selector"));
-      mValid &= (mpSetContent != NULL && mpSetContent->isValid());
+      mpSelector = CSetContent::create(json_object_get(json, "selector"));
+      mValid &= (mpSelector != NULL && mpSelector->isValid());
 
       if (mValid)
-        mPrerequisites.insert(mpSetContent);
+        mPrerequisites.insert(mpSelector);
 
       mpCompute = &CNodeElementSelector::nodeWithIncomingEdge;
 
@@ -334,10 +333,10 @@ void CNodeElementSelector::fromJSON(const json_t * json)
           return;
         }
 
-      mpSetContent = CSetContent::create(json_object_get(json, "right"));
-      mPrerequisites.insert(mpSetContent);
+      mpSelector = CSetContent::create(json_object_get(json, "right"));
+      mPrerequisites.insert(mpSelector);
 
-      mValid = (mpSetContent != NULL && mpSetContent->isValid());
+      mValid = (mpSelector != NULL && mpSelector->isValid());
 
     }
   // Select node where the node property value comparison with the provided value is true.
@@ -430,23 +429,17 @@ void CNodeElementSelector::fromJSON(const json_t * json)
           return;
         }
 
-      mValid = true;
-
       mpCompute = &CNodeElementSelector::nodeWithDBFieldSelection;
 
-      /*
-      CObservable Observable(json_object_get(json, "right"));
+      mpObservable = CObservable::get(json_object_get(json, "right"));
 
-      if (Observable.isValid())
+      if (mpObservable->isValid())
         {
-          mpObservable = new CObservable(Observable);
           mPrerequisites.insert(mpObservable);
-
           mValid = true;
 
           return;
         }
-*/
 
       CFieldValue FieldValue(json_object_get(json, "right"));
 
@@ -512,8 +505,8 @@ void CNodeElementSelector::nodeWithIncomingEdge()
   mNodes.clear();
 
   CNode * pNode = NULL;
-  std::set< CEdge * >::const_iterator it = mpSetContent->beginEdges();
-  std::set< CEdge * >::const_iterator end = mpSetContent->endEdges();
+  std::set< CEdge * >::const_iterator it = mpSelector->beginEdges();
+  std::set< CEdge * >::const_iterator end = mpSelector->endEdges();
 
   for (; it != end; ++it)
     if ((*it)->pTarget != pNode)
@@ -544,7 +537,10 @@ void CNodeElementSelector::nodeWithDBFieldSelection()
   mNodes.clear();
   CFieldValueList FieldValueList;
 
-  CQuery::where(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpDBFieldValue, mSQLComparison);
+  if (mpObservable)
+    CQuery::where(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpObservable, mSQLComparison);
+  else
+    CQuery::where(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpDBFieldValue, mSQLComparison);
 
   CFieldValueList::const_iterator it = FieldValueList.begin();
   CFieldValueList::const_iterator end = FieldValueList.end();
@@ -557,10 +553,52 @@ void CNodeElementSelector::nodeWithDBFieldSelection()
 
 void CNodeElementSelector::nodeWithDBFieldWithin()
 {
-  // TODO CRITICAL Implement me!
+  mNodes.clear();
+  CFieldValueList FieldValueList;
+
+  if (mpDBFieldValueList != NULL)
+    CQuery::in(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpDBFieldValueList);
+  else
+    {
+      CField Field = CSchema::INSTANCE.getTable(mDBTable).getField(mDBField);
+      const std::map< CValueList::Type, CValueList > & ValueListMap = mpSelector->getDBFieldValues();
+      std::map< CValueList::Type, CValueList >::const_iterator found = ValueListMap.find(Field.getType());
+
+      if (found != ValueListMap.end())
+        CQuery::in(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, found->second);
+    }
+
+  CFieldValueList::const_iterator it = FieldValueList.begin();
+  CFieldValueList::const_iterator end = FieldValueList.end();
+
+  for (; it != end; ++it)
+    {
+      mNodes.insert(CNetwork::INSTANCE->lookupNode(it->toId()));
+    }
 }
 
 void CNodeElementSelector::nodeWithDBFieldNotWithin()
 {
-  // TODO CRITICAL Implement me!
+  mNodes.clear();
+  CFieldValueList FieldValueList;
+
+  if (mpDBFieldValueList != NULL)
+    CQuery::notIn(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpDBFieldValueList);
+  else
+    {
+      CField Field = CSchema::INSTANCE.getTable(mDBTable).getField(mDBField);
+      const std::map< CValueList::Type, CValueList > & ValueListMap = mpSelector->getDBFieldValues();
+      std::map< CValueList::Type, CValueList >::const_iterator found = ValueListMap.find(Field.getType());
+
+      if (found != ValueListMap.end())
+        CQuery::notIn(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, found->second);
+    }
+
+  CFieldValueList::const_iterator it = FieldValueList.begin();
+  CFieldValueList::const_iterator end = FieldValueList.end();
+
+  for (; it != end; ++it)
+    {
+      mNodes.insert(CNetwork::INSTANCE->lookupNode(it->toId()));
+    }
 }
