@@ -21,7 +21,9 @@ class CValueList : protected std::set< CValue >
 {
 public:
   typedef CValueInterface::Type Type;
+  typedef std::set< CValue >::iterator iterator;
   typedef std::set< CValue >::const_iterator const_iterator;
+  typedef std::set< CValue >::value_type value_type;
 
   CValueList(const Type & type = Type::number);
 
@@ -53,9 +55,19 @@ public:
 
   void fromBinary(std::istream & is);
 
+  iterator insert (iterator position, const value_type & val);
+
+  template < typename _InputIterator > void insert(_InputIterator __first, _InputIterator __last);
+
 protected:
   Type mType;
   bool mValid;
 };
+
+template < typename _InputIterator > void CValueList::insert(_InputIterator __first, _InputIterator __last)
+{
+  std::set< CValue >::insert(__first, __last);
+}
+
 
 #endif /* SRC_MATH_CVALUELIST_H_ */

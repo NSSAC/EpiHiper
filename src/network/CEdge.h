@@ -16,6 +16,7 @@
 #include <iostream>
 
 #include "traits/CTraitData.h"
+#include "math/CValueInterface.h"
 
 class CNode;
 class CMetadata;
@@ -35,11 +36,11 @@ public:
   void toBinary(std::ostream & os) const;
   void fromBinary(std::istream & is);
 
-  bool setTargetActivity(CTraitData::value value, const CMetadata & metadata);
-  bool setSourceActivity(CTraitData::value value, const CMetadata & metadata);
-  bool setEdgeTrait(CTraitData::value value, const CMetadata & metadata);
-  bool setActive(bool value, const CMetadata & metadata);
-  bool setWeight(double value, const CMetadata & metadata);
+  bool setTargetActivity(CTraitData::value value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+  bool setSourceActivity(CTraitData::value value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+  bool setEdgeTrait(CTraitData::value value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+  bool setActive(bool value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+  bool setWeight(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
 
   size_t targetId;
   CTraitData::base targetActivity;

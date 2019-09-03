@@ -27,6 +27,10 @@ public:
 
   CEdgeProperty();
 
+  CEdgeProperty(const CEdgeProperty & src);
+
+  CEdgeProperty(const json_t * json);
+
   virtual ~CEdgeProperty();
 
   void fromJSON(const json_t * json);
@@ -35,7 +39,7 @@ public:
 
   CValueInterface & propertyOf(CEdge * pEdge);
 
-  COperation * createOperation(CEdge * pEdge, const CValueInterface & value);
+  COperation * createOperation(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator);
 
   static CNode * targetNode(CEdge * pEdge);
 
@@ -48,14 +52,14 @@ private:
   CValueInterface & active(CEdge * pEdge);
   CValueInterface & weight(CEdge * pEdge);
 
-  COperation * setTargetActivity(CEdge * pEdge, const CValueInterface & value);
-  COperation * setSourceActivity(CEdge * pEdge, const CValueInterface & value);
-  COperation * setEdgeTrait(CEdge * pEdge, const CValueInterface & value);
-  COperation * setActive(CEdge * pEdge, const CValueInterface & value);
-  COperation * setWeight(CEdge * pEdge, const CValueInterface & value);
+  COperation * setTargetActivity(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator);
+  COperation * setSourceActivity(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator);
+  COperation * setEdgeTrait(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator);
+  COperation * setActive(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator);
+  COperation * setWeight(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator);
 
   CValueInterface & (CEdgeProperty::*mpPropertyOf)(CEdge *);
-  COperation * (CEdgeProperty::*mpCreateOperation)(CEdge *, const CValueInterface &);
+  COperation * (CEdgeProperty::*mpCreateOperation)(CEdge *, const CValueInterface &, CValueInterface::pOperator pOperator);
   CNodeProperty mNodeProperty;
   bool mValid;
 };

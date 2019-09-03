@@ -16,6 +16,8 @@
 #include <vector>
 
 #include <actions/CActionDefinition.h>
+#include <actions/CSampling.h>
+
 struct json_t;
 
 class CActionEnsemble
@@ -36,6 +38,7 @@ public:
 private:
   std::vector< CActionDefinition > mOnce;
   std::vector< CActionDefinition > mForEach;
+  CSampling mSampling;
   bool mValid;
 };
 

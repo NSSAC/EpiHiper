@@ -20,9 +20,18 @@
 #ifndef SRC_ACTIONS_COPERATIONDEFINITION_H_
 #define SRC_ACTIONS_COPERATIONDEFINITION_H_
 
-class COperation;
+#include "utilities/CAnnotation.h"
+#include "math/CValueList.h"
 
-class COperationDefinition
+class COperation;
+class CNodeProperty;
+class CEdgeProperty;
+class CVariable;
+class CNode;
+class CEdge;
+struct json_t;
+
+class COperationDefinition : public CAnnotation
 {
 public:
   enum struct TargetType
@@ -43,6 +52,8 @@ public:
    */
   COperationDefinition(const COperationDefinition & src);
 
+  COperationDefinition(const json_t * json);
+
   /**
    * Destructor
    */
@@ -50,13 +61,21 @@ public:
 
   void fromJSON(const json_t * json);
 
-  template < class Target > COperation * createOperation(Target * pTarget) const;
+  const bool & isValid() const;
+
+  COperation * createOperation(CNode * pNode) const;
+
+  COperation * createOperation(CEdge * pEdge) const;
+
+  COperation * createOperation(CVariable * pVariable) const;
+
+private:
+  TargetType mTargetType;
+  CNodeProperty * mpNodeProperty;
+  CEdgeProperty * mpEdgeProperty;
+  CVariable * mpVariable;
+  CValueInterface::pOperator mpOperator;
+  CValue mValue;
+  bool mValid;
 };
-
-template < class Target > COperation * COperationDefinition::createOperation(Target * pTarget) const
-{
-  // TODO CRITICAL Implement me!
-  return NULL;
-}
-
 #endif /* SRC_ACTIONS_COPERATIONDEFINITION_H_ */

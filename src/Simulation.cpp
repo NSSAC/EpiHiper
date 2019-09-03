@@ -172,13 +172,13 @@ void Simulation::test()
   Changes::setCurrentTick(startTick - 1);
   Changes::initDefaultOutput();
 
-  size_t perNode = std::round(100.0/CCommunicate::Processes);
+  size_t perNode = std::round(100.0/CCommunicate::MPIProcesses);
 
   for (size_t i = 0; i < 100; ++i)
     {
       CNode * pNode = pNodes + uniform(CRandom::G);
 
-      bool sussess = pNode->set(&Symptomatic, CMetadata());
+      bool sussess = pNode->set(&Symptomatic, NULL, CMetadata());
     }
 
   CActionQueue::processCurrentActions();
@@ -204,7 +204,7 @@ void Simulation::dummyRun() {
   CCommunicate::Status status;
 
   std::set<personid_t> population;
-  if (CCommunicate::Rank == 0) {
+  if (CCommunicate::MPIRank == 0) {
     std::ifstream f(networkFile.data());
     if (! f.good()) {
       std::cerr << "fail to read file " << networkFile << std::endl;
@@ -228,36 +228,36 @@ void Simulation::dummyRun() {
   }
 
   uint64_t N;
-  uint64_t sizeSubpop[CCommunicate::Processes];
-  if (CCommunicate::Rank == 0) {
+  uint64_t sizeSubpop[CCommunicate::MPIProcesses];
+  if (CCommunicate::MPIRank == 0) {
     N = population.size();
-    for (int i = 0; i < CCommunicate::Processes; i++) {
-      sizeSubpop[i] = N / CCommunicate::Processes;
+    for (int i = 0; i < CCommunicate::MPIProcesses; i++) {
+      sizeSubpop[i] = N / CCommunicate::MPIProcesses;
     }
-    sizeSubpop[0] += (N - (N / CCommunicate::Processes) * CCommunicate::Processes);
+    sizeSubpop[0] += (N - (N / CCommunicate::MPIProcesses) * CCommunicate::MPIProcesses);
   }
 
-  CCommunicate::broadcast(sizeSubpop, CCommunicate::Processes, MPI_UINT64_T, 0);
-  personid_t subpop[sizeSubpop[CCommunicate::Rank]];
+  CCommunicate::broadcast(sizeSubpop, CCommunicate::MPIProcesses, MPI_UINT64_T, 0);
+  personid_t subpop[sizeSubpop[CCommunicate::MPIRank]];
   /*
   std::cout << "subpop size of rank " << Communicate::Rank << "=" << sizeSubpop[Communicate::Rank]
 	    << std::endl;
   */
 
-  if (CCommunicate::Rank == 0) {
+  if (CCommunicate::MPIRank == 0) {
     // divide population and send ids
     std::set<personid_t>::iterator iter = population.begin();
     personid_t *subpopTmp;
-    for (int rank = 1; rank < CCommunicate::Processes; rank++) {
+    for (int rank = 1; rank < CCommunicate::MPIProcesses; rank++) {
       subpopTmp = new personid_t[sizeSubpop[rank]];
       for (uint64_t index = 0; index < sizeSubpop[rank]; index++) {
 	subpopTmp[index] = *iter;
 	++iter;
       }
-      CCommunicate::send(subpopTmp, sizeSubpop[rank], MPI_UINT64_T, rank, CCommunicate::Rank);
+      CCommunicate::send(subpopTmp, sizeSubpop[rank], MPI_UINT64_T, rank, CCommunicate::MPIRank);
       delete [] subpopTmp;
     }
-    for (uint64_t index = 0; index < sizeSubpop[CCommunicate::Rank]; index++) {
+    for (uint64_t index = 0; index < sizeSubpop[CCommunicate::MPIRank]; index++) {
       if (iter != population.end()) {
 	subpop[index] = *iter;
 	++iter;
@@ -268,11 +268,11 @@ void Simulation::dummyRun() {
     }
   }
   else {
-    CCommunicate::receive(subpop, sizeSubpop[CCommunicate::Rank], MPI_UINT64_T, 0, 0, &status);
+    CCommunicate::receive(subpop, sizeSubpop[CCommunicate::MPIRank], MPI_UINT64_T, 0, 0, &status);
   }
 
   int T = endTick - startTick + 1;
-  N = sizeSubpop[CCommunicate::Rank];
+  N = sizeSubpop[CCommunicate::MPIRank];
   std::shuffle(&subpop[0], &subpop[N], CRandom::G);
   int totalInfection = 0;
 
@@ -296,7 +296,7 @@ void Simulation::dummyRun() {
     tick++;
   }
 
-  if (CCommunicate::Rank == 0)
+  if (CCommunicate::MPIRank == 0)
     {
       std::ofstream out;
 

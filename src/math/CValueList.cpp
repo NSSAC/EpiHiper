@@ -54,7 +54,7 @@ bool CValueList::append(const CValue & value)
       && size() > 0
       && begin()->toTraitValue().first != value.toTraitValue().first) return false;
 
-  insert(value);
+  std::set< CValue >::insert(value);
 
   return true;
 }
@@ -189,7 +189,7 @@ void CValueList::fromJSON(const json_t * json)
           pValue = json_array_get(pArray, i);
 
           if (json_is_boolean(pValue))
-            insert(json_is_true(pValue) ? true : false);
+            std::set< CValue >::insert(json_is_true(pValue) ? true : false);
           else
             mValid = false;
         }
@@ -201,7 +201,7 @@ void CValueList::fromJSON(const json_t * json)
           pValue = json_array_get(pArray, i);
 
           if (json_is_real(pValue))
-            insert(json_real_value(pValue));
+            std::set< CValue >::insert(json_real_value(pValue));
           else
             mValid = false;
         }
@@ -213,7 +213,7 @@ void CValueList::fromJSON(const json_t * json)
           pValue = json_array_get(pArray, i);
 
           if (json_is_string(pValue))
-            insert(CModel::stateToType(CModel::getState(json_string_value(pValue))));
+            std::set< CValue >::insert(CModel::stateToType(CModel::getState(json_string_value(pValue))));
           else
             mValid = false;
         }
@@ -229,7 +229,7 @@ void CValueList::fromJSON(const json_t * json)
               const CEnum & Enum = pFeature->operator[](json_string_value(pValue));
 
               if (Enum.isValid())
-                insert(CTraitData::value(pFeature->getMask(), Enum.getMask()));
+                std::set< CValue >::insert(CTraitData::value(pFeature->getMask(), Enum.getMask()));
               else
                 mValid = false;
             }
@@ -287,7 +287,7 @@ void CValueList::fromBinary(std::istream & is)
         {
           bool Value;
           is.read(reinterpret_cast<char *>(&Value), sizeof(bool));
-          insert(Value);
+          std::set< CValue >::insert(Value);
         }
       break;
 
@@ -296,7 +296,7 @@ void CValueList::fromBinary(std::istream & is)
         {
           double Value;
           is.read(reinterpret_cast<char *>(&Value), sizeof(double));
-          insert(Value);
+          std::set< CValue >::insert(Value);
         }
       break;
 
@@ -306,7 +306,7 @@ void CValueList::fromBinary(std::istream & is)
         {
           size_t Value;
           is.read(reinterpret_cast<char *>(&Value), sizeof(size_t));
-          insert(Value);
+          std::set< CValue >::insert(Value);
         }
       break;
 
@@ -315,10 +315,14 @@ void CValueList::fromBinary(std::istream & is)
         {
           CTraitData::value Value;
           is.read(reinterpret_cast<char *>(&Value), sizeof(CTraitData::value));
-          insert(Value);
+          std::set< CValue >::insert(Value);
         }
       break;
   }
 }
 
+CValueList::iterator CValueList::insert(CValueList::iterator position, const CValueList::value_type & val)
+{
+  return std::set< CValue >::insert(position, val);
+}
 

@@ -60,6 +60,10 @@ public:
 
   virtual std::set< CNode * >::const_iterator endNodes() const;
 
+  virtual const std::set< CEdge * > & getEdges() const;
+
+  virtual const std::set< CNode * > & getNodes() const;
+
   virtual const std::map< CValueList::Type, CValueList > & getDBFieldValues() const;
 
 

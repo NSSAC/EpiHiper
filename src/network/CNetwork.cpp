@@ -240,15 +240,15 @@ void CNetwork::partition(std::istream & is)
 {
   // Communicate::Processes = 8;
 
-  size_t Partition[CCommunicate::Processes * 3 + 1];
+  size_t Partition[CCommunicate::MPIProcesses * 3 + 1];
 
-  if (CCommunicate::Rank == 0)
+  if (CCommunicate::MPIRank == 0)
     {
       size_t * pPartition = Partition;
       size_t * pNodes = pPartition + 1;
       size_t * pEdges = pPartition + 2;
 
-      size_t DesiredPerComputeNode = mTotalEdgesSize / CCommunicate::Processes + 1;
+      size_t DesiredPerComputeNode = mTotalEdgesSize / CCommunicate::MPIProcesses + 1;
 
       size_t Node(-1);
       size_t LastNode(-1);
@@ -313,9 +313,9 @@ void CNetwork::partition(std::istream & is)
       *(pPartition + 3)= Node + 1;
     }
 
-  CCommunicate::broadcast(Partition, CCommunicate::Processes * 3 + 1, MPI_UINT64_T, 0);
+  CCommunicate::broadcast(Partition, CCommunicate::MPIProcesses * 3 + 1, MPI_UINT64_T, 0);
 
-  size_t * pMine = Partition + 3 * CCommunicate::Rank;
+  size_t * pMine = Partition + 3 * CCommunicate::MPIRank;
   mFirstLocalNode = *pMine++;
   mLocalNodesSize = *pMine++;
   mEdgesSize = *pMine++;

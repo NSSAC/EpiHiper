@@ -48,6 +48,10 @@ public:
 
   CVariable & operator[](const std::string & id);
 
+  CVariable & operator[](const json_t * json);
+
+
+
 private:
   std::map< std::string, size_t > mId2Index;
   bool mValid;

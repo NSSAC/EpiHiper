@@ -164,8 +164,25 @@ std::set< CNode * >::const_iterator CSetContent::endNodes() const
   return mNodes.end();
 }
 
+// virtual
+const std::set< CEdge * > & CSetContent::getEdges() const
+{
+  return mEdges;
+}
+
+// virtual
+const std::set< CNode * > & CSetContent::getNodes() const
+{
+  return mNodes;
+}
+
 const std::map< CValueList::Type, CValueList > & CSetContent::getDBFieldValues() const
 {
   return mDBFieldValues;
+}
+
+size_t CSetContent::size() const
+{
+  return getEdges().size() + getNodes().size() + getDBFieldValues().size();
 }
 

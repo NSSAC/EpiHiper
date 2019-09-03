@@ -36,6 +36,7 @@ class CValueInterface
 
 public:
   typedef bool (*pComparison)(const CValueInterface &, const CValueInterface &);
+  typedef void (*pOperator)(double &, const double &);
 
   enum struct Type
   {
@@ -66,8 +67,6 @@ public:
 
   CValueInterface(std::string & str);
 
-  CValueInterface(CValueInterface & src);
-
   virtual ~CValueInterface();
 
   const bool & toBoolean() const;
@@ -87,6 +86,18 @@ public:
   void toBinary(std::ostream & os) const;
 
   void fromBinary(std::istream & is);
+
+  CValueInterface & operator=(const CValueInterface & rhs);
+
+  static void equal(double & lhs, const double & rhs);
+
+  static void plus(double & lhs, const double & rhs);
+
+  static void minus(double & lhs, const double & rhs);
+
+  static void multiply(double & lhs, const double & rhs);
+
+  static void divide(double & lhs, const double & rhs);
 
 protected:
   Type mType;

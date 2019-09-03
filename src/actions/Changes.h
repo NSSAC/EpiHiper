@@ -26,7 +26,7 @@
 
 class CNode;
 class CEdge;
-class Variable;
+class CVariable;
 class CMetadata;
 
 
@@ -35,7 +35,7 @@ class Changes
 public:
   static void record(const CNode & node, const CMetadata & metadata);
   static void record(const CEdge & edge, const CMetadata & metadata);
-  static void record(const Variable & variable, const CMetadata & metadata);
+  static void record(const CVariable & variable, const CMetadata & metadata);
   static void clear();
   static size_t size();
 

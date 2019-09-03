@@ -14,6 +14,7 @@
 #include <limits>
 #include <cmath>
 #include <jansson.h>
+#include <mpp/shmem.h>
 
 #include "variables/CVariable.h"
 
@@ -21,7 +22,8 @@ CVariable::CVariable(const CVariable & src)
   : CAnnotation(src)
   , mId(src.mId)
   , mType(src.mType)
-  , mValue(src.mValue)
+  , mInitialValue(src.mInitialValue)
+  , mpValue(src.mpValue)
   , mResetValue(src.mResetValue)
   , mValid(src.mValid)
 {}
@@ -30,7 +32,8 @@ CVariable::CVariable(const json_t * json)
   : CAnnotation()
   , mId()
   , mType()
-  , mValue()
+  , mInitialValue()
+  , mpValue(NULL)
   , mResetValue(std::numeric_limits< double >::quiet_NaN())
   , mValid(true)
 {
@@ -39,10 +42,44 @@ CVariable::CVariable(const json_t * json)
 
 // virtual
 CVariable::~CVariable()
-{}
+{
+  if (mpValue != NULL)
+    {
+      // TODO this is a memory leak but we cannot delete it unless we do use reference counting;
+      // shfree(mpValue);
+    }
+}
 
 void CVariable::fromJSON(const json_t * json)
 {
+  /*
+    "variable": {
+      "$id": "#variable",
+      "description": "A variable",
+      "allOf": [
+        {"$ref": "#/definitions/annotation"},
+        {
+          "type": "object",
+          "required": [
+            "id",
+            "initialValue",
+            "scope"
+          ],
+          "properties": {
+            "id": {"$ref": "#/definitions/uniqueId"},
+            "initialValue": {"$ref": "#/definitions/nonNegativeNumber"},
+            "scope": {"$ref": "#/definitions/scope"},
+            "reset": {"$ref": "#/definitions/nonNegativeInteger"}
+          },
+          "patternProperties": {
+            "^ann:": {}
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+  */
+
   json_t * pValue = json_object_get(json, "id");
 
   if (json_is_string(pValue))
@@ -57,7 +94,7 @@ void CVariable::fromJSON(const json_t * json)
 
   if (json_is_real(pValue))
     {
-      mValue = std::round(json_real_value(pValue));
+      mInitialValue = json_real_value(pValue);
     }
   else
     {
@@ -75,6 +112,10 @@ void CVariable::fromJSON(const json_t * json)
     {
       mValid = false;
     }
+
+  mpValue = (double *) shmalloc(sizeof(double));
+  reset();
+  shmem_barrier_all();
 
   pValue = json_object_get(json, "reset");
 
@@ -94,12 +135,12 @@ void CVariable::compute()
 
 void CVariable::toBinary(std::ostream & os) const
 {
-  os.write(reinterpret_cast<const char *>(&mValue), sizeof(double));
+  os.write(reinterpret_cast<const char *>(&mInitialValue), sizeof(double));
 }
 
 void CVariable::fromBinary(std::istream & is)
 {
-  is.read(reinterpret_cast<char *>(&mValue), sizeof(double));
+  is.read(reinterpret_cast<char *>(&mInitialValue), sizeof(double));
 }
 
 const std::string & CVariable::getId() const
@@ -110,6 +151,34 @@ const std::string & CVariable::getId() const
 const bool & CVariable::isValid() const
 {
   return mValid;
+}
+
+void CVariable::reset()
+{
+  *mpValue = mInitialValue;
+}
+
+bool CVariable::setValue(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
+{
+  if (mType == Type::local ||
+      CCommunicate::SHMEMRank == 0)
+    {
+      (*pOperator)(*mpValue, value);
+    }
+  else
+    {
+      long Lock;
+      shmem_set_lock(&Lock);
+
+      *mpValue = shmem_double_g(mpValue, 0);
+      (*pOperator)(*mpValue, value);
+      shmem_double_p(mpValue, *mpValue, 0);
+
+      shmem_clear_lock(&Lock);
+      shmem_fence();
+    }
+
+  return true;
 }
 
 

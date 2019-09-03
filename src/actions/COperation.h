@@ -14,6 +14,7 @@
 #define SRC_ACTIONS_COPERATION_H_
 
 #include "actions/Changes.h"
+#include "math/CValueInterface.h"
 
 class CMetadata;
 
@@ -36,22 +37,26 @@ template <class Target, class Value> class COperationInstance : public COperatio
 private:
   mutable Target  * mpTarget;
   Value mValue;
-  bool(Target::*mMethod)(Value, const CMetadata & metadata);
+  CValueInterface::pOperator mpOperator;
+  bool(Target::*mMethod)(Value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
 
 public:
   COperationInstance() = delete;
 
   COperationInstance(Target *pTarget,
                     Value value,
-                    bool(Target::*method)(Value, const CMetadata &))
+                    CValueInterface::pOperator pOperator,
+                    bool(Target::*method)(Value, CValueInterface::pOperator, const CMetadata &))
     : mpTarget(pTarget)
     , mValue(value)
+    , mpOperator(pOperator)
     , mMethod(method)
   {}
 
   COperationInstance(const COperationInstance & src)
     : mpTarget(src.mpTarget)
     , mValue(src.mValue)
+    , mpOperator(src.mpOperator)
     , mMethod(src.mMethod)
   {}
 
@@ -59,7 +64,7 @@ public:
 
   virtual bool execute(const CMetadata & metadata) const
   {
-    bool changed = (mpTarget->*mMethod)(mValue, metadata);
+    bool changed = (mpTarget->*mMethod)(mValue, mpOperator, metadata);
 
     if (changed)
       {

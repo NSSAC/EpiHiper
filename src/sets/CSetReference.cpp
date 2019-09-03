@@ -109,8 +109,6 @@ void CSetReference::compute()
       // evaluated once.
       mpSet->compute();
     }
-
-  // TODO CRITICAL Implement me!
 }
 
 // virtual
@@ -177,10 +175,28 @@ std::set< CNode * >::const_iterator CSetReference::endNodes() const
   return CSetContent::endNodes();
 }
 
+// virtual
+const std::set< CEdge * > & CSetReference::getEdges() const
+{
+  if (mValid)
+    return mpSet->getEdges();
+
+  return CSetContent::getEdges();
+}
+
+// virtual
+const std::set< CNode * > & CSetReference::getNodes() const
+{
+  if (mValid)
+    return mpSet->getNodes();
+
+  return CSetContent::getNodes();
+}
+
 const std::map< CValueList::Type, CValueList > & CSetReference::getDBFieldValues() const
 {
   if (mValid)
     return mpSet->getDBFieldValues();
 
-  return mDBFieldValues;
+  return CSetContent::getDBFieldValues();
 }

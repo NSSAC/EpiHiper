@@ -59,8 +59,6 @@ CEdgeElementSelector::~CEdgeElementSelector()
     delete mpValueList;
 
   CSetContent::destroy(mpSelector);
-  if (mpSelector != NULL)
-    delete mpSelector;
 }
 
 // virtual

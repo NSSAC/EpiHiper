@@ -246,13 +246,13 @@ bool CModel::_processTransmissions() const
 
             const Candidate & Candidate = (itCandidate != endCandidate) ? *itCandidate : *Candidates.rbegin();
 
-            CCondition::CComparison< const CHealthState * > CheckState(CCondition::ComparisonType::Equal, &pNode->getHealthState(), pNode->getHealthState());
+            CCondition::CComparison< const CHealthState * > CheckState(CConditionDefinition::ComparisonType::Equal, &pNode->getHealthState(), pNode->getHealthState());
 
             CMetadata Info("StateChange", true);
             Info.set("ContactNode", (int) Candidate.pContact->id);
 
             CAction ChangeState(1.0, CheckState, Info);
-            ChangeState.addOperation(new COperationInstance<CNode, const CTransmission *>(pNode, Candidate.pTransmission, &CNode::set));
+            ChangeState.addOperation(new COperationInstance<CNode, const CTransmission *>(pNode, Candidate.pTransmission, NULL, &CNode::set));
 
             CActionQueue::addAction(0, ChangeState);
           }
@@ -299,11 +299,11 @@ void CModel::_stateChanged(CNode * pNode) const
 
       const CProgression * pProgression = (it != end) ? *it : *EntryStateFound->second.rbegin();
 
-      CCondition::CComparison< const CHealthState * > CheckState(CCondition::ComparisonType::Equal, &pNode->getHealthState(), pNode->getHealthState());
+      CCondition::CComparison< const CHealthState * > CheckState(CConditionDefinition::ComparisonType::Equal, &pNode->getHealthState(), pNode->getHealthState());
 
       CMetadata Info("StateChange", true);
       CAction ChangeState(1.0, CheckState, Info);
-      ChangeState.addOperation(new COperationInstance<CNode, const CProgression *>(pNode, pProgression, &CNode::set));
+      ChangeState.addOperation(new COperationInstance<CNode, const CProgression *>(pNode, pProgression, NULL, &CNode::set));
 
       CActionQueue::addAction(pProgression->getDwellTime(), ChangeState);
     }

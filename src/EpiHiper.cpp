@@ -71,12 +71,12 @@ bool parseArgs(int argc, char *argv[]) {
 int main(int argc, char *argv[]) {
   CCommunicate::init(&argc, &argv);
 
-  if (CCommunicate::Rank == 0) {
+  if (CCommunicate::MPIRank == 0) {
     std::cout << "EpiHiper version 0.0.1 (2019.06.14)" << std::endl;
   }
 
   if (argc < 3 || ! parseArgs(argc, argv)) {
-    if (CCommunicate::Rank == 0) {
+    if (CCommunicate::MPIRank == 0) {
       printUsage();
     }
     CCommunicate::abort(CCommunicate::ErrorCode::InvalidArguments);
@@ -86,9 +86,9 @@ int main(int argc, char *argv[]) {
   }
 
 #ifdef DEBUG_WAIT
-  int debugwait = (CCommunicate::Rank == 0);
+  int debugwait = (CCommunicate::MPIRank == 0);
 
-  printf("Rank: %d, PID: %d\n", CCommunicate::Rank, getpid());
+  printf("Rank: %d, PID: %d\n", CCommunicate::MPIRank, getpid());
 
   while (debugwait) sleep(1);
 #endif

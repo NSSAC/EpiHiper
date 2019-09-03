@@ -47,15 +47,6 @@ CBoolean * CCondition::copy() const
   return new CCondition(*this);
 }
 
-void CCondition::fromJSON(const json_t * json)
-{
-  json_t * pValue = json_object_get(json, "id");
-
-  if (json_is_string(pValue))
-    {
-    }
-}
-
 bool CCondition::isTrue() const
 {
   return mpBoolean->isTrue();

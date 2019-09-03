@@ -127,8 +127,11 @@ public:
 
   typedef MPI_Status Status;
 
-  static int Rank;
-  static int Processes;
+  static int MPIRank;
+  static int MPIProcesses;
+  static int SHMEMRank;
+  static int SHMEMProcesses;
+
   static void init(int *argc, char ***argv);
 
   static int send(const void *buf,

@@ -82,6 +82,7 @@ void CValue::fromJSON(const json_t * json)
     {
       mType = Type::boolean;
       mpValue = new bool(json_is_true(pValue) ? true : false);
+      mValid = true;
       return;
     }
 
@@ -91,6 +92,7 @@ void CValue::fromJSON(const json_t * json)
     {
       mType = Type::number;
       mpValue = new double(json_real_value(pValue));
+      mValid = true;
       return;
     }
 
@@ -100,6 +102,7 @@ void CValue::fromJSON(const json_t * json)
     {
       mType = Type::healthState;
       mpValue = new CModel::state_t(CModel::stateToType(CModel::getState(json_string_value(pValue))));
+      mValid = true;
       return;
     }
 
@@ -150,6 +153,7 @@ void CValue::fromJSON(const json_t * json)
 
   mType = Type::traitValue;
   mpValue = new CTraitData::value(pFeature->getMask(), pEnum->getMask());
+  mValid = true;
 }
 
 const bool & CValue::isValid() const

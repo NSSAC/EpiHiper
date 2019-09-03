@@ -26,6 +26,24 @@ CEdgeProperty::CEdgeProperty()
   , mValid(true)
 {}
 
+CEdgeProperty::CEdgeProperty(const CEdgeProperty & src)
+  : CValueInterface(src)
+  , mpPropertyOf(src.mpPropertyOf)
+  , mpCreateOperation(src.mpCreateOperation)
+  , mNodeProperty(src.mNodeProperty)
+  , mValid(src.mValid)
+{}
+
+CEdgeProperty::CEdgeProperty(const json_t * json)
+  : CValueInterface(Type::boolean, NULL)
+  , mpPropertyOf(NULL)
+  , mpCreateOperation(NULL)
+  , mNodeProperty()
+  , mValid(true)
+{
+  fromJSON(json);
+}
+
 CEdgeProperty::~CEdgeProperty()
 {}
 
@@ -98,9 +116,9 @@ CValueInterface & CEdgeProperty::propertyOf(CEdge * pEdge)
   return (this->*mpPropertyOf)(pEdge);
 }
 
-COperation * CEdgeProperty::createOperation(CEdge * pEdge, const CValueInterface & value)
+COperation * CEdgeProperty::createOperation(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator)
 {
-  return (this->*mpCreateOperation)(pEdge, value);
+  return (this->*mpCreateOperation)(pEdge, value, pOperator);
 }
 
 CValueInterface &  CEdgeProperty::targetActivity(CEdge * pEdge)
@@ -133,27 +151,27 @@ CValueInterface &  CEdgeProperty::weight(CEdge * pEdge)
   return *this;
 }
 
-COperation * CEdgeProperty::setTargetActivity(CEdge * pEdge, const CValueInterface & value)
+COperation * CEdgeProperty::setTargetActivity(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator)
 {
-  return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), &CEdge::setTargetActivity);
+  return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), pOperator, &CEdge::setTargetActivity);
 }
 
-COperation * CEdgeProperty::setSourceActivity(CEdge * pEdge, const CValueInterface & value)
+COperation * CEdgeProperty::setSourceActivity(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator)
 {
-  return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), &CEdge::setSourceActivity);
+  return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), pOperator, &CEdge::setSourceActivity);
 }
 
-COperation * CEdgeProperty::setEdgeTrait(CEdge * pEdge, const CValueInterface & value)
+COperation * CEdgeProperty::setEdgeTrait(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator)
 {
-  return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), &CEdge::setEdgeTrait);
+  return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), pOperator, &CEdge::setEdgeTrait);
 }
 
-COperation * CEdgeProperty::setActive(CEdge * pEdge, const CValueInterface & value)
+COperation * CEdgeProperty::setActive(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator)
 {
-  return new COperationInstance< CEdge, bool >(pEdge, value.toBoolean(), &CEdge::setActive);
+  return new COperationInstance< CEdge, bool >(pEdge, value.toBoolean(), pOperator, &CEdge::setActive);
 }
 
-COperation * CEdgeProperty::setWeight(CEdge * pEdge, const CValueInterface & value)
+COperation * CEdgeProperty::setWeight(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator)
 {
-  return new COperationInstance< CEdge, double >(pEdge, value.toNumber(), &CEdge::setWeight);
+  return new COperationInstance< CEdge, double >(pEdge, value.toNumber(), pOperator, &CEdge::setWeight);
 }

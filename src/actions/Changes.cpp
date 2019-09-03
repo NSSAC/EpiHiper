@@ -86,7 +86,7 @@ void Changes::record(const CEdge & edge, const CMetadata & metadata)
 }
 
 // static
-void Changes::record(const Variable & variable, const CMetadata & metadata)
+void Changes::record(const CVariable & variable, const CMetadata & metadata)
 {}
 
 // static
@@ -100,7 +100,7 @@ void Changes::clear()
 // static
 void Changes::initDefaultOutput()
 {
-  if (CCommunicate::Rank == 0)
+  if (CCommunicate::MPIRank == 0)
     {
       std::ofstream out;
 

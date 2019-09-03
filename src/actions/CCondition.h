@@ -22,6 +22,8 @@
 
 #include <vector>
 
+#include "actions/CConditionDefinition.h"
+
 struct json_t;
 class CHealthState;
 
@@ -36,47 +38,40 @@ public:
   virtual CBoolean * copy() const = 0;
 
   virtual bool isTrue() const = 0;
-  virtual void fromJSON(const json_t * json) = 0;
 };
 
 
 class CCondition : protected CBoolean
 {
 public:
-  enum struct ComparisonType
-  {
-    Equal,
-    NotEqual,
-    Less,
-    LessOrEqual,
-    Greater,
-    GreaterOrEqual
-  };
-
-  enum struct BooleanOperationType
-  {
-    And,
-    Or,
-    Not
-  };
-
   template< typename Value > class CComparison : public CBoolean
   {
+  private:
+    static bool equal(const Value &, const Value &);
+    static bool notEqual(const Value &, const Value &);
+    static bool less(const Value &, const Value &);
+    static bool lessOrEqual(const Value &, const Value &);
+    static bool greater(const Value &, const Value &);
+    static bool greaterOrEqual(const Value &, const Value &);
+
   public:
+    typedef bool (*pComparison)(const Value &, const Value &);
+
     CComparison() = delete;
-    CComparison(ComparisonType operation, Value const & left, Value const & right);
-    CComparison(ComparisonType operation, Value const & left, Value const * right);
-    CComparison(ComparisonType operation, Value const * pLeft, Value const & right);
-    CComparison(ComparisonType operation, Value const * left, Value const * right);
+    CComparison(CConditionDefinition::ComparisonType operation, Value const & left, Value const & right);
+    CComparison(CConditionDefinition::ComparisonType operation, Value const & left, Value const * right);
+    CComparison(CConditionDefinition::ComparisonType operation, Value const * pLeft, Value const & right);
+    CComparison(CConditionDefinition::ComparisonType operation, Value const * left, Value const * right);
     CComparison(const CComparison & src);
     virtual ~CComparison();
     virtual CBoolean * copy() const;
 
     virtual bool isTrue() const;
-    virtual void fromJSON(const json_t * json);
 
   private:
-    ComparisonType mType;
+    void selectComparison(CConditionDefinition::ComparisonType operation);
+
+    pComparison mpComparison;
     bool mOwnLeft;
     Value const * mpLeft;
     bool mOwnRight;
@@ -85,19 +80,23 @@ public:
 
   class CBooleanOperation : protected CBoolean
   {
+  private:
+    static bool _and(const bool &, const bool &);
+    static bool _or(const bool &, const bool &);
+    static bool _not(const bool &, const bool &);
+
   public:
+    typedef bool (*pOperation)(const bool &, const bool &);
+
     CBooleanOperation() = delete;
-    CBooleanOperation(BooleanOperationType operation, const CBoolean & boolean);
-    CBooleanOperation(BooleanOperationType operation, const std::vector< CBoolean > & booleanVector);
+    CBooleanOperation(CConditionDefinition::BooleanOperationType operation, const CBoolean & boolean);
+    CBooleanOperation(CConditionDefinition::BooleanOperationType operation, const std::vector< CBoolean > & booleanVector);
     virtual ~CBooleanOperation();
     virtual CBoolean * copy();
 
     virtual bool isTrue() const;
-    virtual void fromJSON(const json_t * json);
 
-  private:
-
-
+    // TODO CRTITICAL Implement me!
   };
 
   template< class Value, class SetElement > class CContainedIn : protected CBoolean
@@ -111,6 +110,7 @@ public:
     virtual bool isTrue() const;
     virtual void fromJSON(const json_t * json);
 
+    // TODO CRTITICAL Implement me!
   };
 
   /**
@@ -133,52 +133,95 @@ public:
   virtual CBoolean * copy() const;
 
   bool isTrue() const;
-  void fromJSON(const json_t * json);
 
   private:
   CBoolean * mpBoolean;
 
 };
 
-template < class Value > CCondition::CComparison< Value >::CComparison(ComparisonType operation, Value const & left, Value const & right)
+// static
+template < class Value > bool CCondition::CComparison< Value >::equal(const Value & lhs, const Value & rhs)
+{
+  return lhs == rhs;
+}
+
+// static
+template < class Value > bool CCondition::CComparison< Value >::notEqual(const Value & lhs, const Value & rhs)
+{
+  return lhs != rhs;
+}
+
+// static
+template < class Value > bool CCondition::CComparison< Value >::less(const Value & lhs, const Value & rhs)
+{
+  return lhs < rhs;
+}
+
+// static
+template < class Value > bool CCondition::CComparison< Value >::lessOrEqual(const Value & lhs, const Value & rhs)
+{
+  return lhs <= rhs;
+}
+
+// static
+template < class Value > bool CCondition::CComparison< Value >::greater(const Value & lhs, const Value & rhs)
+{
+  return lhs > rhs;
+}
+
+// static
+template < class Value > bool CCondition::CComparison< Value >::greaterOrEqual(const Value & lhs, const Value & rhs)
+{
+  return lhs >= rhs;
+}
+
+template < class Value > CCondition::CComparison< Value >::CComparison(CConditionDefinition::ComparisonType operation, Value const & left, Value const & right)
   : CBoolean()
-  , mType(operation)
+  , mpComparison(NULL)
   , mOwnLeft(true)
   , mpLeft(new Value(left))
   , mOwnRight(true)
   , mpRight(new Value(right))
-{}
+{
+  selectComparison(operation);
+}
 
-template < class Value > CCondition::CComparison< Value >::CComparison(ComparisonType operation, Value const & left, Value const * pRight)
+template < class Value > CCondition::CComparison< Value >::CComparison(CConditionDefinition::ComparisonType operation, Value const & left, Value const * pRight)
   : CBoolean()
-  , mType(operation)
+  , mpComparison(NULL)
   , mOwnLeft(true)
   , mpLeft(new Value(left))
   , mOwnRight(false)
   , mpRight(pRight)
-{}
+{
+  selectComparison(operation);
+}
 
-template < class Value > CCondition::CComparison< Value >::CComparison(ComparisonType operation, Value const * pLeft, Value const & right)
+template < class Value > CCondition::CComparison< Value >::CComparison(CConditionDefinition::ComparisonType operation, Value const * pLeft, Value const & right)
   : CBoolean()
-  , mType(operation)
+  , mpComparison(NULL)
   , mOwnLeft(false)
   , mpLeft(pLeft)
   , mOwnRight(true)
   , mpRight(new Value(right))
-{}
+{
+  selectComparison(operation);
+}
 
-template < class Value > CCondition::CComparison< Value >::CComparison(ComparisonType operation, Value const * pLeft, Value const * pRight)
+template < class Value > CCondition::CComparison< Value >::CComparison(CConditionDefinition::ComparisonType operation, Value const * pLeft, Value const * pRight)
   : CBoolean()
-  , mType(operation)
+  , mpComparison(NULL)
   , mOwnLeft(false)
   , mpLeft(pLeft)
   , mOwnRight(false)
   , mpRight(pRight)
-{}
+{
+  selectComparison(operation);
+}
 
 template < class Value > CCondition::CComparison< Value >::CComparison(const CComparison & src)
   : CBoolean(src)
-  , mType(src.mType)
+  , mpComparison(src.mpComparison)
   , mOwnLeft(src.mOwnLeft)
   , mpLeft(src.mOwnLeft ? new Value(*src.mpLeft): src.mpLeft)
   , mOwnRight(src.mOwnRight)
@@ -201,40 +244,37 @@ template < class Value > CBoolean * CCondition::CComparison< Value >::copy() con
 // virtual
 template < class Value > bool CCondition::CComparison< Value >::isTrue() const
 {
-  switch (mType)
-  {
-    case ComparisonType::Equal:
-      return (*mpLeft == *mpRight);
-      break;
-
-    case ComparisonType::NotEqual:
-      return (*mpLeft != *mpRight);
-      break;
-
-    case ComparisonType::Less:
-      return (*mpLeft < *mpRight);
-      break;
-
-    case ComparisonType::LessOrEqual:
-      return (*mpLeft <= *mpRight);
-      break;
-
-    case ComparisonType::Greater:
-      return (*mpLeft > *mpRight);
-      break;
-
-    case ComparisonType::GreaterOrEqual:
-      return (*mpLeft >= *mpRight);
-      break;
-  }
-
-  return false;
+  return (*mpComparison)(*mpLeft, *mpRight);
 }
 
-// virtual
-template < class Value > void CCondition::CComparison< Value >::fromJSON(const json_t * json)
+template < class Value > void CCondition::CComparison< Value >::selectComparison(CConditionDefinition::ComparisonType operation)
 {
-  // TODO CRITICAL Implement me!
+  switch (operation)
+  {
+    case CConditionDefinition::ComparisonType::Equal:
+      mpComparison = &equal;
+      break;
+
+    case CConditionDefinition::ComparisonType::NotEqual:
+      mpComparison = &notEqual;
+      break;
+
+    case CConditionDefinition::ComparisonType::Less:
+      mpComparison = &less;
+      break;
+
+    case CConditionDefinition::ComparisonType::LessOrEqual:
+      mpComparison = &lessOrEqual;
+      break;
+
+    case CConditionDefinition::ComparisonType::Greater:
+      mpComparison = &greater;
+      break;
+
+    case CConditionDefinition::ComparisonType::GreaterOrEqual:
+      mpComparison = &greaterOrEqual;
+      break;
+  }
 }
 
 #endif /* SRC_ACTIONS_CCONDITION_H_ */

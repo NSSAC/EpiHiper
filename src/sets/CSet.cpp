@@ -174,7 +174,6 @@ std::set< CNode * >::const_iterator CSet::beginNodes() const
 
 // virtual
 std::set< CNode * >::const_iterator CSet::endNodes() const
-
 {
   if (mValid)
     return mpSetContent->endNodes();
@@ -182,12 +181,30 @@ std::set< CNode * >::const_iterator CSet::endNodes() const
   return CSetContent::endNodes();
 }
 
+// virtual
+const std::set< CEdge * > & CSet::getEdges() const
+{
+  if (mValid)
+    return mpSetContent->getEdges();
+
+  return CSetContent::getEdges();
+}
+
+// virtual
+const std::set< CNode * > & CSet::getNodes() const
+{
+  if (mValid)
+    return mpSetContent->getNodes();
+
+  return CSetContent::getNodes();
+}
+
 const std::map< CValueList::Type, CValueList > & CSet::getDBFieldValues() const
 {
   if (mValid)
     return mpSetContent->getDBFieldValues();
 
-  return mDBFieldValues;
+  return CSetContent::getDBFieldValues();
 }
 
 

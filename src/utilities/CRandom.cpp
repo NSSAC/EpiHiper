@@ -45,5 +45,5 @@ void CRandom::seed(CRandom::result_t value)
   uint64_t Seed = value;
   CCommunicate::broadcast(&Seed, 1, MPI_UINT64_T, 0);
 
-  CRandom::G.seed(Seed + CCommunicate::Rank);
+  CRandom::G.seed(Seed + CCommunicate::MPIRank);
 }

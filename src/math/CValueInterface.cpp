@@ -171,6 +171,73 @@ void CValueInterface::fromBinary(std::istream & is)
   }
 }
 
+CValueInterface & CValueInterface::operator=(const CValueInterface & rhs)
+{
+  if (this != &rhs)
+    {
+      switch (mType)
+      {
+        case Type::boolean:
+          *static_cast< bool * >(mpValue) = *static_cast< const bool * >(rhs.mpValue);
+          break;
+
+        case Type::number:
+          *static_cast< double * >(mpValue) = *static_cast< const double * >(rhs.mpValue);
+          break;
+
+        case Type::traitData:
+          *static_cast< CTraitData::base * >(mpValue) = *static_cast< const CTraitData::base * >(rhs.mpValue);
+          break;
+
+        case Type::traitValue:
+          *static_cast< CTraitData::value * >(mpValue) = *static_cast< const CTraitData::value * >(rhs.mpValue);
+          break;
+
+        case Type::string:
+          *static_cast< std::string * >(mpValue) = *static_cast< const std::string * >(rhs.mpValue);
+          break;
+
+        case Type::healthState:
+        case Type::id:
+          *static_cast< size_t * >(mpValue) = *static_cast< const size_t * >(rhs.mpValue);
+          break;
+      }
+    }
+
+  return *this;
+}
+
+// static
+void CValueInterface::equal(double & lhs, const double & rhs)
+{
+  lhs = rhs;
+}
+
+// static
+void CValueInterface::plus(double & lhs, const double & rhs)
+{
+  lhs += rhs;
+}
+
+// static
+void CValueInterface::minus(double & lhs, const double & rhs)
+{
+  lhs -= rhs;
+}
+
+// static
+void CValueInterface::multiply(double & lhs, const double & rhs)
+{
+  lhs *= rhs;
+}
+
+// static
+void CValueInterface::divide(double & lhs, const double & rhs)
+{
+  lhs /= rhs;
+}
+
+
 bool operator<(const CValueInterface & lhs, const CValueInterface & rhs)
 {
   if (lhs.mType != rhs.mType)

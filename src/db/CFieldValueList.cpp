@@ -77,7 +77,7 @@ void CFieldValueList::fromJSON(const json_t * json)
           pValue = json_array_get(pArray, i);
 
           if (json_is_real(pValue))
-            insert(CFieldValue(json_real_value(pValue)));
+            std::set< CValue >::insert(CFieldValue(json_real_value(pValue)));
           else
             mValid = false;
         }
@@ -89,7 +89,7 @@ void CFieldValueList::fromJSON(const json_t * json)
           pValue = json_array_get(pArray, i);
 
           if (json_is_string(pValue))
-            insert(CFieldValue(json_string_value(pValue)));
+            std::set< CValue >::insert(CFieldValue(json_string_value(pValue)));
           else
             mValid = false;
         }

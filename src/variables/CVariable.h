@@ -15,6 +15,9 @@
 
 #include "math/CComputable.h"
 #include "utilities/CAnnotation.h"
+#include "math/CValueInterface.h"
+
+class CMetadata;
 
 class CVariable: public CAnnotation, public CComputable
 {
@@ -45,6 +48,10 @@ public:
 
   const bool & isValid() const;
 
+  void reset();
+
+  bool setValue(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+
   /*
     "=",
     "*=",
@@ -56,7 +63,8 @@ public:
 private:
   std::string mId;
   Type mType;
-  double mValue;
+  double mInitialValue;
+  double * mpValue;
   double mResetValue;
   bool mValid;
 };

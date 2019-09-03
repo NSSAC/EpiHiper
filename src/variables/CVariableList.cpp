@@ -27,18 +27,9 @@ CVariableList::CVariableList()
 
 CVariableList::CVariableList(const CVariableList & src)
   : std::vector< CVariable >(src)
-  , mId2Index()
+  , mId2Index(src.mId2Index)
   , mValid(src.mValid)
-
-{
-  std::vector< CVariable >::iterator it = begin();
-  std::vector< CVariable >::iterator itEnd = end();
-
-  for (size_t i = 0; it != itEnd; ++it, i++)
-    {
-      mId2Index[it->getId()] = i;
-    }
-}
+{}
 
 // virtual
 CVariableList::~CVariableList()
@@ -113,4 +104,38 @@ CVariable & CVariableList::operator[](const std::string & id)
     return operator[](found->second);
 
   return Invalid;
+}
+
+CVariable & CVariableList::operator[](const json_t * json)
+{
+  /*
+    "variableReference": {
+      "$id": "#variableReference",
+      "description": "A variable reference.",
+      "type": "object",
+      "required": ["variable"],
+      "properties": {
+        "variable": {
+          "type": "object",
+          "required": ["idRef"],
+          "properties": {
+            "idRef": {"$ref": "#/definitions/uniqueIdRef"}
+          }
+        }
+      }
+    },
+  */
+
+  static CVariable Invalid(NULL);
+  json_t * pVariable = json_object_get(json, "variable");
+
+  if (!json_is_object(pVariable))
+    return Invalid;
+
+  json_t * pIdRef = json_object_get(pVariable, "idRef");
+
+  if (!json_is_string(pIdRef))
+    return Invalid;
+
+  return operator[](json_string_value(pIdRef));
 }

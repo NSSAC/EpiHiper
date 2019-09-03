@@ -15,15 +15,24 @@
 #include "actions/CActionEnsemble.h"
 
 CActionEnsemble::CActionEnsemble()
-  : mValid(false)
+  : mOnce()
+  , mForEach()
+  , mSampling()
+  , mValid(false)
 {}
 
 CActionEnsemble::CActionEnsemble(const CActionEnsemble & src)
-  : mValid(src.mValid)
+  : mOnce(src.mOnce)
+  , mForEach(src.mForEach)
+  , mSampling(src.mSampling)
+  , mValid(src.mValid)
 {}
 
 CActionEnsemble::CActionEnsemble(const json_t * json)
-  : mValid(false)
+  : mOnce()
+  , mForEach()
+  , mSampling()
+  , mValid(false)
 {
   fromJSON(json);
 }
@@ -56,11 +65,14 @@ void CActionEnsemble::fromJSON(const json_t * json)
     },
   */
 
+  mValid = true;
+
   json_t * pValue = json_object_get(json, "once");
 
   for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
     {
       CActionDefinition ActionDefinition(json_array_get(pValue, i));
+      mValid &= ActionDefinition.isValid();
       mOnce.push_back(ActionDefinition);
     }
 
@@ -69,8 +81,12 @@ void CActionEnsemble::fromJSON(const json_t * json)
   for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
     {
       CActionDefinition ActionDefinition(json_array_get(pValue, i));
+      mValid &= ActionDefinition.isValid();
       mForEach.push_back(ActionDefinition);
     }
+
+  mSampling.fromJSON(json_object_get(json, "sampling"));
+  mValid &= mSampling.isValid();
 }
 
 const bool & CActionEnsemble::isValid() const

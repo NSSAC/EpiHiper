@@ -12,15 +12,22 @@
 
 #include <algorithm>
 #include <unistd.h>
+#include <mpp/shmem.h>
 
 #include "utilities/CCommunicate.h"
 #include "utilities/CStreamBuffer.h"
 
 // static
-int CCommunicate::Rank(-1);
+int CCommunicate::MPIRank(-1);
 
 // static
-int CCommunicate::Processes(-1);
+int CCommunicate::MPIProcesses(-1);
+
+// static
+int CCommunicate::SHMEMRank(-1);
+
+// static
+int CCommunicate::SHMEMProcesses(-1);
 
 // static
 int CCommunicate::ReceiveSize(0);
@@ -60,14 +67,18 @@ void CCommunicate::resizeReceiveBuffer(int size)
 void CCommunicate::init(int *argc, char ***argv)
 {
   MPI_Init(argc, argv);
-  MPI_Comm_rank(MPI_COMM_WORLD, &Rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &Processes);
+  MPI_Comm_rank(MPI_COMM_WORLD, &MPIRank);
+  MPI_Comm_size(MPI_COMM_WORLD, &MPIProcesses);
+
+  shmem_init();
+  SHMEMRank = _my_pe();
+  SHMEMProcesses = _num_pes();
 }
 
 // static
 int CCommunicate::abortMessage(ErrorCode err, const std::string & msg, const char * file, int line)
 {
-  std::cerr << "Rank: " << Rank << ", " << file << "(" << line << "): " << msg << std::endl;
+  std::cerr << "Rank: " << MPIRank << ", " << file << "(" << line << "): " << msg << std::endl;
 
   return abort(err);
 }
@@ -123,9 +134,9 @@ int CCommunicate::broadcast(const void *buffer,
 
   int Count = -1;
 
-  for (int sender = 0; sender < Processes && Result == ErrorCode::Success; ++sender)
+  for (int sender = 0; sender < MPIProcesses && Result == ErrorCode::Success; ++sender)
     {
-      if (sender != Rank)
+      if (sender != MPIRank)
         {
           broadcast(&Count, 1, MPI_INT, sender);
 
@@ -166,21 +177,21 @@ int CCommunicate::sequential(int firstRank, CCommunicate::SequentialProcessInter
   Status status;
   int signal = 0;
 
-  if (Rank == firstRank)
+  if (MPIRank == firstRank)
     {
       (*pSequential)();
 
       signal = 1;
-      send(&signal, 1, MPI_INT, (firstRank + 1) % Processes, firstRank);
-      receive(&signal, 1, MPI_INT, (firstRank - 1) % Processes, (firstRank - 1) % Processes, &status);
+      send(&signal, 1, MPI_INT, (firstRank + 1) % MPIProcesses, firstRank);
+      receive(&signal, 1, MPI_INT, (firstRank - 1) % MPIProcesses, (firstRank - 1) % MPIProcesses, &status);
     }
   else
     {
-      receive(&signal, 1, MPI_INT, Rank-1, Rank-1,  &status);
+      receive(&signal, 1, MPI_INT, MPIRank-1, MPIRank-1,  &status);
 
       (*pSequential)();
 
-      send(&signal, 1, MPI_INT, (Rank + 1) % Processes, Rank);
+      send(&signal, 1, MPI_INT, (MPIRank + 1) % MPIProcesses, MPIRank);
     }
 
   return (int) Result;

@@ -12,11 +12,11 @@
 
 cmake_minimum_required (VERSION 3.11)
 
-file(GLOB HEADERS_VARIABLE variable/*.h)
-file(GLOB SOURCES_VARIABLE variable/*.cpp)
+file(GLOB HEADERS_VARIABLE variables/*.h)
+file(GLOB SOURCES_VARIABLE variables/*.cpp)
 
 # create source group for IDEs
-source_group(variable FILES ${SOURCES_VARIABLE} ${HEADERS_VARIABLE})
+source_group(variables FILES ${SOURCES_VARIABLE} ${HEADERS_VARIABLE})
 
 # add files to main EPIHIPER sources
 set(SOURCES_EPIHIPER ${SOURCES_EPIHIPER} ${SOURCES_VARIABLE})

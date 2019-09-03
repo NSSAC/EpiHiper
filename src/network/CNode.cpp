@@ -112,7 +112,7 @@ void CNode::fromBinary(std::istream & is)
   pHealthState = CModel::stateFromType(Type);
 }
 
-bool CNode::set(const CTransmission * pTransmission, const CMetadata & metadata)
+bool CNode::set(const CTransmission * pTransmission, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
   if (pHealthState == pTransmission->getExitState()) return false;
 
@@ -130,7 +130,7 @@ bool CNode::set(const CTransmission * pTransmission, const CMetadata & metadata)
   return true;
 }
 
-bool CNode::set(const CProgression * pProgression, const CMetadata & metadata)
+bool CNode::set(const CProgression * pProgression, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
   if (pHealthState == pProgression->getExitState()) return false;
 
@@ -148,23 +148,23 @@ bool CNode::set(const CProgression * pProgression, const CMetadata & metadata)
   return true;
 }
 
-bool CNode::setSusceptibilityFactor(double value, const CMetadata & metadata)
+bool CNode::setSusceptibilityFactor(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
-  susceptibilityFactor = value;
+  (*pOperator)(susceptibilityFactor, value);
   susceptibility = pHealthState->getSusceptibility() * susceptibilityFactor;
 
   return true;
 }
 
-bool CNode::setInfectivityFactor(double value, const CMetadata & metadata)
+bool CNode::setInfectivityFactor(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
-  infectivityFactor = value;
+  (*pOperator)(infectivityFactor, value);
   infectivity = pHealthState->getInfectivity() * infectivityFactor;
 
   return true;
 }
 
-bool CNode::setHealthState(CModel::state_t value, const CMetadata & metadata)
+bool CNode::setHealthState(CModel::state_t value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
   setHealthState(CModel::stateFromType(value));
 
@@ -176,7 +176,7 @@ bool CNode::setHealthState(CModel::state_t value, const CMetadata & metadata)
   return true;
 }
 
-bool CNode::setNodeTrait(CTraitData::value value, const CMetadata & metadata)
+bool CNode::setNodeTrait(CTraitData::value value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
   CTraitData::setValue(nodeTrait, value);
 

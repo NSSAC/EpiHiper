@@ -24,6 +24,7 @@
 
 #include "traits/CTraitData.h"
 #include "diseaseModel/CModel.h"
+#include "math/CValueInterface.h"
 
 class CHealthState;
 class CTransmission;
@@ -47,12 +48,12 @@ public:
   void toBinary(std::ostream & os) const;
   void fromBinary(std::istream & is);
 
-  bool set(const CTransmission * pTransmission, const CMetadata & metadata);
-  bool set(const CProgression * pProgression, const CMetadata & metadata);
-  bool setSusceptibilityFactor(double value, const CMetadata & metadata);
-  bool setInfectivityFactor(double value, const CMetadata & metadata);
-  bool setHealthState(CModel::state_t value, const CMetadata & metadata);
-  bool setNodeTrait(CTraitData::value value, const CMetadata & metadata);
+  bool set(const CTransmission * pTransmission, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+  bool set(const CProgression * pProgression, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+  bool setSusceptibilityFactor(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+  bool setInfectivityFactor(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+  bool setHealthState(CModel::state_t value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+  bool setNodeTrait(CTraitData::value value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
 
   inline const CHealthState *const  & getHealthState() const {return pHealthState;}
   void setHealthState(const CHealthState * pHealthState);

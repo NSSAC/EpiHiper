@@ -13,7 +13,13 @@
 #ifndef SRC_ACTIONS_CACTIONDEFINITION_H_
 #define SRC_ACTIONS_CACTIONDEFINITION_H_
 
-class CActionDefinition
+#include <vector>
+
+#include "utilities/CAnnotation.h"
+#include "actions/COperationDefinition.h"
+#include "actions/CConditionDefinition.h"
+
+class CActionDefinition : public CAnnotation
 {
 public:
   CActionDefinition();
@@ -25,6 +31,15 @@ public:
   virtual ~CActionDefinition();
 
   void fromJSON(const json_t * json);
+
+  const bool & isValid() const;
+
+private:
+  std::vector< COperationDefinition > mOperations;
+  double mPriority;
+  size_t mDelay;
+  CConditionDefinition mCondition;
+  bool mValid;
 };
 
 

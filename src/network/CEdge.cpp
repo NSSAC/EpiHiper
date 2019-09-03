@@ -118,32 +118,33 @@ void CEdge::fromBinary(std::istream & is)
     }
 }
 
-bool CEdge::setTargetActivity(CTraitData::value value, const CMetadata & metadata)
+bool CEdge::setTargetActivity(CTraitData::value value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
   CTraitData::setValue(targetActivity, value);
   return true;
 }
 
-bool CEdge::setSourceActivity(CTraitData::value value, const CMetadata & metadata)
+bool CEdge::setSourceActivity(CTraitData::value value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
   CTraitData::setValue(sourceActivity, value);
   return true;
 }
 
-bool CEdge::setEdgeTrait(CTraitData::value value, const CMetadata & metadata)
+bool CEdge::setEdgeTrait(CTraitData::value value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
   CTraitData::setValue(edgeTrait, value);
   return true;
 }
 
-bool CEdge::setActive(bool value, const CMetadata & metadata)
+bool CEdge::setActive(bool value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
   active = value;
   return true;
 }
 
-bool CEdge::setWeight(double value, const CMetadata & metadata)
+bool CEdge::setWeight(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
-  weight = value;
+  (*pOperator)(weight, value);
+
   return true;
 }

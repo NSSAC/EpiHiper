@@ -25,6 +25,10 @@ class CNodeProperty: public CValueInterface
 public:
   CNodeProperty();
 
+  CNodeProperty(const CNodeProperty & src);
+
+  CNodeProperty(const json_t * json);
+
   virtual ~CNodeProperty();
 
   void fromJSON(const json_t * json);
@@ -32,7 +36,7 @@ public:
   const bool & isValid() const;
 
   CValueInterface & propertyOf(CNode * pNode);
-  COperation * createOperation(CNode * pNode, const CValueInterface & value);
+  COperation * createOperation(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator);
 
   static std::pair< CEdge *, CEdge * > edges(CNode * pNode);
 
@@ -43,14 +47,14 @@ private:
   CValueInterface & healthState(CNode * pNode);
   CValueInterface & nodeTrait(CNode * pNode);
 
-  COperation * setId(CNode * pNode, const CValueInterface & value);
-  COperation * setSusceptibilityFactor(CNode * pNode, const CValueInterface & value);
-  COperation * setInfectivityFactor(CNode * pNode, const CValueInterface & value);
-  COperation * setHealthState(CNode * pNode, const CValueInterface & value);
-  COperation * setNodeTrait(CNode * pNode, const CValueInterface & value);
+  COperation * setId(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator);
+  COperation * setSusceptibilityFactor(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator);
+  COperation * setInfectivityFactor(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator);
+  COperation * setHealthState(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator);
+  COperation * setNodeTrait(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator);
 
   CValueInterface & (CNodeProperty::*mpPropertyOf)(CNode *);
-  COperation * (CNodeProperty::*mpCreateOperation)(CNode *, const CValueInterface &);
+  COperation * (CNodeProperty::*mpCreateOperation)(CNode *, const CValueInterface &, CValueInterface::pOperator pOperator);
 
   CModel::state_t mHealthState;
   bool mValid;
