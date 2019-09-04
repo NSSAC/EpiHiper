@@ -118,10 +118,11 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  CSimConfig::release();
   CModel::release();
   CNetwork::release();
-
+  CStatus::finalize();
+  CSimConfig::release();
   CCommunicate::finalize();
+
   return 0;
 }

@@ -10,11 +10,12 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include <fstream>
+#include <cstring>
 #include <jansson.h>
 
 #include "utilities/CStatus.h"
 #include "utilities/CSimConfig.h"
+#include "utilities/CDirEntry.h"
 #include "actions/CActionQueue.h"
 
 // static
@@ -72,7 +73,10 @@ void CStatus::load()
 {
   if (CCommunicate::MPIRank != 0) return;
 
-  pJSON = CSimConfig::loadJson(CSimConfig::getStatus(), JSON_DECODE_INT_AS_REAL);
+  if (CDirEntry::exist(CSimConfig::getStatus()))
+    {
+      pJSON = CSimConfig::loadJson(CSimConfig::getStatus(), JSON_DECODE_INT_AS_REAL);
+    }
 
   if (pJSON == NULL)
     {
@@ -90,6 +94,20 @@ void CStatus::load()
   pProgress = init(pJSON, "progress", 0.0);
 
   initialProgress = json_real_value(pProgress);
+
+  if (strcmp(json_string_value(pId), "epihiper") == 0 &&
+      CDirEntry::exist(CDirEntry::dirName(CSimConfig::getStatus()) + "/job.json"))
+    {
+      json_t * pRoot = CSimConfig::loadJson(CDirEntry::dirName(CSimConfig::getStatus()) + "/job.json", JSON_DECODE_INT_AS_REAL);
+      json_t * pValue = json_object_get(pRoot, "id");
+
+      if (json_is_string(pValue))
+        {
+          json_string_set(pId, json_string_value(pValue));
+        }
+
+      json_decref(pRoot);
+    }
 
   update("running");
 }
@@ -122,3 +140,11 @@ void CStatus::update(const std::string & status)
 
   json_dump_file(pJSON, CSimConfig::getStatus().c_str(), JSON_INDENT(2));
 }
+
+// static
+void CStatus::finalize()
+{
+  update("completed");
+  json_decref(pJSON);
+}
+

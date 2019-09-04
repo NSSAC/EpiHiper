@@ -185,10 +185,10 @@ void Simulation::run()
   CNetwork::INSTANCE->broadcastChanges();
   CActionQueue::incrementTick();
   Changes::incrementTick();
+  CStatus::update("running");
 
   for (int tick = startTick; tick < endTick; ++tick)
     {
-      CStatus::update("running");
       CModel::processTransmissions();
       CActionQueue::processCurrentActions();
       Changes::writeDefaultOutput();
@@ -196,7 +196,6 @@ void Simulation::run()
       CNetwork::INSTANCE->broadcastChanges();
       CActionQueue::incrementTick();
       Changes::incrementTick();
+      CStatus::update("running");
     }
-
-  CStatus::update("completed");
 }

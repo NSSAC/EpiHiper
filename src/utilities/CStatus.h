@@ -20,6 +20,8 @@
 #ifndef SRC_UTILITIES_CSTATUS_H_
 #define SRC_UTILITIES_CSTATUS_H_
 
+#include <string>
+
 struct json_t;
 
 class CStatus
@@ -28,6 +30,8 @@ public:
   static void load();
 
   static void update(const std::string & status);
+
+  static void finalize();
 
 private:
   static json_t * pJSON;

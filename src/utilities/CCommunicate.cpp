@@ -92,8 +92,9 @@ int CCommunicate::abort(ErrorCode errorcode)
 // static
 int CCommunicate::finalize(void)
 {
+  // int result = MPI_Finalize();
   shmem_finalize();
-  return  MPI_Finalize();
+  return MPI_SUCCESS;
 }
 
 // static
