@@ -10,6 +10,7 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#include <cstring>
 #include <jansson.h>
 
 #include "actions/COperationDefinition.h"
