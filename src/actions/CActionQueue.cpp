@@ -64,14 +64,14 @@ size_t CActionQueue::pendingActions()
 }
 
 // static
-const size_t & CActionQueue::getCurrentTick()
+const int & CActionQueue::getCurrentTick()
 {
   return INSTANCE.mCurrenTick;
 }
 
 
 // static
-void CActionQueue::setCurrentTick(const size_t & currentTick)
+void CActionQueue::setCurrentTick(const int & currentTick)
 {
   INSTANCE.mCurrenTick = currentTick;
 }
@@ -83,7 +83,7 @@ void CActionQueue::incrementTick()
 }
 
 CActionQueue::CActionQueue()
-  : std::map< size_t, CCurrentActions >()
+  : std::map< int, CCurrentActions >()
   , mCurrenTick(-1)
   , mTotalPendingActions(0)
 {}

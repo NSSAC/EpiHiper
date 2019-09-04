@@ -26,6 +26,7 @@
 #include "utilities/CCommunicate.h"
 #include "utilities/CRandom.h"
 #include "utilities/CSimConfig.h"
+#include "utilities/CStatus.h"
 
 // initialize according to config
 Simulation::Simulation(int seed, std::string dbconn) {
@@ -187,6 +188,7 @@ void Simulation::run()
 
   for (int tick = startTick; tick < endTick; ++tick)
     {
+      CStatus::update("running");
       CModel::processTransmissions();
       CActionQueue::processCurrentActions();
       Changes::writeDefaultOutput();
@@ -195,4 +197,6 @@ void Simulation::run()
       CActionQueue::incrementTick();
       Changes::incrementTick();
     }
+
+  CStatus::update("completed");
 }

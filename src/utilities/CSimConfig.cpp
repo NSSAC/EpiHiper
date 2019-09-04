@@ -46,67 +46,74 @@ void CSimConfig::release()
 bool CSimConfig::isValid() { return CSimConfig::INSTANCE->valid; }
 
 // static
-int CSimConfig::getStartTick() { return CSimConfig::INSTANCE->startTick; }
+int CSimConfig::getStartTick() { return CSimConfig::INSTANCE->mStartTick; }
 
 // static
-int CSimConfig::getEndTick() { return CSimConfig::INSTANCE->endTick; }
+int CSimConfig::getEndTick() { return CSimConfig::INSTANCE->mEndTick; }
 
 // static
-const std::string & CSimConfig::getDiseaseModel() { return CSimConfig::INSTANCE->diseaseModel; }
+const std::string & CSimConfig::getDiseaseModel() { return CSimConfig::INSTANCE->mDiseaseModel; }
 
 // static
-const std::string & CSimConfig::getContactNetwork() { return CSimConfig::INSTANCE->contactNetwork; }
+const std::string & CSimConfig::getContactNetwork() { return CSimConfig::INSTANCE->mContactNetwork; }
 
 // static
-const std::string & CSimConfig::getInitialization() { return CSimConfig::INSTANCE->initialization; }
+const std::string & CSimConfig::getInitialization() { return CSimConfig::INSTANCE->mInitialization; }
 
 // static
-const std::string & CSimConfig::getTraits() { return CSimConfig::INSTANCE->traits; }
+const std::string & CSimConfig::getTraits() { return CSimConfig::INSTANCE->mTraits; }
 
 // static
-const std::vector< std::string > & CSimConfig::getPersonTraitDB() { return CSimConfig::INSTANCE->personTraitDB; }
+const std::vector< std::string > & CSimConfig::getPersonTraitDB() { return CSimConfig::INSTANCE->mPersonTraitDB; }
 
 // static
-const std::string & CSimConfig::getOutput() { return CSimConfig::INSTANCE->output; }
+const std::string & CSimConfig::getOutput() { return CSimConfig::INSTANCE->mOutput; }
 
 // static
-const std::string & CSimConfig::getIntervention() { return CSimConfig::INSTANCE->intervention; }
+const std::string & CSimConfig::getSummaryOutput() { return CSimConfig::INSTANCE->mSummaryOutput; }
 
 // static
-const size_t & CSimConfig::getSeed() { return CSimConfig::INSTANCE->seed; }
+const std::string & CSimConfig::getStatus() { return CSimConfig::INSTANCE->mStatus; }
 
 // static
-const size_t & CSimConfig::getReplicate() { return CSimConfig::INSTANCE->replicate; }
+const std::string & CSimConfig::getIntervention() { return CSimConfig::INSTANCE->mIntervention; }
 
 // static
-const CSimConfig::db_connection & CSimConfig::getDBConnection() { return CSimConfig::INSTANCE->dbConnection; }
+const size_t & CSimConfig::getSeed() { return CSimConfig::INSTANCE->mSeed; }
+
+// static
+const size_t & CSimConfig::getReplicate() { return CSimConfig::INSTANCE->mReplicate; }
+
+// static
+const CSimConfig::db_connection & CSimConfig::getDBConnection() { return CSimConfig::INSTANCE->mDBConnection; }
 
 // constructor: parse JSON
 CSimConfig::CSimConfig(const std::string& configFile)
   : valid(false)
-  , runParameters(configFile)
-  , modelScenario()
-  , diseaseModel()
-  , contactNetwork()
-  , initialization()
-  , traits()
-  , personTraitDB()
-  , startTick(std::numeric_limits< int >::min())
-  , endTick(std::numeric_limits< int >::max())
-  , output()
-  , logFile()
-  , intervention()
-  , seed(-1)
-  , replicate(-1)
-  , dbConnection()
+  , mRunParameters(configFile)
+  , mModelScenario()
+  , mDiseaseModel()
+  , mContactNetwork()
+  , mInitialization()
+  , mTraits()
+  , mPersonTraitDB()
+  , mStartTick(std::numeric_limits< int >::min())
+  , mEndTick(std::numeric_limits< int >::max())
+  , mOutput()
+  , mSummaryOutput()
+  , mStatus()
+  , mIntervention()
+  , mSeed(-1)
+  , mReplicate(-1)
+  , mDBConnection()
 {
-  if (runParameters.empty())
+  if (mRunParameters.empty())
     {
       std::cerr << "Simulation configuration file is not specified" << std::endl;
       return;
     }
 
-  CDirEntry::makePathAbsolute(runParameters, CDirEntry::getPWD());
+  CDirEntry::makePathAbsolute(mRunParameters, CDirEntry::getPWD());
 
   json_t * pRoot = loadJson(configFile, JSON_DECODE_INT_AS_REAL);
 
@@ -121,82 +128,125 @@ CSimConfig::CSimConfig(const std::string& configFile)
 
   if (json_is_string(pValue))
     {
-      modelScenario = CDirEntry::resolve(json_string_value(pValue), runParameters);
+      mModelScenario = CDirEntry::resolve(json_string_value(pValue), mRunParameters);
     }
 
-  valid &= !modelScenario.empty();
+  valid &= !mModelScenario.empty();
+
+  std::string DefaultDir;
+
+  if (CDirEntry::exist("/output") &&
+      CDirEntry::isWritable("/output"))
+    DefaultDir = "/output";
+  else
+    DefaultDir = ".";
 
   pValue = json_object_get(pRoot, "output");
 
   if (json_is_string(pValue))
-    {
-      output = CDirEntry::resolve(json_string_value(pValue), runParameters);
-    }
+    mOutput = json_string_value(pValue);
+  else
+    mOutput = "output.csv";
+
+  mOutput = CDirEntry::resolve(mOutput, DefaultDir);
+
+  if (!CDirEntry::exist(CDirEntry::dirName(mOutput)))
+    CDirEntry::createDir(CDirEntry::dirName(mOutput));
+
+  pValue = json_object_get(pRoot, "summaryOutput");
+
+  if (json_is_string(pValue))
+    mSummaryOutput = json_string_value(pValue);
+  else
+    mSummaryOutput = "summaryOutput.csv";
+
+  mSummaryOutput = CDirEntry::resolve(mSummaryOutput, DefaultDir);
+
+  if (!CDirEntry::exist(CDirEntry::dirName(mSummaryOutput)))
+    CDirEntry::createDir(CDirEntry::dirName(mSummaryOutput));
+
+  if (CDirEntry::exist("/job") &&
+      CDirEntry::isWritable("/job"))
+    DefaultDir = "/job";
+  else
+    DefaultDir = ".";
+
+  pValue = json_object_get(pRoot, "status");
+
+  if (json_is_string(pValue))
+    mStatus = json_string_value(pValue);
+  else
+    mStatus = "sciduct.status.json";
+
+  mStatus = CDirEntry::resolve(mStatus, DefaultDir);
+
+  if (!CDirEntry::exist(CDirEntry::dirName(mStatus)))
+    CDirEntry::createDir(CDirEntry::dirName(mStatus));
 
   pValue = json_object_get(pRoot, "startTick");
 
   if (json_is_real(pValue))
     {
-      startTick = json_real_value(pValue);
+      mStartTick = json_real_value(pValue);
     }
 
-  valid &= startTick != std::numeric_limits< int >::min();
+  valid &= mStartTick != std::numeric_limits< int >::min();
 
   pValue = json_object_get(pRoot, "endTick");
 
   if (json_is_real(pValue))
     {
-      endTick = json_real_value(pValue);
+      mEndTick = json_real_value(pValue);
     }
 
-  valid &= endTick != std::numeric_limits< int >::max()
-      && startTick < endTick;
+  valid &= mEndTick != std::numeric_limits< int >::max()
+      && mStartTick < mEndTick;
 
   pValue = json_object_get(pRoot, "seed");
 
   if (json_is_real(pValue))
     {
-      seed = json_real_value(pValue);
+      mSeed = json_real_value(pValue);
     }
 
   pValue = json_object_get(pRoot, "replicate");
 
   if (json_is_real(pValue))
     {
-      replicate = json_real_value(pValue);
+      mReplicate = json_real_value(pValue);
     }
 
   pValue = json_object_get(pRoot, "dbName");
 
   if (json_is_string(pValue))
     {
-      dbConnection.name = json_string_value(pValue);
+      mDBConnection.name = json_string_value(pValue);
     }
   else
   	{
-      dbConnection.name = "epihiper_db";
+      mDBConnection.name = "epihiper_db";
   	}
 
   pValue = json_object_get(pRoot, "dbHost");
 
   if (json_is_string(pValue))
     {
-      dbConnection.host = json_string_value(pValue);
+      mDBConnection.host = json_string_value(pValue);
     }
   else
     {
-      dbConnection.host = "localhost:5432";
+      mDBConnection.host = "localhost:5432";
     }
 
   pValue = json_object_get(pRoot, "dbUser");
 
   if (json_is_string(pValue))
     {
-      dbConnection.user = json_string_value(pValue);
+      mDBConnection.user = json_string_value(pValue);
     }
   else
     {
-      dbConnection.user = "epihiper";
+      mDBConnection.user = "epihiper";
     }
 
 
@@ -204,11 +254,11 @@ CSimConfig::CSimConfig(const std::string& configFile)
 
   if (json_is_string(pValue))
     {
-      dbConnection.password = json_string_value(pValue);
+      mDBConnection.password = json_string_value(pValue);
     }
   else
     {
-      dbConnection.password.clear();
+      mDBConnection.password.clear();
     }
 
   json_decref(pRoot);
@@ -222,7 +272,7 @@ CSimConfig::~CSimConfig()
 
 bool CSimConfig::loadScenario()
 {
-  json_t * pRoot = loadJson(modelScenario, JSON_DECODE_INT_AS_REAL);
+  json_t * pRoot = loadJson(mModelScenario, JSON_DECODE_INT_AS_REAL);
 
   if (pRoot == NULL) return false;
 
@@ -230,35 +280,35 @@ bool CSimConfig::loadScenario()
 
   if (json_is_string(pValue))
     {
-      contactNetwork = CDirEntry::resolve(json_string_value(pValue), modelScenario);
+      mContactNetwork = CDirEntry::resolve(json_string_value(pValue), mModelScenario);
     }
 
   pValue = json_object_get(pRoot, "diseaseModel");
 
   if (json_is_string(pValue))
     {
-      diseaseModel = CDirEntry::resolve(json_string_value(pValue), modelScenario);
+      mDiseaseModel = CDirEntry::resolve(json_string_value(pValue), mModelScenario);
     }
 
   pValue = json_object_get(pRoot, "initialization");
 
   if (json_is_string(pValue))
     {
-      initialization = CDirEntry::resolve(json_string_value(pValue), modelScenario);
+      mInitialization = CDirEntry::resolve(json_string_value(pValue), mModelScenario);
     }
 
   pValue = json_object_get(pRoot, "intervention");
 
   if (json_is_string(pValue))
     {
-      intervention = CDirEntry::resolve(json_string_value(pValue), modelScenario);
+      mIntervention = CDirEntry::resolve(json_string_value(pValue), mModelScenario);
     }
 
   pValue = json_object_get(pRoot, "traits");
 
   if (json_is_string(pValue))
     {
-      traits = CDirEntry::resolve(json_string_value(pValue), modelScenario);
+      mTraits = CDirEntry::resolve(json_string_value(pValue), mModelScenario);
     }
 
   pValue = json_object_get(pRoot, "personTraitDB");
@@ -270,17 +320,17 @@ bool CSimConfig::loadScenario()
 
         if (json_is_string(pDB))
           {
-            personTraitDB.push_back(CDirEntry::resolve(json_string_value(pDB), modelScenario));
+            mPersonTraitDB.push_back(CDirEntry::resolve(json_string_value(pDB), mModelScenario));
           }
       }
 
   json_decref(pRoot);
 
-  return !contactNetwork.empty() &&
-          !diseaseModel.empty() &&
-          !intervention.empty() &&
-          !initialization.empty() &&
-          !traits.empty();
+  return !mContactNetwork.empty() &&
+          !mDiseaseModel.empty() &&
+          !mIntervention.empty() &&
+          !mInitialization.empty() &&
+          !mTraits.empty();
 }
 
 // static

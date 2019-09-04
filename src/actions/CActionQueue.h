@@ -16,7 +16,7 @@
 #include "utilities/CCommunicate.h"
 #include "actions/CCurrentActions.h"
 
-class CActionQueue: public std::map< size_t, CCurrentActions >
+class CActionQueue: public std::map< int, CCurrentActions >
 {
   public:
     virtual ~CActionQueue();
@@ -25,9 +25,9 @@ class CActionQueue: public std::map< size_t, CCurrentActions >
 
     static bool processCurrentActions();
 
-    static const size_t & getCurrentTick();
+    static const int & getCurrentTick();
 
-    static void setCurrentTick(const size_t & currentTick);
+    static void setCurrentTick(const int & currentTick);
 
     static void incrementTick();
 
@@ -41,7 +41,7 @@ class CActionQueue: public std::map< size_t, CCurrentActions >
     CCommunicate::ErrorCode receiveActions(std::istream & is, int sender);
 
     static CActionQueue INSTANCE;
-    size_t mCurrenTick;
+    int mCurrenTick;
     size_t mTotalPendingActions;
 };
 

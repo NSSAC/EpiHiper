@@ -31,25 +31,26 @@ public:
 private:
   bool valid;
 
-  std::string runParameters;
+  std::string mRunParameters;
 
   // required
-  std::string modelScenario;
-  std::string diseaseModel;
-  std::string contactNetwork;
-  std::string initialization;
-  std::string traits;
-  std::vector< std::string > personTraitDB;
-  int startTick;
-  int endTick;
+  std::string mModelScenario;
+  std::string mDiseaseModel;
+  std::string mContactNetwork;
+  std::string mInitialization;
+  std::string mTraits;
+  std::vector< std::string > mPersonTraitDB;
+  int mStartTick;
+  int mEndTick;
 
   // optional
-  std::string output;
-  std::string logFile;
-  std::string intervention;
-  size_t seed;
-  size_t replicate;
-  db_connection dbConnection;
+  std::string mOutput;
+  std::string mSummaryOutput;
+  std::string mStatus;
+  std::string mIntervention;
+  size_t mSeed;
+  size_t mReplicate;
+  db_connection mDBConnection;
 
 private:
   static CSimConfig * INSTANCE;
@@ -73,6 +74,8 @@ public:
   static const std::string & getTraits();
   static const std::vector< std::string > & getPersonTraitDB();
   static const std::string & getOutput();
+  static const std::string & getSummaryOutput();
+  static const std::string & getStatus();
   static const std::string & getIntervention();
   static const size_t & getSeed();
   static const size_t & getReplicate();
