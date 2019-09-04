@@ -13,10 +13,11 @@
 #include <jansson.h>
 
 #include "diseaseModel/CModel.h"
+
+#include "utilities/CSimConfig.h"
 #include "diseaseModel/CHealthState.h"
 #include "diseaseModel/CProgression.h"
 #include "diseaseModel/CTransmission.h"
-#include "SimConfig.h"
 #include "actions/CActionQueue.h"
 #include "network/CEdge.h"
 #include "network/CNetwork.h"
@@ -57,7 +58,7 @@ CModel::CModel(const std::string & modelFile)
   , mPossibleProgressions()
   , mValid(false)
 {
-  json_t * pRoot = SimConfig::loadJson(modelFile, JSON_DECODE_INT_AS_REAL);
+  json_t * pRoot = CSimConfig::loadJson(modelFile, JSON_DECODE_INT_AS_REAL);
 
   if (pRoot != NULL)
     {

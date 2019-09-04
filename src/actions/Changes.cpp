@@ -21,11 +21,11 @@
 
 #include "actions/Changes.h"
 
+#include "utilities/CSimConfig.h"
 #include "diseaseModel/CHealthState.h"
 #include "network/CEdge.h"
 #include "network/CNode.h"
 #include "utilities/CMetadata.h"
-#include "SimConfig.h"
 
 // static
 std::ostringstream Changes::Nodes;
@@ -104,7 +104,7 @@ void Changes::initDefaultOutput()
     {
       std::ofstream out;
 
-      out.open(SimConfig::getOutput().c_str());
+      out.open(CSimConfig::getOutput().c_str());
 
       if (out.good())
         {
@@ -112,7 +112,7 @@ void Changes::initDefaultOutput()
         }
       else
         {
-          std::cerr << "Error (Rank 0): Failed to open file '" << SimConfig::getOutput() << "'.";
+          std::cerr << "Error (Rank 0): Failed to open file '" << CSimConfig::getOutput() << "'.";
           exit(EXIT_FAILURE);
         }
 
@@ -134,7 +134,7 @@ CCommunicate::ErrorCode Changes::writeDefaultOutputData()
 {
   std::ofstream out;
 
-  out.open(SimConfig::getOutput().c_str(), std::ios_base::app);
+  out.open(CSimConfig::getOutput().c_str(), std::ios_base::app);
 
   if (out.good())
     {

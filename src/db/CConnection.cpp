@@ -11,7 +11,8 @@
 // END: License 
 
 #include "db/CConnection.h"
-#include "SimConfig.h"
+
+#include "utilities/CSimConfig.h"
 
 // static
 CConnection * CConnection::pINSTANCE = NULL;
@@ -21,7 +22,7 @@ void CConnection::init()
 {
   if (pINSTANCE != NULL) return;
 
-  const SimConfig::db_connection & dbConnection = SimConfig::getDBConnection();
+  const CSimConfig::db_connection & dbConnection = CSimConfig::getDBConnection();
 
   // postgresql://[user[:password]@][netloc][:port][,...][/dbname][?param1=value1&...]
   std::string URI = "postgresql://";

@@ -20,9 +20,10 @@
 #include <jansson.h>
 
 #include "initialization/CInitialization.h"
+
+#include "utilities/CSimConfig.h"
 #include "sets/CSetList.h"
 #include "sets/CSetContent.h"
-#include "SimConfig.h"
 
 // static
 std::vector< CInitialization > CInitialization::INSTANCES;
@@ -52,7 +53,7 @@ void CInitialization::init()
     }
   */
 
-  json_t * pRoot = SimConfig::loadJson(SimConfig::getInitialization(), JSON_DECODE_INT_AS_REAL);
+  json_t * pRoot = CSimConfig::loadJson(CSimConfig::getInitialization(), JSON_DECODE_INT_AS_REAL);
   CSetList::INSTANCE.fromJSON(json_object_get(pRoot, "sets"));
 
   json_t * pArray = json_object_get(pRoot, "initializations");

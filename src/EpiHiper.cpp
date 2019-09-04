@@ -15,7 +15,6 @@
 #include <getopt.h>
 
 #include "diseaseModel/CModel.h"
-#include "SimConfig.h"
 #include "Simulation.h"
 #include "network/CNetwork.h"
 #include "traits/CTrait.h"
@@ -23,6 +22,7 @@
 #include "utilities/CRandom.h"
 #include "db/CSchema.h"
 #include "db/CConnection.h"
+#include "utilities/CSimConfig.h"
 
 // Uncomment the following line if you want to attache a debugger
 // #define DEBUG_WAIT 1
@@ -93,15 +93,15 @@ int main(int argc, char *argv[]) {
   while (debugwait) sleep(1);
 #endif
 
-  SimConfig::load(config);
+  CSimConfig::load(config);
 
-  if (SimConfig::isValid()) {
+  if (CSimConfig::isValid()) {
     CRandom::init();
     CTrait::init();
     CNetwork::init();
-    CTrait::load(SimConfig::getTraits());
-    CModel::load(SimConfig::getDiseaseModel());
-    CSchema::load(SimConfig::getPersonTraitDB());
+    CTrait::load(CSimConfig::getTraits());
+    CModel::load(CSimConfig::getDiseaseModel());
+    CSchema::load(CSimConfig::getPersonTraitDB());
     CConnection::init();
 
     CNetwork::INSTANCE->load();
@@ -111,12 +111,12 @@ int main(int argc, char *argv[]) {
     Simulation sim(seed, dbconn);
     sim.validate();
     if (sim.isValid()) {
-      sim.test();
+      sim.run();
       // sim.dummyRun();
     }
   }
 
-  SimConfig::release();
+  CSimConfig::release();
   CModel::release();
   CNetwork::release();
 

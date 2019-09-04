@@ -14,8 +14,9 @@
 #include <jansson.h>
 
 #include "db/CSchema.h"
+
+#include "utilities/CSimConfig.h"
 #include "db/CTable.h"
-#include "SimConfig.h"
 
 // static
 CSchema CSchema::INSTANCE;
@@ -28,7 +29,7 @@ void CSchema::load(const std::vector< std::string > & schemaFiles)
 
   for (; it != end; ++it)
     {
-      json_t * pRoot = SimConfig::loadJson(*it, JSON_DECODE_INT_AS_REAL);
+      json_t * pRoot = CSimConfig::loadJson(*it, JSON_DECODE_INT_AS_REAL);
 
       if (pRoot != NULL)
         {

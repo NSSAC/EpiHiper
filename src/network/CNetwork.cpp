@@ -17,7 +17,6 @@
 #include <cstdio>
 #include <jansson.h>
 
-#include "SimConfig.h"
 #include "actions/CActionQueue.h"
 #include "traits/CTrait.h"
 #include "utilities/CCommunicate.h"
@@ -25,6 +24,8 @@
 #include "actions/Changes.h"
 #include "network/CEdge.h"
 #include "network/CNetwork.h"
+
+#include "utilities/CSimConfig.h"
 #include "network/CNode.h"
 
 // static
@@ -35,7 +36,7 @@ void CNetwork::init()
 {
   if (INSTANCE == NULL)
     {
-      INSTANCE = new CNetwork(SimConfig::getContactNetwork());
+      INSTANCE = new CNetwork(CSimConfig::getContactNetwork());
     }
 }
 
@@ -75,7 +76,7 @@ CNetwork::CNetwork(const std::string & networkFile)
       return;
     }
 
-  mpJson = SimConfig::loadJson(mFile, 0);
+  mpJson = CSimConfig::loadJson(mFile, 0);
 
   fromJSON(mpJson);
 

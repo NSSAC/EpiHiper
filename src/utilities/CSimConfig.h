@@ -18,7 +18,7 @@
 
 struct json_t;
 
-class SimConfig {
+class CSimConfig {
 public:
   struct db_connection
   {
@@ -52,11 +52,11 @@ private:
   db_connection dbConnection;
 
 private:
-  static SimConfig * INSTANCE;
+  static CSimConfig * INSTANCE;
 
-  SimConfig() = delete;
-  SimConfig(const std::string& configFile);
-  ~SimConfig();
+  CSimConfig() = delete;
+  CSimConfig(const std::string& configFile);
+  ~CSimConfig();
 
   bool loadScenario();
 

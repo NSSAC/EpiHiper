@@ -11,8 +11,9 @@
 // END: License 
 
 #include "utilities/CRandom.h"
+
+#include "CSimConfig.h"
 #include "utilities/CCommunicate.h"
-#include "SimConfig.h"
 
 // static
 CRandom::generator_t CRandom::G;
@@ -20,7 +21,7 @@ CRandom::generator_t CRandom::G;
 // static
 void CRandom::init()
 {
-  const size_t & Seed = SimConfig::getSeed();
+  const size_t & Seed = CSimConfig::getSeed();
 
   if (Seed == -1)
     {
@@ -28,7 +29,7 @@ void CRandom::init()
       return;
     }
 
-  const size_t & Replicate = SimConfig::getReplicate();
+  const size_t & Replicate = CSimConfig::getReplicate();
 
   if (Replicate == -1)
     {

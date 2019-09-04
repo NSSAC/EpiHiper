@@ -11,79 +11,78 @@
 // END: License 
 
 #include <vector>
-
 #include <fstream>
 #include <iostream>
 #include <jansson.h>
 #include <limits>
 
-#include "SimConfig.h"
-#include "Misc.h"
+#include "utilities/CSimConfig.h"
+
 #include "utilities/CDirEntry.h"
 
 // static
-SimConfig * SimConfig::INSTANCE(NULL);
+CSimConfig * CSimConfig::INSTANCE(NULL);
 
 // static
-void SimConfig::load(const std::string & configFile)
+void CSimConfig::load(const std::string & configFile)
 {
-  if (SimConfig::INSTANCE == NULL)
+  if (CSimConfig::INSTANCE == NULL)
     {
-      SimConfig::INSTANCE = new SimConfig(configFile);
+      CSimConfig::INSTANCE = new CSimConfig(configFile);
     }
 }
 
 // static
-void SimConfig::release()
+void CSimConfig::release()
 {
-  if (SimConfig::INSTANCE != NULL)
+  if (CSimConfig::INSTANCE != NULL)
     {
-      delete SimConfig::INSTANCE;
-      SimConfig::INSTANCE = NULL;
+      delete CSimConfig::INSTANCE;
+      CSimConfig::INSTANCE = NULL;
     }
 }
 
 // static
-bool SimConfig::isValid() { return SimConfig::INSTANCE->valid; }
+bool CSimConfig::isValid() { return CSimConfig::INSTANCE->valid; }
 
 // static
-int SimConfig::getStartTick() { return SimConfig::INSTANCE->startTick; }
+int CSimConfig::getStartTick() { return CSimConfig::INSTANCE->startTick; }
 
 // static
-int SimConfig::getEndTick() { return SimConfig::INSTANCE->endTick; }
+int CSimConfig::getEndTick() { return CSimConfig::INSTANCE->endTick; }
 
 // static
-const std::string & SimConfig::getDiseaseModel() { return SimConfig::INSTANCE->diseaseModel; }
+const std::string & CSimConfig::getDiseaseModel() { return CSimConfig::INSTANCE->diseaseModel; }
 
 // static
-const std::string & SimConfig::getContactNetwork() { return SimConfig::INSTANCE->contactNetwork; }
+const std::string & CSimConfig::getContactNetwork() { return CSimConfig::INSTANCE->contactNetwork; }
 
 // static
-const std::string & SimConfig::getInitialization() { return SimConfig::INSTANCE->initialization; }
+const std::string & CSimConfig::getInitialization() { return CSimConfig::INSTANCE->initialization; }
 
 // static
-const std::string & SimConfig::getTraits() { return SimConfig::INSTANCE->traits; }
+const std::string & CSimConfig::getTraits() { return CSimConfig::INSTANCE->traits; }
 
 // static
-const std::vector< std::string > & SimConfig::getPersonTraitDB() { return SimConfig::INSTANCE->personTraitDB; }
+const std::vector< std::string > & CSimConfig::getPersonTraitDB() { return CSimConfig::INSTANCE->personTraitDB; }
 
 // static
-const std::string & SimConfig::getOutput() { return SimConfig::INSTANCE->output; }
+const std::string & CSimConfig::getOutput() { return CSimConfig::INSTANCE->output; }
 
 // static
-const std::string & SimConfig::getIntervention() { return SimConfig::INSTANCE->intervention; }
+const std::string & CSimConfig::getIntervention() { return CSimConfig::INSTANCE->intervention; }
 
 // static
-const size_t & SimConfig::getSeed() { return SimConfig::INSTANCE->seed; }
+const size_t & CSimConfig::getSeed() { return CSimConfig::INSTANCE->seed; }
 
 // static
-const size_t & SimConfig::getReplicate() { return SimConfig::INSTANCE->replicate; }
+const size_t & CSimConfig::getReplicate() { return CSimConfig::INSTANCE->replicate; }
 
 // static
-const SimConfig::db_connection & SimConfig::getDBConnection() { return SimConfig::INSTANCE->dbConnection; }
+const CSimConfig::db_connection & CSimConfig::getDBConnection() { return CSimConfig::INSTANCE->dbConnection; }
 
 // constructor: parse JSON
-SimConfig::SimConfig(const std::string& configFile)
+CSimConfig::CSimConfig(const std::string& configFile)
   : valid(false)
   , runParameters(configFile)
   , modelScenario()
@@ -217,11 +216,11 @@ SimConfig::SimConfig(const std::string& configFile)
   valid &= loadScenario();
 }
 
-SimConfig::~SimConfig()
+CSimConfig::~CSimConfig()
 {
 }
 
-bool SimConfig::loadScenario()
+bool CSimConfig::loadScenario()
 {
   json_t * pRoot = loadJson(modelScenario, JSON_DECODE_INT_AS_REAL);
 
@@ -285,7 +284,7 @@ bool SimConfig::loadScenario()
 }
 
 // static
-json_t * SimConfig::loadJson(const std::string & jsonFile, int flags)
+json_t * CSimConfig::loadJson(const std::string & jsonFile, int flags)
 {
   json_t * pRoot = NULL;
 

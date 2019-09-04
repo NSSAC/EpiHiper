@@ -26,8 +26,9 @@
 #include <string.h>
 #include <jansson.h>
 
-#include "SimConfig.h"
 #include "traits/CTrait.h"
+
+#include "utilities/CSimConfig.h"
 
 // static
 std::map< std::string, CTrait > CTrait::INSTANCES;
@@ -57,7 +58,7 @@ void CTrait::load(const std::string & jsonFile)
 {
   std::map< std::string, CTrait > Traits;
 
-  json_t * pRoot = SimConfig::loadJson(jsonFile, JSON_DECODE_INT_AS_REAL);
+  json_t * pRoot = CSimConfig::loadJson(jsonFile, JSON_DECODE_INT_AS_REAL);
 
   if (pRoot == NULL)
     {
