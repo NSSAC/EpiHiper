@@ -17,9 +17,9 @@ Create a build directory of you choice.
 mkdir build
 cd build
 module purge
-module load intel intelmpi cmake/3.12.3 
-export CC=icc
-export CXX=icc
+module load gcc/7.1.0 openmpi/2.1.5 cmake/3.12.3 
+export CC=gcc
+export CXX=g++
 cmake /project/biocomplexity/nssac/EpiHiper/git/EpiHiper-code
 make
 ```
