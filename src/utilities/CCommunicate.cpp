@@ -12,7 +12,6 @@
 
 #include <algorithm>
 #include <unistd.h>
-#include <mpp/shmem.h>
 
 #include "utilities/CCommunicate.h"
 #include "utilities/CStreamBuffer.h"
@@ -21,13 +20,13 @@
 int CCommunicate::MPIRank(-1);
 
 // static
+int CCommunicate::MPINextRank(-1);
+
+// static
+int CCommunicate::MPIPreviousRank(-1);
+
+// static
 int CCommunicate::MPIProcesses(-1);
-
-// static
-int CCommunicate::SHMEMRank(-1);
-
-// static
-int CCommunicate::SHMEMProcesses(-1);
 
 // static
 int CCommunicate::ReceiveSize(0);
@@ -70,9 +69,8 @@ void CCommunicate::init(int *argc, char ***argv)
   MPI_Comm_rank(MPI_COMM_WORLD, &MPIRank);
   MPI_Comm_size(MPI_COMM_WORLD, &MPIProcesses);
 
-  shmem_init();
-  SHMEMRank = _my_pe();
-  SHMEMProcesses = _num_pes();
+  MPINextRank = (MPIProcesses + MPIRank + 1) % MPIProcesses;
+  MPIPreviousRank = (MPIProcesses + MPIRank - 1) % MPIProcesses;
 }
 
 // static
@@ -92,9 +90,7 @@ int CCommunicate::abort(ErrorCode errorcode)
 // static
 int CCommunicate::finalize(void)
 {
-  // int result = MPI_Finalize();
-  shmem_finalize();
-  return MPI_SUCCESS;
+  return MPI_Finalize();
 }
 
 // static
@@ -184,16 +180,16 @@ int CCommunicate::sequential(int firstRank, CCommunicate::SequentialProcessInter
       (*pSequential)();
 
       signal = 1;
-      send(&signal, 1, MPI_INT, (firstRank + 1) % MPIProcesses, firstRank);
-      receive(&signal, 1, MPI_INT, (firstRank - 1) % MPIProcesses, (firstRank - 1) % MPIProcesses, &status);
+      send(&signal, 1, MPI_INT, MPINextRank, firstRank);
+      receive(&signal, 1, MPI_INT, MPIPreviousRank, (firstRank - 1) % MPIProcesses, &status);
     }
   else
     {
-      receive(&signal, 1, MPI_INT, MPIRank-1, MPIRank-1,  &status);
+      receive(&signal, 1, MPI_INT, MPIPreviousRank, MPIPreviousRank,  &status);
 
       (*pSequential)();
 
-      send(&signal, 1, MPI_INT, (MPIRank + 1) % MPIProcesses, MPIRank);
+      send(&signal, 1, MPI_INT, MPINextRank, MPIRank);
     }
 
   return (int) Result;

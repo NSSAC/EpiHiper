@@ -6,3 +6,7 @@ sciduct/cache/
 sciduct/job/
 sciduct/input/
 sciduct/bin/EpiHiper
+
+sciduct/build/
+
+*.simg

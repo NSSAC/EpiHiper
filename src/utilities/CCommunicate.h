@@ -128,9 +128,9 @@ public:
   typedef MPI_Status Status;
 
   static int MPIRank;
+  static int MPINextRank;
+  static int MPIPreviousRank;
   static int MPIProcesses;
-  static int SHMEMRank;
-  static int SHMEMProcesses;
 
   static void init(int *argc, char ***argv);
 

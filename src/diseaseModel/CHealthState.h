@@ -22,6 +22,17 @@ struct json_t;
 class CHealthState: public CAnnotation
 {
 public:
+  struct Counts
+  {
+    size_t Current;
+    size_t In;
+    size_t Out;
+
+    Counts();
+    Counts(const Counts & src);
+    ~Counts();
+  };
+
   CHealthState();
 
   CHealthState(const CHealthState & src);
@@ -38,25 +49,31 @@ public:
 
   const bool & isValid() const;
 
-  const size_t & getLocalCount() const;
+  const Counts & getLocalCounts() const;
 
-  const size_t & getGlobalCount() const;
+  const Counts & getGlobalCounts() const;
 
-  inline void increment() const {++mLocalCount;};
+  inline void increment() const {
+    ++mLocalCounts.Current;
+    ++mLocalCounts.In;
+  };
 
-  void decrement() const {--mLocalCount;};
+  void decrement() const {
+    --mLocalCounts.Current;
+    ++mLocalCounts.Out;
+  };
 
-  void resetGlobalCount();
+  void resetCounts();
 
-  void incrementGlobalCount(const size_t & i);
+  void incrementGlobalCount(const Counts & i);
 
 private:
   std::string mId;
   double mSusceptibility;
   double mInfectivity;
   bool mValid;
-  mutable size_t mLocalCount;
-  size_t mGlobalCount;
+  mutable Counts mLocalCounts;
+  Counts mGlobalCounts;
 };
 
 #endif /* SRC_DISEASEMODEL_CHEALTHSTATE_H_ */

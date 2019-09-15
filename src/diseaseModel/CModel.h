@@ -77,6 +77,10 @@ public:
 
   static CCommunicate::ErrorCode receiveGlobalStateCounts(std::istream & is, int sender);
 
+  static void initGlobalStateCountOutput();
+
+  static void writeGlobalStateCounts();
+
 private:
   bool _processTransmissions() const;
   void _stateChanged(CNode * pNode) const;

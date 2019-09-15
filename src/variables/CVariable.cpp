@@ -14,7 +14,6 @@
 #include <limits>
 #include <cmath>
 #include <jansson.h>
-#include <mpp/shmem.h>
 
 #include "variables/CVariable.h"
 
@@ -113,9 +112,11 @@ void CVariable::fromJSON(const json_t * json)
       mValid = false;
     }
 
-  mpValue = (double *) shmalloc(sizeof(double));
+  // mpValue = (double *) shmalloc(sizeof(double));
+  mpValue = new double;
+
   reset();
-  shmem_barrier_all();
+  // shmem_barrier_all();
 
   pValue = json_object_get(json, "reset");
 
@@ -161,21 +162,27 @@ void CVariable::reset()
 bool CVariable::setValue(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
   if (mType == Type::local ||
-      CCommunicate::SHMEMRank == 0)
+      CCommunicate::MPIRank == 0)
     {
       (*pOperator)(*mpValue, value);
     }
   else
     {
+      /*
       long Lock;
       shmem_set_lock(&Lock);
 
       *mpValue = shmem_double_g(mpValue, 0);
+      */
+
       (*pOperator)(*mpValue, value);
+
+      /*
       shmem_double_p(mpValue, *mpValue, 0);
 
       shmem_clear_lock(&Lock);
       shmem_fence();
+      */
     }
 
   return true;

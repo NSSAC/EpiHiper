@@ -10,6 +10,7 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#include <fstream>
 #include <jansson.h>
 
 #include "diseaseModel/CModel.h"
@@ -320,20 +321,20 @@ const std::vector< CTransmission > & CModel::getTransmissions()
 int CModel::updateGlobalStateCounts()
 {
   size_t Size = INSTANCE->mId2State.size();
-  size_t LocalStateCounts[Size];
+  CHealthState::Counts LocalStateCounts[Size];
 
   CHealthState * pState = INSTANCE->mStates;
   CHealthState * pStateEnd = pState + Size;
-  size_t * pLocalCount = LocalStateCounts;
+  CHealthState::Counts * pLocalCount = LocalStateCounts;
 
   for (; pState != pStateEnd; ++pState, ++pLocalCount)
     {
-      *pLocalCount = pState->getLocalCount();
-      pState->resetGlobalCount();
+      *pLocalCount = pState->getLocalCounts();
+      pState->resetCounts();
     }
 
   CCommunicate::Receive ReceiveCounts(&CModel::receiveGlobalStateCounts);
-  CCommunicate::broadcast(LocalStateCounts, Size * sizeof(size_t), &ReceiveCounts);
+  CCommunicate::broadcast(LocalStateCounts, Size * sizeof(CHealthState::Counts), &ReceiveCounts);
 
   return (int) CCommunicate::ErrorCode::Success;
 }
@@ -344,16 +345,93 @@ CCommunicate::ErrorCode CModel::receiveGlobalStateCounts(std::istream & is, int 
 {
   size_t Size = INSTANCE->mId2State.size();
 
-  size_t Increment;
+  CHealthState::Counts Increment;
   CHealthState * pState = INSTANCE->mStates;
   CHealthState * pStateEnd = pState + Size;
 
   for (; pState != pStateEnd; ++pState)
     {
-      is.read(reinterpret_cast<char *>(&Increment), sizeof(size_t));
+      is.read(reinterpret_cast<char *>(&Increment), sizeof(CHealthState::Counts));
       pState->incrementGlobalCount(Increment);
     }
 
   return CCommunicate::ErrorCode::Success;
+}
+
+// static
+void CModel::initGlobalStateCountOutput()
+{
+  if (CCommunicate::MPIRank == 0)
+    {
+      std::ofstream out;
+
+      out.open(CSimConfig::getSummaryOutput().c_str());
+
+      if (out.good())
+        {
+          size_t Size = INSTANCE->mId2State.size();
+          CHealthState * pState = INSTANCE->mStates;
+          CHealthState * pStateEnd = pState + Size;
+          bool first = true;
+
+          // Loop through all states
+          for (; pState != pStateEnd; ++pState)
+            {
+              if (first)
+                {
+                  out << "tick";
+                  first = false;
+                }
+
+              out << ","  << pState->getId() << "[current]," << pState->getId() << "[in]," << pState->getId() << "[out]";
+            }
+
+          out << std::endl;
+        }
+      else
+        {
+          std::cerr << "Error (Rank 0): Failed to open file '" << CSimConfig::getSummaryOutput() << "'.";
+          exit(EXIT_FAILURE);
+        }
+
+      out.close();
+    }
+}
+
+// static
+void CModel::writeGlobalStateCounts()
+{
+  if (CCommunicate::MPIRank == 0)
+    {
+      std::ofstream out;
+
+      out.open(CSimConfig::getSummaryOutput().c_str(), std::ios_base::app);
+
+      if (out.good())
+        {
+          size_t Size = INSTANCE->mId2State.size();
+          CHealthState * pState = INSTANCE->mStates;
+          CHealthState * pStateEnd = pState + Size;
+
+          out << CActionQueue::getCurrentTick();
+
+          // Loop through all states
+          for (; pState != pStateEnd; ++pState)
+            {
+              const CHealthState::Counts & Counts = pState->getGlobalCounts();
+
+              out << "," << Counts.Current << "," << Counts.In << "," << Counts.Out;
+            }
+
+          out << std::endl;
+        }
+      else
+        {
+          std::cerr << "Error (Rank 0): Failed to open file '" << CSimConfig::getSummaryOutput() << "'.";
+          exit(EXIT_FAILURE);
+        }
+
+      out.close();
+    }
 }
 

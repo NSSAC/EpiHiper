@@ -14,14 +14,29 @@
 
 #include "diseaseModel/CHealthState.h"
 
+CHealthState::Counts::Counts()
+  : Current(0)
+  , In(0)
+  , Out(0)
+{}
+
+CHealthState::Counts::Counts(const Counts & src)
+  : Current(src.Current)
+  , In(src.In)
+  , Out(src.Out)
+{}
+
+CHealthState::Counts::~Counts()
+{}
+
 CHealthState::CHealthState()
   : CAnnotation()
   , mId()
   , mSusceptibility(-1.0)
   , mInfectivity(-1.0)
   , mValid(false)
-  , mLocalCount(0)
-  , mGlobalCount(0)
+  , mLocalCounts()
+  , mGlobalCounts()
 {}
 
 CHealthState::CHealthState(const CHealthState & src)
@@ -30,8 +45,8 @@ CHealthState::CHealthState(const CHealthState & src)
   , mSusceptibility(src.mSusceptibility)
   , mInfectivity(src.mInfectivity)
   , mValid(src.mValid)
-  , mLocalCount(src.mLocalCount)
-  , mGlobalCount(src.mGlobalCount)
+  , mLocalCounts(src.mLocalCounts)
+  , mGlobalCounts(src.mGlobalCounts)
 {}
 
 // virtual
@@ -90,23 +105,28 @@ const bool & CHealthState::isValid() const
   return mValid;
 }
 
-const size_t & CHealthState::getLocalCount() const
+const CHealthState::Counts & CHealthState::getLocalCounts() const
 {
-  return mLocalCount;
+  return mLocalCounts;
 }
 
-const size_t & CHealthState::getGlobalCount() const
+const CHealthState::Counts & CHealthState::getGlobalCounts() const
 {
-  return mGlobalCount;
+  return mGlobalCounts;
 }
 
-void CHealthState::resetGlobalCount()
+void CHealthState::resetCounts()
 {
-  mGlobalCount = mLocalCount;
+  mGlobalCounts = mLocalCounts;
+
+  mLocalCounts.In = 0;
+  mLocalCounts.Out = 0;
 }
 
-void CHealthState::incrementGlobalCount(const size_t & i)
+void CHealthState::incrementGlobalCount(const CHealthState::Counts & i)
 {
-  mGlobalCount += i;
+  mGlobalCounts.Current += i.Current;
+  mGlobalCounts.In += i.In;
+  mGlobalCounts.Out += i.Out;
 }
 

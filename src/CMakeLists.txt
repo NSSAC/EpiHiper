@@ -12,11 +12,12 @@
 
 cmake_minimum_required (VERSION 3.11)
 
-file(GLOB HEADERS_EPIHIPER *.h)
-file(GLOB SOURCES_EPIHIPER *.cpp)
+file(GLOB _HEADERS_EPIHIPER *.h)
+file(GLOB _SOURCES_EPIHIPER *.cpp)
+list(REMOVE_ITEM _SOURCES_EPIHIPER ${CMAKE_CURRENT_SOURCE_DIR}/rma.cpp)
 
 # create source group for IDEs
-source_group(EpiHiper FILES ${SOURCES_EPIHIPER} ${HEADERS_EPIHIPER})
+source_group(EpiHiper FILES ${_SOURCES_EPIHIPER} ${_HEADERS_EPIHIPER})
 
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -31,18 +32,25 @@ include(traits/CMakeLists.txt)
 include(utilities/CMakeLists.txt)
 include(variables/CMakeLists.txt)
 
-add_executable (EpiHiper ${SOURCES_EPIHIPER})
+add_executable (EpiHiper ${_SOURCES_EPIHIPER} ${SOURCES_EPIHIPER})
 
 add_dependencies(EpiHiper jansson libpqxx)
 
-find_package(jansson CONFIG QUIET
-	PATHS ${CMAKE_BINARY_DIR}/lib
-)
-
 target_link_libraries (EpiHiper 
 	${MPI_LIBRARIES}
-	${OSHMEM_LIBRARIES} 
 	${PGSQL_LIBRARY} 
 	${CMAKE_BINARY_DIR}/lib/libjansson.a 
 	${CMAKE_BINARY_DIR}/lib/libpqxx.a
 )
+
+
+# add_executable (rma ${CMAKE_CURRENT_SOURCE_DIR}/rma.cpp ${SOURCES_EPIHIPER})
+#
+# target_link_libraries (rma 
+#     ${MPI_LIBRARIES}
+#     ${OSHMEM_LIBRARIES}
+#     ${PGSQL_LIBRARY} 
+#     ${CMAKE_BINARY_DIR}/lib/libjansson.a 
+#     ${CMAKE_BINARY_DIR}/lib/libpqxx.a
+#     /usr/lib64/libpthread.so
+# )

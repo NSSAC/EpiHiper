@@ -169,6 +169,7 @@ void Simulation::run()
   CActionQueue::setCurrentTick(startTick - 1);
   Changes::setCurrentTick(startTick - 1);
   Changes::initDefaultOutput();
+  CModel::initGlobalStateCountOutput();
 
   size_t perNode = std::round(100.0/CCommunicate::MPIProcesses);
 
@@ -182,6 +183,7 @@ void Simulation::run()
   CActionQueue::processCurrentActions();
   Changes::writeDefaultOutput();
   CModel::updateGlobalStateCounts();
+  CModel::writeGlobalStateCounts();
   CNetwork::INSTANCE->broadcastChanges();
   CActionQueue::incrementTick();
   Changes::incrementTick();
@@ -193,6 +195,7 @@ void Simulation::run()
       CActionQueue::processCurrentActions();
       Changes::writeDefaultOutput();
       CModel::updateGlobalStateCounts();
+      CModel::writeGlobalStateCounts();
       CNetwork::INSTANCE->broadcastChanges();
       CActionQueue::incrementTick();
       Changes::incrementTick();
