@@ -27,16 +27,42 @@ From: centos:7.6.1810
     yum -y update
         
     echo "Installing development tools using YUM"
-    yum -y install perl atlas libpsm2 infinipath-psm libibverbs qperf pciutils tcl tcsh \
-        expect sysfsutils librdmacm libibcm perftest rdma bc \
-        elfutils-libelf-developenssh-clients openssh-server \
-        libstdc++-devel gcc-gfortran rpm-buildx \
-        compat-rdma-devel libibmad libibumad ibacm-devel \
-        libibumad-devel libibumad-static libuuid-devel \
-        pci-utils which iproute net-tools \
-        libhfi1 opensm-libs numactl-libs \
-        irqbalance openssl openssl-devel \
-        postgresql-devel 
+    yum -y install \
+        atlas \
+        bc \
+        expect \
+        gcc-gfortran \
+        ibacm-devel \
+        infiniband-diags \
+        infinipath-psm \
+        iproute \
+        irqbalance \
+        libhfi1 \
+        libibcm \
+        libibumad \
+        libibumad-devel \
+        libibumad-static \
+        libibverbs \
+        libpsm2 \
+        librdmacm \
+        libstdc++-devel \
+        libuuid-devel \
+        net-tools \
+        numactl-libs \
+        opensm-libs \
+        openssh-server \
+        openssl \
+        openssl-devel \
+        pciutils \
+        perftest \
+        perl \
+        postgresql-devel \
+        qperf \
+        rdma \
+        sysfsutils \
+        tcl \
+        tcsh \
+        which \
 
     cd /src
 
