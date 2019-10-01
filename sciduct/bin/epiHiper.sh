@@ -12,16 +12,14 @@
 #   http://www.apache.org/licenses/LICENSE-2.0 
 # END: License 
 
-if [ _$# != _0 ]; then
-  echo usage: $0
-  exit 1
-fi
-
 source /opt/intel/impi/2018.5.288/bin64/mpivars.sh
 
 jobId=${SLURM_JOB_ID:-222222}
 jobName=${SLURM_JOB_NAME:-testEpiHiper}
-statusFile="/job/sciduct.status.json"
+CONFIG_FILE=$1
+CONFIG_FILE=${CONFIG_FILE:-"/input/runParameters"}
+statusFile=`cat $CONFIG_FILE | jq -r .status`
+statusFile=${statusFile:-"/job/sciduct.status.json"}
 
 echo "MPI Rank: $PMI_RANK"
 
@@ -31,7 +29,7 @@ if [ _$PMI_RANK == _0 ]; then
 
   /epihiper/bin/epiHiperStatus -d "Running EpiHiper Simulation" ${statusFile}
 
-  /epihiper/bin/EpiHiper --config "/input/runParameters"
+  /epihiper/bin/EpiHiper --config $CONFIG_FILE
 
   let retval=$?
 
@@ -42,5 +40,5 @@ if [ _$PMI_RANK == _0 ]; then
 
   /epihiper/bin/epiHiperStatus -s completed -d "Finished" -p 100 ${statusFile}
 else
-  /epihiper/bin/EpiHiper --config "/input/runParameters"
+  /epihiper/bin/EpiHiper --config $CONFIG_FILE
 fi

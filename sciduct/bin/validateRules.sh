@@ -12,21 +12,19 @@
 #   http://www.apache.org/licenses/LICENSE-2.0 
 # END: License 
 
-if [ _$# != _0 ]; then
-  echo usage: $0
-  exit 1
-fi
-
 jobId=${SLURM_JOB_ID:-222222}
 jobName=${SLURM_JOB_NAME:-testValidateRules}
-statusFile="/job/sciduct.status.json"
+CONFIG_FILE=$1
+CONFIG_FILE=${CONFIG_FILE:-"/input/runParameters"}
+statusFile=`cat $CONFIG_FILE | jq -r .status`
+statusFile=${statusFile:-"/job/sciduct.status.json"}
 
 [ -e ${statusFile} ] || \
     /epihiper/bin/epiHiperStatus -i "${jobId}" -n "${jobName}" -s running -p 0 ${statusFile}
 
 /epihiper/bin/epiHiperStatus -d "Validating Rules" ${statusFile}
 
-/epihiper/bin/epiHiperValidateRules "/input/runParameters"
+/epihiper/bin/epiHiperValidateRules $CONFIG_FILE
 
 let retval=$?
 

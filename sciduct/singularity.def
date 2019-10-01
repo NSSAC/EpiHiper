@@ -63,6 +63,8 @@ From: centos:7.6.1810
         tcl \
         tcsh \
         which \
+        gcc-c++ \
+        make
 
     cd /src
 
@@ -73,13 +75,13 @@ From: centos:7.6.1810
     # Install IntelOPA
     tar -xf IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz
     cd IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1
-    ./INSTALL --user-space -n
+    ./INSTALL --user-space -n --force
 
     cd /
     rm -rf /src
 
     # nodejs install
-    curl -sL https://rpm.nodesource.com/setup_10.x | bash -
+    curl -sL https://rpm.nodesource.com/setup_12.x | bash -
     yum install -y nodejs
 
     # jq is a processor for helping with json from bash
@@ -96,14 +98,14 @@ From: centos:7.6.1810
 %apprun validateSchema
     echo Validating Schema
     echo Job ID: ${SLURM_JOB_ID:-222222}
-    /epihiper/bin/validateSchema.sh
+    /epihiper/bin/validateSchema.sh $@
 
 %apprun validateRules
     echo Validating Rules
     echo Job ID: ${SLURM_JOB_ID:-222222}
-    /epihiper/bin/validateRules.sh
+    /epihiper/bin/validateRules.sh $@
 	
 %apprun epiHiper
     echo Rank $PMI_RANK: Running EpiHiper Simulation
     echo Rank $PMI_RANK: Job ID: ${SLURM_JOB_ID:-222222}
-    /epihiper/bin/epiHiper.sh
+    /epihiper/bin/epiHiper.sh $@

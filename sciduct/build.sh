@@ -14,7 +14,7 @@
 
 SINGULARITY=${SINGULARITY:-"$(which singularity)"}
 DEF=singularity.def
-IMAGE=epihiper.simg
+IMAGE=epihiper.sif
 ID=$(id -u)
 
 [ -e $IMAGE ] && rm $IMAGE
@@ -26,7 +26,7 @@ cd cache
 
 # EpiHiper
 [ -e EpiHiper ] || \
-    scp rivanna:/project/biocomplexity/nssac/EpiHiper/build/src/EpiHiper .
+    scp rivanna1.hpc.virginia.edu:/project/biocomplexity/nssac/EpiHiper/build/src/EpiHiper .
     
 # Intel MPI
 [ -e l_mpi_2018.5.288.tgz ] || \
