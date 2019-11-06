@@ -36,6 +36,15 @@ cd cache
 [ -e IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz ] || \
     wget https://downloadmirror.intel.com/28866/eng/IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz
     
+# Open MPI
+[ -e openmpi-2.1.5.tar.bz2 ] || \
+    wget https://download.open-mpi.org/release/open-mpi/v2.1/openmpi-2.1.5.tar.bz2
+
+# CMake
+[ -e cmake-3.15.4.tar.gz ] || \
+    wget https://github.com/Kitware/CMake/releases/download/v3.15.4/cmake-3.15.4.tar.gz
+    
+
 cd ..
 
 sudo "${SINGULARITY}" build $IMAGE $DEF

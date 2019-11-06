@@ -20,10 +20,11 @@ From: centos:7.6.1810
     bin/epiHiper.sh /epihiper/bin
     bin/validateSchema.sh /epihiper/bin
     bin/validateRules.sh /epihiper/bin
-	
+    CentOS-Base.repo /etc/yum.repos.d
+    
 %post
     # Ensure the the CentOS release is the same as on rivanna
-    # echo 7.6.1810 > /etc/yum/vars/releasever
+    echo 7.6.1810 > /etc/yum/vars/releasever
     yum -y update
         
     echo "Installing development tools using YUM"
