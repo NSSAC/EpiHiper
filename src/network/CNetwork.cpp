@@ -494,13 +494,6 @@ bool CNetwork::isRemoteNode(const CNode * pNode) const
 
 CNode * CNetwork::lookupNode(const size_t & id) const
 {
-  static double stretch = 0.0;
-
-  if (stretch == 0.0)
-    {
-      stretch = ((double) mLocalNodesSize)/(mBeyondLocalNode - mFirstLocalNode);
-    }
-
   if (id < mFirstLocalNode || mBeyondLocalNode <= id)
     {
       std::map< size_t, CNode >::const_iterator found = mRemoteNodes.find(id);
@@ -515,37 +508,20 @@ CNode * CNetwork::lookupNode(const size_t & id) const
 
   CNode * pLeft = mLocalNodes;
   CNode * pRight = mLocalNodes + mLocalNodesSize - 1;
-  CNode * pCurrent = mLocalNodes + std::min< size_t >(std::round(stretch * (id - mFirstLocalNode)), mLocalNodesSize - 1);
+  CNode * pCurrent = pCurrent = pLeft + (pRight - pLeft)/2;
 
   while (pCurrent->id != id)
     {
-      // Handle invalid requests
-      if (pRight - pLeft < 2)
-        {
-          if (pLeft->id == id) return pLeft;
-          if (pRight->id == id) return pRight;
-
-          return NULL;
-        }
-
       if (pCurrent->id < id)
         {
           pLeft = pCurrent + 1;
-          pCurrent = pLeft + (id - pLeft->id);
-
-          // Fall back to binary search
-          if(pRight < pCurrent)
-            pCurrent = pLeft + (pRight - pLeft)/2;
         }
       else
         {
-          pRight = pCurrent;
-          pCurrent = pRight - (pRight->id - id);
-
-          // Fall back to binary search
-          if(pCurrent < pLeft)
-            pCurrent = pLeft + (pRight - pLeft)/2;
+          pRight = pCurrent - 1;
         }
+
+      pCurrent = pLeft + (pRight - pLeft)/2;
     }
 
   return pCurrent;
@@ -567,16 +543,22 @@ CEdge * CNetwork::lookupEdge(const size_t & targetId, const size_t & sourceId) c
 
   while (pCurrent->sourceId != sourceId)
     {
-      // Handle invalid requests
-      if (pRight - pLeft < 2) return NULL;
-
       if (pCurrent->sourceId < sourceId)
         {
           pLeft = pCurrent + 1;
         }
       else
         {
-          pRight = pCurrent;
+          pRight = pCurrent - 1;
+        }
+
+      // Handle invalid requests
+      if (pRight - pLeft < 2)
+        {
+          if (pLeft->sourceId == sourceId) return pLeft;
+          if (pRight->sourceId == sourceId) return pRight;
+
+          return NULL;
         }
 
       pCurrent = pLeft + (pRight - pLeft)/2;
