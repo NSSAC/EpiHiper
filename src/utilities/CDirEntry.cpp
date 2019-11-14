@@ -390,7 +390,9 @@ std::string CDirEntry::getPWD(void)
 }
 
 // static
-std::string CDirEntry::resolve(const std::string & pathSpec, const std::string & relativeTo)
+std::string CDirEntry::resolve(const std::string & pathSpec,
+                               const std::string & relativeTo,
+                               const std::string & defaultTo)
 {
   if (pathSpec.substr(0, 7) == "self://")
     {
@@ -403,7 +405,11 @@ std::string CDirEntry::resolve(const std::string & pathSpec, const std::string &
   if (isRelativePath(pathSpec))
     {
       std::string Path(pathSpec);
-      makePathAbsolute(Path, getPWD());
+
+      if (defaultTo.empty())
+        makePathAbsolute(Path, getPWD());
+      else
+        makePathAbsolute(Path, defaultTo);
 
       return Path;
     }

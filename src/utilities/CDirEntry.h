@@ -150,9 +150,12 @@ public:
    * Resolve the pathspec
    * @param const std::string & pathSpec
    * @param const std::string & relativeTo
+   * @param const std::string & defaultTo
    * @return const std::string absolutePath
    */
-  static std::string resolve(const std::string & pathSpec, const std::string & relativeTo);
+  static std::string resolve(const std::string & pathSpec,
+                             const std::string & relativeTo,
+                             const std::string & defaultTo = "");
 };
 
 #endif // SRC_UTILITIES_CDIRENTRY_H_

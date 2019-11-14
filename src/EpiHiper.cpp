@@ -70,7 +70,7 @@ bool parseArgs(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
-  CCommunicate::init(&argc, &argv);
+  CCommunicate::init(argc, argv);
 
   if (CCommunicate::MPIRank == 0) {
     std::cout << "EpiHiper version 0.0.1 (2019.06.14)" << std::endl;

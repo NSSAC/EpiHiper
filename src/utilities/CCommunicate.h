@@ -14,6 +14,8 @@
 #define SRC_COMMUNICATE_H_
 
 #include <mpi.h>
+#include <mpp/shmem.h>
+
 #include <iostream>
 
 #define FatalError(err, msg) {CCommunicate::abortMessage((err), (msg), __FILE__, __LINE__);}
@@ -132,7 +134,7 @@ public:
   static int MPIPreviousRank;
   static int MPIProcesses;
 
-  static void init(int *argc, char ***argv);
+  static void init(int argc, char **argv);
 
   static int send(const void *buf,
                   int count,

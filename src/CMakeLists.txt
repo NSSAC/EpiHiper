@@ -38,19 +38,22 @@ add_dependencies(EpiHiper jansson libpqxx)
 
 target_link_libraries (EpiHiper 
 	${MPI_LIBRARIES}
+    ${OSHMEM_LIBRARIES}
 	${PGSQL_LIBRARY} 
 	${CMAKE_BINARY_DIR}/lib/libjansson.a 
 	${CMAKE_BINARY_DIR}/lib/libpqxx.a
 )
 
 
-# add_executable (rma ${CMAKE_CURRENT_SOURCE_DIR}/rma.cpp ${SOURCES_EPIHIPER})
-#
-# target_link_libraries (rma 
-#     ${MPI_LIBRARIES}
-#     ${OSHMEM_LIBRARIES}
-#     ${PGSQL_LIBRARY} 
-#     ${CMAKE_BINARY_DIR}/lib/libjansson.a 
-#     ${CMAKE_BINARY_DIR}/lib/libpqxx.a
-#     /usr/lib64/libpthread.so
-# )
+add_executable (rma ${CMAKE_CURRENT_SOURCE_DIR}/rma.cpp ${SOURCES_EPIHIPER})
+
+add_dependencies(rma jansson libpqxx)
+
+target_link_libraries (rma 
+    ${MPI_LIBRARIES}
+    ${OSHMEM_LIBRARIES}
+    ${PGSQL_LIBRARY} 
+    ${CMAKE_BINARY_DIR}/lib/libjansson.a 
+    ${CMAKE_BINARY_DIR}/lib/libpqxx.a
+    /usr/lib64/libpthread.so
+)

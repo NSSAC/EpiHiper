@@ -148,7 +148,7 @@ CSimConfig::CSimConfig(const std::string& configFile)
   else
     mOutput = "output.csv";
 
-  mOutput = CDirEntry::resolve(mOutput, DefaultDir);
+  mOutput = CDirEntry::resolve(mOutput, mRunParameters, DefaultDir);
 
   if (!CDirEntry::exist(CDirEntry::dirName(mOutput)))
     CDirEntry::createDir(CDirEntry::dirName(mOutput));
@@ -160,7 +160,7 @@ CSimConfig::CSimConfig(const std::string& configFile)
   else
     mSummaryOutput = "summaryOutput.csv";
 
-  mSummaryOutput = CDirEntry::resolve(mSummaryOutput, DefaultDir);
+  mSummaryOutput = CDirEntry::resolve(mSummaryOutput, mRunParameters, DefaultDir);
 
   if (!CDirEntry::exist(CDirEntry::dirName(mSummaryOutput)))
     CDirEntry::createDir(CDirEntry::dirName(mSummaryOutput));

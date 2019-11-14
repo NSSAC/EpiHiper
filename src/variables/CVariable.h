@@ -64,8 +64,10 @@ private:
   std::string mId;
   Type mType;
   double mInitialValue;
-  double * mpValue;
-  double mResetValue;
+  double mLocalValue;
+  double * mpGlobalValue;
+  long * mpLock;
+  int mResetValue;
   bool mValid;
 };
 

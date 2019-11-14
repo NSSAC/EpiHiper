@@ -12,6 +12,8 @@
 
 #include <algorithm>
 #include <unistd.h>
+#include <mpp/shmem.h>
+#include <cassert>
 
 #include "utilities/CCommunicate.h"
 #include "utilities/CStreamBuffer.h"
@@ -63,14 +65,16 @@ void CCommunicate::resizeReceiveBuffer(int size)
 }
 
 // static
-void CCommunicate::init(int *argc, char ***argv)
+void CCommunicate::init(int argc, char **argv)
 {
-  MPI_Init(argc, argv);
+  MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &MPIRank);
   MPI_Comm_size(MPI_COMM_WORLD, &MPIProcesses);
 
   MPINextRank = (MPIProcesses + MPIRank + 1) % MPIProcesses;
   MPIPreviousRank = (MPIProcesses + MPIRank - 1) % MPIProcesses;
+
+  shmem_init();
 }
 
 // static
@@ -90,6 +94,7 @@ int CCommunicate::abort(ErrorCode errorcode)
 // static
 int CCommunicate::finalize(void)
 {
+  shmem_finalize();
   return MPI_Finalize();
 }
 
