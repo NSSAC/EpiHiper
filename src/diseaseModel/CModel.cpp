@@ -248,7 +248,7 @@ bool CModel::_processTransmissions() const
 
             const Candidate & Candidate = (itCandidate != endCandidate) ? *itCandidate : *Candidates.rbegin();
 
-            CCondition::CComparison< const CHealthState * > CheckState(CConditionDefinition::ComparisonType::Equal, &pNode->getHealthState(), pNode->getHealthState());
+            CCondition::CComparison CheckState(CConditionDefinition::ComparisonType::Equal, CValueInterface(pNode->healthState), CValue(pNode->healthState));
 
             CMetadata Info("StateChange", true);
             Info.set("ContactNode", (int) Candidate.pContact->id);
@@ -301,7 +301,7 @@ void CModel::_stateChanged(CNode * pNode) const
 
       const CProgression * pProgression = (it != end) ? *it : *EntryStateFound->second.rbegin();
 
-      CCondition::CComparison< const CHealthState * > CheckState(CConditionDefinition::ComparisonType::Equal, &pNode->getHealthState(), pNode->getHealthState());
+      CCondition::CComparison CheckState(CConditionDefinition::ComparisonType::Equal, CValueInterface(pNode->id), CValue(pNode->id));
 
       CMetadata Info("StateChange", true);
       CAction ChangeState(1.0, CheckState, Info);

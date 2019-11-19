@@ -46,7 +46,8 @@ public:
     traitData,
     traitValue,
     string,
-    id
+    id,
+    pointer
   };
 
   CValueInterface() = delete;
@@ -68,6 +69,8 @@ public:
   CValueInterface(std::string & str);
 
   virtual ~CValueInterface();
+
+  virtual CValueInterface * copy() const;
 
   const bool & toBoolean() const;
 

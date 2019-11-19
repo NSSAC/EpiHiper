@@ -422,7 +422,7 @@ void CNetwork::load()
       for (pEdge = mEdges; pEdge != pEdgeEnd; ++pEdge)
         if (pEdge->pSource == NULL)
           {
-            pEdge->pSource = lookupNode(pEdge->sourceId);
+            pEdge->pSource = lookupNode(pEdge->sourceId, false);
 
             if (pEdge->pSource== NULL)
               {
@@ -492,15 +492,18 @@ bool CNetwork::isRemoteNode(const CNode * pNode) const
   return pNode < mLocalNodes || mLocalNodes + mLocalNodesSize <= pNode;
 }
 
-CNode * CNetwork::lookupNode(const size_t & id) const
+CNode * CNetwork::lookupNode(const size_t & id, const bool localOnly) const
 {
   if (id < mFirstLocalNode || mBeyondLocalNode <= id)
     {
-      std::map< size_t, CNode >::const_iterator found = mRemoteNodes.find(id);
-
-      if (found != mRemoteNodes.end())
+      if (!localOnly)
         {
-          return const_cast< CNode *>(&found->second);
+          std::map< size_t, CNode >::const_iterator found = mRemoteNodes.find(id);
+
+          if (found != mRemoteNodes.end())
+            {
+              return const_cast< CNode *>(&found->second);
+            }
         }
 
       return NULL;
@@ -532,7 +535,7 @@ CEdge * CNetwork::lookupEdge(const size_t & targetId, const size_t & sourceId) c
   // We only have edges for local target nodes
   if (targetId < mFirstLocalNode || mBeyondLocalNode <= targetId) return NULL;
 
-  CNode * pTargetNode = lookupNode(targetId);
+  CNode * pTargetNode = lookupNode(targetId, true);
 
   // Handle invalid requests
   if (pTargetNode == NULL) return NULL;
@@ -711,7 +714,7 @@ CCommunicate::ErrorCode CNetwork::receiveNodes(std::istream & is, int sender)
           break;
         }
 
-      CNode * pNode = lookupNode(Node.id);
+      CNode * pNode = lookupNode(Node.id, false);
 
       if (pNode != NULL)
         {

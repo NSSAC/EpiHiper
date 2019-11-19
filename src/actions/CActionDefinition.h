@@ -22,6 +22,7 @@
 class CActionDefinition : public CAnnotation
 {
 public:
+
   CActionDefinition();
 
   CActionDefinition(const CActionDefinition & src);
@@ -34,11 +35,20 @@ public:
 
   const bool & isValid() const;
 
+  void process(const CEdge * pEdge) const;
+
+  void process(const CNode * pNode) const;
+
+  static CActionDefinition * GetActionDefinition(const size_t & index);
+
 private:
+  static std::vector< CActionDefinition * > INSTANCES;
+
   std::vector< COperationDefinition > mOperations;
   double mPriority;
   size_t mDelay;
   CConditionDefinition mCondition;
+  size_t mIndex;
   bool mValid;
 };
 

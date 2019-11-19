@@ -10,11 +10,10 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "variables/CVariableList.h"
-
 #include <iostream>
 #include <jansson.h>
 
+#include "variables/CVariableList.h"
 
 // static
 CVariableList CVariableList::INSTANCE;

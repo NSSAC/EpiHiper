@@ -33,16 +33,22 @@ class CActionQueue: public std::map< int, CCurrentActions >
 
     static size_t pendingActions();
 
+    static void addRemoteAction(const size_t & index, const CNode * pNode);
+
+    static void addRemoteAction(const size_t & index, const CEdge * pEdge);
+
+
   private:
     CActionQueue();
 
-    int broadcastRemoteActions();
+    int broadcastPendingActions();
 
-    CCommunicate::ErrorCode receiveActions(std::istream & is, int sender);
+    CCommunicate::ErrorCode receivePendingActions(std::istream & is, int sender);
 
     static CActionQueue INSTANCE;
     int mCurrenTick;
     size_t mTotalPendingActions;
+    std::stringstream mRemoteActions;
 };
 
 #endif /* SRC_ACTIONS_CACTIONQUEUE_H_ */

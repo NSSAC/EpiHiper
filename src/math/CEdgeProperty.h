@@ -37,7 +37,7 @@ public:
 
   const bool & isValid() const;
 
-  CValueInterface & propertyOf(CEdge * pEdge);
+  CValueInterface & propertyOf(const CEdge * pEdge);
 
   COperation * createOperation(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator);
 

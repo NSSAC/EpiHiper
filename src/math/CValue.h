@@ -42,6 +42,11 @@ public:
 
   const bool & isValid() const;
 
+  void toBinary(std::ostream & os) const;
+
+  void fromBinary(std::istream & is);
+
+
 protected:
   static void * createValue(const Type & type);
 

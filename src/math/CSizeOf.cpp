@@ -16,10 +16,20 @@
 #include "math/CSizeOf.h"
 #include "sets/CSetContent.h"
 
+// static
+std::vector< CSizeOf * > CSizeOf::INSTANCES;
+
+// static
+std::vector< CSizeOf * > CSizeOf::GetInstances()
+{
+  return INSTANCES;
+}
+
 CSizeOf::CSizeOf()
   : CValue(std::numeric_limits< double >::quiet_NaN())
   , CComputable()
   , mpSetContent(NULL)
+  , mIndex(std::numeric_limits< size_t >::max())
   , mValid(false)
 {}
 
@@ -27,6 +37,7 @@ CSizeOf::CSizeOf(const CSizeOf & src)
   : CValue(src)
   , CComputable(src)
   , mpSetContent(CSetContent::copy(src.mpSetContent))
+  , mIndex(src.mIndex)
   , mValid(src.mValid)
 {}
 
@@ -34,15 +45,28 @@ CSizeOf::CSizeOf(const json_t * json)
   : CValue(std::numeric_limits< double >::quiet_NaN())
   , CComputable()
   , mpSetContent(NULL)
+  , mIndex(std::numeric_limits< size_t >::max())
   , mValid(false)
 {
   fromJSON(json);
+
+  if (mValid)
+    {
+      mIndex = INSTANCES.size();
+      INSTANCES.push_back(this);
+    }
 }
 
 // virtual
 CSizeOf::~CSizeOf()
 {
   CSetContent::destroy(mpSetContent);
+}
+
+// virtual
+CValueInterface * CSizeOf::copy() const
+{
+  return new CSizeOf(*this);
 }
 
 //  virtual
@@ -70,4 +94,7 @@ void CSizeOf::fromJSON(const json_t * json)
 
   mpSetContent = CSetContent::create(json_object_get(json, "sizeof"));
   mValid = (mpSetContent != NULL && mpSetContent->isValid());
+
+  if (mValid)
+    mPrerequisites.insert(mpSetContent);
 }

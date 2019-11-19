@@ -111,9 +111,9 @@ CNode * CEdgeProperty::sourceNode(CEdge * pEdge)
   return pEdge->pSource;
 }
 
-CValueInterface & CEdgeProperty::propertyOf(CEdge * pEdge)
+CValueInterface & CEdgeProperty::propertyOf(const CEdge * pEdge)
 {
-  return (this->*mpPropertyOf)(pEdge);
+  return (this->*mpPropertyOf)(const_cast< CEdge * >(pEdge));
 }
 
 COperation * CEdgeProperty::createOperation(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator)

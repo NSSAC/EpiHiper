@@ -23,7 +23,6 @@ CNodeProperty::CNodeProperty()
   : CValueInterface(Type::boolean, NULL)
   , mpPropertyOf(NULL)
   , mpCreateOperation(NULL)
-  , mHealthState()
   , mValid(true)
 {}
 
@@ -31,7 +30,6 @@ CNodeProperty::CNodeProperty(const CNodeProperty & src)
   : CValueInterface(src)
   , mpPropertyOf(src.mpPropertyOf)
   , mpCreateOperation(src.mpCreateOperation)
-  , mHealthState(src.mHealthState)
   , mValid(src.mValid)
 {}
 
@@ -39,7 +37,6 @@ CNodeProperty::CNodeProperty(const json_t * json)
   : CValueInterface(Type::boolean, NULL)
   , mpPropertyOf(NULL)
   , mpCreateOperation(NULL)
-  , mHealthState()
   , mValid(true)
 {
   fromJSON(json);
@@ -80,7 +77,6 @@ void CNodeProperty::fromJSON(const json_t * json)
   else if (strcmp(json_string_value(pValue), "healthState") == 0)
     {
       mType = Type::healthState;
-      mpValue = &mHealthState;
       mpPropertyOf = &CNodeProperty::healthState;
       mpCreateOperation = &CNodeProperty::setHealthState;
     }
@@ -103,9 +99,9 @@ const bool & CNodeProperty::isValid() const
   return mValid;
 }
 
-CValueInterface & CNodeProperty::propertyOf(CNode * pNode)
+CValueInterface & CNodeProperty::propertyOf(const CNode * pNode)
 {
-  return (this->*mpPropertyOf)(pNode);
+  return (this->*mpPropertyOf)(const_cast< CNode * >(pNode));
 }
 
 COperation * CNodeProperty::createOperation(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator)
@@ -139,8 +135,7 @@ CValueInterface & CNodeProperty::infectivityFactor(CNode * pNode)
 
 CValueInterface & CNodeProperty::healthState(CNode * pNode)
 {
-  mHealthState = CModel::stateToType(pNode->getHealthState());
-
+  mpValue = &pNode->healthState;
   return *this;
 }
 

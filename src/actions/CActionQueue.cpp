@@ -11,6 +11,11 @@
 // END: License 
 
 #include "actions/CActionQueue.h"
+#include "actions/CActionDefinition.h"
+
+#include "network/CNetwork.h"
+#include "network/CNode.h"
+#include "network/CEdge.h"
 
 // static
 CActionQueue CActionQueue::INSTANCE;
@@ -48,7 +53,7 @@ bool CActionQueue::processCurrentActions()
           }
 
       // MPI Broadcast scheduled remote actions and whether local actions are pending
-      INSTANCE.broadcastRemoteActions();
+      INSTANCE.broadcastPendingActions();
 
       // If no local actions are pending anywhere and no remote actions where broadcasted, i.e.,
       // if (Total actions size == 0) break;
@@ -82,6 +87,24 @@ void CActionQueue::incrementTick()
   ++INSTANCE.mCurrenTick;
 }
 
+// static
+void CActionQueue::addRemoteAction(const size_t & index, const CNode * pNode)
+{
+  INSTANCE.mRemoteActions.write(reinterpret_cast<const char *>(&index), sizeof(size_t));
+  INSTANCE.mRemoteActions << 'N';
+  INSTANCE.mRemoteActions.write(reinterpret_cast<const char *>(&pNode->id), sizeof(size_t));
+}
+
+// static
+void CActionQueue::addRemoteAction(const size_t & index, const CEdge * pEdge)
+{
+  INSTANCE.mRemoteActions.write(reinterpret_cast<const char *>(&index), sizeof(size_t));
+  INSTANCE.mRemoteActions << 'E';
+  INSTANCE.mRemoteActions.write(reinterpret_cast<const char *>(&pEdge->targetId), sizeof(size_t));
+  INSTANCE.mRemoteActions.write(reinterpret_cast<const char *>(&pEdge->sourceId), sizeof(size_t));
+}
+
+
 CActionQueue::CActionQueue()
   : std::map< int, CCurrentActions >()
   , mCurrenTick(-1)
@@ -92,16 +115,17 @@ CActionQueue::CActionQueue()
 CActionQueue::~CActionQueue()
 {}
 
-int CActionQueue::broadcastRemoteActions()
+int CActionQueue::broadcastPendingActions()
 {
   std::ostringstream os;
 
   mTotalPendingActions = pendingActions();
   os.write(reinterpret_cast<const char *>(&mTotalPendingActions), sizeof(size_t));
+  os << mRemoteActions.str();
 
   std::string Buffer = os.str();
 
-  CCommunicate::ClassMemberReceive< CActionQueue > Receive(&CActionQueue::INSTANCE, &CActionQueue::receiveActions);
+  CCommunicate::ClassMemberReceive< CActionQueue > Receive(&CActionQueue::INSTANCE, &CActionQueue::receivePendingActions);
 
   // std::cout << Communicate::Rank << ": ActionQueue::broadcastRemoteActions" << std::endl;
   CCommunicate::broadcast(Buffer.c_str(), Buffer.length(), &Receive);
@@ -109,12 +133,56 @@ int CActionQueue::broadcastRemoteActions()
   return (int) CCommunicate::ErrorCode::Success;
 }
 
-CCommunicate::ErrorCode CActionQueue::receiveActions(std::istream & is, int sender)
+CCommunicate::ErrorCode CActionQueue::receivePendingActions(std::istream & is, int sender)
 {
   size_t RemotePendingActions;
 
   is.read(reinterpret_cast<char *>(&RemotePendingActions), sizeof(size_t));
   mTotalPendingActions += RemotePendingActions;
+
+  // Check whether we received actions from remote;
+  while(is.good())
+    {
+      size_t ActionId;
+      CActionDefinition * pActionDefinition = CActionDefinition::GetActionDefinition(ActionId);
+      char TargetType;
+      is.read(reinterpret_cast<char *>(&ActionId), sizeof(size_t));
+      is.read(&TargetType, sizeof(char));
+
+      switch (TargetType)
+      {
+        case 'N':
+          {
+            size_t NodeId;
+            is.read(reinterpret_cast<char *>(&NodeId), sizeof(size_t));
+            CNode * pNode = CNetwork::INSTANCE->lookupNode(NodeId, true);
+
+            if (pNode != NULL &&
+                pActionDefinition != NULL)
+              {
+                pActionDefinition->process(pNode);
+                ++mTotalPendingActions;
+              }
+          }
+          break;
+
+        case 'E':
+          {
+            size_t TargetId;
+            is.read(reinterpret_cast<char *>(&TargetId), sizeof(size_t));
+            size_t SourceId;
+            is.read(reinterpret_cast<char *>(&SourceId), sizeof(size_t));
+            CEdge * pEdge = CNetwork::INSTANCE->lookupEdge(TargetId, SourceId);
+
+            if (pEdge != NULL &&
+                pActionDefinition != NULL)
+              {
+                pActionDefinition->process(pEdge);
+              }
+          }
+          break;
+      }
+    }
 
   return CCommunicate::ErrorCode::Success;
 }

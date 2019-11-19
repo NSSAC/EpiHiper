@@ -13,6 +13,7 @@
 #include <jansson.h>
 
 #include "actions/CActionEnsemble.h"
+#include "sets/CSetContent.h"
 
 CActionEnsemble::CActionEnsemble()
   : mOnce()
@@ -93,4 +94,27 @@ const bool & CActionEnsemble::isValid() const
 {
   return mValid;
 }
+
+void CActionEnsemble::process(const CSetContent & targets) const
+{
+  std::vector< CActionDefinition >::const_iterator it = mForEach.begin();
+  std::vector< CActionDefinition >::const_iterator end = mForEach.end();
+
+  std::set< CEdge * >::const_iterator itEdges = targets.beginEdges();
+  std::set< CEdge * >::const_iterator endEdges = targets.endEdges();
+
+  for (; itEdges != endEdges; ++itEdges)
+    for (it = mForEach.begin(); it != end; ++it)
+      it->process(*itEdges);
+
+  std::set< CNode * >::const_iterator itNodes = targets.beginNodes();
+  std::set< CNode * >::const_iterator endNodes = targets.endNodes();
+
+  for (; itNodes != endNodes; ++itNodes)
+    for (it = mForEach.begin(); it != end; ++it)
+      it->process(*itNodes);
+
+  mSampling.process(targets);
+}
+
 

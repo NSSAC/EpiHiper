@@ -13,16 +13,19 @@
 #ifndef SRC_COMMUNICATE_H_
 #define SRC_COMMUNICATE_H_
 
-#include <mpi.h>
-#include <mpp/shmem.h>
-
 #include <iostream>
 
+#include <mpi.h>
+
 #define FatalError(err, msg) {CCommunicate::abortMessage((err), (msg), __FILE__, __LINE__);}
+
+class COperation;
 
 class CCommunicate
 {
 public:
+  typedef void (*Operator)(double &, const double &);
+
   enum struct ErrorCode {
     Success = MPI_SUCCESS,
     // space for MPI_ERR_... see mpi.h
@@ -166,12 +169,24 @@ public:
 
   static int finalize(void);
 
+  static int allocateRMA();
+
+  static double getRMA(const int & index);
+
+  static double updateRMA(const int & index, Operator pOperator, const double & value);
+
+  static size_t getRMAIndex();
+
   CCommunicate() = delete;
   virtual ~CCommunicate();
 
   private:
   static int ReceiveSize;
   static char * ReceiveBuffer;
+  static MPI_Win MPIWin;
+  static size_t MPIWinSize;
+  static double *RMABuffer;
+  static size_t RMAIndex;
 
   static void resizeReceiveBuffer(int size);
 };

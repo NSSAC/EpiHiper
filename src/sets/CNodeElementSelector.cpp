@@ -528,7 +528,7 @@ void CNodeElementSelector::nodeInDBTable()
 
   for (; it != end; ++it)
     {
-      mNodes.insert(CNetwork::INSTANCE->lookupNode(it->toId()));
+      mNodes.insert(CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope));
     }
 }
 
@@ -547,7 +547,7 @@ void CNodeElementSelector::nodeWithDBFieldSelection()
 
   for (; it != end; ++it)
     {
-      mNodes.insert(CNetwork::INSTANCE->lookupNode(it->toId()));
+      mNodes.insert(CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope));
     }
 }
 
@@ -573,7 +573,7 @@ void CNodeElementSelector::nodeWithDBFieldWithin()
 
   for (; it != end; ++it)
     {
-      mNodes.insert(CNetwork::INSTANCE->lookupNode(it->toId()));
+      mNodes.insert(CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope));
     }
 }
 
@@ -599,6 +599,6 @@ void CNodeElementSelector::nodeWithDBFieldNotWithin()
 
   for (; it != end; ++it)
     {
-      mNodes.insert(CNetwork::INSTANCE->lookupNode(it->toId()));
+      mNodes.insert(CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope));
     }
 }

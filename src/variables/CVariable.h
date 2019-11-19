@@ -15,11 +15,11 @@
 
 #include "math/CComputable.h"
 #include "utilities/CAnnotation.h"
-#include "math/CValueInterface.h"
+#include "math/CValue.h"
 
 class CMetadata;
 
-class CVariable: public CAnnotation, public CComputable
+class CVariable: public CValue, public CAnnotation, public CComputable
 {
 public:
   enum struct Type
@@ -35,6 +35,8 @@ public:
   CVariable(const json_t * json);
 
   virtual ~CVariable();
+
+  virtual CValueInterface * copy() const;
 
   virtual void fromJSON(const json_t * json);
 
@@ -52,6 +54,8 @@ public:
 
   bool setValue(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
 
+  void setIndex(const size_t & index);
+
   /*
     "=",
     "*=",
@@ -64,10 +68,9 @@ private:
   std::string mId;
   Type mType;
   double mInitialValue;
-  double mLocalValue;
-  double * mpGlobalValue;
-  long * mpLock;
+  double * mpLocalValue;
   int mResetValue;
+  size_t mIndex;
   bool mValid;
 };
 

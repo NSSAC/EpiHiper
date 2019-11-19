@@ -67,7 +67,7 @@ public:
 
   COperation * createOperation(CEdge * pEdge) const;
 
-  COperation * createOperation(CVariable * pVariable) const;
+  COperation * createOperation() const;
 
 private:
   TargetType mTargetType;

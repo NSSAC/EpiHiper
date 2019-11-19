@@ -20,6 +20,8 @@
 #ifndef SRC_MATH_CSIZEOF_H_
 #define SRC_MATH_CSIZEOF_H_
 
+#include <vector>
+
 #include "math/CValue.h"
 #include "math/CComputable.h"
 
@@ -29,6 +31,9 @@ struct json_t;
 class CSizeOf : public CValue, public CComputable
 {
 public:
+  // static
+  std::vector< CSizeOf * > GetInstances();
+
   CSizeOf();
 
   CSizeOf(const CSizeOf & src);
@@ -37,12 +42,17 @@ public:
 
   virtual ~CSizeOf();
 
+  virtual CValueInterface * copy() const;
+
   virtual void compute();
 
   void fromJSON(const json_t * json);
 
 private:
+  static std::vector< CSizeOf * > INSTANCES;
+
   CSetContent * mpSetContent;
+  size_t mIndex;
   bool mValid;
 };
 

@@ -178,7 +178,7 @@ void COperationDefinition::fromJSON(const json_t * json)
     {
       mpOperator = &CValueInterface::divide;
     }
-  else if(strcmp(json_string_value(pValue), ">") == 0)
+  else
     {
       mValid = false;
       return;
@@ -204,7 +204,7 @@ COperation * COperationDefinition::createOperation(CEdge * pEdge) const
   return mpEdgeProperty->createOperation(pEdge, mValue, mpOperator);
 }
 
-COperation * COperationDefinition::createOperation(CVariable * pVariable) const
+COperation * COperationDefinition::createOperation() const
 {
-  return new COperationInstance< CVariable, double >(pVariable, mValue.toNumber(), mpOperator, &CVariable::setValue);
+  return new COperationInstance< CVariable, double >(mpVariable, mValue.toNumber(), mpOperator, &CVariable::setValue);
 }

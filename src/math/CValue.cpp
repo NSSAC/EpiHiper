@@ -161,6 +161,96 @@ const bool & CValue::isValid() const
   return mValid;
 }
 
+void CValue::toBinary(std::ostream & os) const
+{
+  os.write(reinterpret_cast<const char *>(&mType), sizeof(size_t));
+
+  switch (mType)
+  {
+    case Type::boolean:
+      os.write(reinterpret_cast<const char *>(mpValue), sizeof(bool));
+      break;
+
+    case Type::number:
+      os.write(reinterpret_cast<const char *>(mpValue), sizeof(double));
+      break;
+
+    case Type::healthState:
+      os.write(reinterpret_cast<const char *>(mpValue), sizeof(size_t));
+      break;
+
+    case Type::traitData:
+      os.write(reinterpret_cast<const char *>(mpValue), sizeof(CTraitData::base));
+      break;
+
+
+    case Type::traitValue:
+      os.write(reinterpret_cast<const char *>(static_cast< const CTraitData::value * >(mpValue)->first), sizeof(CTraitData::base));
+      os.write(reinterpret_cast<const char *>(static_cast< const CTraitData::value * >(mpValue)->second), sizeof(CTraitData::base));
+      break;
+
+    case Type::string:
+      {
+        size_t length = static_cast< const std::string * >(mpValue)->length();
+        os.write(reinterpret_cast<const char *>(&length), sizeof(size_t));
+        os.write(static_cast< const std::string * >(mpValue)->c_str(), length);
+      }
+      break;
+
+    case Type::id:
+      os.write(reinterpret_cast<const char *>(mpValue), sizeof(size_t));
+      break;
+  }
+}
+
+void CValue::fromBinary(std::istream & is)
+{
+  destroyValue();
+
+  is.read(reinterpret_cast<char *>(&mType), sizeof(size_t));
+  mpValue = createValue(mType);
+
+  switch (mType)
+  {
+    case Type::boolean:
+      is.read(reinterpret_cast<char *>(mpValue), sizeof(bool));
+      break;
+
+    case Type::number:
+      is.read(reinterpret_cast<char *>(mpValue), sizeof(double));
+      break;
+
+    case Type::healthState:
+      is.read(reinterpret_cast<char *>(mpValue), sizeof(size_t));
+      break;
+
+    case Type::traitData:
+      is.read(reinterpret_cast<char *>(mpValue), sizeof(CTraitData::base));
+      break;
+
+
+    case Type::traitValue:
+      is.read(reinterpret_cast<char *>(static_cast< CTraitData::value * >(mpValue)->first), sizeof(CTraitData::base));
+      is.read(reinterpret_cast<char *>(static_cast< CTraitData::value * >(mpValue)->second), sizeof(CTraitData::base));
+      break;
+
+    case Type::string:
+      {
+        size_t length = static_cast< std::string * >(mpValue)->length();
+        is.read(reinterpret_cast<char *>(&length), sizeof(size_t));
+        char str[length + 1];
+        is.read(str, length);
+        str[length] = 0x0;
+        *static_cast< std::string * >(mpValue) = str;
+      }
+      break;
+
+    case Type::id:
+      is.read(reinterpret_cast<char *>(mpValue), sizeof(size_t));
+      break;
+  }
+}
+
 // static
 void * CValue::createValue(const CValue::Type & type)
 {
@@ -176,6 +266,10 @@ void * CValue::createValue(const CValue::Type & type)
 
     case Type::healthState:
       return new size_t(CModel::stateToType(&CModel::getInitialState()));
+      break;
+
+    case Type::traitData:
+      return new CTraitData::base();
       break;
 
     case Type::traitValue:

@@ -10,10 +10,23 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-struct json_t;
-
 #ifndef SRC_ACTIONS_CCONDITIONDEFINITION_H_
 #define SRC_ACTIONS_CCONDITIONDEFINITION_H_
+
+#include <vector>
+
+#include "math/CValueList.h"
+
+class CObservable;
+class CNodeProperty;
+class CEdgeProperty ;
+class CVariable;
+class CSizeOf;
+class CCondition;
+class CNode;
+class CEdge;
+
+struct json_t;
 
 class CConditionDefinition
 {
@@ -25,16 +38,55 @@ public:
     Less,
     LessOrEqual,
     Greater,
-    GreaterOrEqual
+    GreaterOrEqual,
+    Within,
+    NotWithin
   };
 
   enum struct BooleanOperationType
   {
     And,
     Or,
-    Not
+    Not,
+    Value,
+    Comparison
   };
 
+  enum struct ValueType
+  {
+    Value,
+    ValueList,
+    Observable,
+    NodeProperty,
+    EdgeProperty,
+    Variable,
+    Sizeof
+  };
+
+private:
+  struct ValueInstance
+  {
+    size_t * pCounter;
+    ValueType type;
+    CValue * pValue;
+    CValueList * pValueList;
+    CObservable * pObservable;
+    CNodeProperty * pNodeProperty;
+    CEdgeProperty * pEdgeProperty;
+    CVariable * pVariable;
+    CSizeOf * pSizeOf;
+    bool valid;
+
+    ValueInstance();
+    ValueInstance(const ValueInstance & src);
+    ~ValueInstance();
+    void fromJSON(const json_t * json);
+    CValueInterface * value(const CNode * pNode) const;
+    CValueInterface * value(const CEdge * pEdge) const;
+    CValueInterface * value() const;
+  };
+
+public:
   /**
    * Default constructor
    */
@@ -48,6 +100,7 @@ public:
 
   CConditionDefinition(const json_t * json);
 
+public:
   /**
    * Destructor
    */
@@ -55,9 +108,25 @@ public:
 
   void fromJSON(const json_t * json);
 
+  void valueFromJSON(const json_t * json);
+
+  void comparisonFromJSON(const json_t * json);
+
+  void operationFromJSON(const json_t * json);
+
   const bool & isValid() const;
 
+  CCondition createCondition(const CNode * pNode) const;
+
+  CCondition createCondition(const CEdge * pEdge) const;
+
 private:
+  BooleanOperationType mType;
+  ComparisonType mComparison;
+  ValueInstance mLeft;
+  ValueInstance mRight;
+  bool mValue;
+  std::vector< CConditionDefinition > mBooleanValues;
   bool mValid;
 };
 

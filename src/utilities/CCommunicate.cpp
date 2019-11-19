@@ -12,7 +12,6 @@
 
 #include <algorithm>
 #include <unistd.h>
-#include <mpp/shmem.h>
 #include <cassert>
 
 #include "utilities/CCommunicate.h"
@@ -35,6 +34,19 @@ int CCommunicate::ReceiveSize(0);
 
 // static
 char * CCommunicate::ReceiveBuffer(NULL);
+
+// static
+MPI_Win CCommunicate::MPIWin;
+
+// static
+size_t CCommunicate::RMAIndex(0);
+
+// static
+size_t CCommunicate::MPIWinSize(0);
+
+// static
+double * CCommunicate::RMABuffer(NULL);
+
 
 // static
 void CCommunicate::resizeReceiveBuffer(int size)
@@ -73,8 +85,6 @@ void CCommunicate::init(int argc, char **argv)
 
   MPINextRank = (MPIProcesses + MPIRank + 1) % MPIProcesses;
   MPIPreviousRank = (MPIProcesses + MPIRank - 1) % MPIProcesses;
-
-  shmem_init();
 }
 
 // static
@@ -94,7 +104,13 @@ int CCommunicate::abort(ErrorCode errorcode)
 // static
 int CCommunicate::finalize(void)
 {
-  shmem_finalize();
+  if (MPIWinSize)
+    {
+      MPI_Win_free(&MPIWin);
+      delete [] RMABuffer;
+      MPIWinSize = 0;
+    }
+
   return MPI_Finalize();
 }
 
@@ -199,6 +215,65 @@ int CCommunicate::sequential(int firstRank, CCommunicate::SequentialProcessInter
 
   return (int) Result;
 }
+
+// static
+int CCommunicate::allocateRMA()
+{
+  MPIWinSize = RMAIndex;
+
+  if (MPIWinSize > 0)
+    {
+      RMABuffer = new double[MPIWinSize];
+      return MPI_Win_create(&RMABuffer, MPIWinSize, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &MPIWin);
+    }
+
+  return (int) ErrorCode::Success;
+}
+
+// static
+double CCommunicate::getRMA(const int & index)
+{
+  if (index >= MPIWinSize)
+    return std::numeric_limits< double >::quiet_NaN();
+
+  double Value;
+
+  MPI_Get(&Value, 1, MPI_DOUBLE, 0, (int) index, 1, MPI_DOUBLE, MPIWin);
+  MPI_Win_flush_local(0, MPIWin);
+
+  return Value;
+}
+
+// static
+double CCommunicate::updateRMA(const int & index, CCommunicate::Operator pOperator, const double & value)
+{
+  if (index >= MPIWinSize)
+    return std::numeric_limits< double >::quiet_NaN();
+
+  double Value;
+
+  MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, MPIWin);
+  MPI_Get(&Value, 1, MPI_DOUBLE, 0, (int) index, 1, MPI_DOUBLE, MPIWin);
+  MPI_Win_flush(0, MPIWin);
+
+  (*pOperator)(Value, value);
+
+  MPI_Put(&Value, 1, MPI_DOUBLE, 0, (int) index, 1, MPI_DOUBLE, MPIWin);
+  MPI_Win_flush(0, MPIWin);
+  MPI_Win_unlock(0, MPIWin);
+
+  return Value;
+}
+
+// static
+size_t CCommunicate::getRMAIndex()
+{
+  size_t Index = RMAIndex;
+  ++RMAIndex;
+
+  return Index;
+}
+
 
 CCommunicate::~CCommunicate()
 {}

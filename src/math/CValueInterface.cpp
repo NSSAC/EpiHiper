@@ -33,9 +33,9 @@ CValueInterface::CValueInterface(double & number)
   , mpValue(&number)
 {}
 
-CValueInterface::CValueInterface(size_t & healthState)
-  : mType(Type::healthState)
-  , mpValue(&healthState)
+CValueInterface::CValueInterface(size_t & id)
+  : mType(Type::id)
+  , mpValue(&id)
 {}
 
 CValueInterface::CValueInterface(CTraitData::base & traitData)
@@ -60,6 +60,12 @@ CValueInterface::~CValueInterface()
 const bool & CValueInterface::toBoolean() const
 {
   return * static_cast< bool * >(mpValue);
+}
+
+// virtual
+CValueInterface * CValueInterface::copy() const
+{
+  return new CValueInterface(*this);
 }
 
 const double & CValueInterface::toNumber() const

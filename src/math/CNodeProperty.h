@@ -35,7 +35,7 @@ public:
 
   const bool & isValid() const;
 
-  CValueInterface & propertyOf(CNode * pNode);
+  CValueInterface & propertyOf(const CNode * pNode);
   COperation * createOperation(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator);
 
   static std::pair< CEdge *, CEdge * > edges(CNode * pNode);
@@ -56,7 +56,6 @@ private:
   CValueInterface & (CNodeProperty::*mpPropertyOf)(CNode *);
   COperation * (CNodeProperty::*mpCreateOperation)(CNode *, const CValueInterface &, CValueInterface::pOperator pOperator);
 
-  CModel::state_t mHealthState;
   bool mValid;
 };
 

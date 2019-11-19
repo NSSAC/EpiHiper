@@ -35,6 +35,8 @@ public:
 
   const bool & isValid() const;
 
+  void process(const CSetContent & targets) const;
+
 private:
   std::vector< CActionDefinition > mOnce;
   std::vector< CActionDefinition > mForEach;

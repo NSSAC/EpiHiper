@@ -21,8 +21,8 @@ set(CMAKE_CXX_STANDARD 11)
 find_package (MPI REQUIRED)
 include_directories(BEFORE ${MPI_INCLUDE_PATH})
 
-find_package (OSHMEM REQUIRED)
-include_directories(BEFORE ${OSHMEM_INCLUDE_PATH})
+# find_package (OSHMEM REQUIRED)
+# include_directories(BEFORE ${OSHMEM_INCLUDE_PATH})
 
 find_package (PGSQL REQUIRED)
 include_directories(BEFORE ${PGSQL_INCLUDE_DIR})

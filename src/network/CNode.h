@@ -64,6 +64,7 @@ private:
   const CHealthState * pHealthState;
 
 public:
+  CModel::state_t healthState;
   double susceptibilityFactor;
   double susceptibility;
   double infectivityFactor;

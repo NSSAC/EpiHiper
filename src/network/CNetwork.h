@@ -61,7 +61,7 @@ public:
 
   const bool & isValid() const;
 
-  CNode * lookupNode(const size_t & id) const;
+  CNode * lookupNode(const size_t & id, const bool localOnly) const;
 
   CEdge * lookupEdge(const size_t & targetId, const size_t & sourceId) const;
 

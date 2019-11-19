@@ -20,26 +20,28 @@
 #include "actions/CActionQueue.h"
 
 CVariable::CVariable(const CVariable & src)
-  : CAnnotation(src)
+  : CValue(src)
+  , CAnnotation(src)
+  , CComputable(src)
   , mId(src.mId)
   , mType(src.mType)
   , mInitialValue(src.mInitialValue)
-  , mLocalValue(src.mLocalValue)
-  , mpGlobalValue(src.mpGlobalValue)
-  , mpLock(src.mpLock)
+  , mpLocalValue(static_cast< double * >(mpValue))
   , mResetValue(src.mResetValue)
+  , mIndex(src.mIndex)
   , mValid(src.mValid)
 {}
 
 CVariable::CVariable(const json_t * json)
-  : CAnnotation()
+  : CValue(std::numeric_limits< double >::quiet_NaN())
+  , CAnnotation()
+  , CComputable()
   , mId()
   , mType()
   , mInitialValue(std::numeric_limits< double >::quiet_NaN())
-  , mLocalValue(std::numeric_limits< double >::quiet_NaN())
-  , mpGlobalValue(NULL)
-  , mpLock(NULL)
+  , mpLocalValue(static_cast< double * >(mpValue))
   , mResetValue(0)
+  , mIndex(-1)
   , mValid(true)
 {
   fromJSON(json);
@@ -47,12 +49,12 @@ CVariable::CVariable(const json_t * json)
 
 // virtual
 CVariable::~CVariable()
+{}
+
+// virtual
+CValueInterface * CVariable::copy() const
 {
-  if (mpGlobalValue != NULL)
-    {
-      // TODO this is a memory leak but we cannot delete it unless we do use reference counting;
-      // shfree(mpValue);
-    }
+  return new CVariable(*this);
 }
 
 void CVariable::fromJSON(const json_t * json)
@@ -100,7 +102,7 @@ void CVariable::fromJSON(const json_t * json)
   if (json_is_real(pValue))
     {
       mInitialValue = json_real_value(pValue);
-      mLocalValue = mInitialValue;
+      *mpLocalValue = mInitialValue;
     }
   else
     {
@@ -121,14 +123,7 @@ void CVariable::fromJSON(const json_t * json)
 
   if (mType == Type::global)
     {
-      mpGlobalValue = (double *) shmalloc(sizeof(double));
-      mpLock = (long *) shmalloc(sizeof(long));
-      *mpLock = 0;
-
-      if (CCommunicate::MPIRank == 0)
-        {
-          shmem_double_p(mpGlobalValue, mLocalValue, 0);
-        }
+      mIndex = CCommunicate::getRMAIndex();
     }
 
   pValue = json_object_get(json, "reset");
@@ -148,7 +143,10 @@ void CVariable::fromJSON(const json_t * json)
 // virtual
 void CVariable::compute()
 {
-  // A variable will not be computed it is modified directly during the simulation
+  if (mType == Type::global)
+    {
+      *mpLocalValue = CCommunicate::getRMA(mIndex);
+    }
 }
 
 void CVariable::toBinary(std::ostream & os) const
@@ -176,12 +174,12 @@ void CVariable::reset()
   if (mResetValue != 0 &&
       CActionQueue::getCurrentTick() % mResetValue == 0)
     {
-      mLocalValue = mInitialValue;
+      *mpLocalValue = mInitialValue;
 
       if (CCommunicate::MPIRank == 0 &&
           mType == Type::global)
         {
-          shmem_double_p(mpGlobalValue, mLocalValue, 0);
+          CCommunicate::updateRMA(mIndex, &CValueInterface::equal, *mpLocalValue);
         }
     }
 }
@@ -191,15 +189,11 @@ bool CVariable::setValue(double value, CValueInterface::pOperator pOperator, con
 
   if (mType == Type::global)
     {
-      shmem_set_lock(mpLock);
-      mLocalValue = shmem_double_g(mpGlobalValue, 0);
-      (*pOperator)(mLocalValue, value);
-      shmem_double_p(mpGlobalValue, mLocalValue, 0);
-      shmem_clear_lock(mpLock);
+      *mpLocalValue = CCommunicate::updateRMA(mIndex, pOperator, value);
     }
   else
     {
-      (*pOperator)(mLocalValue, value);
+      (*pOperator)(*mpLocalValue, value);
     }
 
   return true;

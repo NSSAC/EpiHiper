@@ -10,9 +10,27 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#include <limits>
 #include <jansson.h>
 
 #include "actions/CActionDefinition.h"
+#include "actions/CAction.h"
+#include "actions/CActionQueue.h"
+#include "network/CNetwork.h"
+#include "network/CEdge.h"
+#include "network/CNode.h"
+
+// static
+std::vector< CActionDefinition * > CActionDefinition::INSTANCES;
+
+// static
+CActionDefinition * CActionDefinition::GetActionDefinition(const size_t & index)
+{
+  if (index < INSTANCES.size())
+    return INSTANCES[index];
+
+  return NULL;
+}
 
 CActionDefinition::CActionDefinition()
   : CAnnotation()
@@ -20,6 +38,7 @@ CActionDefinition::CActionDefinition()
   , mPriority(1.0)
   , mDelay(0)
   , mCondition()
+  , mIndex(std::numeric_limits< size_t >::max())
   , mValid(false)
 {}
 
@@ -29,6 +48,7 @@ CActionDefinition::CActionDefinition(const CActionDefinition & src)
   , mPriority(src.mPriority)
   , mDelay(src.mDelay)
   , mCondition(src.mCondition)
+  , mIndex(src.mIndex)
   , mValid(src.mValid)
 {}
 
@@ -38,9 +58,16 @@ CActionDefinition::CActionDefinition(const json_t * json)
   , mPriority(1.0)
   , mDelay(0)
   , mCondition()
+  , mIndex(std::numeric_limits< size_t >::max())
   , mValid(false)
 {
   fromJSON(json);
+
+  if (mValid)
+    {
+      mIndex = INSTANCES.size();
+      INSTANCES.push_back(this);
+    }
 }
 
 // virtual
@@ -181,3 +208,49 @@ const bool & CActionDefinition::isValid() const
 {
   return mValid;
 }
+
+void CActionDefinition::process(const CEdge * pEdge) const
+{
+  if (CNetwork::INSTANCE->isRemoteNode(pEdge->pTarget))
+    {
+      // TODO CRITICAL Add action to pending for remote transferal
+      return;
+    }
+
+  CAction Action(mPriority, mCondition.createCondition(pEdge), CMetadata());
+
+  // Loop through the operation definitions
+  std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
+  std::vector< COperationDefinition >::const_iterator end = mOperations.end();
+
+  for (; it != end; ++it)
+    {
+      Action.addOperation(it->createOperation(const_cast< CEdge * >(pEdge)));
+    }
+
+  CActionQueue::addAction(mDelay, Action);
+}
+
+void CActionDefinition::process(const CNode * pNode) const
+{
+  if (CNetwork::INSTANCE->isRemoteNode(pNode))
+    {
+      // TODO CRITICAL Add action to pending for remote transferal
+      return;
+    }
+
+  CAction Action(mPriority, mCondition.createCondition(pNode), CMetadata());
+
+  // Loop through the operation definitions
+  std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
+  std::vector< COperationDefinition >::const_iterator end = mOperations.end();
+
+  for (; it != end; ++it)
+    {
+      Action.addOperation(it->createOperation(const_cast< CNode * >(pNode)));
+    }
+
+  CActionQueue::addAction(mDelay, Action);
+}
+
+

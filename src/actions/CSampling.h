@@ -15,9 +15,19 @@
 
 struct json_t;
 
+class CSetContent;
+class CActionEnsemble;
+
 class CSampling
 {
 public:
+  enum struct Type
+  {
+    relativeIndividual,
+    relativeGroup,
+    absolute,
+  };
+
   CSampling();
 
   CSampling(const CSampling & src);
@@ -30,7 +40,12 @@ public:
 
   const bool & isValid() const;
 
+  void process(const CSetContent & targets) const;
+
 private:
+  Type mType;
+  CActionEnsemble * mpSampled;
+  CActionEnsemble * mpNodeSampled;
   bool mValid;
 };
 
