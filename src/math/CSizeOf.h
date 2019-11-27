@@ -24,6 +24,7 @@
 
 #include "math/CValue.h"
 #include "math/CComputable.h"
+#include "utilities/CCommunicate.h"
 
 class CSetContent;
 struct json_t;
@@ -50,6 +51,10 @@ public:
 
 private:
   static std::vector< CSizeOf * > INSTANCES;
+
+  int broadcastSize();
+
+  CCommunicate::ErrorCode receiveSize(std::istream & is, int sender);
 
   CSetContent * mpSetContent;
   size_t mIndex;

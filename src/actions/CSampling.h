@@ -13,9 +13,10 @@
 #ifndef SRC_ACTIONS_CSAMPLING_H_
 #define SRC_ACTIONS_CSAMPLING_H_
 
-struct json_t;
+#include "utilities/CCommunicate.h"
+#include "sets/CSetContent.h"
 
-class CSetContent;
+struct json_t;
 class CActionEnsemble;
 
 class CSampling
@@ -40,12 +41,24 @@ public:
 
   const bool & isValid() const;
 
-  void process(const CSetContent & targets) const;
+  void process(const CSetContent & targets);
 
 private:
+  int broadcastCount();
+
+  CCommunicate::ErrorCode receiveCount(std::istream & is, int sender);
+
   Type mType;
+  double mPercentage;
+  size_t mCount;
   CActionEnsemble * mpSampled;
-  CActionEnsemble * mpNodeSampled;
+  CActionEnsemble * mpNotSampled;
+  CSetContent const * mpTargets;
+  CSetContent mSampledTargets;
+  CSetContent mNotSampledTargets;
+  size_t mLocalLimit;
+  size_t * mpCommunicateBuffer;
+
   bool mValid;
 };
 

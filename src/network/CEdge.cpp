@@ -14,15 +14,6 @@
 #include "traits/CTrait.h"
 
 // static
-bool CEdge::HasEdgeTrait(false);
-
-// static
-bool CEdge::HasActiveField(false);
-
-// static
-bool CEdge::HasWeightField(false);
-
-// static
 CEdge CEdge::getDefault()
 {
   CEdge Default;
@@ -77,21 +68,9 @@ void CEdge::toBinary(std::ostream & os) const
   os.write(reinterpret_cast<const char *>(&sourceId), sizeof(size_t));
   os.write(reinterpret_cast<const char *>(&sourceActivity), sizeof(CTraitData::base));
   os.write(reinterpret_cast<const char *>(&duration), sizeof(double));
-
-  if (CEdge::HasEdgeTrait)
-    {
-      os.write(reinterpret_cast<const char *>(&edgeTrait), sizeof(CTraitData::base));
-    }
-
-  if (CEdge::HasActiveField)
-    {
-      os.write(reinterpret_cast<const char *>(&active), sizeof(char));
-    }
-
-  if (CEdge::HasWeightField)
-    {
-      os.write(reinterpret_cast<const char *>(&weight), sizeof(double));
-    }
+  os.write(reinterpret_cast<const char *>(&edgeTrait), sizeof(CTraitData::base));
+  os.write(reinterpret_cast<const char *>(&active), sizeof(char));
+  os.write(reinterpret_cast<const char *>(&weight), sizeof(double));
 }
 
 void CEdge::fromBinary(std::istream & is)
@@ -101,21 +80,9 @@ void CEdge::fromBinary(std::istream & is)
   is.read(reinterpret_cast<char *>(&sourceId), sizeof(size_t));
   is.read(reinterpret_cast<char *>(&sourceActivity), sizeof(CTraitData::base));
   is.read(reinterpret_cast<char *>(&duration), sizeof(double));
-
-  if (CEdge::HasEdgeTrait)
-    {
-      is.read(reinterpret_cast<char *>(&edgeTrait), sizeof(CTraitData::base));
-    }
-
-  if (CEdge::HasActiveField)
-    {
-      is.read(reinterpret_cast<char *>(&active), sizeof(char));
-    }
-
-  if (CEdge::HasWeightField)
-    {
-      is.read(reinterpret_cast<char *>(&weight), sizeof(double));
-    }
+  is.read(reinterpret_cast<char *>(&edgeTrait), sizeof(CTraitData::base));
+  is.read(reinterpret_cast<char *>(&active), sizeof(char));
+  is.read(reinterpret_cast<char *>(&weight), sizeof(double));
 }
 
 bool CEdge::setTargetActivity(CTraitData::value value, CValueInterface::pOperator pOperator, const CMetadata & metadata)

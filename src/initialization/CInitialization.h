@@ -26,7 +26,11 @@ class CInitialization : public CAnnotation
 public:
   static std::vector< CInitialization > INSTANCES;
 
-  static void init();
+  static void load(const std::string & file);
+
+  static void release();
+
+  static void processAll();
 
   CInitialization();
 
@@ -39,6 +43,8 @@ public:
   void fromJSON(const json_t * json);
 
   const bool & isValid() const;
+
+  void process();
 
 private:
   CSetContent * mpTarget;

@@ -12,9 +12,11 @@
 
 #include <cmath>
 #include <fstream>
+#include <sstream>
 #include <iostream>
 #include <vector>
 #include <cstdio>
+#include <cstring>
 #include <jansson.h>
 
 #include "actions/CActionQueue.h"
@@ -26,10 +28,8 @@
 #include "network/CNetwork.h"
 
 #include "utilities/CSimConfig.h"
+#include "utilities/CDirEntry.h"
 #include "network/CNode.h"
-
-// static
-CNetwork * CNetwork::INSTANCE(NULL);
 
 // static
 void CNetwork::init()
@@ -37,6 +37,7 @@ void CNetwork::init()
   if (INSTANCE == NULL)
     {
       INSTANCE = new CNetwork(CSimConfig::getContactNetwork());
+      INSTANCE->partition(CCommunicate::MPIProcesses, false);
     }
 }
 
@@ -79,19 +80,6 @@ CNetwork::CNetwork(const std::string & networkFile)
   mpJson = CSimConfig::loadJson(mFile, 0);
 
   fromJSON(mpJson);
-
-  if (mValid)
-    {
-      std::ifstream is(mFile.c_str());
-      std::string Line;
-      // Skip JSON Header
-      std::getline(is, Line);
-      // Skip Column Header
-      std::getline(is, Line);
-
-      partition(is);
-      is.close();
-    }
 }
 
 // virtual
@@ -237,19 +225,46 @@ void CNetwork::fromJSON(const json_t * json)
   CAnnotation::fromJSON(json);
 }
 
-void CNetwork::partition(std::istream & is)
+void CNetwork::partition(const int & parts, const bool & save, const std::string & outputDirectory)
+{
+  if (!mValid)
+    {
+      return;
+    }
+
+  if (haveValidPartition(parts))
+    {
+      return;
+    }
+
+  std::ifstream is(mFile.c_str());
+  std::string Line;
+  // Skip JSON Header
+  std::getline(is, Line);
+  // Skip Column Header
+  std::getline(is, Line);
+
+  partition(is, parts, save, outputDirectory);
+
+  is.close();
+}
+
+void CNetwork::partition(std::istream & is, const int & parts, const bool & save, const std::string & outputDirectory)
 {
   // Communicate::Processes = 8;
 
-  size_t Partition[CCommunicate::MPIProcesses * 3 + 1];
+  size_t Partition[parts * 3 + 1];
 
   if (CCommunicate::MPIRank == 0)
     {
+      std::ostringstream NodeBuffer;
+      std::ostringstream PartitionBuffer;
+
       size_t * pPartition = Partition;
       size_t * pNodes = pPartition + 1;
       size_t * pEdges = pPartition + 2;
 
-      size_t DesiredPerComputeNode = mTotalEdgesSize / CCommunicate::MPIProcesses + 1;
+      size_t DesiredPerComputeNode = mTotalEdgesSize / parts + 1;
 
       size_t Node(-1);
       size_t LastNode(-1);
@@ -279,24 +294,51 @@ void CNetwork::partition(std::istream & is)
                 {
                   if (2 * PartitionIndex * DesiredPerComputeNode <  LastNodeEdgeCount + PartitionEdgeCount)
                     {
+
                       *pNodes -= 1;
                       *pEdges -= PartitionEdgeCount - LastNodeEdgeCount;
 
                       *(pPartition + 3) = CurrentNode;
                       *(pNodes + 3) = 1;
                       *(pEdges + 3) = PartitionEdgeCount - LastNodeEdgeCount;
+
+                      // Write partition
+                      if (save)
+                        {
+                          writePartition(PartitionIndex, parts, *pNodes, *pPartition, *(pPartition + 3), *pEdges, PartitionBuffer.str(), outputDirectory);
+                          PartitionBuffer.str("");
+                        }
                     }
                   else
                     {
                       *(pPartition + 3) = Node;
                       *(pNodes + 3) = 0;
                       *(pEdges + 3) = 0;
+
+                      if (save)
+                        {
+                          // Write current node buffer to partition buffer
+                          PartitionBuffer << NodeBuffer.str();
+                          NodeBuffer.str("");
+
+                          // Write partition
+                          writePartition(PartitionIndex, parts, *pNodes, *pPartition, *(pPartition + 3), *pEdges, PartitionBuffer.str(), outputDirectory);
+                          PartitionBuffer.str("");
+                        }
                     }
 
                   pPartition += 3;
                   pNodes += 3;
                   pEdges += 3;
                   ++PartitionIndex;
+                }
+
+
+              if (save)
+                {
+                  // Write current node buffer to partition buffer
+                  PartitionBuffer << NodeBuffer.str();
+                  NodeBuffer.str("");
                 }
 
               ++*pNodes;
@@ -307,24 +349,35 @@ void CNetwork::partition(std::istream & is)
               CurrentNode = Node;
             }
 
+          Edge.toBinary(NodeBuffer);
+
           ++*pEdges;
+
+          // Write edge to current node buffer
           ++PartitionEdgeCount;
         }
 
-      *(pPartition + 3)= Node + 1;
+      *(pPartition + 3) = Node + 1;
+
+      if (save)
+        {
+          // Write current node buffer to partition buffer
+          PartitionBuffer << NodeBuffer.str();
+          NodeBuffer.str("");
+
+          // Write partition
+          writePartition(PartitionIndex, parts, *pNodes, *pPartition, *(pPartition + 3), *pEdges, PartitionBuffer.str(), outputDirectory);
+          PartitionBuffer.str("");
+        }
     }
 
-  CCommunicate::broadcast(Partition, CCommunicate::MPIProcesses * 3 + 1, MPI_UINT64_T, 0);
+  CCommunicate::broadcast(Partition, parts * 3 + 1, MPI_UINT64_T, 0);
 
   size_t * pMine = Partition + 3 * CCommunicate::MPIRank;
   mFirstLocalNode = *pMine++;
   mLocalNodesSize = *pMine++;
   mEdgesSize = *pMine++;
   mBeyondLocalNode = *pMine;
-
-  // std::cout << Communicate::Rank << ": " << mFirstLocalNode << ", " << mBeyondLocalNode << ", " << mLocalNodesSize << ", " << mEdgesSize << std::endl;
-  mLocalNodes = new CNode[mLocalNodesSize];
-  mEdges = new CEdge[mEdgesSize];
 }
 
 void CNetwork::load()
@@ -338,21 +391,78 @@ void CNetwork::load()
       return;
     }
 
-  std::ifstream is(mFile.c_str());
+  std::ostringstream File;
+  File << mFile << "." << CCommunicate::MPIRank;
+  bool havePartition = CDirEntry::isFile(File.str());
+
+  std::ifstream is;
+
+  if (havePartition)
+    {
+      json_t * pJson = CSimConfig::loadJson(File.str(), 0);
+      json_t * pPartition = json_object_get(pJson, "partition");
+      json_t * pValue = json_object_get(pPartition, "numberOfNodes");
+
+      if (json_is_integer(pValue))
+        {
+          mLocalNodesSize = json_integer_value(pValue);
+        }
+
+      pValue = json_object_get(pPartition, "firstLocalNode");
+
+      if (json_is_integer(pValue))
+        {
+          mFirstLocalNode = json_integer_value(pValue);
+        }
+
+      pValue = json_object_get(pPartition, "beyondLocalNode");
+
+      if (json_is_integer(pValue))
+        {
+          mBeyondLocalNode = json_integer_value(pValue);
+        }
+
+      pValue = json_object_get(pPartition, "numberOfEdges");
+
+      if (json_is_integer(pValue))
+        {
+          mEdgesSize = json_integer_value(pValue);
+        }
+
+      pValue = json_object_get(pJson, "encoding");
+
+      if (json_is_string(pValue))
+        {
+          std::string Encoding = json_string_value(pValue);
+          mIsBinary = (Encoding != "text");
+        }
+
+      json_decref(pJson);
+    }
+  else
+    {
+      File.str(mFile);
+    }
+
+  // std::cout << Communicate::Rank << ": " << mFirstLocalNode << ", " << mBeyondLocalNode << ", " << mLocalNodesSize << ", " << mEdgesSize << std::endl;
+  mLocalNodes = new CNode[mLocalNodesSize];
+  mEdges = new CEdge[mEdgesSize];
+
+
+  is.open(File.str().c_str());
 
   if (is.fail())
     {
-      std::cerr << "Network file: '" << mFile << "' cannot be opened." << std::endl;
+      std::cerr << "Network file: '" << File.str() << "' cannot be opened." << std::endl;
       mValid = false;
       return;
     }
 
   std::string Line;
 
-  // Skip JSON Prolog;
+  // Skip JSON Header
   std::getline(is, Line);
-
-  // Skip Column Header;
+  // Skip Column Header
   std::getline(is, Line);
 
   CNode * pNode = mLocalNodes;
@@ -383,6 +493,8 @@ void CNetwork::load()
         {
           pNode->id = pEdge->targetId;
           pNode->Edges = pEdge;
+          mFirstLocalNode = pNode->id;
+
           FirstTime = false;
         }
 
@@ -402,7 +514,7 @@ void CNetwork::load()
 
       pEdge->pTarget = pNode;
 
-      if (pEdge->sourceId < this->mFirstLocalNode || this->mBeyondLocalNode <= pEdge->sourceId)
+      if (pEdge->sourceId < mFirstLocalNode || mBeyondLocalNode <= pEdge->sourceId)
         {
           CNode Remote = DefaultNode;
           Remote.id = (pEdge->sourceId);
@@ -414,6 +526,7 @@ void CNetwork::load()
     }
 
   pNode->EdgesSize = pEdge - pNode->Edges;
+  mBeyondLocalNode = pNode->id + 1;
 
   is.close();
 
@@ -467,6 +580,99 @@ void CNetwork::write(const std::string & file, bool binary)
   os.close();
 }
 
+void CNetwork::writePartition(const size_t & partition,
+                              const size_t & partCount,
+                              const size_t & nodeCount,
+                              const size_t & firstLocalNode,
+                              const size_t & beyondLocalNode,
+                              const size_t & edgeCount,
+                              const std::string & edges,
+                              const std::string & outputDirectory)
+{
+  std::string FileName = mFile;
+
+  if (!outputDirectory.empty())
+    {
+      FileName = CDirEntry::fileName(mFile);
+      CDirEntry::makePathAbsolute(FileName, outputDirectory);
+    }
+
+  json_t * pJson = json_deep_copy(mpJson);
+  json_t * pValue = json_object_get(pJson, "encoding");
+
+  if (json_is_string(pValue))
+    {
+      json_string_set(pValue, "binary");
+    }
+
+  json_object_set_new(pJson, "partition", json_object());
+
+  pValue = json_object_get(pJson, "partition");
+  json_object_set_new(pValue, "numberOfParts", json_integer(partCount));
+  json_object_set_new(pValue, "numberOfNodes", json_integer(nodeCount));
+  json_object_set_new(pValue, "firstLocalNode", json_integer(firstLocalNode));
+  json_object_set_new(pValue, "beyondLocalNode", json_integer(beyondLocalNode));
+  json_object_set_new(pValue, "numberOfEdges", json_integer(edgeCount));
+
+  std::ostringstream File;
+  File << FileName << "." << partition - 1;
+
+  std::ofstream os(File.str().c_str());
+
+  if (os.fail())
+    {
+      std::cout << File.str() << std::endl;
+    }
+  os << json_dumps(pJson, JSON_COMPACT | JSON_INDENT(0)) << std::endl;
+  os << "targetPID,targetActivity,sourcePID,sourceActivity,duration,edgeTrait,active,weight";
+
+  os << std::endl;
+
+  os << edges << std::endl;
+}
+
+bool CNetwork::haveValidPartition(const int & parts)
+{
+  bool valid = parts > 0;
+
+  for (int i = 0; i < parts && valid; ++i)
+    {
+      std::ostringstream File;
+      File << mFile << "." << i;
+
+      std::ifstream is;
+
+      if (CDirEntry::isFile(File.str()))
+        {
+          json_t * pJson = CSimConfig::loadJson(File.str(), 0);
+
+          valid &= pJson != NULL;
+
+          json_t * pPartition = json_object_get(pJson, "partition");
+
+          valid &= pPartition != NULL;
+
+          json_t * pValue = json_object_get(pPartition, "numberOfParts");
+
+          valid &= (json_is_integer(pValue) &&
+                json_integer_value(pValue) == parts);
+
+          pValue = json_object_get(pJson, "encoding");
+
+          valid &= (json_is_string(pValue) &&
+              strcmp(json_string_value(pValue), "binary") == 0);
+
+          json_decref(pJson);
+        }
+      else
+        {
+          valid = false;
+        }
+    }
+
+  return valid;
+}
+
 CNode * CNetwork::beginNode()
 {
   return mLocalNodes;
@@ -513,21 +719,25 @@ CNode * CNetwork::lookupNode(const size_t & id, const bool localOnly) const
   CNode * pRight = mLocalNodes + mLocalNodesSize - 1;
   CNode * pCurrent = pCurrent = pLeft + (pRight - pLeft)/2;
 
-  while (pCurrent->id != id)
+  while (pLeft <= pRight)
     {
       if (pCurrent->id < id)
         {
           pLeft = pCurrent + 1;
         }
-      else
+      else if (pCurrent->id > id)
         {
           pRight = pCurrent - 1;
+        }
+      else
+        {
+          return pCurrent;
         }
 
       pCurrent = pLeft + (pRight - pLeft)/2;
     }
 
-  return pCurrent;
+  return NULL;
 }
 
 CEdge * CNetwork::lookupEdge(const size_t & targetId, const size_t & sourceId) const
@@ -544,30 +754,25 @@ CEdge * CNetwork::lookupEdge(const size_t & targetId, const size_t & sourceId) c
   CEdge * pRight = pLeft + pTargetNode->EdgesSize;
   CEdge * pCurrent = pLeft + (pRight - pLeft)/2;
 
-  while (pCurrent->sourceId != sourceId)
+  while (pLeft <= pRight)
     {
       if (pCurrent->sourceId < sourceId)
         {
           pLeft = pCurrent + 1;
         }
-      else
+      else if (pCurrent->sourceId > sourceId)
         {
           pRight = pCurrent - 1;
         }
-
-      // Handle invalid requests
-      if (pRight - pLeft < 2)
+      else
         {
-          if (pLeft->sourceId == sourceId) return pLeft;
-          if (pRight->sourceId == sourceId) return pRight;
-
-          return NULL;
+          return pCurrent;
         }
 
       pCurrent = pLeft + (pRight - pLeft)/2;
     }
 
-  return pCurrent;
+  return NULL;
 }
 
 bool CNetwork::loadEdge(CEdge * pEdge, std::istream & is) const

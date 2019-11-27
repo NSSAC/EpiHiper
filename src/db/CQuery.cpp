@@ -76,8 +76,8 @@ void CQuery::init()
       std::ostringstream Query;
 
       CNode * pBegin = CNetwork::INSTANCE->beginNode();
-      CNode * pEnd = CNetwork::INSTANCE->endNode();
-      Query << "pid BETWEEN " << pBegin->id << " AND " <<  --pEnd->id;
+      CNode * pEnd = CNetwork::INSTANCE->endNode() - 1;
+      Query << "pid BETWEEN " << pBegin->id << " AND " <<  pEnd->id;
 
       LocalConstraint = Query.str();
     }
@@ -111,7 +111,15 @@ bool CQuery::all(const std::string & table,
 
   Query << ";";
 
-  toFieldValueList(ResultField, pWork->exec(Query.str()), result);
+  try
+  {
+    toFieldValueList(ResultField, pWork->exec(Query.str()), result);
+  }
+
+  catch (const pqxx::pqxx_exception & e)
+  {
+    std::cerr << e.base().what() << std::endl;
+  }
 
   delete pWork;
 
@@ -187,7 +195,15 @@ bool CQuery::in(const std::string & table,
 
   Query << ");";
 
-  toFieldValueList(ResultField, pWork->exec(Query.str()), result);
+  try
+  {
+    toFieldValueList(ResultField, pWork->exec(Query.str()), result);
+  }
+
+  catch (const pqxx::pqxx_exception & e)
+  {
+    std::cerr << e.base().what() << std::endl;
+  }
 
   delete pWork;
 
@@ -259,9 +275,17 @@ bool CQuery::where(const std::string & table,
 
   Query << ";";
 
-  toFieldValueList(ResultField, pWork->exec(Query.str()), result);
+  try
+  {
+    toFieldValueList(ResultField, pWork->exec(Query.str()), result);
+  }
 
-  delete pWork;
+  catch (const pqxx::pqxx_exception & e)
+  {
+    std::cerr << e.base().what() << std::endl;
+  }
+
+ delete pWork;
 
   return true;
 }

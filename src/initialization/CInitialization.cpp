@@ -24,12 +24,10 @@
 #include "utilities/CSimConfig.h"
 #include "sets/CSetList.h"
 #include "sets/CSetContent.h"
+#include "math/CDependencyGraph.h"
 
 // static
-std::vector< CInitialization > CInitialization::INSTANCES;
-
-// static
-void CInitialization::init()
+void CInitialization::load(const std::string & file)
 {
   /*
     {
@@ -53,7 +51,7 @@ void CInitialization::init()
     }
   */
 
-  json_t * pRoot = CSimConfig::loadJson(CSimConfig::getInitialization(), JSON_DECODE_INT_AS_REAL);
+  json_t * pRoot = CSimConfig::loadJson(file, JSON_DECODE_INT_AS_REAL);
   CSetList::INSTANCE.fromJSON(json_object_get(pRoot, "sets"));
 
   json_t * pArray = json_object_get(pRoot, "initializations");
@@ -61,10 +59,32 @@ void CInitialization::init()
   for (size_t i = 0, imax = json_array_size(pArray); i < imax; ++i)
     {
       CInitialization Initialization(json_array_get(pArray, i));
-      INSTANCES.push_back(Initialization);
+
+      if (Initialization.isValid())
+        {
+          INSTANCES.push_back(Initialization);
+        }
     }
 
   json_decref(pRoot);
+}
+
+// static
+void CInitialization::release()
+{
+  INSTANCES.clear();
+}
+
+// static
+void CInitialization::processAll()
+{
+  std::vector< CInitialization >::iterator it = INSTANCES.begin();
+  std::vector< CInitialization >::iterator end = INSTANCES.end();
+
+  for (; it != end; ++it)
+    {
+      it->process();
+    }
 }
 
 CInitialization::CInitialization()
@@ -132,7 +152,17 @@ void CInitialization::fromJSON(const json_t * json)
             mpTarget->isValid() &&
             mActionEnsemble.isValid());
 
+  if (mValid)
+    {
+      CDependencyGraph::addRequested(mpTarget);
+    }
+
   CAnnotation::fromJSON(json);
+}
+
+void CInitialization::process()
+{
+  mActionEnsemble.process(*mpTarget);
 }
 
 const bool & CInitialization::isValid() const

@@ -21,7 +21,7 @@
 #define SRC_ACTIONS_CHANGES_H_
 
 #include <sstream>
-
+#include <set>
 #include "utilities/CCommunicate.h"
 
 class CNode;
@@ -33,14 +33,14 @@ class CMetadata;
 class Changes
 {
 public:
-  static void record(const CNode & node, const CMetadata & metadata);
-  static void record(const CEdge & edge, const CMetadata & metadata);
-  static void record(const CVariable & variable, const CMetadata & metadata);
+  static void record(const CNode * pNode, const CMetadata & metadata);
+  static void record(const CEdge * pEdge, const CMetadata & metadata);
+  static void record(const CVariable * pVariable, const CMetadata & metadata);
   static void clear();
   static size_t size();
 
-  static const std::ostringstream & getNodes();
-  static const std::ostringstream & getEdges();
+  static const std::ostringstream &  getNodes();
+  static const std::ostringstream &  getEdges();
 
   static void initDefaultOutput();
   static void writeDefaultOutput();
@@ -52,11 +52,10 @@ public:
   virtual ~Changes();
 
 private:
-  static std::ostringstream Nodes;
-  static std::ostringstream Edges;
+  static std::set< const CNode * > Nodes;
+  static std::set< const CEdge * > Edges;
   static std::stringstream DefaultOutput;
 
-  static size_t Size;
   static size_t Tick;
 };
 

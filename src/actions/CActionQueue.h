@@ -15,17 +15,20 @@
 
 #include "utilities/CCommunicate.h"
 #include "actions/CCurrentActions.h"
+#include "math/CTick.h"
 
 class CActionQueue: public std::map< int, CCurrentActions >
 {
   public:
     virtual ~CActionQueue();
 
+    static void init();
+
     static void addAction(size_t deltaTick, const CAction & action);
 
     static bool processCurrentActions();
 
-    static const int & getCurrentTick();
+    static const CTick & getCurrentTick();
 
     static void setCurrentTick(const int & currentTick);
 
@@ -45,8 +48,8 @@ class CActionQueue: public std::map< int, CCurrentActions >
 
     CCommunicate::ErrorCode receivePendingActions(std::istream & is, int sender);
 
-    static CActionQueue INSTANCE;
-    int mCurrenTick;
+    static CActionQueue * pINSTANCE;
+    CTick mCurrenTick;
     size_t mTotalPendingActions;
     std::stringstream mRemoteActions;
 };

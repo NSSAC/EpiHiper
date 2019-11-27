@@ -95,10 +95,15 @@ const bool & CActionEnsemble::isValid() const
   return mValid;
 }
 
-void CActionEnsemble::process(const CSetContent & targets) const
+void CActionEnsemble::process(const CSetContent & targets)
 {
-  std::vector< CActionDefinition >::const_iterator it = mForEach.begin();
-  std::vector< CActionDefinition >::const_iterator end = mForEach.end();
+  std::vector< CActionDefinition >::const_iterator it = mOnce.begin();
+  std::vector< CActionDefinition >::const_iterator end = mOnce.end();
+
+  for (; it != end; ++it)
+    it->process((CNode *) NULL);
+
+  end = mForEach.end();
 
   std::set< CEdge * >::const_iterator itEdges = targets.beginEdges();
   std::set< CEdge * >::const_iterator endEdges = targets.endEdges();

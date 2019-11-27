@@ -17,36 +17,6 @@
 #include "utilities/CCommunicate.h"
 #include "utilities/CStreamBuffer.h"
 
-// static
-int CCommunicate::MPIRank(-1);
-
-// static
-int CCommunicate::MPINextRank(-1);
-
-// static
-int CCommunicate::MPIPreviousRank(-1);
-
-// static
-int CCommunicate::MPIProcesses(-1);
-
-// static
-int CCommunicate::ReceiveSize(0);
-
-// static
-char * CCommunicate::ReceiveBuffer(NULL);
-
-// static
-MPI_Win CCommunicate::MPIWin;
-
-// static
-size_t CCommunicate::RMAIndex(0);
-
-// static
-size_t CCommunicate::MPIWinSize(0);
-
-// static
-double * CCommunicate::RMABuffer(NULL);
-
 
 // static
 void CCommunicate::resizeReceiveBuffer(int size)
@@ -211,6 +181,55 @@ int CCommunicate::sequential(int firstRank, CCommunicate::SequentialProcessInter
       (*pSequential)();
 
       send(&signal, 1, MPI_INT, MPINextRank, MPIRank);
+    }
+
+  return (int) Result;
+}
+
+// static
+int CCommunicate::central(int centerRank,
+                          const void *buffer,
+                          int countToCenter,
+                          int countFromCenter,
+                          CCommunicate::ReceiveInterface * pReceive)
+{
+  ErrorCode Result = ErrorCode::Success;
+  Status status;
+
+  resizeReceiveBuffer(std::min(countToCenter, countFromCenter));
+
+  if (MPIRank == centerRank)
+    {
+      // Receive from all other
+      for (int sender = 0; sender < MPIProcesses && Result == ErrorCode::Success; ++sender)
+        {
+          if (sender != centerRank)
+            {
+              receive(ReceiveBuffer, countToCenter, MPI_CHAR, sender, centerRank, &status);
+
+              CStreamBuffer Buffer(ReceiveBuffer, countToCenter);
+              std::istream is(&Buffer);
+
+              Result = (*pReceive)(is, sender);
+            }
+        }
+
+      CStreamBuffer Buffer(ReceiveBuffer, 0);
+      std::istream is(&Buffer);
+      Result = (*pReceive)(is, centerRank);
+
+      memcpy(ReceiveBuffer, buffer, countFromCenter * sizeof(char));
+      broadcast(ReceiveBuffer, countFromCenter, MPI_CHAR, centerRank);
+    }
+  else
+    {
+      send(buffer, countToCenter, MPI_CHAR, MPIRank, centerRank);
+      broadcast(ReceiveBuffer, countFromCenter, MPI_CHAR, centerRank);
+
+      CStreamBuffer Buffer(ReceiveBuffer, countToCenter);
+      std::istream is(&Buffer);
+
+      Result = (*pReceive)(is, centerRank);
     }
 
   return (int) Result;

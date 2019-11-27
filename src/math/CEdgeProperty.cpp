@@ -49,7 +49,15 @@ CEdgeProperty::~CEdgeProperty()
 
 void CEdgeProperty::fromJSON(const json_t * json)
 {
-  json_t * pValue = json_object_get(json, "property");
+  json_t * pObject = json_object_get(json, "edge");
+
+  if (!json_is_object(pObject))
+    {
+      mValid = false;
+      return;
+    }
+
+  json_t * pValue = json_object_get(pObject, "property");
 
   if (json_is_string(pValue))
     {

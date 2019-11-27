@@ -19,7 +19,8 @@
 #include "sets/CSetContent.h"
 
 CSet::CSet(const CSet & src)
-  : CAnnotation(src)
+  : CSetContent(src)
+  , CAnnotation(src)
   , mId(src.mId)
   , mType(src.mType)
   , mpSetContent(CSetContent::copy(src.mpSetContent))
@@ -27,7 +28,8 @@ CSet::CSet(const CSet & src)
 {}
 
 CSet::CSet(const json_t * json)
-  : CAnnotation()
+  : CSetContent()
+  , CAnnotation()
   , mId()
   , mType()
   , mpSetContent(NULL)

@@ -184,7 +184,7 @@ void COperationDefinition::fromJSON(const json_t * json)
       return;
     }
 
-  mValue.fromJSON(json);
+  mValue.fromJSON(json_object_get(json, "value"));
 
   mValid = mValue.isValid();
 }
@@ -196,12 +196,18 @@ const bool & COperationDefinition::isValid() const
 
 COperation * COperationDefinition::createOperation(CNode * pNode) const
 {
-  return mpNodeProperty->createOperation(pNode, mValue, mpOperator);
+  if (pNode != NULL)
+    return mpNodeProperty->createOperation(pNode, mValue, mpOperator);
+
+  return createOperation();
 }
 
 COperation * COperationDefinition::createOperation(CEdge * pEdge) const
 {
-  return mpEdgeProperty->createOperation(pEdge, mValue, mpOperator);
+  if (pEdge != NULL)
+    return mpEdgeProperty->createOperation(pEdge, mValue, mpOperator);
+
+  return createOperation();
 }
 
 COperation * COperationDefinition::createOperation() const

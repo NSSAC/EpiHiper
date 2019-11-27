@@ -31,17 +31,6 @@
 #include "utilities/CSimConfig.h"
 
 // static
-std::map< std::string, CTrait > CTrait::INSTANCES;
-// static
-CTrait const * CTrait::ActivityTrait;
-
-// static
-CTrait const * CTrait::EdgeTrait;
-
-// static
-CTrait const * CTrait::NodeTrait;
-
-// static
 void CTrait::init()
 {
   if (INSTANCES.empty())

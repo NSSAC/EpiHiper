@@ -28,21 +28,6 @@
 #include "utilities/CMetadata.h"
 
 // static
-std::ostringstream Changes::Nodes;
-
-// static
-std::ostringstream Changes::Edges;
-
-// static
-std::stringstream Changes::DefaultOutput;
-
-// static
-size_t Changes::Size = 0;
-
-// static
-size_t Changes::Tick = -1;
-
-// static
 void Changes::setCurrentTick(size_t tick)
 {
   Tick = tick;
@@ -54,16 +39,17 @@ void Changes::incrementTick()
   ++Tick;
 }
 
-
 // static
-void Changes::record(const CNode & node, const CMetadata & metadata)
+void Changes::record(const CNode * pNode, const CMetadata & metadata)
 {
-  node.toBinary(Nodes);
+  if (pNode == NULL) return;
+
+  Nodes.insert(pNode);
 
   if (metadata.getBool("StateChange"))
     {
       // "tick,pid,exit_state,contact_pid"
-      DefaultOutput << (int) Tick << "," << node.id << "," << node.getHealthState()->getAnnId() << ",";
+      DefaultOutput << (int) Tick << "," << pNode->id << "," << pNode->getHealthState()->getAnnId() << ",";
 
       if (metadata.contains("ContactNode"))
         {
@@ -74,27 +60,25 @@ void Changes::record(const CNode & node, const CMetadata & metadata)
           DefaultOutput << -1 << std::endl;
         }
     }
-
-  ++Size;
 }
 
 // static
-void Changes::record(const CEdge & edge, const CMetadata & metadata)
+void Changes::record(const CEdge * pEdge, const CMetadata & metadata)
 {
-  edge.toBinary(Edges);
-  ++Size;
+  if (pEdge == NULL) return;
+
+  Edges.insert(pEdge);
 }
 
 // static
-void Changes::record(const CVariable & variable, const CMetadata & metadata)
+void Changes::record(const CVariable * pVariable, const CMetadata & metadata)
 {}
 
 // static
 void Changes::clear()
 {
-  Size = 0;
-  Nodes.str("");
-  Edges.str("");
+  Nodes.clear();
+  Edges.clear();
 }
 
 // static
@@ -149,19 +133,43 @@ CCommunicate::ErrorCode Changes::writeDefaultOutputData()
 // static
 size_t Changes::size()
 {
-  return Size;
+  return Nodes.size() + Edges.size();
 }
 
 // static
 const std::ostringstream & Changes::getNodes()
 {
-  return Nodes;
+  static std::ostringstream os;
+
+  os.str("");
+
+  std::set< const CNode * >::const_iterator it = Nodes.begin();
+  std::set< const CNode * >::const_iterator end = Nodes.end();
+
+  for (; it != end; ++it)
+    {
+      (*it)->toBinary(os);
+    }
+
+  return os;
 }
 
 // static
 const std::ostringstream & Changes::getEdges()
 {
-  return Edges;
+  static std::ostringstream os;
+
+  os.str("");
+
+  std::set< const CEdge * >::const_iterator it = Edges.begin();
+  std::set< const CEdge * >::const_iterator end = Edges.end();
+
+  for (; it != end; ++it)
+    {
+      (*it)->toBinary(os);
+    }
+
+  return os;
 }
 
 Changes::~Changes()

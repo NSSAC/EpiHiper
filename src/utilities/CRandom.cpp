@@ -16,9 +16,6 @@
 #include "utilities/CCommunicate.h"
 
 // static
-CRandom::generator_t CRandom::G;
-
-// static
 void CRandom::init()
 {
   const size_t & Seed = CSimConfig::getSeed();

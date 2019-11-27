@@ -100,7 +100,7 @@ void CValue::fromJSON(const json_t * json)
 
   if (json_is_string(pValue))
     {
-      mType = Type::healthState;
+      mType = Type::id;
       mpValue = new CModel::state_t(CModel::stateToType(CModel::getState(json_string_value(pValue))));
       mValid = true;
       return;
@@ -175,10 +175,6 @@ void CValue::toBinary(std::ostream & os) const
       os.write(reinterpret_cast<const char *>(mpValue), sizeof(double));
       break;
 
-    case Type::healthState:
-      os.write(reinterpret_cast<const char *>(mpValue), sizeof(size_t));
-      break;
-
     case Type::traitData:
       os.write(reinterpret_cast<const char *>(mpValue), sizeof(CTraitData::base));
       break;
@@ -220,10 +216,6 @@ void CValue::fromBinary(std::istream & is)
       is.read(reinterpret_cast<char *>(mpValue), sizeof(double));
       break;
 
-    case Type::healthState:
-      is.read(reinterpret_cast<char *>(mpValue), sizeof(size_t));
-      break;
-
     case Type::traitData:
       is.read(reinterpret_cast<char *>(mpValue), sizeof(CTraitData::base));
       break;
@@ -262,10 +254,6 @@ void * CValue::createValue(const CValue::Type & type)
 
     case Type::number:
       return new double(std::numeric_limits< double >::quiet_NaN());
-      break;
-
-    case Type::healthState:
-      return new size_t(CModel::stateToType(&CModel::getInitialState()));
       break;
 
     case Type::traitData:
@@ -312,7 +300,6 @@ void CValue::assignValue(const void * pValue)
       *static_cast< std::string * >(mpValue) = *static_cast< const std::string * >(pValue);
       break;
 
-    case Type::healthState:
     case Type::id:
       *static_cast< size_t * >(mpValue) = *static_cast< const size_t * >(pValue);
       break;
@@ -341,7 +328,6 @@ void CValue::destroyValue()
       delete static_cast< std::string * >(mpValue);
       break;
 
-    case Type::healthState:
     case Type::id:
       delete static_cast< size_t * >(mpValue);
       break;

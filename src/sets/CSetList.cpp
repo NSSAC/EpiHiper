@@ -15,12 +15,6 @@
 
 #include "sets/CSetList.h"
 
-// static
-CSetList CSetList::INSTANCE;
-
-// static
-CSet CSetList::Invalid(NULL);
-
 CSetList::CSetList()
   : std::vector< CSet >()
   , mId2Index()
@@ -56,8 +50,9 @@ void CSetList::fromJSON(const json_t * json)
     {
       CSet Set(json_array_get(json, i));
       mValid &= Set.isValid();
-      mId2Index[Set.getId()] = i;
+      mId2Index[Set.getId()] = size();
       push_back(Set);
+
     }
 }
 

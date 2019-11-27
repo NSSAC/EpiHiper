@@ -48,7 +48,15 @@ CNodeProperty::~CNodeProperty()
 
 void CNodeProperty::fromJSON(const json_t * json)
 {
-  json_t * pValue = json_object_get(json, "property");
+  json_t * pObject = json_object_get(json, "node");
+
+  if (!json_is_object(pObject))
+    {
+      mValid = false;
+      return;
+    }
+
+  json_t * pValue = json_object_get(pObject, "property");
 
   if (!json_is_string(pValue))
     {
@@ -76,7 +84,7 @@ void CNodeProperty::fromJSON(const json_t * json)
     }
   else if (strcmp(json_string_value(pValue), "healthState") == 0)
     {
-      mType = Type::healthState;
+      mType = Type::id;
       mpPropertyOf = &CNodeProperty::healthState;
       mpCreateOperation = &CNodeProperty::setHealthState;
     }

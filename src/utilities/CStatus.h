@@ -21,17 +21,18 @@
 #define SRC_UTILITIES_CSTATUS_H_
 
 #include <string>
+#include <limits>
 
 struct json_t;
 
 class CStatus
 {
 public:
-  static void load();
+  static void load(const std::string & name);
 
-  static void update(const std::string & status);
+  static void update(const std::string & name, const std::string & status, const double & progress = std::numeric_limits< double >::quiet_NaN());
 
-  static void finalize();
+  static void finalize(const std::string & name);
 
 private:
   static json_t * pJSON;

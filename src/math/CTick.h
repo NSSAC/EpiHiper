@@ -10,27 +10,29 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#ifndef SRC_MATH_CTICK_H_
+#define SRC_MATH_CTICK_H_
+
+#include "math/CValueInterface.h"
 #include "math/CComputable.h"
 
-CComputable::CComputable()
-  : mPrerequisites()
+class CTick : public CComputable
 {
-  COMPUTABLES.insert(this);
-}
+public:
+  CTick(const int & value = 0);
 
-CComputable::CComputable(const CComputable & src)
-  : mPrerequisites(src.mPrerequisites)
-{
-  COMPUTABLES.insert(this);
-}
+  CTick(const CTick & src);
 
-CComputable::~CComputable()
-{
-  COMPUTABLES.erase(this);
-}
+  virtual ~CTick();
 
-const CComputable::Set & CComputable::getPrerequisites() const
-{
-  return mPrerequisites;
-}
+  virtual void compute();
 
+  operator int() const;
+
+  CTick & operator++();
+
+private:
+  int mValue;
+};
+
+#endif /* SRC_MATH_CTICK_H_ */

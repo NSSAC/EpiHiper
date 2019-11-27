@@ -42,12 +42,10 @@ public:
   {
     boolean,
     number,
-    healthState,
     traitData,
     traitValue,
     string,
-    id,
-    pointer
+    id
   };
 
   CValueInterface() = delete;

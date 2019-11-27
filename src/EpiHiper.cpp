@@ -24,6 +24,8 @@
 #include "db/CConnection.h"
 #include "utilities/CSimConfig.h"
 #include "utilities/CStatus.h"
+#include "actions/CActionQueue.h"
+#include "initialization/CInitialization.h"
 
 // Uncomment the following line if you want to attache a debugger
 // #define DEBUG_WAIT 1
@@ -33,7 +35,7 @@
 # include <unistd.h>
 #endif // DEBUG_WAIT
 
-std::string config = std::string();
+std::string Config = std::string();
 int seed = -1;
 std::string dbconn = std::string();
 
@@ -59,7 +61,7 @@ bool parseArgs(int argc, char *argv[]) {
       break;
     switch(opt) {
     case 'c':
-      config = std::string(optarg);
+      Config = std::string(optarg);
       break;
     case '?':
     default:
@@ -94,17 +96,19 @@ int main(int argc, char *argv[]) {
   while (debugwait) sleep(1);
 #endif
 
-  CSimConfig::load(config);
+  CSimConfig::load(Config);
 
   if (CSimConfig::isValid()) {
+    CActionQueue::init();
     CRandom::init();
     CTrait::init();
+    CConnection::init();
     CNetwork::init();
     CTrait::load(CSimConfig::getTraits());
     CModel::load(CSimConfig::getDiseaseModel());
     CSchema::load(CSimConfig::getPersonTraitDB());
-    CConnection::init();
-    CStatus::load();
+    CInitialization::load(CSimConfig::getInitialization());
+    CStatus::load("EpiHiper");
 
     CNetwork::INSTANCE->load();
     // Network::INSTANCE->write("network.bin", true);
@@ -119,8 +123,9 @@ int main(int argc, char *argv[]) {
   }
 
   CModel::release();
+  CInitialization::release();
   CNetwork::release();
-  CStatus::finalize();
+  CStatus::finalize("EpiHiper");
   CSimConfig::release();
   CCommunicate::finalize();
 

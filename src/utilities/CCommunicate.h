@@ -163,6 +163,12 @@ public:
 
   static int sequential(int firstRank, SequentialProcessInterface * pSequential);
 
+  static int central(int centerRank,
+                     const void *buffer,
+                     int countIn,
+                     int countOut,
+                     CCommunicate::ReceiveInterface * pReceive);
+
   static int abortMessage(ErrorCode err, const std::string & msg, const char * file, int line);
 
   static int abort(ErrorCode errorcode);

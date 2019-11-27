@@ -17,6 +17,7 @@
 #include "network/CNetwork.h"
 #include "network/CEdge.h"
 #include "network/CNode.h"
+#include "actions/CActionQueue.h"
 
 CEdgeElementSelector::CEdgeElementSelector()
   : CSetContent()
@@ -110,6 +111,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
       mValid &= mLeft.isValid();
       mpValue = new CValue(json_object_get(json, "right"));
       mValid &= (mpValue != NULL && mpValue->isValid());
+      mPrerequisites.insert(&CActionQueue::getCurrentTick());
 
       return;
     }
@@ -121,6 +123,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
       mValid &= mLeft.isValid();
       mpValueList = new CValueList(json_object_get(json, "right"));
       mValid &= (mpValueList != NULL && mpValueList->isValid());
+      mPrerequisites.insert(&CActionQueue::getCurrentTick());
 
       return;
     }

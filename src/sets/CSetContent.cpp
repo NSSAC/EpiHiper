@@ -21,22 +21,29 @@
 #include "sets/CDBFieldSelector.h"
 #include "sets/CSetOperation.h"
 #include "sets/CSetList.h"
+#include "utilities/CRandom.h"
 
 CSetContent::CSetContent()
-  : mNodes()
+  : CComputable()
+  , mNodes()
   , mEdges()
   , mDBFieldValues()
   , mValid(true)
 {}
 
 CSetContent::CSetContent(const CSetContent & src)
-  : mNodes(src.mNodes)
+  : CComputable(src)
+  , mNodes(src.mNodes)
   , mEdges(src.mEdges)
   , mDBFieldValues(src.mDBFieldValues)
   , mValid(src.mValid)
 {}
 
 CSetContent::~CSetContent()
+{}
+
+// virtual
+void CSetContent::compute()
 {}
 
 // static
@@ -179,6 +186,105 @@ const std::set< CNode * > & CSetContent::getNodes() const
 const std::map< CValueList::Type, CValueList > & CSetContent::getDBFieldValues() const
 {
   return mDBFieldValues;
+}
+
+void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetContent & notSampled) const
+{
+  sampled.mEdges.clear();
+  sampled.mNodes.clear();
+  sampled.mDBFieldValues.clear();
+
+  notSampled.mEdges.clear();
+  notSampled.mNodes.clear();
+  notSampled.mDBFieldValues.clear();
+
+  CRandom::uniform_real Percent(0.0, 1.0);
+
+  // Sampling is ony supported if we have either only nodes or only edges;
+  if (size() == mNodes.size())
+    {
+      double Requested = max;
+      double Available = mNodes.size();
+
+      std::set< CNode * >::const_iterator it = mNodes.begin();
+      std::set< CNode * >::const_iterator end = mNodes.end();
+
+      for (; it != end && Requested > 0.5; ++it)
+        {
+          if (Available >= Requested ||
+              (Requested > 0.5 &&
+                  Percent(CRandom::G) < Requested / Available))
+            {
+              sampled.mNodes.insert(*it);
+              Requested -= 1.0;
+            }
+          else
+            notSampled.mNodes.insert(*it);
+
+          Available -= 1.0;
+        }
+    }
+  else if (size() == mEdges.size())
+    {
+      double Requested = max;
+      double Available = mEdges.size();
+
+      std::set< CEdge * >::const_iterator it = mEdges.begin();
+      std::set< CEdge * >::const_iterator end = mEdges.end();
+
+      for (; it != end && Requested > 0.5; ++it)
+        {
+          if (Available >= Requested ||
+              (Requested > 0.5 &&
+                  Percent(CRandom::G) < Requested / Available))
+            {
+              sampled.mEdges.insert(*it);
+              Requested -= 1.0;
+            }
+          else
+            notSampled.mEdges.insert(*it);
+
+          Available -= 1.0;
+        }
+    }
+}
+
+void CSetContent::samplePercent(const double & percent, CSetContent & sampled, CSetContent & notSampled) const
+{
+  sampled.mEdges.clear();
+  sampled.mNodes.clear();
+  sampled.mDBFieldValues.clear();
+
+  notSampled.mEdges.clear();
+  notSampled.mNodes.clear();
+  notSampled.mDBFieldValues.clear();
+
+  CRandom::uniform_real Percent(0.0, 100.0);
+
+  // Sampling is ony supported if we have either only nodes or only edges;
+  if (size() == mNodes.size())
+    {
+      std::set< CNode * >::const_iterator it = mNodes.begin();
+      std::set< CNode * >::const_iterator end = mNodes.end();
+
+      for (; it != end; ++it)
+        if (Percent(CRandom::G) < percent)
+          sampled.mNodes.insert(*it);
+        else
+          notSampled.mNodes.insert(*it);
+
+    }
+  else if (size() == mEdges.size())
+    {
+      std::set< CEdge * >::const_iterator it = mEdges.begin();
+      std::set< CEdge * >::const_iterator end = mEdges.end();
+
+      for (; it != end; ++it)
+        if (Percent(CRandom::G) < percent)
+          sampled.mEdges.insert(*it);
+        else
+          notSampled.mEdges.insert(*it);
+    }
 }
 
 size_t CSetContent::size() const

@@ -10,27 +10,42 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "math/CComputable.h"
+/*
+ * CTick.cpp
+ *
+ *  Created on: Nov 22, 2019
+ *      Author: shoops
+ */
 
-CComputable::CComputable()
-  : mPrerequisites()
+#include "math/CTick.h"
+
+CTick::CTick(const int & value)
+  : CComputable()
+  , mValue(value)
+{}
+
+CTick::CTick(const CTick & src)
+ : CComputable(src)
+ , mValue(src.mValue)
+{}
+
+// virtual
+CTick::~CTick()
+{}
+
+// virtual
+void CTick::compute()
+{}
+
+CTick::operator int() const
 {
-  COMPUTABLES.insert(this);
+  return mValue;
 }
 
-CComputable::CComputable(const CComputable & src)
-  : mPrerequisites(src.mPrerequisites)
+CTick & CTick::operator++()
 {
-  COMPUTABLES.insert(this);
-}
+  ++mValue;
 
-CComputable::~CComputable()
-{
-  COMPUTABLES.erase(this);
-}
-
-const CComputable::Set & CComputable::getPrerequisites() const
-{
-  return mPrerequisites;
+  return *this;
 }
 

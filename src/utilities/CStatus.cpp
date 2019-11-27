@@ -19,24 +19,6 @@
 #include "actions/CActionQueue.h"
 
 // static
-json_t * CStatus::pJSON(NULL);
-
-// static
-json_t * CStatus::pId(NULL);
-
-// static
-json_t * CStatus::pName(NULL);
-
-// static
-json_t * CStatus::pStatus(NULL);
-
-// static
-json_t * CStatus::pDetail(NULL);
-
-// static
-json_t * CStatus::pProgress(NULL);
-
-// static
 double CStatus::initialProgress(0.0);
 
 json_t * init(json_t * pObject, const char * key, const char * value)
@@ -69,7 +51,7 @@ json_t * init(json_t * pObject, const char * key, const double & value)
 
 
 // static
-void CStatus::load()
+void CStatus::load(const std::string & name)
 {
   if (CCommunicate::MPIRank != 0) return;
 
@@ -109,11 +91,11 @@ void CStatus::load()
       json_decref(pRoot);
     }
 
-  update("running");
+  update(name, "running");
 }
 
 // static
-void CStatus::update(const std::string & status)
+void CStatus::update(const std::string & name, const std::string & status, const double & progress)
 {
   if (CCommunicate::MPIRank != 0) return;
 
@@ -142,9 +124,9 @@ void CStatus::update(const std::string & status)
 }
 
 // static
-void CStatus::finalize()
+void CStatus::finalize(const std::string & name)
 {
-  update("completed");
+  update(name, "completed", 100.0);
   json_decref(pJSON);
 }
 

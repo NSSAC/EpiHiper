@@ -128,7 +128,7 @@ void CValueList::fromJSON(const json_t * json)
 
       if (json_is_array(pValue))
         {
-          mType = Type::healthState;
+          mType = Type::id;
           json_t * pArray = pValue;
         }
     }
@@ -207,7 +207,7 @@ void CValueList::fromJSON(const json_t * json)
         }
       break;
 
-    case Type::healthState:
+    case Type::id:
       for (size_t i = 0, imax = json_array_size(pArray); i < imax && mValid; ++i)
         {
           pValue = json_array_get(pArray, i);
@@ -261,7 +261,6 @@ void CValueList::toBinary(std::ostream & os) const
         os.write(reinterpret_cast<const char *>(&it->toNumber()), sizeof(double));
       break;
 
-    case Type::healthState:
     case Type::id:
       for (; it != itEnd; ++it)
         os.write(reinterpret_cast<const char *>(&it->toId()), sizeof(size_t));
@@ -300,7 +299,6 @@ void CValueList::fromBinary(std::istream & is)
         }
       break;
 
-    case Type::healthState:
     case Type::id:
       for (size_t i = 0; i < Size; ++i)
         {

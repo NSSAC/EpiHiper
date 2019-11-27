@@ -68,7 +68,7 @@ public:
 
     if (changed)
       {
-        Changes::record(*mpTarget, metadata);
+        Changes::record(mpTarget, metadata);
       }
 
     return changed;

@@ -15,9 +15,6 @@
 
 #include "variables/CVariableList.h"
 
-// static
-CVariableList CVariableList::INSTANCE;
-
 CVariableList::CVariableList()
   : std::vector< CVariable >()
   , mId2Index()

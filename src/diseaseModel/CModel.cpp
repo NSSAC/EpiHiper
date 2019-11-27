@@ -26,9 +26,6 @@
 #include "utilities/CRandom.h"
 
 // static
-CModel * CModel::INSTANCE(NULL);
-
-// static
 void CModel::load(const std::string & modelFile)
 {
   if (INSTANCE == NULL)

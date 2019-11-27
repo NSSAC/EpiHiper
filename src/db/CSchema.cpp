@@ -19,9 +19,6 @@
 #include "db/CTable.h"
 
 // static
-CSchema CSchema::INSTANCE;
-
-// static
 void CSchema::load(const std::vector< std::string > & schemaFiles)
 {
   std::vector< std::string >::const_iterator it = schemaFiles.begin();

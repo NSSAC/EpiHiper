@@ -20,9 +20,6 @@
 #include "network/CNetwork.h"
 
 // static
-std::set< CObservable > CObservable::Observables;
-
-// static
 CObservable * CObservable::get(const CObservable::ObservableType & observableType, const size_t & id)
 {
   CObservable Observable(observableType, id);
@@ -39,7 +36,12 @@ CObservable * CObservable::get(const json_t * json)
 {
   CObservable Observable(json);
 
-  return const_cast< CObservable * >(&(*Observables.insert(Observable).first));
+  if (Observable.isValid())
+    {
+      return const_cast< CObservable * >(&(*Observables.insert(Observable).first));
+    }
+
+  return NULL;
 }
 
 CObservable::CObservable()

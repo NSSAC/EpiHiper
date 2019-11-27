@@ -21,9 +21,6 @@
 #include "network/CNode.h"
 
 // static
-std::vector< CActionDefinition * > CActionDefinition::INSTANCES;
-
-// static
 CActionDefinition * CActionDefinition::GetActionDefinition(const size_t & index)
 {
   if (index < INSTANCES.size())
@@ -211,9 +208,10 @@ const bool & CActionDefinition::isValid() const
 
 void CActionDefinition::process(const CEdge * pEdge) const
 {
-  if (CNetwork::INSTANCE->isRemoteNode(pEdge->pTarget))
+  if (pEdge != NULL &&
+      CNetwork::INSTANCE->isRemoteNode(pEdge->pTarget))
     {
-      // TODO CRITICAL Add action to pending for remote transferal
+      CActionQueue::addRemoteAction(mIndex, pEdge);
       return;
     }
 
@@ -233,9 +231,10 @@ void CActionDefinition::process(const CEdge * pEdge) const
 
 void CActionDefinition::process(const CNode * pNode) const
 {
-  if (CNetwork::INSTANCE->isRemoteNode(pNode))
+  if (pNode != NULL &&
+      CNetwork::INSTANCE->isRemoteNode(pNode))
     {
-      // TODO CRITICAL Add action to pending for remote transferal
+      CActionQueue::addRemoteAction(mIndex, pNode);
       return;
     }
 

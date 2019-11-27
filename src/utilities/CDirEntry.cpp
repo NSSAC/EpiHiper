@@ -285,6 +285,9 @@ bool CDirEntry::makePathAbsolute(std::string & relativePath,
 
 std::string CDirEntry::normalize(const std::string & path)
 {
+  if (path.empty())
+    return "";
+
   std::string Normalized = path;
 
 #ifdef WIN32
@@ -312,6 +315,10 @@ std::string CDirEntry::normalize(const std::string & path)
   // Remove leading './'
   while (!Normalized.compare(0, 2, "./"))
     Normalized = Normalized.substr(2);
+
+  // Remove trailing '/'
+  while (Normalized[Normalized.length() - 1] == '/')
+    Normalized.erase(Normalized.length() - 1);
 
   // Collapse '//' to '/'
   std::string::size_type pos = 1;

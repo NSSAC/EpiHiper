@@ -183,13 +183,13 @@ CValueInterface * CConditionDefinition::ValueInstance::value() const
 }
 
 CConditionDefinition::CConditionDefinition()
-  : mType()
+  : mType(BooleanOperationType::Value)
   , mComparison()
   , mLeft()
   , mRight()
-  , mValue(false)
+  , mValue(true)
   , mBooleanValues()
-  , mValid(false)
+  , mValid(true)
 {}
 
 CConditionDefinition::CConditionDefinition(const CConditionDefinition & src)
@@ -247,6 +247,12 @@ void CConditionDefinition::fromJSON(const json_t * json)
   if (mValid) return;
 
   operationFromJSON(json); // also handles not
+
+  if (mValid) return;
+
+  mType = BooleanOperationType::Value;
+  mValue = true;
+  mValid = true;
 }
 
 void CConditionDefinition::valueFromJSON(const json_t * json)
@@ -572,15 +578,25 @@ CCondition CConditionDefinition::createCondition(const CNode * pNode) const
   switch (mType)
   {
     case BooleanOperationType::And:
-      break;
-
     case BooleanOperationType::Or:
+    case BooleanOperationType::Not:
+      {
+        std::vector< CBoolean * > Vector;
+        std::vector< CConditionDefinition >::const_iterator it = mBooleanValues.begin();
+        std::vector< CConditionDefinition >::const_iterator end = mBooleanValues.end();
+
+        for (; it != end; ++it)
+          {
+            Vector.push_back(it->createCondition(pNode).copy());
+          }
+
+        return CCondition::CBooleanOperation(mType, Vector);
+      }
       break;
 
-    case BooleanOperationType::Not:
-      break;
 
     case BooleanOperationType::Value:
+      return CCondition::CBooleanValue(mValue);
       break;
 
     case BooleanOperationType::Comparison:

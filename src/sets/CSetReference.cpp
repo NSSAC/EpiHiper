@@ -103,7 +103,7 @@ void CSetReference::compute()
       if (!mValid) return;
 
       mPrerequisites.insert(mpSet);
-      CDependencyGraph::rebuildGraph();
+      CDependencyGraph::buildGraph();
 
       // This might have been already computed but we are not certain and this is only
       // evaluated once.

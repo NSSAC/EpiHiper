@@ -18,12 +18,19 @@
 #include "network/CEdge.h"
 
 // static
-CActionQueue CActionQueue::INSTANCE;
+void CActionQueue::init()
+{
+  if (pINSTANCE == NULL)
+    {
+      pINSTANCE = new CActionQueue();
+    }
+}
+
 
 // static
 void CActionQueue::addAction(size_t deltaTick, const CAction & action)
 {
-  INSTANCE[INSTANCE.mCurrenTick + deltaTick].addAction(action);
+  pINSTANCE->operator [](pINSTANCE->mCurrenTick + deltaTick).addAction(action);
 }
 
 // static
@@ -34,8 +41,8 @@ bool CActionQueue::processCurrentActions()
   // We need to enter the loop at least once
   do
     {
-      CCurrentActions Actions = INSTANCE[INSTANCE.mCurrenTick];
-      INSTANCE.erase(INSTANCE.mCurrenTick);
+      CCurrentActions Actions = pINSTANCE->operator [](pINSTANCE->mCurrenTick);
+      pINSTANCE->erase(pINSTANCE->mCurrenTick);
 
       CCurrentActions::iterator it = Actions.begin();
       CCurrentActions::iterator end = Actions.end();
@@ -53,11 +60,11 @@ bool CActionQueue::processCurrentActions()
           }
 
       // MPI Broadcast scheduled remote actions and whether local actions are pending
-      INSTANCE.broadcastPendingActions();
+      pINSTANCE->broadcastPendingActions();
 
       // If no local actions are pending anywhere and no remote actions where broadcasted, i.e.,
       // if (Total actions size == 0) break;
-    } while (INSTANCE.mTotalPendingActions > 0);
+    } while (pINSTANCE->mTotalPendingActions > 0);
 
   return success;
 }
@@ -65,43 +72,43 @@ bool CActionQueue::processCurrentActions()
 // static
 size_t CActionQueue::pendingActions()
 {
-  return INSTANCE[INSTANCE.mCurrenTick].size();
+  return pINSTANCE->operator [](pINSTANCE->mCurrenTick).size();
 }
 
 // static
-const int & CActionQueue::getCurrentTick()
+const CTick & CActionQueue::getCurrentTick()
 {
-  return INSTANCE.mCurrenTick;
+  return pINSTANCE->mCurrenTick;
 }
 
 
 // static
 void CActionQueue::setCurrentTick(const int & currentTick)
 {
-  INSTANCE.mCurrenTick = currentTick;
+  pINSTANCE->mCurrenTick = currentTick;
 }
 
 // static
 void CActionQueue::incrementTick()
 {
-  ++INSTANCE.mCurrenTick;
+  ++pINSTANCE->mCurrenTick;
 }
 
 // static
 void CActionQueue::addRemoteAction(const size_t & index, const CNode * pNode)
 {
-  INSTANCE.mRemoteActions.write(reinterpret_cast<const char *>(&index), sizeof(size_t));
-  INSTANCE.mRemoteActions << 'N';
-  INSTANCE.mRemoteActions.write(reinterpret_cast<const char *>(&pNode->id), sizeof(size_t));
+  pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&index), sizeof(size_t));
+  pINSTANCE->mRemoteActions << 'N';
+  pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&pNode->id), sizeof(size_t));
 }
 
 // static
 void CActionQueue::addRemoteAction(const size_t & index, const CEdge * pEdge)
 {
-  INSTANCE.mRemoteActions.write(reinterpret_cast<const char *>(&index), sizeof(size_t));
-  INSTANCE.mRemoteActions << 'E';
-  INSTANCE.mRemoteActions.write(reinterpret_cast<const char *>(&pEdge->targetId), sizeof(size_t));
-  INSTANCE.mRemoteActions.write(reinterpret_cast<const char *>(&pEdge->sourceId), sizeof(size_t));
+  pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&index), sizeof(size_t));
+  pINSTANCE->mRemoteActions << 'E';
+  pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&pEdge->targetId), sizeof(size_t));
+  pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&pEdge->sourceId), sizeof(size_t));
 }
 
 
@@ -125,7 +132,7 @@ int CActionQueue::broadcastPendingActions()
 
   std::string Buffer = os.str();
 
-  CCommunicate::ClassMemberReceive< CActionQueue > Receive(&CActionQueue::INSTANCE, &CActionQueue::receivePendingActions);
+  CCommunicate::ClassMemberReceive< CActionQueue > Receive(CActionQueue::pINSTANCE, &CActionQueue::receivePendingActions);
 
   // std::cout << Communicate::Rank << ": ActionQueue::broadcastRemoteActions" << std::endl;
   CCommunicate::broadcast(Buffer.c_str(), Buffer.length(), &Receive);

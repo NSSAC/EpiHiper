@@ -29,9 +29,11 @@ public:
   typedef NodeMap::const_iterator const_iterator;
 
 
-  static void rebuildGraph();
+  static void buildGraph();
 
   static void applyUpdateSequence();
+
+  static void addRequested(CComputable * pComputable);
 
   // Operations
   /**
@@ -145,6 +147,7 @@ public:
 private:
   static CDependencyGraph INSTANCE;
   static CComputable::Sequence UPDATE_SEQUENCE;
+  static CComputable::Set REQUESTED;
 
 
   std::string getDOTNodeId(const CComputable * pComputable) const;

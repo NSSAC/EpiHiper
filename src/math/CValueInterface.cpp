@@ -112,7 +112,6 @@ void CValueInterface::toBinary(std::ostream & os) const
       os.write(reinterpret_cast<const char *>(mpValue), sizeof(double));
       break;
 
-    case Type::healthState:
     case Type::id:
       os.write(reinterpret_cast<const char *>(mpValue), sizeof(size_t));
       break;
@@ -150,7 +149,6 @@ void CValueInterface::fromBinary(std::istream & is)
       is.read(reinterpret_cast<char *>(&mpValue), sizeof(double));
       break;
 
-    case Type::healthState:
     case Type::id:
       is.read(reinterpret_cast<char *>(&mpValue), sizeof(size_t));
       break;
@@ -203,7 +201,6 @@ CValueInterface & CValueInterface::operator=(const CValueInterface & rhs)
           *static_cast< std::string * >(mpValue) = *static_cast< const std::string * >(rhs.mpValue);
           break;
 
-        case Type::healthState:
         case Type::id:
           *static_cast< size_t * >(mpValue) = *static_cast< const size_t * >(rhs.mpValue);
           break;
@@ -259,7 +256,6 @@ bool operator<(const CValueInterface & lhs, const CValueInterface & rhs)
       return * static_cast< const double * >(lhs.mpValue) < * static_cast< const double * >(rhs.mpValue);
       break;
 
-    case CValueInterface::Type::healthState:
     case CValueInterface::Type::id:
       return * static_cast< const size_t * >(lhs.mpValue) < * static_cast< const size_t * >(rhs.mpValue);
       break;
@@ -295,7 +291,6 @@ bool operator<=(const CValueInterface & lhs, const CValueInterface & rhs)
       return * static_cast< const double * >(lhs.mpValue) <= * static_cast< const double * >(rhs.mpValue);
       break;
 
-    case CValueInterface::Type::healthState:
     case CValueInterface::Type::id:
       return * static_cast< const size_t * >(lhs.mpValue) <= * static_cast< const size_t * >(rhs.mpValue);
       break;
@@ -355,7 +350,6 @@ bool operator==(const CValueInterface & lhs, const CValueInterface & rhs)
       return * static_cast< const double * >(lhs.mpValue) == * static_cast< const double * >(rhs.mpValue);
       break;
 
-    case CValueInterface::Type::healthState:
     case CValueInterface::Type::id:
       return * static_cast< const size_t * >(lhs.mpValue) == * static_cast< const size_t * >(rhs.mpValue);
       break;

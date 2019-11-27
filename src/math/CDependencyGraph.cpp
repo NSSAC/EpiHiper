@@ -10,27 +10,23 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "math/CDependencyGraph.h"
-
 #include <sstream>
 
 #include "math/CDependencyNode.h"
+#include "math/CDependencyGraph.h"
+#include "actions/CActionQueue.h"
 
 // Uncomment this line below to get debug print out.
 // #define DEBUG_OUTPUT 1
 
 // static
-CDependencyGraph CDependencyGraph::INSTANCE;
-
-// static
-CComputable::Sequence CDependencyGraph::UPDATE_SEQUENCE;
-
-// static
-void CDependencyGraph::rebuildGraph()
+void CDependencyGraph::buildGraph()
 {
   INSTANCE.clear();
 
   CComputable::Set Changed;
+  Changed.insert(&CActionQueue::getCurrentTick());
+
   CComputable::Set Requested;
   CComputable::Set::const_iterator it = CComputable::COMPUTABLES.begin();
   CComputable::Set::const_iterator end = CComputable::COMPUTABLES.end();
@@ -56,6 +52,12 @@ void CDependencyGraph::applyUpdateSequence()
 
   for (; it != end; ++it)
     (*it)->compute();
+}
+
+// static
+void CDependencyGraph::addRequested(CComputable * pComputable)
+{
+  REQUESTED.insert(pComputable);
 }
 
 CDependencyGraph::CDependencyGraph()
@@ -195,14 +197,6 @@ bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
 #ifdef DEBUG_OUTPUT
   std::cout << "Changed:" << std::endl;
 #endif // DEBUG_OUTPUT
-
-  if (found != notFound)
-    {
-      success &= found->second->updateDependentState(changedComputables, true);
-#ifdef DEBUG_OUTPUT
-      std::cout << *static_cast< const CDataComputable * >(mpContainer->getRandomComputable()) << std::endl;
-#endif // DEBUG_OUTPUT
-    }
 
   CComputable::Set::const_iterator it = changedComputables.begin();
   CComputable::Set::const_iterator end = changedComputables.end();

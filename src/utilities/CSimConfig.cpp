@@ -21,9 +21,6 @@
 #include "utilities/CDirEntry.h"
 
 // static
-CSimConfig * CSimConfig::INSTANCE(NULL);
-
-// static
 void CSimConfig::load(const std::string & configFile)
 {
   if (CSimConfig::INSTANCE == NULL)

@@ -32,6 +32,8 @@ public:
 
   virtual ~CSetContent();
 
+  virtual void compute();
+
   virtual void fromJSON(const json_t * json);
 
   const bool & isValid() const;
@@ -55,6 +57,11 @@ public:
   virtual const std::set< CNode * > & getNodes() const;
 
   virtual const std::map< CValueList::Type, CValueList > & getDBFieldValues() const;
+
+  void sampleMax(const size_t & max, CSetContent & sampled, CSetContent & NotSampled) const;
+
+  void samplePercent(const double & percent, CSetContent & sampled, CSetContent & NotSampled) const;
+
 
   size_t size() const;
 

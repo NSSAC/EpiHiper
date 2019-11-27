@@ -32,6 +32,17 @@ private:
    */
   CNetwork() = delete;
 
+  bool loadEdge(CEdge * pEdge, std::istream & is) const;
+  void writeEdge(CEdge * pEdge, std::ostream & os) const;
+  void partition(std::istream & is, const int & parts, const bool & save, const std::string & outputDirectory);
+
+
+public:
+  static CNetwork * INSTANCE;
+
+  static void init();
+  static void release();
+
   /**
    * Copy construnctor
    * @param const std::string & networkFile
@@ -43,19 +54,10 @@ private:
    */
   virtual ~CNetwork();
 
-  bool loadEdge(CEdge * pEdge, std::istream & is) const;
-  void writeEdge(CEdge * pEdge, std::ostream & os) const;
-
-public:
-  static CNetwork * INSTANCE;
-
-  static void init();
-  static void release();
-
   void load();
   void write(const std::string & file, bool binary);
 
-  void partition(std::istream & is);
+  void partition(const int & parts, const bool & save, const std::string & outputDirectory = "");
 
   virtual void fromJSON(const json_t * json);
 
@@ -82,6 +84,17 @@ public:
   CCommunicate::ErrorCode receiveEdges(std::istream & is, int sender);
 
   const size_t & getTotalNodes() const;
+
+  void writePartition(const size_t & partion,
+                      const size_t & partCount,
+                      const size_t & nodeCount,
+                      const size_t & firstLocalNode,
+                      const size_t & beyondLocalNode,
+                      const size_t & edgeCount,
+                      const std::string & edges,
+                      const std::string & outputDirectory);
+
+  bool haveValidPartition(const int & parts);
 
 private:
   std::string mFile;

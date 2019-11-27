@@ -20,6 +20,8 @@
 
 #include "actions/CActionQueue.h"
 #include "diseaseModel/CModel.h"
+#include "initialization/CInitialization.h"
+#include "math/CDependencyGraph.h"
 #include "network/CEdge.h"
 #include "network/CNetwork.h"
 #include "network/CNode.h"
@@ -161,8 +163,8 @@ void Simulation::run()
    * We just randomly pick nodes to be infective
    */
   CNode * pNodes = CNetwork::INSTANCE->beginNode();
-  int NumberOfNodes = CNetwork::INSTANCE->endNode() - pNodes - 1;
-  CRandom::uniform_int uniform(0, NumberOfNodes);
+  int NumberOfNodes = CNetwork::INSTANCE->endNode() - pNodes;
+  CRandom::uniform_int uniform(0, NumberOfNodes - 1);
 
   const CTransmission & Symptomatic = *CModel::getTransmissions().begin();
 
@@ -171,9 +173,13 @@ void Simulation::run()
   Changes::initDefaultOutput();
   CModel::initGlobalStateCountOutput();
 
+  CDependencyGraph::buildGraph();
+  CDependencyGraph::applyUpdateSequence();
+
+  CInitialization::processAll();
   size_t perNode = std::round(100.0/CCommunicate::MPIProcesses);
 
-  for (size_t i = 0; i < 100; ++i)
+  for (size_t i = 0; i < perNode; ++i)
     {
       CNode * pNode = pNodes + uniform(CRandom::G);
 
@@ -187,7 +193,7 @@ void Simulation::run()
   CNetwork::INSTANCE->broadcastChanges();
   CActionQueue::incrementTick();
   Changes::incrementTick();
-  CStatus::update("running");
+  CStatus::update("EpiHiper", "running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
 
   for (int tick = startTick; tick < endTick; ++tick)
     {
@@ -199,6 +205,6 @@ void Simulation::run()
       CNetwork::INSTANCE->broadcastChanges();
       CActionQueue::incrementTick();
       Changes::incrementTick();
-      CStatus::update("running");
+      CStatus::update("EpiHiper", "running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
     }
 }

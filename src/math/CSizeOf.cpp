@@ -10,14 +10,12 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#include <sstream>
 #include <limits>
 #include <jansson.h>
 
 #include "math/CSizeOf.h"
 #include "sets/CSetContent.h"
-
-// static
-std::vector< CSizeOf * > CSizeOf::INSTANCES;
 
 // static
 std::vector< CSizeOf * > CSizeOf::GetInstances()
@@ -26,7 +24,7 @@ std::vector< CSizeOf * > CSizeOf::GetInstances()
 }
 
 CSizeOf::CSizeOf()
-  : CValue(std::numeric_limits< double >::quiet_NaN())
+  : CValue((size_t) 0)
   , CComputable()
   , mpSetContent(NULL)
   , mIndex(std::numeric_limits< size_t >::max())
@@ -42,7 +40,7 @@ CSizeOf::CSizeOf(const CSizeOf & src)
 {}
 
 CSizeOf::CSizeOf(const json_t * json)
-  : CValue(std::numeric_limits< double >::quiet_NaN())
+  : CValue((size_t) 0)
   , CComputable()
   , mpSetContent(NULL)
   , mIndex(std::numeric_limits< size_t >::max())
@@ -74,8 +72,29 @@ void CSizeOf::compute()
 {
   if (mValid)
     {
-      *static_cast< double * >(mpValue) = mpSetContent->size();
+      broadcastSize();
     }
+}
+
+int CSizeOf::broadcastSize()
+{
+  *static_cast< double * >(mpValue) = mpSetContent->size();;
+
+  CCommunicate::ClassMemberReceive< CSizeOf > Receive(this, &CSizeOf::receiveSize);
+  CCommunicate::broadcast(mpValue, sizeof(size_t), &Receive);
+
+  return (int) CCommunicate::ErrorCode::Success;
+
+}
+
+CCommunicate::ErrorCode CSizeOf::receiveSize(std::istream & is, int sender)
+{
+  size_t RemoteSize;
+
+  is.read(reinterpret_cast<char *>(&RemoteSize), sizeof(size_t));
+  *static_cast< double * >(mpValue) += RemoteSize;
+
+  return CCommunicate::ErrorCode::Success;
 }
 
 void CSizeOf::fromJSON(const json_t * json)

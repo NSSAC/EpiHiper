@@ -10,12 +10,10 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#include <iostream>
 #include "db/CConnection.h"
 
 #include "utilities/CSimConfig.h"
-
-// static
-CConnection * CConnection::pINSTANCE = NULL;
 
 // static
 void CConnection::init()
@@ -43,8 +41,10 @@ void CConnection::init()
     pINSTANCE = new CConnection(URI);
   }
 
-  catch (...)
-  {}
+  catch (const pqxx::pqxx_exception & e)
+  {
+    std::cerr << e.base().what() << std::endl;
+  }
 }
 
 // static

@@ -22,6 +22,7 @@
 #include "network/CNetwork.h"
 #include "network/CNode.h"
 #include "network/CEdge.h"
+#include "actions/CActionQueue.h"
 
 CNodeElementSelector::CNodeElementSelector()
   : CSetContent()
@@ -92,6 +93,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
   mValid = (json_is_string(pValue) && strcmp(json_string_value(pValue), "node") == 0);
   mPrerequisites.clear();
+  mPrerequisites.insert(&CActionQueue::getCurrentTick());
 
   if (!mValid) return;
 
@@ -401,7 +403,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
       json_t * pLeft = json_object_get(json, "left");
 
       // We do not have an operator, i.e., we have either all nodes or all nodes with a table.
-      pValue = json_object_get(json, "table");
+      pValue = json_object_get(pLeft, "table");
 
       if (json_is_string(pValue))
         {
@@ -416,7 +418,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
           return;
         }
 
-      pValue = json_object_get(json, "field");
+      pValue = json_object_get(pLeft, "field");
 
       if (json_is_string(pValue))
         {
@@ -433,7 +435,8 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
       mpObservable = CObservable::get(json_object_get(json, "right"));
 
-      if (mpObservable->isValid())
+      if (mpObservable != NULL &&
+          mpObservable->isValid())
         {
           mPrerequisites.insert(mpObservable);
           mValid = true;
@@ -474,6 +477,8 @@ void CNodeElementSelector::nodeAll()
       for (; pNode != pNodeEnd; ++pNode)
         mNodes.insert(pNode);
     }
+
+  mNodes.erase(NULL);
 }
 
 void CNodeElementSelector::nodePropertySelection()
@@ -486,6 +491,8 @@ void CNodeElementSelector::nodePropertySelection()
   for (; pNode != pNodeEnd; ++pNode)
     if (mpComparison(mNodeProperty.propertyOf(pNode), *mpValue))
       mNodes.insert(pNode);
+
+  mNodes.erase(NULL);
 }
 
 void CNodeElementSelector::nodePropertyWithin()
@@ -498,6 +505,8 @@ void CNodeElementSelector::nodePropertyWithin()
   for (; pNode != pNodeEnd; ++pNode)
     if (mpValueList->contains(mNodeProperty.propertyOf(pNode)))
       mNodes.insert(pNode);
+
+  mNodes.erase(NULL);
 }
 
 void CNodeElementSelector::nodeWithIncomingEdge()
@@ -514,6 +523,8 @@ void CNodeElementSelector::nodeWithIncomingEdge()
         pNode = (*it)->pTarget;
         mNodes.insert(pNode);
       }
+
+  mNodes.erase(NULL);
 }
 
 void CNodeElementSelector::nodeInDBTable()
@@ -530,6 +541,8 @@ void CNodeElementSelector::nodeInDBTable()
     {
       mNodes.insert(CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope));
     }
+
+  mNodes.erase(NULL);
 }
 
 void CNodeElementSelector::nodeWithDBFieldSelection()
@@ -549,6 +562,8 @@ void CNodeElementSelector::nodeWithDBFieldSelection()
     {
       mNodes.insert(CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope));
     }
+
+  mNodes.erase(NULL);
 }
 
 void CNodeElementSelector::nodeWithDBFieldWithin()
@@ -575,6 +590,8 @@ void CNodeElementSelector::nodeWithDBFieldWithin()
     {
       mNodes.insert(CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope));
     }
+
+  mNodes.erase(NULL);
 }
 
 void CNodeElementSelector::nodeWithDBFieldNotWithin()
@@ -601,4 +618,6 @@ void CNodeElementSelector::nodeWithDBFieldNotWithin()
     {
       mNodes.insert(CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope));
     }
+
+  mNodes.erase(NULL);
 }

@@ -10,3 +10,5 @@ sciduct/bin/EpiHiper
 sciduct/build/
 
 *.simg
+
+sciduct/data/
