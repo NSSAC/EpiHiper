@@ -17,7 +17,9 @@ From: centos:7.6.1810
     cache/l_mpi_2018.5.288.tgz /src
     cache/IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz /src
     cache/EpiHiper /epihiper/bin
+    cache/EpiHiperPartition /epihiper/bin
     bin/epiHiper.sh /epihiper/bin
+    bin/partition.sh /epihiper/bin
     bin/validateSchema.sh /epihiper/bin
     bin/validateRules.sh /epihiper/bin
     CentOS-Base.repo /etc/yum.repos.d
@@ -110,3 +112,8 @@ From: centos:7.6.1810
     echo Rank $PMI_RANK: Running EpiHiper Simulation
     echo Rank $PMI_RANK: Job ID: ${SLURM_JOB_ID:-222222}
     /epihiper/bin/epiHiper.sh $@
+
+%apprun partition
+    echo Partitioning Network
+    echo Job ID: ${SLURM_JOB_ID:-222222}
+    /epihiper/bin/partition.sh $@

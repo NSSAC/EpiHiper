@@ -247,6 +247,36 @@
         "output_schema": {},
         "output_files": {}
       }
+    },
+    {
+      "partition": {
+        "binds": [
+          "input",
+          "output",
+          "job"
+        ],
+        "input_schema": {},
+        "input_files": [
+          {
+            "name": "partition.json",
+            "required": true,
+            "types": [
+              "epihiperPartition",
+              "json"
+            ]
+          },
+          {
+            "name": "contactNetwork",
+            "required": true,
+            "types": [
+              "epihiperContactNetwork",
+              "json"
+            ]
+          }
+        ],
+        "output_schema": {},
+        "output_files": {}
+      }
     }
   ]
 }
