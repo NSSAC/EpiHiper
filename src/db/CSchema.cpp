@@ -61,23 +61,32 @@ void CSchema::fromJSON(const json_t * json)
     {
       for (size_t i = 0, imax = json_array_size(json); i < imax; ++i)
         {
-          CTable Table;
-          Table.fromJSON(json_array_get(json, i));
-          mValid &= Table.isValid();
-
-          mTables.insert(std::make_pair(Table.getId(), Table));
+          addTable(json_array_get(json, i));
         }
-
-      return;
     }
-
-  if (json_is_object(json))
+  else if (json_is_object(json))
     {
-      CTable Table;
-      Table.fromJSON(json);
-      mValid &= Table.isValid();
+      addTable(json);
+    }
+}
 
-      mTables.insert(std::make_pair(Table.getId(), Table));
+void CSchema::addTable(const json_t * json)
+{
+  CTable Table;
+  Table.fromJSON(json);
+  mValid &= Table.isValid();
+
+  if (Table.isValid())
+    {
+      CTable * pTable = &mTables.insert(std::make_pair(Table.getId(), Table)).first->second;
+
+      std::map< std::string, CField >::const_iterator it = pTable->getFields().begin();
+      std::map< std::string, CField >::const_iterator end = pTable->getFields().end();
+
+      for (; it != end; ++it)
+        {
+          mFieldToTable[it->first] = pTable->getId();
+        }
     }
 }
 
@@ -98,6 +107,18 @@ const CTable & CSchema::getTable(const std::string & table) const
   std::map< std::string, CTable >::const_iterator found = mTables.find(table);
 
   if (found != mTables.end())
+    return found->second;
+
+  return InvalidTable;
+}
+
+const std::string & CSchema::getTableForField(const std::string & field) const
+{
+  static std::string InvalidTable;
+
+  std::map< std::string, std::string >::const_iterator found = mFieldToTable.find(field);
+
+  if (found != mFieldToTable.end())
     return found->second;
 
   return InvalidTable;

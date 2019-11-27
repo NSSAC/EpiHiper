@@ -101,6 +101,12 @@ const bool & CTable::isValid() const
   return mValid;
 }
 
+const std::map< std::string, CField > & CTable::getFields() const
+{
+  return mFields;
+}
+
+
 const CField & CTable::getField(const std::string & field) const
 {
   static CField Invalid;

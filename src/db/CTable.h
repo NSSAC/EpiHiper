@@ -34,6 +34,8 @@ public:
 
   virtual ~CTable();
 
+  const std::map< std::string, CField > & getFields() const;
+
   const CField & getField(const std::string & field) const;
 
   void fromJSON(const json_t * json);

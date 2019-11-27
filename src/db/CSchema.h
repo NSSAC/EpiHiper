@@ -44,10 +44,15 @@ public:
 
   const CTable & getTable(const std::string & table) const;
 
+  const std::string & getTableForField(const std::string & field) const;
+
 private:
+  void addTable(const json_t * json);
+
   std::string mId;
   std::string mLabel;
   std::map< std::string, CTable > mTables;
+  std::map< std::string, std::string > mFieldToTable;
   bool mValid;
 };
 

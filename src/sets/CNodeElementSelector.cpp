@@ -302,19 +302,24 @@ void CNodeElementSelector::fromJSON(const json_t * json)
           mDBTable = json_string_value(pValue);
         }
 
+      pValue = json_object_get(json, "field");
+
+      if (json_is_string(pValue))
+        {
+          mDBField = json_string_value(pValue);
+
+          if (mDBTable.empty())
+            {
+              mDBTable = CSchema::INSTANCE.getTableForField(mDBField);
+            }
+        }
+
       const CTable & Table = CSchema::INSTANCE.getTable(mDBTable);
 
       if (!Table.isValid())
         {
           mValid = false;
           return;
-        }
-
-      pValue = json_object_get(json, "field");
-
-      if (json_is_string(pValue))
-        {
-          mDBField = json_string_value(pValue);
         }
 
       if (!Table.getField(mDBField).isValid())
@@ -410,19 +415,24 @@ void CNodeElementSelector::fromJSON(const json_t * json)
           mDBTable = json_string_value(pValue);
         }
 
+      pValue = json_object_get(pLeft, "field");
+
+      if (json_is_string(pValue))
+        {
+          mDBField = json_string_value(pValue);
+
+          if (mDBTable.empty())
+            {
+              mDBTable = CSchema::INSTANCE.getTableForField(mDBField);
+            }
+        }
+
       const CTable & Table = CSchema::INSTANCE.getTable(mDBTable);
 
       if (!Table.isValid())
         {
           mValid = false;
           return;
-        }
-
-      pValue = json_object_get(pLeft, "field");
-
-      if (json_is_string(pValue))
-        {
-          mDBField = json_string_value(pValue);
         }
 
       if (!Table.getField(mDBField).isValid())

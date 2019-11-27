@@ -83,6 +83,7 @@ void CDBFieldSelector::fromJSON(const json_t * json)
 
   if (!mValid) return;
 
+  // Tables are optional
   pValue = json_object_get(json, "table");
 
   if (json_is_string(pValue))
@@ -90,16 +91,17 @@ void CDBFieldSelector::fromJSON(const json_t * json)
       mTable = json_string_value(pValue);
       mValid &= CSchema::INSTANCE.getTable(mTable).isValid();
     }
-  else
-    {
-      mValid = false;
-    }
 
   pValue = json_object_get(json, "field");
 
   if (json_is_string(pValue))
     {
       mField = json_string_value(pValue);
+
+      if (mTable.empty())
+        {
+          mTable = CSchema::INSTANCE.getTableForField(mField);
+        }
 
       const CField & Field = CSchema::INSTANCE.getTable(mTable).getField(mField);
       mFieldType = Field.getType();
