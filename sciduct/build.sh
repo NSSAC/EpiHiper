@@ -47,7 +47,7 @@ cd cache
 
 cd ..
 
-sudo "${SINGULARITY}" build $IMAGE $DEF
+sudo "${SINGULARITY}" build $IMAGE $DEF | tee build.log
 
 [ -e cache ] && sudo chown -R $ID cache
 [ -e $IMAGE ] && sudo chown -R $ID $IMAGE

@@ -78,7 +78,7 @@ From: centos:7.6.1810
     # Install IntelOPA
     tar -xf IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz
     cd IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1
-    ./INSTALL --user-space -n --force
+    ./INSTALL --user-space -n
 
     cd /
     rm -rf /src
