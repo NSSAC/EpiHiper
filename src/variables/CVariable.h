@@ -19,7 +19,7 @@
 
 class CMetadata;
 
-class CVariable: public CValue, public CAnnotation, public CComputable
+class CVariable: public CValue, public CAnnotation
 {
 public:
   enum struct Type
@@ -40,7 +40,7 @@ public:
 
   virtual void fromJSON(const json_t * json);
 
-  virtual void compute();
+  virtual void process();
 
   void toBinary(std::ostream & os) const;
 
@@ -50,7 +50,7 @@ public:
 
   const bool & isValid() const;
 
-  void reset();
+  void reset(const bool & force = false);
 
   bool setValue(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
 

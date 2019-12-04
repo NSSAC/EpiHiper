@@ -196,7 +196,8 @@ const bool & COperationDefinition::isValid() const
 
 COperation * COperationDefinition::createOperation(CNode * pNode) const
 {
-  if (pNode != NULL)
+  if (pNode != NULL &&
+      mpNodeProperty != NULL)
     return mpNodeProperty->createOperation(pNode, mValue, mpOperator);
 
   return createOperation();
@@ -204,7 +205,8 @@ COperation * COperationDefinition::createOperation(CNode * pNode) const
 
 COperation * COperationDefinition::createOperation(CEdge * pEdge) const
 {
-  if (pEdge != NULL)
+  if (pEdge != NULL &&
+      mpEdgeProperty != NULL)
     return mpEdgeProperty->createOperation(pEdge, mValue, mpOperator);
 
   return createOperation();

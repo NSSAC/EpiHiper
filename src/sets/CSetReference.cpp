@@ -68,7 +68,7 @@ void CSetReference::fromJSON(const json_t * json)
       return;
     }
 
-  json_t * pIdRef =  json_object_get(json, "idRef");
+  json_t * pIdRef =  json_object_get(pSet, "idRef");
 
   if (!json_is_string(pIdRef))
     {
@@ -77,15 +77,16 @@ void CSetReference::fromJSON(const json_t * json)
     }
 
   mIdRef = json_string_value(pIdRef);
-  mpSet = &CSetList::INSTANCE[mIdRef];
+  mpSet = CSetList::INSTANCE[mIdRef];
 
-  if (!mpSet->isValid())
+  if (mpSet != NULL &&
+      mpSet->isValid())
     {
-      mpSet = NULL;
+      mPrerequisites.insert(mpSet);
     }
   else
     {
-      mPrerequisites.insert(mpSet);
+      mpSet = NULL;
     }
 
 }
@@ -97,13 +98,19 @@ void CSetReference::compute()
 
   if (mpSet == NULL)
     {
-      mpSet = &CSetList::INSTANCE[mIdRef];
-      mValid = mpSet->isValid();
+      mpSet = CSetList::INSTANCE[mIdRef];
 
-      if (!mValid) return;
-
-      mPrerequisites.insert(mpSet);
-      CDependencyGraph::buildGraph();
+      if (mpSet != NULL &&
+          mpSet->isValid())
+        {
+          mPrerequisites.insert(mpSet);
+          CDependencyGraph::buildGraph();
+        }
+      else
+        {
+          mValid = false;
+          return;
+        }
 
       // This might have been already computed but we are not certain and this is only
       // evaluated once.

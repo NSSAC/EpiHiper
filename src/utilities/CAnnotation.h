@@ -33,6 +33,8 @@ class CAnnotation
 
     virtual ~CAnnotation();
 
+    CAnnotation & operator =(const CAnnotation & rhs);
+
     virtual void fromJSON(const json_t * json);
 
     const std::string & getAnnId() const;

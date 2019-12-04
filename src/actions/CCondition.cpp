@@ -13,6 +13,7 @@
 #include <jansson.h>
 
 #include "actions/CCondition.h"
+#include "math/CSizeOf.h"
 #include "variables/CVariable.h"
 
 
@@ -150,13 +151,14 @@ bool CCondition::CComparison::isTrue() const
 {
   if (dynamic_cast< const CVariable * >(mpLeft))
     {
-      const_cast< CVariable * >(static_cast< const CVariable * >(mpLeft))->compute();
+      const_cast< CVariable * >(static_cast< const CVariable * >(mpLeft))->process();
     }
 
   if (dynamic_cast< const CVariable * >(mpRight))
     {
-      const_cast< CVariable * >(static_cast< const CVariable * >(mpRight))->compute();
+      const_cast< CVariable * >(static_cast< const CVariable * >(mpRight))->process();
     }
+
 
   return (*mpComparison)(*mpLeft, *mpRight);
 }

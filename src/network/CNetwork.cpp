@@ -393,7 +393,7 @@ void CNetwork::load()
 
   std::ostringstream File;
   File << mFile << "." << CCommunicate::MPIRank;
-  bool havePartition = CDirEntry::isFile(File.str());
+  bool havePartition = mLocalNodesSize == 0 && CDirEntry::isFile(File.str());
 
   std::ifstream is;
 

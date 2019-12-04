@@ -18,11 +18,10 @@
 
 #include "sets/CSet.h"
 
-class CSetList: protected std::vector< CSet >
+class CSetList: protected std::vector< CSet * >
 {
 public:
   static CSetList INSTANCE;
-  static CSet Invalid;
 
   CSetList();
 
@@ -36,9 +35,9 @@ public:
 
   void fromBinary(std::istream & is);
 
-  CSet & operator[](const size_t & id);
+  CSet * operator[](const size_t & id);
 
-  CSet & operator[](const std::string & id);
+  CSet * operator[](const std::string & id);
 
 private:
   std::map< std::string, size_t > mId2Index;

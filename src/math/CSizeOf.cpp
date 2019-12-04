@@ -24,7 +24,7 @@ std::vector< CSizeOf * > CSizeOf::GetInstances()
 }
 
 CSizeOf::CSizeOf()
-  : CValue((size_t) 0)
+  : CValue(0.0)
   , CComputable()
   , mpSetContent(NULL)
   , mIndex(std::numeric_limits< size_t >::max())
@@ -40,7 +40,7 @@ CSizeOf::CSizeOf(const CSizeOf & src)
 {}
 
 CSizeOf::CSizeOf(const json_t * json)
-  : CValue((size_t) 0)
+  : CValue(0.0)
   , CComputable()
   , mpSetContent(NULL)
   , mIndex(std::numeric_limits< size_t >::max())

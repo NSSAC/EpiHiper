@@ -25,7 +25,9 @@
 #include "utilities/CSimConfig.h"
 #include "utilities/CStatus.h"
 #include "actions/CActionQueue.h"
-#include "initialization/CInitialization.h"
+#include "intervention/CInitialization.h"
+#include "intervention/CIntervention.h"
+#include "variables/CVariableList.h"
 
 // Uncomment the following line if you want to attache a debugger
 // #define DEBUG_WAIT 1
@@ -108,6 +110,9 @@ int main(int argc, char *argv[]) {
     CModel::load(CSimConfig::getDiseaseModel());
     CSchema::load(CSimConfig::getPersonTraitDB());
     CInitialization::load(CSimConfig::getInitialization());
+    CIntervention::load(CSimConfig::getIntervention());
+    CCommunicate::allocateRMA();
+    CVariableList::INSTANCE.resetAll(true);
     CStatus::load("EpiHiper");
 
     CNetwork::INSTANCE->load();
@@ -124,6 +129,7 @@ int main(int argc, char *argv[]) {
 
   CModel::release();
   CInitialization::release();
+  CIntervention::release();
   CNetwork::release();
   CStatus::finalize("EpiHiper");
   CSimConfig::release();

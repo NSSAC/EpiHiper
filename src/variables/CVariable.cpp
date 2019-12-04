@@ -22,7 +22,6 @@
 CVariable::CVariable(const CVariable & src)
   : CValue(src)
   , CAnnotation(src)
-  , CComputable(src)
   , mId(src.mId)
   , mType(src.mType)
   , mInitialValue(src.mInitialValue)
@@ -35,7 +34,6 @@ CVariable::CVariable(const CVariable & src)
 CVariable::CVariable(const json_t * json)
   : CValue(std::numeric_limits< double >::quiet_NaN())
   , CAnnotation()
-  , CComputable()
   , mId()
   , mType()
   , mInitialValue(std::numeric_limits< double >::quiet_NaN())
@@ -45,6 +43,12 @@ CVariable::CVariable(const json_t * json)
   , mValid(true)
 {
   fromJSON(json);
+
+  if (mValid &&
+      mType == Type::global)
+    {
+      mIndex = CCommunicate::getRMAIndex();
+    }
 }
 
 // virtual
@@ -121,11 +125,6 @@ void CVariable::fromJSON(const json_t * json)
       mValid = false;
     }
 
-  if (mType == Type::global)
-    {
-      mIndex = CCommunicate::getRMAIndex();
-    }
-
   pValue = json_object_get(json, "reset");
 
   if (json_is_real(pValue))
@@ -141,7 +140,7 @@ void CVariable::fromJSON(const json_t * json)
 }
 
 // virtual
-void CVariable::compute()
+void CVariable::process()
 {
   if (mType == Type::global)
     {
@@ -169,10 +168,11 @@ const bool & CVariable::isValid() const
   return mValid;
 }
 
-void CVariable::reset()
+void CVariable::reset(const bool & force)
 {
-  if (mResetValue != 0 &&
-      CActionQueue::getCurrentTick() % mResetValue == 0)
+  if ((mResetValue != 0 &&
+       CActionQueue::getCurrentTick() % mResetValue == 0) ||
+      force)
     {
       *mpLocalValue = mInitialValue;
 

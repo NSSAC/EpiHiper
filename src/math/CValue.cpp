@@ -76,7 +76,20 @@ CValue::~CValue()
 
 void CValue::fromJSON(const json_t * json)
 {
-  json_t * pValue = json_object_get(json, "boolean");
+  if (json == NULL)
+    {
+      mValid = false;
+      return;
+    }
+
+  const json_t * pRoot = json_object_get(json, "value");
+
+  if (pRoot == NULL)
+    {
+      pRoot = json;
+    }
+
+  json_t * pValue = json_object_get(pRoot, "boolean");
 
   if (json_is_boolean(pValue))
     {
@@ -86,7 +99,7 @@ void CValue::fromJSON(const json_t * json)
       return;
     }
 
-  pValue = json_object_get(json, "number");
+  pValue = json_object_get(pRoot, "number");
 
   if (json_is_real(pValue))
     {
@@ -96,7 +109,7 @@ void CValue::fromJSON(const json_t * json)
       return;
     }
 
-  pValue = json_object_get(json, "healthState");
+  pValue = json_object_get(pRoot, "healthState");
 
   if (json_is_string(pValue))
     {
@@ -106,7 +119,7 @@ void CValue::fromJSON(const json_t * json)
       return;
     }
 
-  pValue = json_object_get(json, "trait");
+  pValue = json_object_get(pRoot, "trait");
   const CTrait * pTrait = NULL;
 
   if (json_is_string(pValue))
@@ -123,12 +136,12 @@ void CValue::fromJSON(const json_t * json)
       return;
     }
 
-  pValue = json_object_get(json, "feature");
+  pValue = json_object_get(pRoot, "feature");
   const CFeature * pFeature = NULL;
 
   if (json_is_string(pValue))
     {
-      pFeature = &pTrait->operator [](json_string_value(pValue));
+      pFeature = pTrait->operator [](json_string_value(pValue));
     }
 
   if (pFeature == NULL)
@@ -137,12 +150,12 @@ void CValue::fromJSON(const json_t * json)
       return;
     }
 
-  pValue = json_object_get(json, "enum");
+  pValue = json_object_get(pRoot, "enum");
   const CEnum * pEnum = NULL;
 
   if (json_is_string(pValue))
     {
-      pEnum = &pFeature->operator [](json_string_value(pValue));
+      pEnum = pFeature->operator [](json_string_value(pValue));
     }
 
   if (pEnum == NULL)

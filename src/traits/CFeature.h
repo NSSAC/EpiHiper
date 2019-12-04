@@ -59,10 +59,10 @@ public:
 
   const CTraitData::base & getMask() const;
 
-  const CEnum & operator[](const size_t & index) const;
-  const CEnum & operator[](const std::string & ) const;
+  const CEnum * operator[](const size_t & index) const;
+  const CEnum * operator[](const std::string & ) const;
 
-  const CEnum & getDefault() const;
+  const CEnum * getDefault() const;
 
 private:
   void updateEnumMap();

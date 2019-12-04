@@ -133,7 +133,6 @@ void CSampling::fromJSON(const json_t *json)
       ]
     },
    */
-  // TODO CRITICAL Implement me!
 
   mValid = true;
 
@@ -265,7 +264,7 @@ int CSampling::broadcastCount()
   CCommunicate::ClassMemberReceive< CSampling > Receive(this, &CSampling::receiveCount);
   CCommunicate::central(0, mpCommunicateBuffer, sizeof(size_t), CCommunicate::MPIProcesses * sizeof(size_t), &Receive);
 
-  mLocalLimit = (*mpCommunicateBuffer * CCommunicate::MPIRank);
+  mLocalLimit = *(mpCommunicateBuffer + CCommunicate::MPIRank);
 
   return (int) CCommunicate::ErrorCode::Success;
 }
@@ -284,6 +283,9 @@ CCommunicate::ErrorCode CSampling::receiveCount(std::istream & is, int sender)
 
         // We now determine the numbers for all process
         double Requested = 0.0;
+        double Available = mCount;
+        double Allowed = 0.0;
+
         size_t * pRemote = mpCommunicateBuffer;
         size_t * pRemoteEnd = mpCommunicateBuffer + CCommunicate::MPIProcesses;
 
@@ -291,8 +293,6 @@ CCommunicate::ErrorCode CSampling::receiveCount(std::istream & is, int sender)
           {
             Requested += *pRemote;
           }
-
-        double Available = mCount;
 
         if (mType == Type::relativeGroup)
           {
@@ -305,8 +305,9 @@ CCommunicate::ErrorCode CSampling::receiveCount(std::istream & is, int sender)
             for (pRemote = mpCommunicateBuffer; pRemote != pRemoteEnd; ++pRemote)
               if (Available > 0.5)
                 {
-                  *pRemote = std::round(((double) *pRemote) * Available / Requested);
+                  Allowed = std::round(((double) *pRemote) * Available / Requested);
                   Requested -= *pRemote;
+                  *pRemote = Allowed;
                   Available -= *pRemote;
 
                   if (Available < -0.5)

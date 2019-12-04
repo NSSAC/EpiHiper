@@ -147,33 +147,29 @@ const CTraitData::base & CFeature::getMask() const
   return mMask;
 }
 
-const CEnum & CFeature::operator[](const size_t & index) const
+const CEnum * CFeature::operator[](const size_t & index) const
 {
-  static CEnum Missing;
-
   if (index < mEnums.size())
     {
-      return mEnums[index];
+      return & mEnums[index];
     }
 
-  return Missing;
+  return NULL;
 }
 
-const CEnum & CFeature::operator[](const std::string & id) const
+const CEnum * CFeature::operator[](const std::string & id) const
 {
-  static CEnum Missing;
-
   std::map< std::string, CEnum * >::const_iterator found = mEnumMap.find(id);
 
   if (found != mEnumMap.end())
     {
-      return *found->second;
+      return found->second;
     }
 
-  return Missing;
+  return NULL;
 }
 
-const CEnum & CFeature::getDefault() const
+const CEnum * CFeature::getDefault() const
 {
   return operator[](mDefaultId);
 }

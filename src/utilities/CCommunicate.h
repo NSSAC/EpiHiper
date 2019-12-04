@@ -186,10 +186,11 @@ public:
   CCommunicate() = delete;
   virtual ~CCommunicate();
 
+  static MPI_Win MPIWin;
+
   private:
   static int ReceiveSize;
   static char * ReceiveBuffer;
-  static MPI_Win MPIWin;
   static size_t MPIWinSize;
   static double *RMABuffer;
   static size_t RMAIndex;

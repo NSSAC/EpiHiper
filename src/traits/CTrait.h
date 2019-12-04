@@ -58,6 +58,8 @@ public:
 	 */
 	virtual ~CTrait();
 
+	CTrait & operator=(const CTrait & rhs);
+
 	void fromJSON(const json_t * json);
 
 	const std::string & getId() const;
@@ -66,9 +68,9 @@ public:
 
 	size_t size() const;
 
-  const CFeature & operator[](const size_t & index) const;
+  const CFeature * operator[](const size_t & index) const;
 
-  const CFeature & operator[](const std::string & id) const;
+  const CFeature * operator[](const std::string & id) const;
 
 	CTraitData::base getDefault() const;
 
@@ -77,6 +79,8 @@ public:
   std::string toString(CTraitData::base & data) const;
 
 private:
+  void updateFeatureMap();
+
 	std::string mId;
 	size_t mBytes;
 	std::vector< CFeature > mFeatures;

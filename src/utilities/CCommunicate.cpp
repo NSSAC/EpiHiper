@@ -223,10 +223,10 @@ int CCommunicate::central(int centerRank,
     }
   else
     {
-      send(buffer, countToCenter, MPI_CHAR, MPIRank, centerRank);
+      send(buffer, countToCenter, MPI_CHAR, centerRank, centerRank);
       broadcast(ReceiveBuffer, countFromCenter, MPI_CHAR, centerRank);
 
-      CStreamBuffer Buffer(ReceiveBuffer, countToCenter);
+      CStreamBuffer Buffer(ReceiveBuffer, countFromCenter);
       std::istream is(&Buffer);
 
       Result = (*pReceive)(is, centerRank);
@@ -243,7 +243,10 @@ int CCommunicate::allocateRMA()
   if (MPIWinSize > 0)
     {
       RMABuffer = new double[MPIWinSize];
-      return MPI_Win_create(&RMABuffer, MPIWinSize, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &MPIWin);
+      int result = MPI_Win_create(RMABuffer, MPIWinSize, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &MPIWin);
+      MPI_Win_fence(0, MPIWin);
+
+      return result;
     }
 
   return (int) ErrorCode::Success;
@@ -257,8 +260,10 @@ double CCommunicate::getRMA(const int & index)
 
   double Value;
 
+  MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, MPIWin);
   MPI_Get(&Value, 1, MPI_DOUBLE, 0, (int) index, 1, MPI_DOUBLE, MPIWin);
-  MPI_Win_flush_local(0, MPIWin);
+  MPI_Win_flush(0, MPIWin);
+  MPI_Win_unlock(0, MPIWin);
 
   return Value;
 }

@@ -92,7 +92,6 @@ void CSet::fromJSON(const json_t * json)
 
   if (json_is_string(pValue))
     {
-      std::string(json_string_value(pValue));
       mType = std::string(json_string_value(pValue)) == "global" ? Type::global : Type::local;
     }
   else

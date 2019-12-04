@@ -135,6 +135,19 @@ bool CQuery::in(const std::string & table,
                    const CValueList & constraints,
                    const bool & in)
 {
+  // We need to handle the case where the constraints are empty.
+  if (constraints.size() == 0)
+    {
+      if (in)
+        {
+          return true;
+        }
+      else
+        {
+          return all(table, resultField, result, local);
+        }
+    }
+
   init();
   pqxx::read_transaction * pWork = CConnection::work();
 
@@ -155,7 +168,8 @@ bool CQuery::in(const std::string & table,
   if (constraints.size() > 0 && constraints.getType() != ConstraintField.getType()) return false;
 
   std::ostringstream Query;
-  Query << "SELECT DISTINCT " << resultField << " FROM " << table << " WHERE " << constraintField << (!in) ? " NOT  IN (" : " IN (";
+
+  Query << "SELECT DISTINCT " << resultField << " FROM " << table << " WHERE " << constraintField << ((!in) ? " NOT  IN (" : " IN (");
 
   bool FirstTime = true;
   CFieldValueList::const_iterator it = constraints.begin();
@@ -188,12 +202,12 @@ bool CQuery::in(const std::string & table,
       }
     }
 
+  Query << ");";
+
   if (local)
     {
       Query << " AND " << LocalConstraint;
     }
-
-  Query << ");";
 
   try
   {

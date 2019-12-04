@@ -10,8 +10,8 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#ifndef SRC_INITIALIZATION_CINITIALIZATION_H_
-#define SRC_INITIALIZATION_CINITIALIZATION_H_
+#ifndef SRC_INTERVENTION_CINITIALIZATION_H_
+#define SRC_INTERVENTION_CINITIALIZATION_H_
 
 #include <vector>
 
@@ -24,7 +24,7 @@ struct json_t;
 class CInitialization : public CAnnotation
 {
 public:
-  static std::vector< CInitialization > INSTANCES;
+  static std::vector< CInitialization  * > INSTANCES;
 
   static void load(const std::string & file);
 
@@ -49,7 +49,9 @@ public:
 private:
   CSetContent * mpTarget;
   CActionEnsemble mActionEnsemble;
+
+protected:
   bool mValid;
 };
 
-#endif /* SRC_INITIALIZATION_CINITIALIZATION_H_ */
+#endif /* SRC_INTERVENTION_CINITIALIZATION_H_ */

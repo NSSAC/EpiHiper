@@ -87,15 +87,15 @@ public:
    * Construct a update sequence for the given context. Please note the calculated objects
    * must be calculated based on the same changed values and context.
    * @param CComputable::Sequence & updateSequence
-   * @param const CComputable::Set & changedComputables
-   * @param const CComputable::Set & requestedComputables
-   * @param const CComputable::Set & calculatedComputables (default: none)
+   * @param const CComputableSet & changedComputables
+   * @param const CComputableSet & requestedComputables
+   * @param const CComputableSet & calculatedComputables (default: none)
    * @return bool success
    */
   bool getUpdateSequence(CComputable::Sequence & updateSequence,
-                         const CComputable::Set & changedComputables,
-                         const CComputable::Set & requestedComputables,
-                         const CComputable::Set & calculatedComputables = CComputable::Set()) const;
+                         const CComputableSet & changedComputables,
+                         const CComputableSet & requestedComputables,
+                         const CComputableSet & calculatedComputables = CComputableSet()) const;
 
   /**
    * Check whether the given object depends on the changed object in given context
@@ -109,11 +109,11 @@ public:
   /**
    * Check whether the given object depends on any of the changed objects in given context
    * @param const CComputable * pComputable
-   * @param const CComputable::Set & changedComputables
+   * @param const CComputableSet & changedComputables
    * @return bool dependsOn
    */
   bool dependsOn(const CComputable * pComputable,
-                 const CComputable::Set & changedComputables) const;
+                 const CComputableSet & changedComputables) const;
 
   /**
    * Check whether the given object depends on the changed object in given context
@@ -125,29 +125,29 @@ public:
 
   /**
    * Append all objects which directly depend on the given changed objects
-   * @param const CComputable::Set & changedComputables
-   * @param CComputable::Set & dependentComputables
+   * @param const CComputableSet & changedComputables
+   * @param CComputableSet & dependentComputables
    * @return bool objectsAppendee
    */
-  bool appendDirectDependents(const CComputable::Set & changedComputables,
-                              CComputable::Set & dependentComputables) const;
+  bool appendDirectDependents(const CComputableSet & changedComputables,
+                              CComputableSet & dependentComputables) const;
 
   /**
    * Append all objects which depend on the given changed objects
-   * @param const CComputable::Set & changedComputables
-   * @param CComputable::Set & dependentComputables
+   * @param const CComputableSet & changedComputables
+   * @param CComputableSet & dependentComputables
    * @return bool objectsAppendee
    */
-  bool appendAllDependents(const CComputable::Set & changedComputables,
-                           CComputable::Set & dependentComputables,
-                           const CComputable::Set & ignoredComputables = CComputable::Set()) const;
+  bool appendAllDependents(const CComputableSet & changedComputables,
+                           CComputableSet & dependentComputables,
+                           const CComputableSet & ignoredComputables = CComputableSet()) const;
 
   void exportDOTFormat(std::ostream & os, const std::string & name) const;
 
 private:
   static CDependencyGraph INSTANCE;
   static CComputable::Sequence UPDATE_SEQUENCE;
-  static CComputable::Set REQUESTED;
+  static CComputableSet REQUESTED;
 
 
   std::string getDOTNodeId(const CComputable * pComputable) const;

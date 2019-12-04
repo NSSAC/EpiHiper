@@ -16,29 +16,37 @@
 #include "sets/CSetList.h"
 
 CSetList::CSetList()
-  : std::vector< CSet >()
+  : std::vector< CSet * >()
   , mId2Index()
   , mValid(true)
 {}
 
 CSetList::CSetList(const CSetList & src)
-  : std::vector< CSet >(src)
+  : std::vector< CSet * >(src)
   , mId2Index()
   , mValid(src.mValid)
 
 {
-  std::vector< CSet >::iterator it = begin();
-  std::vector< CSet >::iterator itEnd = end();
+  std::vector< CSet * >::iterator it = begin();
+  std::vector< CSet * >::iterator itEnd = end();
 
   for (size_t i = 0; it != itEnd; ++it, i++)
     {
-      mId2Index[it->getId()] = i;
+      mId2Index[(*it)->getId()] = i;
     }
 }
 
 // virtual
 CSetList::~CSetList()
-{}
+{
+  std::vector< CSet * >::const_iterator it = begin();
+  std::vector< CSet * >::const_iterator itEnd = end();
+
+  for (; it != itEnd; ++it)
+    {
+      delete *it;
+    }
+}
 
 void CSetList::fromJSON(const json_t * json)
 {
@@ -48,10 +56,18 @@ void CSetList::fromJSON(const json_t * json)
 
   for (size_t i = 0, imax = json_array_size(json); i < imax; ++i)
     {
-      CSet Set(json_array_get(json, i));
-      mValid &= Set.isValid();
-      mId2Index[Set.getId()] = size();
-      push_back(Set);
+      CSet * pSet = new CSet(json_array_get(json, i));
+
+      if (pSet->isValid())
+        {
+          mId2Index[pSet->getId()] = size();
+          push_back(pSet);
+        }
+      else
+        {
+          mValid = false;
+          delete pSet;
+        }
 
     }
 }
@@ -62,12 +78,12 @@ void CSetList::toBinary(std::ostream & os) const
 
   os.write(reinterpret_cast<const char *>(&Size), sizeof(size_t));
 
-  std::vector< CSet >::const_iterator it = begin();
-  std::vector< CSet >::const_iterator itEnd = end();
+  std::vector< CSet * >::const_iterator it = begin();
+  std::vector< CSet * >::const_iterator itEnd = end();
 
   for (; it != itEnd; ++it)
     {
-      // it->toBinary(os);
+      // (*it)->toBinary(os);
     }
 }
 
@@ -81,29 +97,29 @@ void CSetList::fromBinary(std::istream & is)
 
   if (!mValid) return;
 
-  std::vector< CSet >::iterator it = begin();
-  std::vector< CSet >::iterator itEnd = end();
+  std::vector< CSet * >::iterator it = begin();
+  std::vector< CSet * >::iterator itEnd = end();
 
   for (; it != itEnd; ++it)
     {
-      // it->fromBinary(is);
+      // (*it)->fromBinary(is);
     }
 }
 
-CSet & CSetList::operator[](const size_t & index)
+CSet * CSetList::operator[](const size_t & index)
 {
   if (index < size())
-    return std::vector< CSet >::operator[](index);
+    return std::vector< CSet * >::operator[](index);
 
-  return Invalid;
+  return NULL;
 }
 
-CSet & CSetList::operator[](const std::string & id)
+CSet * CSetList::operator[](const std::string & id)
 {
   std::map< std::string, size_t >::iterator found = mId2Index.find(id);
 
   if (found != mId2Index.end())
     return operator[](found->second);
 
-  return Invalid;
+  return NULL;
 }

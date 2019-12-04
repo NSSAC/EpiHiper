@@ -10,13 +10,16 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#include "intervention/CInitialization.h"
 #include "actions/CActionDefinition.h"
 #include "actions/CActionQueue.h"
 #include "actions/Changes.h"
 #include "db/CConnection.h"
 #include "db/CSchema.h"
 #include "diseaseModel/CModel.h"
-#include "initialization/CInitialization.h"
+#include "intervention/CInitialization.h"
+#include "intervention/CIntervention.h"
+#include "intervention/CTrigger.h"
 #include "math/CComputable.h"
 #include "math/CDependencyGraph.h"
 #include "math/CObservable.h"
@@ -59,22 +62,31 @@ CSchema CSchema::INSTANCE;
 CModel * CModel::INSTANCE(NULL);
 
 // static
-std::vector< CInitialization > CInitialization::INSTANCES;
+std::vector< CInitialization * > CInitialization::INSTANCES;
 
 // static
-CComputable::Set CComputable::COMPUTABLES;
+std::map< std::string, CIntervention * > CIntervention::INSTANCES;
+
+// static
+std::vector< CTrigger * > CTrigger::INSTANCES;
+
+// static
+bool * CTrigger::pGlobalTriggered(NULL);
+
+// static
+CComputableSet CComputable::Instances;
 
 // static
 CDependencyGraph CDependencyGraph::INSTANCE;
 
 // static
-CComputable::Set CDependencyGraph::REQUESTED;
+CComputableSet CDependencyGraph::REQUESTED;
 
 // static
 CComputable::Sequence CDependencyGraph::UPDATE_SEQUENCE;
 
 // static
-std::set< CObservable > CObservable::Observables;
+CObservable::ObservableMap CObservable::Observables;
 
 // static
 std::vector< CSizeOf * > CSizeOf::INSTANCES;
@@ -93,9 +105,6 @@ CNetwork * CNetwork::INSTANCE(NULL);
 
 // static
 CSetList CSetList::INSTANCE;
-
-// static
-CSet CSetList::Invalid(NULL);
 
 // static
 std::map< std::string, CTrait > CTrait::INSTANCES;
@@ -165,5 +174,3 @@ json_t * CStatus::pProgress(NULL);
 
 // static
 CVariableList CVariableList::INSTANCE;
-
-

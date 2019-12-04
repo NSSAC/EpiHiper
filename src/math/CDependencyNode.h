@@ -86,38 +86,38 @@ public:
 
   /**
    * Update the state of all dependents (and dependents thereof) to changed,
-   * @param const CComputable::Set & changedComputables
+   * @param const CComputableSet & changedComputables
    * @param bool ignoreCircularDependecies
    * @return bool success
    */
-  bool updateDependentState(const CComputable::Set & changedComputables,
+  bool updateDependentState(const CComputableSet & changedComputables,
                             bool ignoreCircularDependecies);
 
   /**
    * Update the state of all prerequisites (and prerequisites thereof) to requested.
-   * @param const CComputable::Set & changedComputables
+   * @param const CComputableSet & changedComputables
    * @param bool ignoreCircularDependecies
    * @return bool success
    */
-  bool updatePrerequisiteState(const CComputable::Set & changedComputables,
+  bool updatePrerequisiteState(const CComputableSet & changedComputables,
                                bool ignoreCircularDependecies);
 
   /**
    * Update the state of all prerequisites (and prerequisites thereof) to calculate.
-   * @param const CComputable::Set & changedComputables
+   * @param const CComputableSet & changedComputables
    * @param bool ignoreCircularDependecies
    * @return bool success
    */
-  bool updateCalculatedState(const CComputable::Set & changedComputables,
+  bool updateCalculatedState(const CComputableSet & changedComputables,
                              bool ignoreCircularDependecies);
 
   /**
    * Update the state of all dependents (and dependents thereof) to changed,
-   * @param const CComputable::Set & changedComputables
+   * @param const CComputableSet & changedComputables
    * @param bool ignoreCircularDependecies
    * @return bool success
    */
-  bool updateIgnoredState(const CComputable::Set & changedComputables,
+  bool updateIgnoredState(const CComputableSet & changedComputables,
                           bool ignoreCircularDependecies);
 
   /**

@@ -20,7 +20,9 @@
 
 #include "actions/CActionQueue.h"
 #include "diseaseModel/CModel.h"
-#include "initialization/CInitialization.h"
+#include "intervention/CInitialization.h"
+#include "intervention/CIntervention.h"
+#include "intervention/CTrigger.h"
 #include "math/CDependencyGraph.h"
 #include "network/CEdge.h"
 #include "network/CNetwork.h"
@@ -29,6 +31,7 @@
 #include "utilities/CRandom.h"
 #include "utilities/CSimConfig.h"
 #include "utilities/CStatus.h"
+#include "variables/CVariableList.h"
 
 // initialize according to config
 Simulation::Simulation(int seed, std::string dbconn) {
@@ -159,15 +162,6 @@ Simulation::execute(Action action) {
 
 void Simulation::run()
 {
-  /**
-   * We just randomly pick nodes to be infective
-   */
-  CNode * pNodes = CNetwork::INSTANCE->beginNode();
-  int NumberOfNodes = CNetwork::INSTANCE->endNode() - pNodes;
-  CRandom::uniform_int uniform(0, NumberOfNodes - 1);
-
-  const CTransmission & Symptomatic = *CModel::getTransmissions().begin();
-
   CActionQueue::setCurrentTick(startTick - 1);
   Changes::setCurrentTick(startTick - 1);
   Changes::initDefaultOutput();
@@ -177,34 +171,34 @@ void Simulation::run()
   CDependencyGraph::applyUpdateSequence();
 
   CInitialization::processAll();
-  size_t perNode = std::round(100.0/CCommunicate::MPIProcesses);
-
-  for (size_t i = 0; i < perNode; ++i)
-    {
-      CNode * pNode = pNodes + uniform(CRandom::G);
-
-      bool sussess = pNode->set(&Symptomatic, NULL, CMetadata());
-    }
-
   CActionQueue::processCurrentActions();
+  CActionQueue::incrementTick();
+  Changes::incrementTick();
+
   Changes::writeDefaultOutput();
   CModel::updateGlobalStateCounts();
   CModel::writeGlobalStateCounts();
   CNetwork::INSTANCE->broadcastChanges();
-  CActionQueue::incrementTick();
-  Changes::incrementTick();
+
   CStatus::update("EpiHiper", "running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
 
-  for (int tick = startTick; tick < endTick; ++tick)
+  while (CActionQueue::getCurrentTick() < endTick)
     {
+      CVariableList::INSTANCE.resetAll();
+      CDependencyGraph::applyUpdateSequence();
       CModel::processTransmissions();
+      CTrigger::processAll();
+      CIntervention::processAll();
       CActionQueue::processCurrentActions();
+
+      CActionQueue::incrementTick();
+      Changes::incrementTick();
+
       Changes::writeDefaultOutput();
       CModel::updateGlobalStateCounts();
       CModel::writeGlobalStateCounts();
       CNetwork::INSTANCE->broadcastChanges();
-      CActionQueue::incrementTick();
-      Changes::incrementTick();
+
       CStatus::update("EpiHiper", "running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
     }
 }

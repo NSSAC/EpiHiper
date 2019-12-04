@@ -30,6 +30,18 @@ CAnnotation::CAnnotation(const CAnnotation & src)
 CAnnotation::~CAnnotation()
 {}
 
+CAnnotation & CAnnotation::operator =(const CAnnotation & rhs)
+{
+  if (this != &rhs)
+    {
+      mAnnId = rhs.mAnnId;
+      mAnnLabel = rhs.mAnnLabel;
+      mAnnDescription = rhs.mAnnDescription;
+    }
+
+  return *this;
+}
+
 void CAnnotation::fromJSON(const json_t * json)
 {
   /*

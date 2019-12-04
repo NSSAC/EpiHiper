@@ -12,24 +12,29 @@
 
 #include "math/CComputable.h"
 
+// static
+size_t CComputable::UniqueId(0);
+
 CComputable::CComputable()
-  : mPrerequisites()
+  : mComputableId(UniqueId++)
+  , mPrerequisites()
 {
-  COMPUTABLES.insert(this);
+  Instances.insert(this);
 }
 
 CComputable::CComputable(const CComputable & src)
-  : mPrerequisites(src.mPrerequisites)
+  : mComputableId(UniqueId++)
+  , mPrerequisites(src.mPrerequisites)
 {
-  COMPUTABLES.insert(this);
+  Instances.insert(this);
 }
 
 CComputable::~CComputable()
 {
-  COMPUTABLES.erase(this);
+  Instances.erase(this);
 }
 
-const CComputable::Set & CComputable::getPrerequisites() const
+const CComputableSet & CComputable::getPrerequisites() const
 {
   return mPrerequisites;
 }

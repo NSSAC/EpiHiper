@@ -93,7 +93,7 @@ std::vector< CDependencyNode * > & CDependencyNode::getDependents()
   return mDependents;
 }
 
-bool CDependencyNode::updateDependentState(const CComputable::Set & changedComputables,
+bool CDependencyNode::updateDependentState(const CComputableSet & changedComputables,
     bool ignoreCircularDependecies)
 {
   bool success = true;
@@ -132,7 +132,7 @@ bool CDependencyNode::updateDependentState(const CComputable::Set & changedCompu
   return success;
 }
 
-bool CDependencyNode::updatePrerequisiteState(const CComputable::Set & changedComputables,
+bool CDependencyNode::updatePrerequisiteState(const CComputableSet & changedComputables,
     bool ignoreCircularDependecies)
 {
   bool success = true;
@@ -172,7 +172,7 @@ bool CDependencyNode::updatePrerequisiteState(const CComputable::Set & changedCo
   return success;
 }
 
-bool CDependencyNode::updateCalculatedState(const CComputable::Set & changedComputables,
+bool CDependencyNode::updateCalculatedState(const CComputableSet & changedComputables,
     bool ignoreCircularDependecies)
 {
   bool success = true;
@@ -211,7 +211,7 @@ bool CDependencyNode::updateCalculatedState(const CComputable::Set & changedComp
   return success;
 }
 
-bool CDependencyNode::updateIgnoredState(const CComputable::Set & changedComputables,
+bool CDependencyNode::updateIgnoredState(const CComputableSet & changedComputables,
     bool ignoreCircularDependecies)
 {
   bool success = true;

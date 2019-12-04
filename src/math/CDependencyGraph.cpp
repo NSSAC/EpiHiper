@@ -24,21 +24,21 @@ void CDependencyGraph::buildGraph()
 {
   INSTANCE.clear();
 
-  CComputable::Set Changed;
+  CComputableSet Changed;
   Changed.insert(&CActionQueue::getCurrentTick());
 
-  CComputable::Set Requested;
-  CComputable::Set::const_iterator it = CComputable::COMPUTABLES.begin();
-  CComputable::Set::const_iterator end = CComputable::COMPUTABLES.end();
+  CComputableSet Requested;
+  CComputableSet::const_iterator it = CComputable::Instances.begin();
+  CComputableSet::const_iterator end = CComputable::Instances.end();
 
   for (; it != end; ++it)
     {
-      INSTANCE.addComputable(*it);
+      INSTANCE.addComputable(it->second);
 
-      if ((*it)->getPrerequisites().empty())
-        Changed.insert(*it);
+      if (it->second->getPrerequisites().empty())
+        Changed.insert(it->second);
       else
-        Requested.insert(*it);
+        Requested.insert(it->second);
     }
 
   INSTANCE.getUpdateSequence(UPDATE_SEQUENCE, Changed, Requested);
@@ -116,17 +116,17 @@ CDependencyGraph::iterator CDependencyGraph::addComputable(const CComputable * p
     {
       found = mComputables2Nodes.insert(std::make_pair(pComputable, new CDependencyNode(pComputable))).first;
 
-      const CComputable::Set & Prerequisites = pComputable->getPrerequisites();
-      CComputable::Set::const_iterator it = Prerequisites.begin();
-      CComputable::Set::const_iterator end = Prerequisites.end();
+      const CComputableSet & Prerequisites = pComputable->getPrerequisites();
+      CComputableSet::const_iterator it = Prerequisites.begin();
+      CComputableSet::const_iterator end = Prerequisites.end();
 
       for (; it != end; ++it)
         {
-          iterator foundPrerequisite = mComputables2Nodes.find(*it);
+          iterator foundPrerequisite = mComputables2Nodes.find(it->second);
 
           if (foundPrerequisite == mComputables2Nodes.end())
             {
-              foundPrerequisite = addComputable(*it);
+              foundPrerequisite = addComputable(it->second);
             }
 
           foundPrerequisite->second->addDependent(found->second);
@@ -183,9 +183,9 @@ void CDependencyGraph::removePrerequisite(const CComputable * pComputable, const
 }
 
 bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
-    const CComputable::Set & changedComputables,
-    const CComputable::Set & requestedComputables,
-    const CComputable::Set & calculatedComputables) const
+    const CComputableSet & changedComputables,
+    const CComputableSet & requestedComputables,
+    const CComputableSet & calculatedComputables) const
 {
   bool success = true;
 
@@ -198,8 +198,8 @@ bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
   std::cout << "Changed:" << std::endl;
 #endif // DEBUG_OUTPUT
 
-  CComputable::Set::const_iterator it = changedComputables.begin();
-  CComputable::Set::const_iterator end = changedComputables.end();
+  CComputableSet::const_iterator it = changedComputables.begin();
+  CComputableSet::const_iterator end = changedComputables.end();
 
   // Mark all nodes which are changed or need to be calculated
   for (; it != end && success; ++it)
@@ -207,18 +207,18 @@ bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
       // Issue 1170: We need to add elements of the stoichiometry, reduced stoichiometry,
       // and link matrices, i.e., we have data objects which may change
 #ifdef DEBUG_OUTPUT
-      if ((*it)->getDataComputable() != *it)
+      if (it->second->getDataComputable() != it->second)
         {
-          std::cout << *static_cast< const CMathComputable * >(*it) << std::endl;
+          std::cout << *static_cast< const CMathComputable * >(it->second) << std::endl;
         }
       else
         {
-          std::cout << *static_cast< const CDataComputable * >(*it) << std::endl;
+          std::cout << *static_cast< const CDataComputable * >(it->second) << std::endl;
         }
 
 #endif // DEBUG_OUTPUT
 
-      found = mComputables2Nodes.find(*it);
+      found = mComputables2Nodes.find(it->second);
 
       if (found != notFound)
         {
@@ -243,19 +243,19 @@ bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
 
       // Issue 1170: We need to add elements of the stoichiometry, reduced stoichiometry,
       // and link matrices, i.e., we have data objects which may change
-      if ((*it)->getDataComputable() != *it)
+      if (it->second->getDataComputable() != it->second)
         {
-          std::cout << *static_cast< const CMathComputable * >(*it) << std::endl;
+          std::cout << *static_cast< const CMathComputable * >(it->second) << std::endl;
         }
       else
         {
-          std::cout << *static_cast< const CDataComputable * >(*it) << std::endl;
+          std::cout << *static_cast< const CDataComputable * >(it->second) << std::endl;
         }
 
-      std::cout << *static_cast< const CMathComputable * >(*it) << std::endl;
+      std::cout << *static_cast< const CMathComputable * >(it->second) << std::endl;
 #endif // DEBUG_OUTPUT
 
-      found = mComputables2Nodes.find(*it);
+      found = mComputables2Nodes.find(it->second);
 
       if (found != notFound)
         {
@@ -275,20 +275,20 @@ bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
   for (; it != end && success; ++it)
     {
 #ifdef DEBUG_OUTPUT
-      std::cout << *it << std::endl;
+      std::cout << it->second << std::endl;
 #endif // DEBUG_OUTPUT
 
-      if (*it == NULL)
+      if (it->second == NULL)
         {
           success = false; // we should not have NULL elements here
           break;
         }
 
 #ifdef DEBUG_OUTPUT
-      std::cout << *static_cast< const CMathComputable * >(*it) << std::endl;
+      std::cout << *static_cast< const CMathComputable * >(it->second) << std::endl;
 #endif // DEBUG_OUTPUT
 
-      found = mComputables2Nodes.find(*it);
+      found = mComputables2Nodes.find(it->second);
 
       if (found != notFound)
         {
@@ -312,7 +312,7 @@ bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
 
   for (; it != end; ++it)
     {
-      found = mComputables2Nodes.find(*it);
+      found = mComputables2Nodes.find(it->second);
 
       if (found != notFound)
         {
@@ -371,14 +371,14 @@ bool CDependencyGraph::dependsOn(const CComputable * pComputable,
                                      const CComputable * pChangedComputable) const
 {
   CComputable::Sequence UpdateSequence;
-  CComputable::Set ChangedComputables;
+  CComputableSet ChangedComputables;
 
   if (pChangedComputable != NULL)
     {
       ChangedComputables.insert(pChangedComputable);
     }
 
-  CComputable::Set RequestedComputables;
+  CComputableSet RequestedComputables;
 
   if (pComputable != NULL)
     {
@@ -391,10 +391,10 @@ bool CDependencyGraph::dependsOn(const CComputable * pComputable,
 }
 
 bool CDependencyGraph::dependsOn(const CComputable * pComputable,
-                                     const CComputable::Set & changedComputables) const
+                                     const CComputableSet & changedComputables) const
 {
   CComputable::Sequence UpdateSequence;
-  CComputable::Set RequestedComputables;
+  CComputableSet RequestedComputables;
 
   if (pComputable != NULL)
     {
@@ -410,14 +410,14 @@ bool CDependencyGraph::hasCircularDependencies(const CComputable * pComputable,
     const CComputable * pChangedComputable) const
 {
   CComputable::Sequence UpdateSequence;
-  CComputable::Set ChangedComputables;
+  CComputableSet ChangedComputables;
 
   if (pChangedComputable != NULL)
     {
       ChangedComputables.insert(pChangedComputable);
     }
 
-  CComputable::Set RequestedComputables;
+  CComputableSet RequestedComputables;
 
   if (pComputable != NULL)
     {
@@ -429,18 +429,18 @@ bool CDependencyGraph::hasCircularDependencies(const CComputable * pComputable,
   return hasCircularDependencies;
 }
 
-bool CDependencyGraph::appendDirectDependents(const CComputable::Set & changedComputables,
-    CComputable::Set & dependentComputables) const
+bool CDependencyGraph::appendDirectDependents(const CComputableSet & changedComputables,
+    CComputableSet & dependentComputables) const
 {
   dependentComputables.erase(NULL);
   size_t Size = dependentComputables.size();
 
-  CComputable::Set::const_iterator it = changedComputables.begin();
-  CComputable::Set::const_iterator end = changedComputables.end();
+  CComputableSet::const_iterator it = changedComputables.begin();
+  CComputableSet::const_iterator end = changedComputables.end();
 
   for (; it != end; ++it)
     {
-      NodeMap::const_iterator found = mComputables2Nodes.find(*it);
+      NodeMap::const_iterator found = mComputables2Nodes.find(it->second);
 
       if (found != mComputables2Nodes.end())
         {
@@ -459,9 +459,9 @@ bool CDependencyGraph::appendDirectDependents(const CComputable::Set & changedCo
   return dependentComputables.size() > Size;
 }
 
-bool CDependencyGraph::appendAllDependents(const CComputable::Set & changedComputables,
-    CComputable::Set & dependentComputables,
-    const CComputable::Set & ignoredComputables) const
+bool CDependencyGraph::appendAllDependents(const CComputableSet & changedComputables,
+    CComputableSet & dependentComputables,
+    const CComputableSet & ignoredComputables) const
 {
   bool success = true;
 
@@ -473,8 +473,8 @@ bool CDependencyGraph::appendAllDependents(const CComputable::Set & changedCompu
 
   std::vector<CComputable*> UpdateSequence;
 
-  CComputable::Set::const_iterator it = changedComputables.begin();
-  CComputable::Set::const_iterator end = changedComputables.end();
+  CComputableSet::const_iterator it = changedComputables.begin();
+  CComputableSet::const_iterator end = changedComputables.end();
 
 #ifdef DEBUG_OUTPUT
   std::cout << "Changed:" << std::endl;
@@ -486,18 +486,18 @@ bool CDependencyGraph::appendAllDependents(const CComputable::Set & changedCompu
       // Issue 1170: We need to add elements of the stoichiometry, reduced stoichiometry,
       // and link matrices, i.e., we have data objects which may change
 #ifdef DEBUG_OUTPUT
-      if ((*it)->getDataComputable() != *it)
+      if (it->second->getDataComputable() != it->second)
         {
-          std::cout << *static_cast< const CMathComputable * >(*it) << std::endl;
+          std::cout << *static_cast< const CMathComputable * >(it->second) << std::endl;
         }
       else
         {
-          std::cout << *static_cast< const CDataComputable * >(*it) << std::endl;
+          std::cout << *static_cast< const CDataComputable * >(it->second) << std::endl;
         }
 
 #endif // DEBUG_OUTPUT
 
-      found = mComputables2Nodes.find(*it);
+      found = mComputables2Nodes.find(it->second);
 
       if (found != notFound)
         {
@@ -520,18 +520,18 @@ bool CDependencyGraph::appendAllDependents(const CComputable::Set & changedCompu
 
       // Issue 1170: We need to add elements of the stoichiometry, reduced stoichiometry,
       // and link matrices, i.e., we have data objects which may change
-      if ((*it)->getDataComputable() != *it)
+      if (it->second->getDataComputable() != it->second)
         {
-          std::cout << *static_cast< const CMathComputable * >(*it) << std::endl;
+          std::cout << *static_cast< const CMathComputable * >(it->second) << std::endl;
         }
       else
         {
-          std::cout << *static_cast< const CDataComputable * >(*it) << std::endl;
+          std::cout << *static_cast< const CDataComputable * >(it->second) << std::endl;
         }
 
 #endif // DEBUG_OUTPUT
 
-      found = mComputables2Nodes.find(*it);
+      found = mComputables2Nodes.find(it->second);
 
       if (found != notFound)
         {

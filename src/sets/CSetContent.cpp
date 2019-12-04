@@ -80,7 +80,7 @@ CSetContent * CSetContent::create(const json_t * json)
 
   pContentType = json_object_get(json, "set");
 
-  if (json_is_string(pContentType))
+  if (json_is_object(pContentType))
     {
       return new CSetReference(json);
     }
@@ -200,7 +200,7 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
 
   CRandom::uniform_real Percent(0.0, 1.0);
 
-  // Sampling is ony supported if we have either only nodes or only edges;
+  // Sampling is only supported if we have either only nodes or only edges;
   if (size() == mNodes.size())
     {
       double Requested = max;
@@ -209,9 +209,9 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
       std::set< CNode * >::const_iterator it = mNodes.begin();
       std::set< CNode * >::const_iterator end = mNodes.end();
 
-      for (; it != end && Requested > 0.5; ++it)
+      for (; it != end; ++it)
         {
-          if (Available >= Requested ||
+          if (Available <= Requested ||
               (Requested > 0.5 &&
                   Percent(CRandom::G) < Requested / Available))
             {
@@ -232,9 +232,9 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
       std::set< CEdge * >::const_iterator it = mEdges.begin();
       std::set< CEdge * >::const_iterator end = mEdges.end();
 
-      for (; it != end && Requested > 0.5; ++it)
+      for (; it != end; ++it)
         {
-          if (Available >= Requested ||
+          if (Available <= Requested ||
               (Requested > 0.5 &&
                   Percent(CRandom::G) < Requested / Available))
             {

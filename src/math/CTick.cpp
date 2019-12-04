@@ -49,3 +49,10 @@ CTick & CTick::operator++()
   return *this;
 }
 
+CTick & CTick::operator = (const int & value)
+{
+  mValue = value;
+
+  return *this;
+}
+

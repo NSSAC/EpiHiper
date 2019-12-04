@@ -13,7 +13,9 @@
 #ifndef SRC_MATH_COBSERVABLE_H_
 #define SRC_MATH_COBSERVABLE_H_
 
-#include <set>
+#include <map>
+#include <utility>
+
 #include "math/CComputable.h"
 #include "math/CValue.h"
 
@@ -43,7 +45,8 @@ public:
   bool operator < (const CObservable & rhs) const;
 
 private:
-  static std::set< CObservable > Observables;
+  typedef std::map< std::pair< size_t, ObservableType>, CObservable * > ObservableMap;
+  static ObservableMap Observables;
 
   CObservable(const ObservableType & observableType, const size_t & id);
 

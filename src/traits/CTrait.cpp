@@ -74,6 +74,18 @@ void CTrait::load(const std::string & jsonFile)
   return;
 }
 
+void CTrait::updateFeatureMap()
+{
+  mFeatureMap.clear();
+
+  std::vector< CFeature >::iterator it = mFeatures.begin();
+  std::vector< CFeature >::iterator end = mFeatures.end();
+
+  for (; it != end; ++it)
+    mFeatureMap[it->getId()] = &*it;
+}
+
+
 CTrait::CTrait()
   : CAnnotation()
   , mId()
@@ -93,11 +105,24 @@ CTrait::CTrait(const CTrait & src)
   , mFeatureMap()
   , mValid(src.mValid)
 {
-  std::vector< CFeature >::iterator it = mFeatures.begin();
-  std::vector< CFeature >::iterator end = mFeatures.end();
+  updateFeatureMap();
+}
 
-  for (; it != end; ++it)
-    mFeatureMap[it->getId()] = &*it;
+CTrait & CTrait::operator=(const CTrait & rhs)
+{
+  if (this != &rhs)
+    {
+      CAnnotation::operator =(rhs);
+
+      mId = rhs.mId;
+      mBytes = rhs.mBytes;
+      mFeatures = rhs.mFeatures;
+      mValid = rhs.mValid;
+
+      updateFeatureMap();
+    }
+
+  return *this;
 }
 
 void CTrait::fromJSON(const json_t * json)
@@ -128,8 +153,6 @@ void CTrait::fromJSON(const json_t * json)
       if (Feature.isValid())
         {
           mFeatures.push_back(Feature);
-          mFeatureMap[Feature.getId()] = &*mFeatures.rbegin();
-
           size_t required = Feature.bitsRequired();
           Required.push_back(required);
           bits += required;
@@ -141,6 +164,8 @@ void CTrait::fromJSON(const json_t * json)
     }
 
   CAnnotation::fromJSON(json);
+
+  updateFeatureMap();
 
   mBytes = ceil(std::max(bits/8.0, 4.0));
 
@@ -174,30 +199,26 @@ size_t CTrait::size() const
   return mBytes;
 }
 
-const CFeature & CTrait::operator[](const size_t & index) const
+const CFeature * CTrait::operator[](const size_t & index) const
 {
-  static CFeature Missing;
-
   if (index < mFeatures.size())
     {
-      return mFeatures[index];
+      return & mFeatures[index];
     }
 
-  return Missing;
+  return NULL;
 }
 
-const CFeature & CTrait::operator[](const std::string & id) const
+const CFeature * CTrait::operator[](const std::string & id) const
 {
-  static CFeature Missing;
-
   std::map< std::string, CFeature * >::const_iterator found = mFeatureMap.find(id);
 
   if (found != mFeatureMap.end())
     {
-      return *found->second;
+      return found->second;
     }
 
-  return Missing;
+  return NULL;
 }
 
 CTraitData::base CTrait::getDefault() const
@@ -208,9 +229,10 @@ CTraitData::base CTrait::getDefault() const
   std::vector< CFeature >::const_iterator end = mFeatures.end();
 
   for (; it != end; ++it)
-    {
-      Default |= it->getDefault().getMask();
-    }
+    if (it->getDefault() != NULL)
+      {
+        Default |= it->getDefault()->getMask();
+      }
 
   return Default;
 }
@@ -227,12 +249,13 @@ bool CTrait::fromString(const std::string & str, CTraitData::base & data) const
 
   while (1 < sscanf(ptr, "%zu:%zu%n", &FeatureIndex, &EnumIndex, &Read))
     {
-      const CFeature & F = operator[](FeatureIndex - 1);
-      const CEnum & E = F[EnumIndex - 1];
+      const CFeature * pF = operator[](FeatureIndex - 1);
+      const CEnum * pE = (pF != NULL) ? pF->operator[](EnumIndex - 1) : NULL;
 
-      if (E.isValid())
+      if (pE != NULL &&
+          pE->isValid())
         {
-          CTraitData::setValue(data, CTraitData::value(F.getMask(), E.getMask()));
+          CTraitData::setValue(data, CTraitData::value(pF->getMask(), pE->getMask()));
           FeaturesFound.insert(FeatureIndex);
         }
       else

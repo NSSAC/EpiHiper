@@ -31,6 +31,8 @@ public:
 
   CTick & operator++();
 
+  CTick & operator = (const int & value);
+
 private:
   int mValue;
 };

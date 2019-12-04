@@ -13,16 +13,19 @@
 #ifndef SRC_MATH_CCOMPUTABLE_H_
 #define SRC_MATH_CCOMPUTABLE_H_
 
-#include <set>
+#include <map>
 #include <vector>
+
+#include "math/CComputableSet.h"
 
 class CComputable
 {
+  friend class CComputableSet;
+
 public:
-  typedef std::set< const CComputable * > Set;
   typedef std::vector< CComputable * > Sequence;
 
-  static Set COMPUTABLES;
+  static CComputableSet Instances;
 
   CComputable();
 
@@ -30,12 +33,17 @@ public:
 
   virtual ~CComputable();
 
-  const Set & getPrerequisites() const;
+  const CComputableSet & getPrerequisites() const;
 
   virtual void compute() = 0;
 
+private:
+  static size_t UniqueId;
+
+  size_t mComputableId;
+
 protected:
-  Set mPrerequisites;
+  CComputableSet mPrerequisites;
 };
 
 #endif /* SRC_MATH_CCOMPUTABLE_H_ */

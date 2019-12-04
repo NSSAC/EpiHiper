@@ -19,7 +19,7 @@
 
 #include <jansson.h>
 
-#include "initialization/CInitialization.h"
+#include "intervention/CInitialization.h"
 
 #include "utilities/CSimConfig.h"
 #include "sets/CSetList.h"
@@ -58,11 +58,15 @@ void CInitialization::load(const std::string & file)
 
   for (size_t i = 0, imax = json_array_size(pArray); i < imax; ++i)
     {
-      CInitialization Initialization(json_array_get(pArray, i));
+      CInitialization *pInitialization = new CInitialization(json_array_get(pArray, i));
 
-      if (Initialization.isValid())
+      if (pInitialization->isValid())
         {
-          INSTANCES.push_back(Initialization);
+          INSTANCES.push_back(pInitialization);
+        }
+      else
+        {
+          delete pInitialization;
         }
     }
 
@@ -72,18 +76,26 @@ void CInitialization::load(const std::string & file)
 // static
 void CInitialization::release()
 {
+  std::vector< CInitialization * >::iterator it = INSTANCES.begin();
+  std::vector< CInitialization * >::iterator end = INSTANCES.end();
+
+  for (; it != end; ++it)
+    {
+      delete *it;
+    }
+
   INSTANCES.clear();
 }
 
 // static
 void CInitialization::processAll()
 {
-  std::vector< CInitialization >::iterator it = INSTANCES.begin();
-  std::vector< CInitialization >::iterator end = INSTANCES.end();
+  std::vector< CInitialization * >::iterator it = INSTANCES.begin();
+  std::vector< CInitialization * >::iterator end = INSTANCES.end();
 
   for (; it != end; ++it)
     {
-      it->process();
+      (*it)->process();
     }
 }
 

@@ -89,7 +89,6 @@ public:
 
   class CBooleanOperation : public CBoolean
   {
-    // TODO CRITICAL Implement me!
   private:
     bool _and() const;
     bool _or() const;

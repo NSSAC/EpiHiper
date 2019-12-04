@@ -45,7 +45,9 @@ CConditionDefinition::ValueInstance::ValueInstance(const CConditionDefinition::V
   , pVariable(src.pVariable)
   , pSizeOf(src.pSizeOf)
   , valid(src.valid)
-{}
+{
+  ++(*pCounter);
+}
 
 CConditionDefinition::ValueInstance::~ValueInstance()
 {
@@ -81,6 +83,7 @@ void CConditionDefinition::ValueInstance::fromJSON(const json_t * json)
     }
 
   delete pValue;
+  pValue = NULL;
 
   pValueList = new CValueList(json);
 
@@ -91,10 +94,12 @@ void CConditionDefinition::ValueInstance::fromJSON(const json_t * json)
     }
 
   delete pValueList;
+  pValueList = NULL;
 
   pObservable = CObservable::get(json);
 
-  if (pObservable->isValid())
+  if (pObservable != NULL &&
+      pObservable->isValid())
     {
       type = ValueType::Observable;
       return;
@@ -111,6 +116,7 @@ void CConditionDefinition::ValueInstance::fromJSON(const json_t * json)
     }
 
   delete pNodeProperty;
+  pNodeProperty = NULL;
 
   pEdgeProperty = new CEdgeProperty(json);
 
@@ -121,6 +127,7 @@ void CConditionDefinition::ValueInstance::fromJSON(const json_t * json)
     }
 
   delete pEdgeProperty;
+  pEdgeProperty = NULL;
 
   pVariable = & CVariableList::INSTANCE[json];
 
@@ -140,6 +147,7 @@ void CConditionDefinition::ValueInstance::fromJSON(const json_t * json)
       return;
     }
 
+  delete pSizeOf;
   pSizeOf = NULL;
 
   valid = false;
@@ -620,23 +628,6 @@ CCondition CConditionDefinition::createCondition(const CNode * pNode) const
       break;
   }
 
-  {
-  CValueInterface * pLeft = mLeft.value(pNode);
-
-  if (mComparison != ComparisonType::Within &&
-      mComparison != ComparisonType::NotWithin)
-    {
-      CValueInterface * pRight = mRight.value(pNode);
-
-      if (pLeft != NULL && pRight != NULL)
-        return CCondition::CComparison(mComparison, pLeft, pRight);
-    }
-  else if (mRight.pValueList != NULL &&
-            pLeft != NULL)
-    {
-      return CCondition::CContainedIn(mComparison, pLeft, *mRight.pValueList);
-    }
-  }
   return CCondition::CBooleanValue(true);
 }
 

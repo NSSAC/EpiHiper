@@ -50,7 +50,7 @@ public:
 
   CVariable & operator[](const json_t * json);
 
-
+  void resetAll(const bool & force = false);
 
 private:
   std::map< std::string, size_t > mId2Index;
