@@ -13,6 +13,8 @@ git submodule update --init dependencies/
 __Rivanna__: The code is already deployed on rivanna in: `/project/biocomplexity/nssac/EpiHiper/git/EpiHiper-code`. For the following instructions we use that as the location of the git repository.
 
 Create a build directory of you choice.
+
+__Build using Open MPI 3.14__
 ```
 mkdir build
 cd build
@@ -20,6 +22,18 @@ module purge
 module load gcc/7.1.0 openmpi/3.1.4 cmake/3.12.3 
 export CC=gcc
 export CXX=g++
+cmake /project/biocomplexity/nssac/EpiHiper/git/EpiHiper-code
+make
+```
+
+__Build using Intel MPI 18.0__
+```
+mkdir build
+cd build
+module purge
+module load intel/18.0 intelmpi/18.0 cmake/3.12.3 
+export CC=icc
+export CXX=icc
 cmake /project/biocomplexity/nssac/EpiHiper/git/EpiHiper-code
 make
 ```
