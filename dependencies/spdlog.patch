@@ -1,0 +1,16 @@
+diff --git a/include/spdlog/fmt/bundled/core.h b/include/spdlog/fmt/bundled/core.h
+index bcce2f5..b4a994d 100644
+--- a/include/spdlog/fmt/bundled/core.h
++++ b/include/spdlog/fmt/bundled/core.h
+@@ -119,8 +119,9 @@
+ #endif
+ 
+ #ifndef FMT_DEPRECATED
+-#  if (FMT_HAS_CPP_ATTRIBUTE(deprecated) && __cplusplus >= 201402L) || \
+-      FMT_MSC_VER >= 1900
++#  if (defined(__INTEL_COMPILER))
++#    define FMT_DEPRECATED /* deprecated */
++#  elif (FMT_HAS_CPP_ATTRIBUTE(deprecated) && __cplusplus >= 201402L) || FMT_MSC_VER >= 1900
+ #    define FMT_DEPRECATED [[deprecated]]
+ #  else
+ #    if defined(__GNUC__) || defined(__clang__)

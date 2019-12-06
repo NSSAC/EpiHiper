@@ -45,8 +45,9 @@ ExternalProject_Add(libpqxx
 ExternalProject_Add(spdlog
   PREFIX            ${CMAKE_BINARY_DIR}/dependencies
   SOURCE_DIR        ${CMAKE_CURRENT_SOURCE_DIR}/spdlog
-  
-  CONFIGURE_COMMAND  cmake 
+
+  PATCH_COMMAND     git checkout -- . && git apply ${CMAKE_CURRENT_SOURCE_DIR}/spdlog.patch
+  CONFIGURE_COMMAND cmake
   	-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR} 
   	-DSPDLOG_BUILD_TESTS=OFF
   	-DSPDLOG_BUILD_EXAMPLE=OFF
