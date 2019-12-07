@@ -45,25 +45,32 @@ void CField::fromJSON(const json_t * json)
   mValid = !mId.empty();
   mLabel = mId;
 
-  pValue = json_object_get(json, "type");
-
-  if (json_is_string(pValue))
+  if (mId == "pid")
     {
-      if (strcmp(json_string_value(pValue), "string") == 0)
+      mType = CValue::Type::id;
+    }
+  else
+    {
+      pValue = json_object_get(json, "type");
+
+      if (json_is_string(pValue))
         {
-          mType = CValue::Type::string;
-        }
-      else if (strcmp(json_string_value(pValue), "number") == 0)
-        {
-          mType = CValue::Type::number;
-        }
-      else if (strcmp(json_string_value(pValue), "integer") == 0)
-        {
-          mType = CValue::Type::id;
-        }
-      else
-        {
-          mValid = false;
+          if (strcmp(json_string_value(pValue), "string") == 0)
+            {
+              mType = CValue::Type::string;
+            }
+          else if (strcmp(json_string_value(pValue), "number") == 0)
+            {
+              mType = CValue::Type::number;
+            }
+          else if (strcmp(json_string_value(pValue), "integer") == 0)
+            {
+              mType = CValue::Type::id;
+            }
+          else
+            {
+              mValid = false;
+            }
         }
     }
 }

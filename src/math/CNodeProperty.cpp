@@ -176,7 +176,7 @@ COperation * CNodeProperty::setInfectivityFactor(CNode * pNode, const CValueInte
 
 COperation * CNodeProperty::setHealthState(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator)
 {
-  return new COperationInstance< CNode, size_t >(pNode, value.toId(), pOperator, &CNode::setHealthState);
+  return new COperationInstance< CNode, size_t >(pNode, value.toId(), pOperator, &CNode::setHealthState, CMetadata("StateChange", true));
 }
 
 COperation * CNodeProperty::setNodeTrait(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator)

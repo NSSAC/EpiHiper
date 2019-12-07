@@ -28,7 +28,6 @@ public:
 
 #include <vector>
 
-#include "utilities/CMetadata.h"
 #include "actions/CCondition.h"
 #include "actions/COperation.h"
 
@@ -37,8 +36,7 @@ class CAction
 public:
   CAction() = delete;
   CAction(const double & priority,
-         const CCondition & condition,
-         const CMetadata & metadata = CMetadata());
+         const CCondition & condition);
   CAction(const CAction & src);
   virtual ~CAction();
 
@@ -46,8 +44,6 @@ public:
   const CCondition & getCondition() const;
   const std::vector< COperation * > & getOperations() const;
   void addOperation(COperation * pOperation);
-  // void addOperation(const COperation & operation);
-  const CMetadata & getMetadata() const;
 
   void toBinary(std::ostream & os) const;
   bool fromBinary(std::istream & is);
@@ -56,7 +52,6 @@ private:
   double mPriority;
   CCondition mCondition;
   std::vector< COperation * > mOperations;
-  CMetadata mMetadata;
 };
 
 #endif /* SRC_ACTIONS_CACTION_H_ */

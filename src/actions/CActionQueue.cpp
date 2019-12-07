@@ -55,7 +55,7 @@ bool CActionQueue::processCurrentActions()
 
             for (; itOperation != endOperation; ++itOperation)
               {
-                success &= (*itOperation)->execute(it->getMetadata());
+                success &= (*itOperation)->execute();
               }
           }
 

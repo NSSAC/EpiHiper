@@ -175,7 +175,7 @@ CSimConfig::CSimConfig(const std::string& configFile)
   else
     mStatus = "sciduct.status.json";
 
-  mStatus = CDirEntry::resolve(mStatus, DefaultDir);
+  mStatus = CDirEntry::resolve(mStatus, mRunParameters, DefaultDir);
 
   if (!CDirEntry::exist(CDirEntry::dirName(mStatus)))
     CDirEntry::createDir(CDirEntry::dirName(mStatus));

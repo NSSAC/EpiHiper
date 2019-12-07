@@ -215,7 +215,7 @@ void CActionDefinition::process(const CEdge * pEdge) const
       return;
     }
 
-  CAction Action(mPriority, mCondition.createCondition(pEdge), CMetadata());
+  CAction Action(mPriority, mCondition.createCondition(pEdge));
 
   // Loop through the operation definitions
   std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
@@ -238,7 +238,7 @@ void CActionDefinition::process(const CNode * pNode) const
       return;
     }
 
-  CAction Action(mPriority, mCondition.createCondition(pNode), CMetadata());
+  CAction Action(mPriority, mCondition.createCondition(pNode));
 
   // Loop through the operation definitions
   std::vector< COperationDefinition >::const_iterator it = mOperations.begin();

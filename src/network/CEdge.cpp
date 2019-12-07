@@ -63,6 +63,9 @@ CEdge::~CEdge()
 
 void CEdge::toBinary(std::ostream & os) const
 {
+  os.write(reinterpret_cast<const char *>(&targetId), 56);
+
+  /*
   os.write(reinterpret_cast<const char *>(&targetId), sizeof(size_t));
   os.write(reinterpret_cast<const char *>(&targetActivity), sizeof(CTraitData::base));
   os.write(reinterpret_cast<const char *>(&sourceId), sizeof(size_t));
@@ -71,10 +74,13 @@ void CEdge::toBinary(std::ostream & os) const
   os.write(reinterpret_cast<const char *>(&edgeTrait), sizeof(CTraitData::base));
   os.write(reinterpret_cast<const char *>(&active), sizeof(char));
   os.write(reinterpret_cast<const char *>(&weight), sizeof(double));
+  */
 }
 
 void CEdge::fromBinary(std::istream & is)
 {
+  is.read(reinterpret_cast<char *>(&targetId), 56);
+  /*
   is.read(reinterpret_cast<char *>(&targetId), sizeof(size_t));
   is.read(reinterpret_cast<char *>(&targetActivity), sizeof(CTraitData::base));
   is.read(reinterpret_cast<char *>(&sourceId), sizeof(size_t));
@@ -83,6 +89,7 @@ void CEdge::fromBinary(std::istream & is)
   is.read(reinterpret_cast<char *>(&edgeTrait), sizeof(CTraitData::base));
   is.read(reinterpret_cast<char *>(&active), sizeof(char));
   is.read(reinterpret_cast<char *>(&weight), sizeof(double));
+  */
 }
 
 bool CEdge::setTargetActivity(CTraitData::value value, CValueInterface::pOperator pOperator, const CMetadata & metadata)

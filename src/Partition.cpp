@@ -168,7 +168,7 @@ bool loadJson(const std::string & file)
   else
     Status = "sciduct.status.json";
 
-  Status = CDirEntry::resolve(Status, DefaultDir);
+  Status = CDirEntry::resolve(Status, file, DefaultDir);
 
   if (!CDirEntry::exist(CDirEntry::dirName(Status)))
     CDirEntry::createDir(CDirEntry::dirName(Status));

@@ -20,19 +20,16 @@
 #include "actions/CAction.h"
 
 CAction::CAction(const double & priority,
-               const CCondition & condition,
-               const CMetadata & metadata)
+               const CCondition & condition)
   : mPriority(priority)
   , mCondition(condition)
   , mOperations()
-  , mMetadata(metadata)
 {}
 
 CAction::CAction(const CAction & src)
   : mPriority(src.mPriority)
   , mCondition(src.mCondition)
   , mOperations(src.mOperations.size())
-  , mMetadata(src.mMetadata)
 {
   std::vector< COperation * >::const_iterator itSrc = src.mOperations.begin();
   std::vector< COperation * >::iterator it = mOperations.begin();
@@ -74,11 +71,6 @@ void CAction::addOperation(COperation * pOperation)
 {
   if (pOperation != NULL)
     mOperations.push_back(pOperation);
-}
-
-const CMetadata & CAction::getMetadata() const
-{
-  return mMetadata;
 }
 
 void CAction::toBinary(std::ostream & os) const

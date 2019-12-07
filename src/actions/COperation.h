@@ -14,9 +14,8 @@
 #define SRC_ACTIONS_COPERATION_H_
 
 #include "actions/Changes.h"
+#include "utilities/CMetadata.h"
 #include "math/CValueInterface.h"
-
-class CMetadata;
 
 struct json_t;
 
@@ -25,7 +24,7 @@ class COperation
 public:
   virtual ~COperation() {};
 
-  virtual bool execute(const CMetadata & metadata) const = 0;
+  virtual bool execute() const = 0;
   virtual COperation * copy() const = 0;
 
   void toBinary(std::ostream & os) const;
@@ -39,6 +38,7 @@ private:
   Value mValue;
   CValueInterface::pOperator mpOperator;
   bool(Target::*mMethod)(Value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+  CMetadata mMetadata;
 
 public:
   COperationInstance() = delete;
@@ -46,11 +46,13 @@ public:
   COperationInstance(Target *pTarget,
                     Value value,
                     CValueInterface::pOperator pOperator,
-                    bool(Target::*method)(Value, CValueInterface::pOperator, const CMetadata &))
+                    bool(Target::*method)(Value, CValueInterface::pOperator, const CMetadata &),
+                    const CMetadata & metadata = CMetadata())
     : mpTarget(pTarget)
     , mValue(value)
     , mpOperator(pOperator)
     , mMethod(method)
+    , mMetadata()
   {}
 
   COperationInstance(const COperationInstance & src)
@@ -58,17 +60,18 @@ public:
     , mValue(src.mValue)
     , mpOperator(src.mpOperator)
     , mMethod(src.mMethod)
+    , mMetadata(src.mMetadata)
   {}
 
   virtual ~COperationInstance() {};
 
-  virtual bool execute(const CMetadata & metadata) const
+  virtual bool execute() const
   {
-    bool changed = (mpTarget->*mMethod)(mValue, mpOperator, metadata);
+    bool changed = (mpTarget->*mMethod)(mValue, mpOperator, mMetadata);
 
     if (changed)
       {
-        Changes::record(mpTarget, metadata);
+        Changes::record(mpTarget, mMetadata);
       }
 
     return changed;
