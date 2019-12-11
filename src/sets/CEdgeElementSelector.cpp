@@ -53,12 +53,8 @@ CEdgeElementSelector::CEdgeElementSelector(const json_t * json)
 
 CEdgeElementSelector::~CEdgeElementSelector()
 {
-  if (mpValue != NULL)
-    delete mpValue;
-
-  if (mpValueList != NULL)
-    delete mpValueList;
-
+  if (mpValue != NULL) delete mpValue;
+  if (mpValueList != NULL) delete mpValueList;
   CSetContent::destroy(mpSelector);
 }
 
@@ -71,11 +67,14 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
 
   if (!mValid) return;
 
+  mPrerequisites.insert(&CActionQueue::getCurrentTick());
+
   pValue = json_object_get(json, "operator");
 
   if (!json_is_string(pValue))
     {
       // We need to return all edges
+      mStatic = true;
       return;
     }
 
@@ -111,7 +110,6 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
       mValid &= mLeft.isValid();
       mpValue = new CValue(json_object_get(json, "right"));
       mValid &= (mpValue != NULL && mpValue->isValid());
-      mPrerequisites.insert(&CActionQueue::getCurrentTick());
 
       return;
     }
@@ -123,7 +121,6 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
       mValid &= mLeft.isValid();
       mpValueList = new CValueList(json_object_get(json, "right"));
       mValid &= (mpValueList != NULL && mpValueList->isValid());
-      mPrerequisites.insert(&CActionQueue::getCurrentTick());
 
       return;
     }
@@ -140,10 +137,22 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
   if (mpGetNode != NULL)
     {
       mpSelector = CSetContent::create(json_object_get(json, "selector"));
-      mValid &= (mpSelector != NULL && mpSelector->isValid());
 
-      if (mValid)
-        mPrerequisites.insert(mpSelector);
+      if (mpSelector != NULL && mpSelector->isValid())
+        {
+          mPrerequisites.insert(mpSelector);
+          mStatic = mpSelector->isStatic();
+        }
+      else
+        {
+          mValid = false;
+
+          if (mpSelector != NULL)
+            {
+              delete mpSelector;
+              mpSelector = NULL;
+            }
+        }
 
       return;
     }
@@ -153,7 +162,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
 }
 
 // virtual
-void CEdgeElementSelector::compute()
+void CEdgeElementSelector::computeProtected()
 {
   // We need to loop through all edges and select the ones fitting the specification
   std::set< CEdge * > & Edges = getEdges();

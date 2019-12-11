@@ -104,8 +104,22 @@ void CSet::fromJSON(const json_t * json)
   if (json_is_object(pValue))
     {
       mpSetContent = CSetContent::create(pValue);
-      mPrerequisites.insert(mpSetContent);
-      mValid &= (mpSetContent != NULL && mpSetContent->isValid());
+
+      if (mpSetContent != NULL && mpSetContent->isValid())
+        {
+          mPrerequisites.insert(mpSetContent);
+          mStatic = mpSetContent->isStatic();
+        }
+      else
+        {
+          mValid = false;
+
+          if (mpSetContent != NULL)
+            {
+              delete mpSetContent;
+              mpSetContent = NULL;
+            }
+        }
     }
   else
     {
@@ -116,7 +130,7 @@ void CSet::fromJSON(const json_t * json)
 }
 
 // virtual
-void CSet::compute()
+void CSet::computeProtected()
 {}
 
 // virtual

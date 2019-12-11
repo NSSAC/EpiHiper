@@ -34,7 +34,7 @@ CTick::~CTick()
 {}
 
 // virtual
-void CTick::compute()
+void CTick::computeProtected()
 {}
 
 CTick::operator int() const

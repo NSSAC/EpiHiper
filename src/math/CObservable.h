@@ -40,7 +40,7 @@ public:
 
   virtual ~CObservable();
 
-  virtual void compute();
+  virtual void computeProtected();
 
   bool operator < (const CObservable & rhs) const;
 

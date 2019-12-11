@@ -45,7 +45,7 @@ public:
 
   virtual CValueInterface * copy() const;
 
-  virtual void compute();
+  virtual void computeProtected();
 
   void fromJSON(const json_t * json);
 

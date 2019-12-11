@@ -83,6 +83,7 @@ void CSetReference::fromJSON(const json_t * json)
       mpSet->isValid())
     {
       mPrerequisites.insert(mpSet);
+      mStatic = mpSet->isStatic();
     }
   else
     {
@@ -92,7 +93,7 @@ void CSetReference::fromJSON(const json_t * json)
 }
 
 // virtual
-void CSetReference::compute()
+void CSetReference::computeProtected()
 {
   if (!mValid) return;
 
@@ -114,7 +115,7 @@ void CSetReference::compute()
 
       // This might have been already computed but we are not certain and this is only
       // evaluated once.
-      mpSet->compute();
+      mpSet->computeProtected();
     }
 }
 

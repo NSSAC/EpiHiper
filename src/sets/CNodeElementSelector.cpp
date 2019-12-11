@@ -203,10 +203,22 @@ void CNodeElementSelector::fromJSON(const json_t * json)
            */
           // We need to identify that we have this case
           mpSelector = CSetContent::create(json_object_get(json, "selector"));
-          mValid &= (mpSelector != NULL && mpSelector->isValid());
 
-          if (mValid)
-            mPrerequisites.insert(mpSelector);
+          if (mpSelector != NULL && mpSelector->isValid())
+            {
+              mPrerequisites.insert(mpSelector);
+              mStatic = mpSelector->isStatic();
+            }
+          else
+            {
+              mValid = false;
+
+              if (mpSelector != NULL)
+                {
+                  delete mpSelector;
+                  mpSelector = NULL;
+                }
+            }
 
           mpCompute = &CNodeElementSelector::nodeWithIncomingEdge;
 
@@ -224,6 +236,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
   else
     {
       // We do not have an operator, i.e., we have either all nodes or all nodes with a table.
+      mStatic = true;
       pValue = json_object_get(json, "table");
 
       if (json_is_string(pValue))
@@ -338,18 +351,33 @@ void CNodeElementSelector::fromJSON(const json_t * json)
       if (FieldValueList.isValid())
         {
           mpDBFieldValueList = new CFieldValueList(FieldValueList);
+          mStatic = true;
           mValid = true;
 
           return;
         }
 
       mpSelector = CSetContent::create(json_object_get(json, "right"));
-      mPrerequisites.insert(mpSelector);
 
-      mValid = (mpSelector != NULL && mpSelector->isValid());
+      if (mpSelector != NULL && mpSelector->isValid())
+        {
+          mPrerequisites.insert(mpSelector);
+          mStatic = mpSelector->isStatic();
+        }
+      else
+        {
+          mValid = false;
+
+          if (mpSelector != NULL)
+            {
+              delete mpSelector;
+              mpSelector = NULL;
+            }
+        }
 
       return;
     }
+
   // Select node where the node property value comparison with the provided value is true.
   if (mpComparison != NULL)
     {
@@ -464,6 +492,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
         {
           mpDBFieldValue = new CFieldValue(FieldValue);
           mValid = true;
+          mStatic = true;
 
           return;
         }
@@ -474,7 +503,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 }
 
 // virtual
-void CNodeElementSelector::compute()
+void CNodeElementSelector::computeProtected()
 {
   if (mValid &&
       mpCompute != NULL)

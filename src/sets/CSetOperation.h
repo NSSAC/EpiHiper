@@ -28,7 +28,7 @@ public:
 
   virtual void fromJSON(const json_t * json);
 
-  virtual void compute();
+  virtual void computeProtected();
 
 private:
   void computeUnion();

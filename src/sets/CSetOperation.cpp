@@ -126,10 +126,12 @@ void CSetOperation::fromJSON(const json_t * json)
       else
         mValid = false;
     }
+
+  determineIsStatic();
 }
 
 // virtual
-void CSetOperation::compute()
+void CSetOperation::computeProtected()
 {
   if (mValid &&
       mpCompute != NULL)

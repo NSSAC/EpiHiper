@@ -35,7 +35,14 @@ public:
 
   const CComputableSet & getPrerequisites() const;
 
-  virtual void compute() = 0;
+  void compute();
+
+  bool isStatic() const;
+
+protected:
+  void determineIsStatic();
+
+  virtual void computeProtected() = 0;
 
 private:
   static size_t UniqueId;
@@ -43,6 +50,8 @@ private:
   size_t mComputableId;
 
 protected:
+  bool mStatic;
+  bool mComputedOnce;
   CComputableSet mPrerequisites;
 };
 

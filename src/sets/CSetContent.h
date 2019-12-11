@@ -32,7 +32,7 @@ public:
 
   virtual ~CSetContent();
 
-  virtual void compute();
+  virtual void computeProtected();
 
   virtual void fromJSON(const json_t * json);
 

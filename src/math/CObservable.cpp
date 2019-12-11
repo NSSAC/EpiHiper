@@ -98,7 +98,7 @@ CObservable::~CObservable()
 {}
 
 // virtual
-void CObservable::compute()
+void CObservable::computeProtected()
 {
   if (mValid &&
       mpCompute != NULL)

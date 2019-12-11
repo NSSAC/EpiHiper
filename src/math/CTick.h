@@ -25,7 +25,7 @@ public:
 
   virtual ~CTick();
 
-  virtual void compute();
+  virtual void computeProtected();
 
   operator int() const;
 

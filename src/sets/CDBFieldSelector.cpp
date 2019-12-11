@@ -117,10 +117,22 @@ void CDBFieldSelector::fromJSON(const json_t * json)
   if (json_is_object(pValue))
     {
       mpSelector = CSetContent::create(pValue);
-      mValid &= (mpSelector != NULL && mpSelector->isValid());
 
-      if (mValid)
-        mPrerequisites.insert(mpSelector);
+      if (mpSelector != NULL && mpSelector->isValid())
+        {
+          mPrerequisites.insert(mpSelector);
+          mStatic = mpSelector->isStatic();
+        }
+      else
+        {
+          mValid = false;
+
+          if (mpSelector != NULL)
+            {
+              delete mpSelector;
+              mpSelector = NULL;
+            }
+        }
     }
   else
     {
@@ -130,7 +142,7 @@ void CDBFieldSelector::fromJSON(const json_t * json)
 
 
 // virtual
-void CDBFieldSelector::compute()
+void CDBFieldSelector::computeProtected()
 {
   std::map< CValueList::Type, CValueList > & DBFieldValues = getDBFieldValues();
   DBFieldValues.clear();

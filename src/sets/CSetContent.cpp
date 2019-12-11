@@ -43,7 +43,7 @@ CSetContent::~CSetContent()
 {}
 
 // virtual
-void CSetContent::compute()
+void CSetContent::computeProtected()
 {}
 
 // static

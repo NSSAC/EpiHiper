@@ -17,6 +17,8 @@ size_t CComputable::UniqueId(0);
 
 CComputable::CComputable()
   : mComputableId(UniqueId++)
+  , mStatic(false)
+  , mComputedOnce(false)
   , mPrerequisites()
 {
   Instances.insert(this);
@@ -24,6 +26,8 @@ CComputable::CComputable()
 
 CComputable::CComputable(const CComputable & src)
   : mComputableId(UniqueId++)
+  , mStatic(src.mStatic)
+  , mComputedOnce(src.mComputedOnce)
   , mPrerequisites(src.mPrerequisites)
 {
   Instances.insert(this);
@@ -39,3 +43,29 @@ const CComputableSet & CComputable::getPrerequisites() const
   return mPrerequisites;
 }
 
+void CComputable::compute()
+{
+  if (mStatic && mComputedOnce)
+    return;
+
+  computeProtected();
+  mComputedOnce = true;
+}
+
+bool CComputable::isStatic() const
+{
+  return mStatic;
+}
+
+void CComputable::determineIsStatic()
+{
+  mStatic = true;
+
+  CComputableSet::const_iterator it = mPrerequisites.begin();
+  CComputableSet::const_iterator end = mPrerequisites.end();
+
+  for (; it != end && mStatic; ++it)
+    {
+      mStatic = it->second->isStatic();
+    }
+}

@@ -68,7 +68,7 @@ CValueInterface * CSizeOf::copy() const
 }
 
 //  virtual
-void CSizeOf::compute()
+void CSizeOf::computeProtected()
 {
   if (mValid)
     {
@@ -112,8 +112,20 @@ void CSizeOf::fromJSON(const json_t * json)
   */
 
   mpSetContent = CSetContent::create(json_object_get(json, "sizeof"));
-  mValid = (mpSetContent != NULL && mpSetContent->isValid());
 
-  if (mValid)
-    mPrerequisites.insert(mpSetContent);
+  if (mpSetContent != NULL && mpSetContent->isValid())
+    {
+      mPrerequisites.insert(mpSetContent);
+      mStatic = mpSetContent->isStatic();
+    }
+  else
+    {
+      mValid = false;
+
+      if (mpSetContent != NULL)
+        {
+          delete mpSetContent;
+          mpSetContent = NULL;
+        }
+    }
 }
