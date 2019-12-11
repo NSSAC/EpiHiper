@@ -177,6 +177,25 @@ bool CNode::setHealthState(CModel::state_t value, CValueInterface::pOperator pOp
 
 bool CNode::setNodeTrait(CTraitData::value value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
+  /*
+  if (value.first == 1)
+    {
+      std::cout << id << ": enteredIsymp = " << (value.second == 0 ? "true" : "false") << std::endl;
+    }
+  else if (value.first == 2)
+    {
+      std::cout << id << ": treatment = " << (value.second == 0 ? "true" : "false") << std::endl;
+    }
+  else if (value.first == 4)
+    {
+      std::cout << id << ": prophylaxTrigger = " << (value.second == 0 ? "true" : "false") << std::endl;
+    }
+  else if (value.first == 8)
+    {
+      std::cout << id << ": prophylax = " << (value.second == 0 ? "true" : "false") << std::endl;
+    }
+  */
+
   CTraitData::setValue(nodeTrait, value);
 
   return true;

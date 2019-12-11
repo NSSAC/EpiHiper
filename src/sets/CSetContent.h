@@ -58,17 +58,24 @@ public:
 
   virtual const std::map< CValueList::Type, CValueList > & getDBFieldValues() const;
 
+  virtual std::set< CEdge * > & getEdges();
+
+  virtual std::set< CNode * > & getNodes();
+
+  virtual std::map< CValueList::Type, CValueList > & getDBFieldValues();
+
   void sampleMax(const size_t & max, CSetContent & sampled, CSetContent & NotSampled) const;
 
   void samplePercent(const double & percent, CSetContent & sampled, CSetContent & NotSampled) const;
 
-
   size_t size() const;
 
-protected:
+private:
   std::set< CNode * > mNodes;
   std::set< CEdge * > mEdges;
   std::map< CValueList::Type, CValueList > mDBFieldValues;
+
+protected:
   bool mValid;
 };
 

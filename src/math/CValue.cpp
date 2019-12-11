@@ -74,6 +74,12 @@ CValue::~CValue()
   destroyValue();
 }
 
+// virtual
+CValueInterface * CValue::copy() const
+{
+  return new CValue(*this);
+}
+
 void CValue::fromJSON(const json_t * json)
 {
   if (json == NULL)
@@ -321,7 +327,7 @@ void CValue::assignValue(const void * pValue)
 
 void CValue::destroyValue()
 {
-  if (mpValue != NULL) return;
+  if (mpValue == NULL) return;
 
   switch (mType)
   {
@@ -331,6 +337,10 @@ void CValue::destroyValue()
 
     case Type::number:
       delete static_cast< double * >(mpValue);
+      break;
+
+    case Type::traitData:
+      delete static_cast< CTraitData::base * >(mpValue);
       break;
 
     case Type::traitValue:

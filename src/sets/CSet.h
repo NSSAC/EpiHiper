@@ -66,6 +66,11 @@ public:
 
   virtual const std::map< CValueList::Type, CValueList > & getDBFieldValues() const;
 
+  virtual std::set< CEdge * > & getEdges();
+
+  virtual std::set< CNode * > & getNodes();
+
+  virtual std::map< CValueList::Type, CValueList > & getDBFieldValues();
 
 private:
   std::string mId;

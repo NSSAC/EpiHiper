@@ -31,6 +31,8 @@ public:
 
   virtual ~CNodeProperty();
 
+  virtual CValueInterface * copy() const;
+
   void fromJSON(const json_t * json);
 
   const bool & isValid() const;

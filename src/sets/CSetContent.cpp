@@ -188,6 +188,23 @@ const std::map< CValueList::Type, CValueList > & CSetContent::getDBFieldValues()
   return mDBFieldValues;
 }
 
+// virtual
+std::set< CEdge * > & CSetContent::getEdges()
+{
+  return mEdges;
+}
+
+// virtual
+std::set< CNode * > & CSetContent::getNodes()
+{
+  return mNodes;
+}
+
+std::map< CValueList::Type, CValueList > & CSetContent::getDBFieldValues()
+{
+  return mDBFieldValues;
+}
+
 void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetContent & notSampled) const
 {
   sampled.mEdges.clear();
@@ -262,10 +279,10 @@ void CSetContent::samplePercent(const double & percent, CSetContent & sampled, C
   CRandom::uniform_real Percent(0.0, 100.0);
 
   // Sampling is ony supported if we have either only nodes or only edges;
-  if (size() == mNodes.size())
+  if (size() == getNodes().size())
     {
-      std::set< CNode * >::const_iterator it = mNodes.begin();
-      std::set< CNode * >::const_iterator end = mNodes.end();
+      std::set< CNode * >::const_iterator it = getNodes().begin();
+      std::set< CNode * >::const_iterator end = getNodes().end();
 
       for (; it != end; ++it)
         if (Percent(CRandom::G) < percent)
@@ -274,10 +291,10 @@ void CSetContent::samplePercent(const double & percent, CSetContent & sampled, C
           notSampled.mNodes.insert(*it);
 
     }
-  else if (size() == mEdges.size())
+  else if (size() == getEdges().size())
     {
-      std::set< CEdge * >::const_iterator it = mEdges.begin();
-      std::set< CEdge * >::const_iterator end = mEdges.end();
+      std::set< CEdge * >::const_iterator it = getEdges().begin();
+      std::set< CEdge * >::const_iterator end = getEdges().end();
 
       for (; it != end; ++it)
         if (Percent(CRandom::G) < percent)

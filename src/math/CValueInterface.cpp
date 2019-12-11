@@ -396,5 +396,35 @@ const CValueInterface & CValueInterface::operator=(const CValueInterface & rhs)
 }
 */
 
+std::ostream & operator << (std::ostream & os, const CValueInterface & p)
+{
+  switch (p.mType)
+  {
+    case CValueInterface::Type::boolean:
+      os << * static_cast< const bool * >(p.mpValue);
+      break;
 
+    case CValueInterface::Type::number:
+      os << * static_cast< const double * >(p.mpValue);
+      break;
+
+    case CValueInterface::Type::id:
+      os << * static_cast< const size_t * >(p.mpValue);
+      break;
+
+    case CValueInterface::Type::traitData:
+      os << * static_cast< const CTraitData::base * >(p.mpValue);
+      break;
+
+    case CValueInterface::Type::traitValue:
+      os << static_cast< const CTraitData::value * >(p.mpValue)->first << ":" << static_cast< const CTraitData::value * >(p.mpValue)->second;
+      break;
+
+    case CValueInterface::Type::string:
+      os << * static_cast< const std::string * >(p.mpValue);
+      break;
+  }
+
+  return os;
+}
 

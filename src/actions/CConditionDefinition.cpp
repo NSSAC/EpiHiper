@@ -371,7 +371,9 @@ void CConditionDefinition::operationFromJSON(const json_t * json)
       mType = BooleanOperationType::Or;
     }
 
-  for (size_t i = 0, imax = json_array_size(pOperation) && mValid; i < imax; ++i)
+  size_t i = 0, imax = json_array_size(pOperation);
+
+  for (; i < imax && mValid; ++i)
     {
       CConditionDefinition Child(json_array_get(pOperation, i));
 

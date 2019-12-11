@@ -128,9 +128,9 @@ CCondition::CComparison::CComparison(const CComparison & src)
   : CBoolean(src)
   , mpComparison(src.mpComparison)
   , mOwnLeft(src.mOwnLeft)
-  , mpLeft(src.mOwnLeft ? new CValueInterface(*src.mpLeft): src.mpLeft)
+  , mpLeft(src.mOwnLeft ? src.mpLeft->copy(): src.mpLeft)
   , mOwnRight(src.mOwnRight)
-  , mpRight(src.mOwnRight ? new CValueInterface(*src.mpRight): src.mpRight)
+  , mpRight(src.mOwnRight ? src.mpRight->copy(): src.mpRight)
 {}
 
 // virtual

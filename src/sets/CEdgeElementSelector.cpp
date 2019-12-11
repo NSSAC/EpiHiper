@@ -156,7 +156,8 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
 void CEdgeElementSelector::compute()
 {
   // We need to loop through all edges and select the ones fitting the specification
-  mEdges.clear();
+  std::set< CEdge * > & Edges = getEdges();
+  Edges.clear();
 
   if (!mValid) return;
 
@@ -168,7 +169,7 @@ void CEdgeElementSelector::compute()
       for (; pEdge != pEdgeEnd; ++pEdge)
         if ((*mpComparison)(mLeft.propertyOf(pEdge), *mpValue))
           {
-            mEdges.insert(pEdge);
+            Edges.insert(pEdge);
           }
 
       return;
@@ -179,7 +180,7 @@ void CEdgeElementSelector::compute()
       for (; pEdge != pEdgeEnd; ++pEdge)
         if(mpValueList->contains(mLeft.propertyOf(pEdge)))
           {
-            mEdges.insert(pEdge);
+            Edges.insert(pEdge);
           }
 
       return;
@@ -190,14 +191,14 @@ void CEdgeElementSelector::compute()
       for (; pEdge != pEdgeEnd; ++pEdge)
         if(mpSelector->contains((*mpGetNode)(pEdge)))
           {
-            mEdges.insert(pEdge);
+            Edges.insert(pEdge);
           }
 
       return;
     }
 
   for (; pEdge != pEdgeEnd; ++pEdge)
-    mEdges.insert(pEdge);
+    Edges.insert(pEdge);
 }
 
 

@@ -38,6 +38,8 @@ public:
 
   virtual ~CValue();
 
+  virtual CValueInterface * copy() const;
+
   virtual void fromJSON(const json_t * json);
 
   const bool & isValid() const;

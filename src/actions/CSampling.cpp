@@ -64,7 +64,10 @@ CSampling::CSampling(const json_t * json)
 
 // virtual
 CSampling::~CSampling()
-{}
+{
+  if (mpSampled != NULL) delete mpSampled;
+  if (mpNotSampled != NULL) delete mpNotSampled;
+}
 
 // virtual
 void CSampling::fromJSON(const json_t *json)
@@ -203,7 +206,7 @@ void CSampling::fromJSON(const json_t *json)
         }
     }
 
-  pValue = json_object_get(json, "notsampled");
+  pValue = json_object_get(json, "nonsampled");
 
   if (pValue != NULL)
     {

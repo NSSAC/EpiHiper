@@ -213,6 +213,8 @@ void CTrigger::fromJSON(const json_t * json)
 
         mValid &= (mInterventions[Id] != NULL);
       }
+
+  CAnnotation::fromJSON(json);
 }
 
 const bool & CTrigger::isValid() const

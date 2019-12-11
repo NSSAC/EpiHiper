@@ -209,6 +209,8 @@ bool CQuery::in(const std::string & table,
       Query << " AND " << LocalConstraint;
     }
 
+  // std::cout << Query.str() << std::endl;
+
   try
   {
     toFieldValueList(ResultField, pWork->exec(Query.str()), result);

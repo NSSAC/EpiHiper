@@ -129,6 +129,7 @@ int CActionQueue::broadcastPendingActions()
   mTotalPendingActions = pendingActions();
   os.write(reinterpret_cast<const char *>(&mTotalPendingActions), sizeof(size_t));
   os << mRemoteActions.str();
+  mRemoteActions.str("");
 
   std::string Buffer = os.str();
 
@@ -148,13 +149,17 @@ CCommunicate::ErrorCode CActionQueue::receivePendingActions(std::istream & is, i
   mTotalPendingActions += RemotePendingActions;
 
   // Check whether we received actions from remote;
-  while(is.good())
+  while(true)
     {
       size_t ActionId;
-      CActionDefinition * pActionDefinition = CActionDefinition::GetActionDefinition(ActionId);
-      char TargetType;
       is.read(reinterpret_cast<char *>(&ActionId), sizeof(size_t));
+      if (is.fail()) break;
+
+      CActionDefinition * pActionDefinition = CActionDefinition::GetActionDefinition(ActionId);
+
+      char TargetType;
       is.read(&TargetType, sizeof(char));
+      if (is.fail()) break;
 
       switch (TargetType)
       {
@@ -162,6 +167,8 @@ CCommunicate::ErrorCode CActionQueue::receivePendingActions(std::istream & is, i
           {
             size_t NodeId;
             is.read(reinterpret_cast<char *>(&NodeId), sizeof(size_t));
+            if (is.fail()) break;
+
             CNode * pNode = CNetwork::INSTANCE->lookupNode(NodeId, true);
 
             if (pNode != NULL &&
@@ -177,8 +184,12 @@ CCommunicate::ErrorCode CActionQueue::receivePendingActions(std::istream & is, i
           {
             size_t TargetId;
             is.read(reinterpret_cast<char *>(&TargetId), sizeof(size_t));
+            if (is.fail()) break;
+
             size_t SourceId;
             is.read(reinterpret_cast<char *>(&SourceId), sizeof(size_t));
+            if (is.fail()) break;
+
             CEdge * pEdge = CNetwork::INSTANCE->lookupEdge(TargetId, SourceId);
 
             if (pEdge != NULL &&

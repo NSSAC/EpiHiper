@@ -198,6 +198,11 @@ void CIntervention::fromJSON(const json_t * json)
       return;
     }
 
+  if (CAnnotation::mAnnId.empty())
+    {
+      CAnnotation::mAnnId = mId;
+    }
+
   mValid = false;
 }
 

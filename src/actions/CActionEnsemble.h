@@ -38,8 +38,8 @@ public:
   void process(const CSetContent & targets);
 
 private:
-  std::vector< CActionDefinition > mOnce;
-  std::vector< CActionDefinition > mForEach;
+  std::vector< CActionDefinition * > mOnce;
+  std::vector< CActionDefinition * > mForEach;
   CSampling mSampling;
   bool mValid;
 };

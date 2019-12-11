@@ -208,4 +208,29 @@ const std::map< CValueList::Type, CValueList > & CSet::getDBFieldValues() const
   return CSetContent::getDBFieldValues();
 }
 
+// virtual
+std::set< CEdge * > & CSet::getEdges()
+{
+  if (mValid)
+    return mpSetContent->getEdges();
+
+  return CSetContent::getEdges();
+}
+
+// virtual
+std::set< CNode * > & CSet::getNodes()
+{
+  if (mValid)
+    return mpSetContent->getNodes();
+
+  return CSetContent::getNodes();
+}
+
+std::map< CValueList::Type, CValueList > & CSet::getDBFieldValues()
+{
+  if (mValid)
+    return mpSetContent->getDBFieldValues();
+
+  return CSetContent::getDBFieldValues();
+}
 

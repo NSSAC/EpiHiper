@@ -27,6 +27,8 @@
 
 class CValueInterface
 {
+  friend std::ostream & operator << (std::ostream & os, const CValueInterface & p);
+
   friend bool operator<(const CValueInterface & lhs, const CValueInterface & rhs);
   friend bool operator<=(const CValueInterface & lhs, const CValueInterface & rhs);
   friend bool operator>(const CValueInterface & lhs, const CValueInterface & rhs);

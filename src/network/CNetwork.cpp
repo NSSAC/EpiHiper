@@ -623,6 +623,7 @@ void CNetwork::writePartition(const size_t & partition,
     {
       std::cout << File.str() << std::endl;
     }
+
   os << json_dumps(pJson, JSON_COMPACT | JSON_INDENT(0)) << std::endl;
   os << "targetPID,targetActivity,sourcePID,sourceActivity,duration,edgeTrait,active,weight";
 

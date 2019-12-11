@@ -52,7 +52,7 @@ public:
     , mValue(value)
     , mpOperator(pOperator)
     , mMethod(method)
-    , mMetadata()
+    , mMetadata(metadata)
   {}
 
   COperationInstance(const COperationInstance & src)

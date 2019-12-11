@@ -27,7 +27,23 @@ CActionEnsemble::CActionEnsemble(const CActionEnsemble & src)
   , mForEach(src.mForEach)
   , mSampling(src.mSampling)
   , mValid(src.mValid)
-{}
+{
+  std::vector< CActionDefinition * >::const_iterator it = src.mOnce.begin();
+  std::vector< CActionDefinition * >::const_iterator end = src.mOnce.end();
+
+  for (; it != end; ++it)
+    {
+      mOnce.push_back(new CActionDefinition(**it));
+    }
+
+  it = src.mForEach.begin();
+  end = src.mForEach.end();
+
+  for (; it != end; ++it)
+    {
+      mForEach.push_back(new CActionDefinition(**it));
+    }
+}
 
 CActionEnsemble::CActionEnsemble(const json_t * json)
   : mOnce()
@@ -40,7 +56,23 @@ CActionEnsemble::CActionEnsemble(const json_t * json)
 
 // virtual
 CActionEnsemble::~CActionEnsemble()
-{}
+{
+  std::vector< CActionDefinition * >::iterator it = mOnce.begin();
+  std::vector< CActionDefinition * >::iterator end =mOnce.end();
+
+  for (; it != end; ++it)
+    {
+      delete *it;
+    }
+
+  it = mForEach.begin();
+  end = mForEach.end();
+
+  for (; it != end; ++it)
+    {
+      delete *it;
+    }
+}
 
 void CActionEnsemble::fromJSON(const json_t * json)
 {
@@ -72,18 +104,34 @@ void CActionEnsemble::fromJSON(const json_t * json)
 
   for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
     {
-      CActionDefinition ActionDefinition(json_array_get(pValue, i));
-      mValid &= ActionDefinition.isValid();
-      mOnce.push_back(ActionDefinition);
+      CActionDefinition * pActionDefinition = new CActionDefinition(json_array_get(pValue, i));
+
+      if (pActionDefinition->isValid())
+        {
+          mOnce.push_back(pActionDefinition);
+        }
+      else
+        {
+          mValid = false;
+          delete pActionDefinition;
+        }
     }
 
   pValue = json_object_get(json, "foreach");
 
   for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
     {
-      CActionDefinition ActionDefinition(json_array_get(pValue, i));
-      mValid &= ActionDefinition.isValid();
-      mForEach.push_back(ActionDefinition);
+      CActionDefinition  * pActionDefinition = new CActionDefinition(json_array_get(pValue, i));
+
+      if (pActionDefinition->isValid())
+        {
+          mForEach.push_back(pActionDefinition);
+        }
+      else
+        {
+          mValid = false;
+          delete pActionDefinition;
+        }
     }
 
   mSampling.fromJSON(json_object_get(json, "sampling"));
@@ -97,11 +145,11 @@ const bool & CActionEnsemble::isValid() const
 
 void CActionEnsemble::process(const CSetContent & targets)
 {
-  std::vector< CActionDefinition >::const_iterator it = mOnce.begin();
-  std::vector< CActionDefinition >::const_iterator end = mOnce.end();
+  std::vector< CActionDefinition * >::const_iterator it = mOnce.begin();
+  std::vector< CActionDefinition * >::const_iterator end = mOnce.end();
 
   for (; it != end; ++it)
-    it->process((CNode *) NULL);
+    (*it)->process((CNode *) NULL);
 
   end = mForEach.end();
 
@@ -110,14 +158,14 @@ void CActionEnsemble::process(const CSetContent & targets)
 
   for (; itEdges != endEdges; ++itEdges)
     for (it = mForEach.begin(); it != end; ++it)
-      it->process(*itEdges);
+      (*it)->process(*itEdges);
 
   std::set< CNode * >::const_iterator itNodes = targets.beginNodes();
   std::set< CNode * >::const_iterator endNodes = targets.endNodes();
 
   for (; itNodes != endNodes; ++itNodes)
     for (it = mForEach.begin(); it != end; ++it)
-      it->process(*itNodes);
+      (*it)->process(*itNodes);
 
   mSampling.process(targets);
 }

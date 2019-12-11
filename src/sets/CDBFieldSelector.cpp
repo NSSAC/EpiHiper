@@ -132,7 +132,8 @@ void CDBFieldSelector::fromJSON(const json_t * json)
 // virtual
 void CDBFieldSelector::compute()
 {
-  mDBFieldValues.clear();
+  std::map< CValueList::Type, CValueList > & DBFieldValues = getDBFieldValues();
+  DBFieldValues.clear();
 
   CFieldValueList FieldValueList;
   CFieldValueList ConstraintValueList;
@@ -149,8 +150,10 @@ void CDBFieldSelector::compute()
 
   if (FieldValueList.size() > 0)
     {
-      mDBFieldValues.insert(std::make_pair(FieldValueList.getType(), FieldValueList));
+      DBFieldValues.insert(std::make_pair(FieldValueList.getType(), FieldValueList));
     }
+
+  // std::cout << "CDBFieldSelector::compute: " << FieldValueList.size() << std::endl;
 }
 
 

@@ -56,7 +56,10 @@ COperationDefinition::COperationDefinition(const json_t * json)
 
 // virtual
 COperationDefinition::~COperationDefinition()
-{}
+{
+  if (mpNodeProperty != NULL) delete mpNodeProperty;
+  if (mpEdgeProperty != NULL) delete mpEdgeProperty;
+}
 
 void COperationDefinition::fromJSON(const json_t * json)
 {
