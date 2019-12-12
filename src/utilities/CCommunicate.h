@@ -183,6 +183,8 @@ public:
 
   static size_t getRMAIndex();
 
+  static void memUsage(const int & tick);
+
   CCommunicate() = delete;
   virtual ~CCommunicate();
 

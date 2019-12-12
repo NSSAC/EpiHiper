@@ -237,10 +237,10 @@ CTraitData::base CTrait::getDefault() const
   return Default;
 }
 
-bool CTrait::fromString(const std::string & str, CTraitData::base & data) const
+bool CTrait::fromString(const char * str, CTraitData::base & data) const
 {
   bool success = true;
-  const char * ptr = str.c_str();
+  const char * ptr = str;
 
   std::set< size_t > FeaturesFound;
   size_t FeatureIndex;
@@ -267,8 +267,6 @@ bool CTrait::fromString(const std::string & str, CTraitData::base & data) const
 
       ptr += Read + 1;
     }
-
-  success &= (FeaturesFound.size() == mFeatures.size());
 
   return success;
 }

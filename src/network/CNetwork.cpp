@@ -290,6 +290,11 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
 
           if (CurrentNode != Node)
             {
+              if (CurrentNode > Node && CurrentNode != -1)
+                {
+                  std::cerr << "Network target nodes are not sorted." << std::endl;
+                  return;
+                }
               if (PartitionEdgeCount >= PartitionIndex * DesiredPerComputeNode)
                 {
                   if (2 * PartitionIndex * DesiredPerComputeNode <  LastNodeEdgeCount + PartitionEdgeCount)
@@ -790,10 +795,25 @@ bool CNetwork::loadEdge(CEdge * pEdge, std::istream & is) const
     }
   else
     {
-      std::string Line;
-      std::getline(is, Line);
+      static char * Line = NULL;
+      static size_t LineSize = 1024;
 
-      const char * ptr = Line.c_str();
+      if (Line == NULL)
+        {
+          Line = new char[LineSize];
+        }
+
+      std::istream::pos_type p = is.tellg();
+
+      is.getline(Line, LineSize);
+
+      if (is.tellg() - p >= LineSize)
+        {
+          std::cerr << "Edge line size exceeded." << std::endl;
+          return false;
+        }
+
+      const char * ptr = Line;
       int Read;
 
       static char targetActivity[128];
@@ -805,8 +825,9 @@ bool CNetwork::loadEdge(CEdge * pEdge, std::istream & is) const
           success = false;
         }
 
-      CTrait::ActivityTrait->fromString(targetActivity, pEdge->targetActivity);
-      CTrait::ActivityTrait->fromString(sourceActivity, pEdge->sourceActivity);
+      success &= CTrait::ActivityTrait->fromString(targetActivity, pEdge->targetActivity);
+      success &= CTrait::ActivityTrait->fromString(sourceActivity, pEdge->sourceActivity);
+
       ptr += Read;
 
       if (CEdge::HasEdgeTrait)
@@ -844,7 +865,7 @@ bool CNetwork::loadEdge(CEdge * pEdge, std::istream & is) const
         }
 
       if (success)
-        success = (*ptr == 0);
+        success = (*ptr == 0 || *ptr == '\r');
     }
 
   return success;

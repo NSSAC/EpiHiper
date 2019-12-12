@@ -74,7 +74,7 @@ public:
 
 	CTraitData::base getDefault() const;
 
-  bool fromString(const std::string & str, CTraitData::base & data) const;
+  bool fromString(const char * str, CTraitData::base & data) const;
 
   std::string toString(CTraitData::base & data) const;
 

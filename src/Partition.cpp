@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
   CCommunicate::init(argc, argv);
 
   if (CCommunicate::MPIRank == 0) {
-      std::cout << "EpiHiper version 0.0.1 (2019.06.14)" << std::endl;
+      std::cout << "EpiHiperPartition version 0.0.1 (2019.06.14)" << std::endl;
   }
 
   if (argc < 3 || ! parseArgs(argc, argv))

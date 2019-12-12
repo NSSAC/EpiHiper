@@ -119,6 +119,8 @@ int main(int argc, char *argv[]) {
     // Network::INSTANCE->write("network.bin", true);
     // Network::INSTANCE->write("network.txt", false);
 
+    CCommunicate::memUsage(-2);
+
     Simulation sim(seed, dbconn);
     sim.validate();
     if (sim.isValid()) {
@@ -126,6 +128,8 @@ int main(int argc, char *argv[]) {
       // sim.dummyRun();
     }
   }
+
+exit:
 
   CModel::release();
   CInitialization::release();

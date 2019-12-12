@@ -10,6 +10,7 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#include <fstream>
 #include <algorithm>
 #include <unistd.h>
 #include <cassert>
@@ -298,6 +299,29 @@ size_t CCommunicate::getRMAIndex()
   return Index;
 }
 
+// static
+void CCommunicate::memUsage(const int & tick)
+{
+    double vm_usage     = 0.0;
+    double resident_set = 0.0;
+
+    // the two fields we want
+    unsigned long vsize;
+    long rss;
+    {
+        std::string ignore;
+        std::ifstream ifs("/proc/self/stat", std::ios_base::in);
+        ifs >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore
+                >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore
+                >> ignore >> ignore >> vsize >> rss;
+    }
+
+    long page_size_kb = sysconf(_SC_PAGE_SIZE) / 1024; // in case x86-64 is configured to use 2MB pages
+    vm_usage = vsize / 1024.0;
+    resident_set = rss * page_size_kb;
+
+    std::cout << tick <<"; Rank: " << MPIRank << "; VM: " << vm_usage << "; RSS: " << resident_set << std::endl;
+}
 
 CCommunicate::~CCommunicate()
 {}

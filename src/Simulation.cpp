@@ -171,6 +171,8 @@ void Simulation::run()
   CDependencyGraph::applyUpdateSequence();
 
   CInitialization::processAll();
+  CCommunicate::memUsage(CActionQueue::getCurrentTick());
+
   CActionQueue::processCurrentActions();
   CActionQueue::incrementTick();
   Changes::incrementTick();
@@ -189,6 +191,7 @@ void Simulation::run()
       CModel::processTransmissions();
       CTrigger::processAll();
       CIntervention::processAll();
+      CCommunicate::memUsage(CActionQueue::getCurrentTick());
       CActionQueue::processCurrentActions();
 
       CActionQueue::incrementTick();
