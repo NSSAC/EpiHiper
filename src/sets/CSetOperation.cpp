@@ -140,8 +140,8 @@ void CSetOperation::computeProtected()
 
 void CSetOperation::computeUnion()
 {
-  std::set< CNode * > & Nodes = getNodes();
-  std::set< CEdge * > & Edges = getEdges();
+  std::vector< CNode * > & Nodes = getNodes();
+  std::vector< CEdge * > & Edges = getEdges();
   std::map< CValueList::Type, CValueList > & DBFieldValues = getDBFieldValues();
 
   Edges.clear();
@@ -150,6 +150,14 @@ void CSetOperation::computeUnion()
 
   bool first = true;
 
+  std::vector< CNode * > TmpNodes;
+  std::vector< CEdge * > TmpEdges;
+
+  std::vector< CNode * > * pInNodes = &TmpNodes;
+  std::vector< CEdge * > * pInEdges = &TmpEdges;
+  std::vector< CNode * > * pOutNodes = &getNodes();
+  std::vector< CEdge * > * pOutEdges = &getEdges();
+
   std::set< CSetContent * >::const_iterator it = mSets.begin();
   std::set< CSetContent * >::const_iterator end = mSets.end();
 
@@ -157,16 +165,21 @@ void CSetOperation::computeUnion()
     {
       if (first)
         {
-          Edges = (*it)->getEdges();
-          Nodes = (*it)->getNodes();
+          *pInEdges = (*it)->getEdges();
+          *pInNodes = (*it)->getNodes();
           DBFieldValues = (*it)->getDBFieldValues();
 
           first = false;
         }
       else
         {
-          Edges.insert((*it)->beginEdges(), (*it)->endEdges());
-          Nodes.insert((*it)->beginNodes(), (*it)->endNodes());
+          pOutEdges->clear();
+          std::set_union((*it)->beginEdges(), (*it)->endEdges(), pInEdges->begin(), pInEdges->end(), pOutEdges->begin());
+          std::swap(pInEdges, pOutEdges);
+
+          pOutNodes->clear();
+          std::set_union((*it)->beginNodes(), (*it)->endNodes(), pInNodes->begin(), pInNodes->end(), pOutNodes->begin());
+          std::swap(pInNodes, pOutNodes);
 
           std::map< CValueList::Type, CValueList >::const_iterator itDB = (*it)->getDBFieldValues().begin();
           std::map< CValueList::Type, CValueList >::const_iterator endDB = (*it)->getDBFieldValues().end();
@@ -175,12 +188,22 @@ void CSetOperation::computeUnion()
             DBFieldValues[itDB->first].insert(itDB->second.begin(), itDB->second.end());
         }
     }
+
+  if (pOutEdges != &Edges)
+    {
+      Edges = *pOutEdges;
+    }
+
+  if (pOutNodes != &Nodes)
+    {
+      Nodes = *pOutNodes;
+    }
 }
 
 void CSetOperation::computeIntersection()
 {
-  std::set< CNode * > N1, N2, * pNin, * pNout;;
-  std::set< CEdge * > E1, E2,  *pEin, * pEout;
+  std::vector< CNode * > N1, N2, * pNin, * pNout;;
+  std::vector< CEdge * > E1, E2,  *pEin, * pEout;
   std::map< CValueList::Type, CValueList > DB1, DB2, * pDBin, *pDBout;
 
   pNin = &N1;

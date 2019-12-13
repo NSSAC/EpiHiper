@@ -24,6 +24,10 @@ void CDependencyGraph::buildGraph()
 {
   INSTANCE.clear();
 
+  // We need to be smarter and not compute all.
+  // Target sets should only be computed if the intervention fires.
+  // Everything else which is used in a trigger or action condition needs to be computed
+
   CComputableSet Changed;
   Changed.insert(&CActionQueue::getCurrentTick());
 

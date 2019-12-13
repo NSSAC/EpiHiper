@@ -109,7 +109,8 @@ bool CQuery::all(const std::string & table,
       Query << " WHERE " << LocalConstraint;
     }
 
-  Query << ";";
+  Query << " ORDER BY " << resultField << ";";
+  // std::cout << Query.str() << std::endl;
 
   try
   {
@@ -202,13 +203,14 @@ bool CQuery::in(const std::string & table,
       }
     }
 
-  Query << ");";
+  Query << ")";
 
   if (local)
     {
       Query << " AND " << LocalConstraint;
     }
 
+  Query << " ORDER BY " << resultField << ";";
   // std::cout << Query.str() << std::endl;
 
   try
@@ -289,7 +291,8 @@ bool CQuery::where(const std::string & table,
       Query << " AND " << LocalConstraint;
     }
 
-  Query << ";";
+  Query << " ORDER BY " << resultField << ";";
+  // std::cout << Query.str() << std::endl;
 
   try
   {

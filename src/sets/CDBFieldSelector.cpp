@@ -150,8 +150,8 @@ void CDBFieldSelector::computeProtected()
   CFieldValueList FieldValueList;
   CFieldValueList ConstraintValueList;
 
-  std::set< CNode * >::const_iterator itConstraint = mpSelector->beginNodes();
-  std::set< CNode * >::const_iterator endConstraint = mpSelector->endNodes();
+  std::vector< CNode * >::const_iterator itConstraint = mpSelector->beginNodes();
+  std::vector< CNode * >::const_iterator endConstraint = mpSelector->endNodes();
 
   for (; itConstraint != endConstraint; ++itConstraint)
     {

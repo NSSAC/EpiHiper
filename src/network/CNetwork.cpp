@@ -807,6 +807,11 @@ bool CNetwork::loadEdge(CEdge * pEdge, std::istream & is) const
 
       is.getline(Line, LineSize);
 
+      if (is.fail())
+        {
+          return false;
+        }
+
       if (is.tellg() - p >= LineSize)
         {
           std::cerr << "Edge line size exceeded." << std::endl;
@@ -985,7 +990,12 @@ CCommunicate::ErrorCode CNetwork::receiveEdges(std::istream & is, int sender)
   return CCommunicate::ErrorCode::Success;
 }
 
-const size_t & CNetwork::getTotalNodes() const
+const size_t & CNetwork::getLocalNodeCount() const
+{
+  return mLocalNodesSize;
+}
+
+const size_t & CNetwork::getGlobalNodeCount() const
 {
   return mTotalNodesSize;
 }

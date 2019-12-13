@@ -39,23 +39,23 @@ public:
 
   virtual bool contains(const CValueInterface & value) const;
 
-  virtual std::set< CEdge * >::const_iterator beginEdges() const;
+  virtual std::vector< CEdge * >::const_iterator beginEdges() const;
 
-  virtual std::set< CEdge * >::const_iterator endEdges() const;
+  virtual std::vector< CEdge * >::const_iterator endEdges() const;
 
-  virtual std::set< CNode * >::const_iterator beginNodes() const;
+  virtual std::vector< CNode * >::const_iterator beginNodes() const;
 
-  virtual std::set< CNode * >::const_iterator endNodes() const;
+  virtual std::vector< CNode * >::const_iterator endNodes() const;
 
-  virtual const std::set< CEdge * > & getEdges() const;
+  virtual const std::vector< CEdge * > & getEdges() const;
 
-  virtual const std::set< CNode * > & getNodes() const;
+  virtual const std::vector< CNode * > & getNodes() const;
 
   virtual const std::map< CValueList::Type, CValueList > & getDBFieldValues() const;
 
-  virtual std::set< CEdge * > & getEdges();
+  virtual std::vector< CEdge * > & getEdges();
 
-  virtual std::set< CNode * > & getNodes();
+  virtual std::vector< CNode * > & getNodes();
 
   virtual std::map< CValueList::Type, CValueList > & getDBFieldValues();
 

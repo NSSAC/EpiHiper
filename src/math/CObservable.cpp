@@ -135,7 +135,7 @@ void CObservable::computeHealthStateRelative()
 
   if (pHealthState != NULL)
     {
-      double Relative = ((double) pHealthState->getGlobalCounts().Current)/CNetwork::INSTANCE->getTotalNodes();
+      double Relative = ((double) pHealthState->getGlobalCounts().Current)/CNetwork::INSTANCE->getGlobalNodeCount();
       assignValue(&Relative);
     }
 }

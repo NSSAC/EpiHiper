@@ -147,7 +147,7 @@ bool CSetReference::contains(const CValueInterface & value) const
 }
 
 // virtual
-std::set< CEdge * >::const_iterator CSetReference::beginEdges() const
+std::vector< CEdge * >::const_iterator CSetReference::beginEdges() const
 {
   if (mValid)
     return mpSet->beginEdges();
@@ -156,7 +156,7 @@ std::set< CEdge * >::const_iterator CSetReference::beginEdges() const
 }
 
 // virtual
-std::set< CEdge * >::const_iterator CSetReference::endEdges() const
+std::vector< CEdge * >::const_iterator CSetReference::endEdges() const
 {
   if (mValid)
     return mpSet->endEdges();
@@ -165,7 +165,7 @@ std::set< CEdge * >::const_iterator CSetReference::endEdges() const
 }
 
 // virtual
-std::set< CNode * >::const_iterator CSetReference::beginNodes() const
+std::vector< CNode * >::const_iterator CSetReference::beginNodes() const
 {
   if (mValid)
     return mpSet->beginNodes();
@@ -174,7 +174,7 @@ std::set< CNode * >::const_iterator CSetReference::beginNodes() const
 }
 
 // virtual
-std::set< CNode * >::const_iterator CSetReference::endNodes() const
+std::vector< CNode * >::const_iterator CSetReference::endNodes() const
 
 {
   if (mValid)
@@ -184,7 +184,7 @@ std::set< CNode * >::const_iterator CSetReference::endNodes() const
 }
 
 // virtual
-const std::set< CEdge * > & CSetReference::getEdges() const
+const std::vector< CEdge * > & CSetReference::getEdges() const
 {
   if (mValid)
     return mpSet->getEdges();
@@ -193,7 +193,7 @@ const std::set< CEdge * > & CSetReference::getEdges() const
 }
 
 // virtual
-const std::set< CNode * > & CSetReference::getNodes() const
+const std::vector< CNode * > & CSetReference::getNodes() const
 {
   if (mValid)
     return mpSet->getNodes();
@@ -210,7 +210,7 @@ const std::map< CValueList::Type, CValueList > & CSetReference::getDBFieldValues
 }
 
 // virtual
-std::set< CEdge * > & CSetReference::getEdges()
+std::vector< CEdge * > & CSetReference::getEdges()
 {
   if (mValid)
     return mpSet->getEdges();
@@ -219,7 +219,7 @@ std::set< CEdge * > & CSetReference::getEdges()
 }
 
 // virtual
-std::set< CNode * > & CSetReference::getNodes()
+std::vector< CNode * > & CSetReference::getNodes()
 {
   if (mValid)
     return mpSet->getNodes();

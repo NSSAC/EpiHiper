@@ -161,7 +161,7 @@ bool CSet::contains(const CValueInterface & value) const
 }
 
 // virtual
-std::set< CEdge * >::const_iterator CSet::beginEdges() const
+std::vector< CEdge * >::const_iterator CSet::beginEdges() const
 {
   if (mValid)
     return mpSetContent->beginEdges();
@@ -170,7 +170,7 @@ std::set< CEdge * >::const_iterator CSet::beginEdges() const
 }
 
 // virtual
-std::set< CEdge * >::const_iterator CSet::endEdges() const
+std::vector< CEdge * >::const_iterator CSet::endEdges() const
 {
   if (mValid)
     return mpSetContent->endEdges();
@@ -179,7 +179,7 @@ std::set< CEdge * >::const_iterator CSet::endEdges() const
 }
 
 // virtual
-std::set< CNode * >::const_iterator CSet::beginNodes() const
+std::vector< CNode * >::const_iterator CSet::beginNodes() const
 {
   if (mValid)
     return mpSetContent->beginNodes();
@@ -188,7 +188,7 @@ std::set< CNode * >::const_iterator CSet::beginNodes() const
 }
 
 // virtual
-std::set< CNode * >::const_iterator CSet::endNodes() const
+std::vector< CNode * >::const_iterator CSet::endNodes() const
 {
   if (mValid)
     return mpSetContent->endNodes();
@@ -197,7 +197,7 @@ std::set< CNode * >::const_iterator CSet::endNodes() const
 }
 
 // virtual
-const std::set< CEdge * > & CSet::getEdges() const
+const std::vector< CEdge * > & CSet::getEdges() const
 {
   if (mValid)
     return mpSetContent->getEdges();
@@ -206,7 +206,7 @@ const std::set< CEdge * > & CSet::getEdges() const
 }
 
 // virtual
-const std::set< CNode * > & CSet::getNodes() const
+const std::vector< CNode * > & CSet::getNodes() const
 {
   if (mValid)
     return mpSetContent->getNodes();
@@ -223,7 +223,7 @@ const std::map< CValueList::Type, CValueList > & CSet::getDBFieldValues() const
 }
 
 // virtual
-std::set< CEdge * > & CSet::getEdges()
+std::vector< CEdge * > & CSet::getEdges()
 {
   if (mValid)
     return mpSetContent->getEdges();
@@ -232,7 +232,7 @@ std::set< CEdge * > & CSet::getEdges()
 }
 
 // virtual
-std::set< CNode * > & CSet::getNodes()
+std::vector< CNode * > & CSet::getNodes()
 {
   if (mValid)
     return mpSetContent->getNodes();

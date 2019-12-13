@@ -153,15 +153,15 @@ void CActionEnsemble::process(const CSetContent & targets)
 
   end = mForEach.end();
 
-  std::set< CEdge * >::const_iterator itEdges = targets.beginEdges();
-  std::set< CEdge * >::const_iterator endEdges = targets.endEdges();
+  std::vector< CEdge * >::const_iterator itEdges = targets.beginEdges();
+  std::vector< CEdge * >::const_iterator endEdges = targets.endEdges();
 
   for (; itEdges != endEdges; ++itEdges)
     for (it = mForEach.begin(); it != end; ++it)
       (*it)->process(*itEdges);
 
-  std::set< CNode * >::const_iterator itNodes = targets.beginNodes();
-  std::set< CNode * >::const_iterator endNodes = targets.endNodes();
+  std::vector< CNode * >::const_iterator itNodes = targets.beginNodes();
+  std::vector< CNode * >::const_iterator endNodes = targets.endNodes();
 
   for (; itNodes != endNodes; ++itNodes)
     for (it = mForEach.begin(); it != end; ++it)

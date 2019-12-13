@@ -10,6 +10,7 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#include <algorithm>
 #include <cstring>
 #include <jansson.h>
 
@@ -133,12 +134,12 @@ void CSetContent::fromJSON(const json_t * json)
 
 bool CSetContent::contains(CNode * pNode) const
 {
-  return (mNodes.find(pNode) != mNodes.end());
+  return binary_search(beginNodes(), endNodes(), pNode);
 }
 
 bool CSetContent::contains(CEdge * pEdge) const
 {
-  return (mEdges.find(pEdge) != mEdges.end());
+  return binary_search(beginEdges(), endEdges(), pEdge);
 }
 
 bool CSetContent::contains(const CValueInterface & value) const
@@ -151,34 +152,34 @@ bool CSetContent::contains(const CValueInterface & value) const
   return false;
 }
 
-std::set< CEdge * >::const_iterator CSetContent::beginEdges() const
+std::vector< CEdge * >::const_iterator CSetContent::beginEdges() const
 {
   return mEdges.begin();
 }
 
-std::set< CEdge * >::const_iterator CSetContent::endEdges() const
+std::vector< CEdge * >::const_iterator CSetContent::endEdges() const
 {
   return mEdges.end();
 }
 
-std::set< CNode * >::const_iterator CSetContent::beginNodes() const
+std::vector< CNode * >::const_iterator CSetContent::beginNodes() const
 {
   return mNodes.begin();
 }
 
-std::set< CNode * >::const_iterator CSetContent::endNodes() const
+std::vector< CNode * >::const_iterator CSetContent::endNodes() const
 {
   return mNodes.end();
 }
 
 // virtual
-const std::set< CEdge * > & CSetContent::getEdges() const
+const std::vector< CEdge * > & CSetContent::getEdges() const
 {
   return mEdges;
 }
 
 // virtual
-const std::set< CNode * > & CSetContent::getNodes() const
+const std::vector< CNode * > & CSetContent::getNodes() const
 {
   return mNodes;
 }
@@ -189,13 +190,13 @@ const std::map< CValueList::Type, CValueList > & CSetContent::getDBFieldValues()
 }
 
 // virtual
-std::set< CEdge * > & CSetContent::getEdges()
+std::vector< CEdge * > & CSetContent::getEdges()
 {
   return mEdges;
 }
 
 // virtual
-std::set< CNode * > & CSetContent::getNodes()
+std::vector< CNode * > & CSetContent::getNodes()
 {
   return mNodes;
 }
@@ -223,8 +224,8 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
       double Requested = max;
       double Available = mNodes.size();
 
-      std::set< CNode * >::const_iterator it = mNodes.begin();
-      std::set< CNode * >::const_iterator end = mNodes.end();
+      std::vector< CNode * >::const_iterator it = mNodes.begin();
+      std::vector< CNode * >::const_iterator end = mNodes.end();
 
       for (; it != end; ++it)
         {
@@ -232,11 +233,11 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
               (Requested > 0.5 &&
                   Percent(CRandom::G) < Requested / Available))
             {
-              sampled.mNodes.insert(*it);
+              sampled.mNodes.push_back(*it);
               Requested -= 1.0;
             }
           else
-            notSampled.mNodes.insert(*it);
+            notSampled.mNodes.push_back(*it);
 
           Available -= 1.0;
         }
@@ -246,8 +247,8 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
       double Requested = max;
       double Available = mEdges.size();
 
-      std::set< CEdge * >::const_iterator it = mEdges.begin();
-      std::set< CEdge * >::const_iterator end = mEdges.end();
+      std::vector< CEdge * >::const_iterator it = mEdges.begin();
+      std::vector< CEdge * >::const_iterator end = mEdges.end();
 
       for (; it != end; ++it)
         {
@@ -255,11 +256,11 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
               (Requested > 0.5 &&
                   Percent(CRandom::G) < Requested / Available))
             {
-              sampled.mEdges.insert(*it);
+              sampled.mEdges.push_back(*it);
               Requested -= 1.0;
             }
           else
-            notSampled.mEdges.insert(*it);
+            notSampled.mEdges.push_back(*it);
 
           Available -= 1.0;
         }
@@ -281,26 +282,26 @@ void CSetContent::samplePercent(const double & percent, CSetContent & sampled, C
   // Sampling is ony supported if we have either only nodes or only edges;
   if (size() == getNodes().size())
     {
-      std::set< CNode * >::const_iterator it = getNodes().begin();
-      std::set< CNode * >::const_iterator end = getNodes().end();
+      std::vector< CNode * >::const_iterator it = getNodes().begin();
+      std::vector< CNode * >::const_iterator end = getNodes().end();
 
       for (; it != end; ++it)
         if (Percent(CRandom::G) < percent)
-          sampled.mNodes.insert(*it);
+          sampled.mNodes.push_back(*it);
         else
-          notSampled.mNodes.insert(*it);
+          notSampled.mNodes.push_back(*it);
 
     }
   else if (size() == getEdges().size())
     {
-      std::set< CEdge * >::const_iterator it = getEdges().begin();
-      std::set< CEdge * >::const_iterator end = getEdges().end();
+      std::vector< CEdge * >::const_iterator it = getEdges().begin();
+      std::vector< CEdge * >::const_iterator end = getEdges().end();
 
       for (; it != end; ++it)
         if (Percent(CRandom::G) < percent)
-          sampled.mEdges.insert(*it);
+          sampled.mEdges.push_back(*it);
         else
-          notSampled.mEdges.insert(*it);
+          notSampled.mEdges.push_back(*it);
     }
 }
 

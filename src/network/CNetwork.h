@@ -83,7 +83,8 @@ public:
 
   CCommunicate::ErrorCode receiveEdges(std::istream & is, int sender);
 
-  const size_t & getTotalNodes() const;
+  const size_t & getLocalNodeCount() const;
+  const size_t & getGlobalNodeCount() const;
 
   void writePartition(const size_t & partion,
                       const size_t & partCount,

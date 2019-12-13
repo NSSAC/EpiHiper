@@ -10,6 +10,7 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#include <algorithm>
 #include <cstring>
 #include <jansson.h>
 
@@ -512,24 +513,25 @@ void CNodeElementSelector::computeProtected()
 
 void CNodeElementSelector::nodeAll()
 {
-  std::set< CNode * > & Nodes = getNodes();
+  std::vector< CNode * > & Nodes = getNodes();
 
   if (Nodes.empty())
     {
+      Nodes.resize(CNetwork::INSTANCE->getLocalNodeCount());
       CNode * pNode = CNetwork::INSTANCE->beginNode();
-      CNode * pNodeEnd = CNetwork::INSTANCE->endNode();
+      std::vector< CNode * >::iterator it = Nodes.begin();
+      std::vector< CNode * >::iterator end = Nodes.end();
 
-      for (; pNode != pNodeEnd; ++pNode)
-        Nodes.insert(pNode);
+      for (; it != end; ++it, ++pNode)
+        *it = pNode;
     }
 
-  Nodes.erase(NULL);
   // std::cout << "nodeAll: " << Nodes.size() << std::endl;
 }
 
 void CNodeElementSelector::nodePropertySelection()
 {
-  std::set< CNode * > & Nodes = getNodes();
+  std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
 
   CNode * pNode = CNetwork::INSTANCE->beginNode();
@@ -537,15 +539,14 @@ void CNodeElementSelector::nodePropertySelection()
 
   for (; pNode != pNodeEnd; ++pNode)
     if (mpComparison(mNodeProperty.propertyOf(pNode), *mpValue))
-      Nodes.insert(pNode);
+      Nodes.push_back(pNode);
 
-  Nodes.erase(NULL);
   // std::cout << "nodePropertySelection (" << *mpValue << "): " << Nodes.size() << std::endl;
 }
 
 void CNodeElementSelector::nodePropertyWithin()
 {
-  std::set< CNode * > & Nodes = getNodes();
+  std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
 
   CNode * pNode = CNetwork::INSTANCE->beginNode();
@@ -553,35 +554,34 @@ void CNodeElementSelector::nodePropertyWithin()
 
   for (; pNode != pNodeEnd; ++pNode)
     if (mpValueList->contains(mNodeProperty.propertyOf(pNode)))
-      Nodes.insert(pNode);
+      Nodes.push_back(pNode);
 
-  Nodes.erase(NULL);
   // std::cout << "nodePropertyWithin: " << Nodes.size() << std::endl;
 }
 
 void CNodeElementSelector::nodeWithIncomingEdge()
 {
-  std::set< CNode * > & Nodes = getNodes();
+  std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
 
   CNode * pNode = NULL;
-  std::set< CEdge * >::const_iterator it = mpSelector->beginEdges();
-  std::set< CEdge * >::const_iterator end = mpSelector->endEdges();
+  std::vector< CEdge * >::const_iterator it = mpSelector->beginEdges();
+  std::vector< CEdge * >::const_iterator end = mpSelector->endEdges();
 
   for (; it != end; ++it)
     if ((*it)->pTarget != pNode)
       {
         pNode = (*it)->pTarget;
-        Nodes.insert(pNode);
+        Nodes.push_back(pNode);
       }
 
-  Nodes.erase(NULL);
+  std::sort(Nodes.begin(), Nodes.end());
   // std::cout << "nodeWithIncomingEdge: " << Nodes.size() << std::endl;
 }
 
 void CNodeElementSelector::nodeInDBTable()
 {
-  std::set< CNode * > & Nodes = getNodes();
+  std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
 
   CFieldValueList FieldValueList;
@@ -589,19 +589,20 @@ void CNodeElementSelector::nodeInDBTable()
 
   CFieldValueList::const_iterator it = FieldValueList.begin();
   CFieldValueList::const_iterator end = FieldValueList.end();
+  CNode * pNode;
 
   for (; it != end; ++it)
     {
-      Nodes.insert(CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope));
+      if ((pNode = CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope)) != NULL)
+        Nodes.push_back(pNode);
     }
 
-  Nodes.erase(NULL);
   // std::cout << "nodeInDBTable: " << Nodes.size() << std::endl;
 }
 
 void CNodeElementSelector::nodeWithDBFieldSelection()
 {
-  std::set< CNode * > & Nodes = getNodes();
+  std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
 
   CFieldValueList FieldValueList;
@@ -613,19 +614,19 @@ void CNodeElementSelector::nodeWithDBFieldSelection()
 
   CFieldValueList::const_iterator it = FieldValueList.begin();
   CFieldValueList::const_iterator end = FieldValueList.end();
+  CNode * pNode;
 
   for (; it != end; ++it)
     {
-      Nodes.insert(CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope));
+      if ((pNode = CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope)) != NULL)
+        Nodes.push_back(pNode);
     }
-
-  Nodes.erase(NULL);
   // std::cout << "nodeWithDBFieldSelection: " << Nodes.size() << std::endl;
 }
 
 void CNodeElementSelector::nodeWithDBFieldWithin()
 {
-  std::set< CNode * > & Nodes = getNodes();
+  std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
 
   CFieldValueList FieldValueList;
@@ -644,19 +645,19 @@ void CNodeElementSelector::nodeWithDBFieldWithin()
 
   CFieldValueList::const_iterator it = FieldValueList.begin();
   CFieldValueList::const_iterator end = FieldValueList.end();
+  CNode * pNode;
 
   for (; it != end; ++it)
     {
-      Nodes.insert(CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope));
+      if ((pNode = CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope)) != NULL)
+        Nodes.push_back(pNode);
     }
-
-  Nodes.erase(NULL);
   // std::cout << "nodeWithDBFieldWithin: " << Nodes.size() << std::endl;
 }
 
 void CNodeElementSelector::nodeWithDBFieldNotWithin()
 {
-  std::set< CNode * > & Nodes = getNodes();
+  std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
 
   CFieldValueList FieldValueList;
@@ -675,12 +676,12 @@ void CNodeElementSelector::nodeWithDBFieldNotWithin()
 
   CFieldValueList::const_iterator it = FieldValueList.begin();
   CFieldValueList::const_iterator end = FieldValueList.end();
+  CNode * pNode;
 
   for (; it != end; ++it)
     {
-      Nodes.insert(CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope));
+      if ((pNode = CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope)) != NULL)
+        Nodes.push_back(pNode);
     }
-
-  Nodes.erase(NULL);
   // std::cout << "nodeWithDBFieldNotWithin: " << Nodes.size() << std::endl;
 }
