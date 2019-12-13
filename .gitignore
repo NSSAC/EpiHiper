@@ -12,3 +12,7 @@ sciduct/build/
 *.simg
 
 sciduct/data/
+
+sciduct/build.log
+
+sciduct/epihiper.sif
