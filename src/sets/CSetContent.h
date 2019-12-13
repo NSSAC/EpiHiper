@@ -23,14 +23,18 @@ class CSetContent: public CComputable
 {
 public:
   static CSetContent * create(const json_t * json);
-  static CSetContent * copy(const CSetContent * pSetContent);
+  // static CSetContent * copy(const CSetContent * pSetContent);
   static void destroy(CSetContent *& pSetContent);
 
+protected:
   CSetContent();
 
   CSetContent(const CSetContent & src);
 
+public:
   virtual ~CSetContent();
+
+  virtual CSetContent * copy() const = 0;
 
   virtual void computeProtected();
 

@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "math/CValueList.h"
+#include "math/CComputable.h"
 
 class CObservable;
 class CNodeProperty;
@@ -87,6 +88,8 @@ private:
   };
 
 public:
+  static CComputableSet RequiredComputables;
+
   /**
    * Default constructor
    */
@@ -100,7 +103,6 @@ public:
 
   CConditionDefinition(const json_t * json);
 
-public:
   /**
    * Destructor
    */

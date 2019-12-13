@@ -38,6 +38,8 @@ public:
 
   virtual ~CSet();
 
+  virtual CSetContent * copy() const;
+
   const std::string & getId() const;
 
   const bool & isValid() const;

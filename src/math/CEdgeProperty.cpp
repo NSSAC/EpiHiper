@@ -135,6 +135,11 @@ COperation * CEdgeProperty::createOperation(CEdge * pEdge, const CValueInterface
   return (this->*mpCreateOperation)(pEdge, value, pOperator);
 }
 
+const bool CEdgeProperty::isReadOnly() const
+{
+  return mpPropertyOf == &CEdgeProperty::targetActivity || mpPropertyOf == &CEdgeProperty::sourceActivity;
+}
+
 CValueInterface &  CEdgeProperty::targetActivity(CEdge * pEdge)
 {
   mpValue = &pEdge->targetActivity;

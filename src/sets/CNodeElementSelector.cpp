@@ -26,54 +26,54 @@
 #include "actions/CActionQueue.h"
 
 CNodeElementSelector::CNodeElementSelector()
-: CSetContent()
-, mNodeProperty()
-, mpValue(NULL)
-, mpValueList(NULL)
-, mpSelector(NULL)
-, mDBTable()
-, mDBField()
-, mpObservable(NULL)
-, mpDBFieldValue(NULL)
-, mpDBFieldValueList(NULL)
-, mpComparison(NULL)
-, mSQLComparison("")
-, mLocalScope(true)
-, mpCompute(NULL)
+  : CSetContent()
+  , mNodeProperty()
+  , mpValue(NULL)
+  , mpValueList(NULL)
+  , mpSelector(NULL)
+  , mDBTable()
+  , mDBField()
+  , mpObservable(NULL)
+  , mpDBFieldValue(NULL)
+  , mpDBFieldValueList(NULL)
+  , mpComparison(NULL)
+  , mSQLComparison("")
+  , mLocalScope(true)
+  , mpCompute(NULL)
 {}
 
 CNodeElementSelector::CNodeElementSelector(const CNodeElementSelector & src)
-: CSetContent(src)
-, mNodeProperty(src.mNodeProperty)
-, mpValue(src.mpValue != NULL ? new CValue(*src.mpValue) : NULL)
-, mpValueList(src.mpValueList != NULL ? new CValueList(*src.mpValueList) : NULL)
-, mpSelector(CSetContent::copy(src.mpSelector))
-, mDBTable(src.mDBTable)
-, mDBField(src.mDBField)
-, mpObservable(src.mpObservable != NULL ? new CObservable(*src.mpObservable) : NULL)
-, mpDBFieldValue(src.mpDBFieldValue != NULL ? new CFieldValue(*src.mpDBFieldValue) : NULL)
-, mpDBFieldValueList(src.mpDBFieldValueList != NULL ? new CFieldValueList(*src.mpDBFieldValueList) : NULL)
-, mpComparison(src.mpComparison)
-, mSQLComparison(src.mSQLComparison)
-, mLocalScope(src.mLocalScope)
-, mpCompute(src.mpCompute)
+  : CSetContent(src)
+  , mNodeProperty(src.mNodeProperty)
+  , mpValue(src.mpValue != NULL ? new CValue(*src.mpValue) : NULL)
+  , mpValueList(src.mpValueList != NULL ? new CValueList(*src.mpValueList) : NULL)
+  , mpSelector(src.mpSelector != NULL ? src.mpSelector->copy() : NULL)
+  , mDBTable(src.mDBTable)
+  , mDBField(src.mDBField)
+  , mpObservable(src.mpObservable != NULL ? new CObservable(*src.mpObservable) : NULL)
+  , mpDBFieldValue(src.mpDBFieldValue != NULL ? new CFieldValue(*src.mpDBFieldValue) : NULL)
+  , mpDBFieldValueList(src.mpDBFieldValueList != NULL ? new CFieldValueList(*src.mpDBFieldValueList) : NULL)
+  , mpComparison(src.mpComparison)
+  , mSQLComparison(src.mSQLComparison)
+  , mLocalScope(src.mLocalScope)
+  , mpCompute(src.mpCompute)
 {}
 
 CNodeElementSelector::CNodeElementSelector(const json_t * json)
-: CSetContent()
-, mNodeProperty()
-, mpValue(NULL)
-, mpValueList(NULL)
-, mpSelector(NULL)
-, mDBTable()
-, mDBField()
-, mpObservable(NULL)
-, mpDBFieldValue(NULL)
-, mpDBFieldValueList(NULL)
-, mpComparison(NULL)
-, mSQLComparison("")
-, mLocalScope(true)
-, mpCompute(NULL)
+  : CSetContent()
+  , mNodeProperty()
+  , mpValue(NULL)
+  , mpValueList(NULL)
+  , mpSelector(NULL)
+  , mDBTable()
+  , mDBField()
+  , mpObservable(NULL)
+  , mpDBFieldValue(NULL)
+  , mpDBFieldValueList(NULL)
+  , mpComparison(NULL)
+  , mSQLComparison("")
+  , mLocalScope(true)
+  , mpCompute(NULL)
 {
   fromJSON(json);
 }
@@ -85,6 +85,12 @@ CNodeElementSelector::~CNodeElementSelector()
   CSetContent::destroy(mpSelector);
   if (mpDBFieldValue != NULL) delete mpDBFieldValue;
   if (mpDBFieldValueList != NULL) delete mpDBFieldValueList;
+}
+
+// virtual
+CSetContent * CNodeElementSelector::copy() const
+{
+  return new CNodeElementSelector(*this);
 }
 
 // virtual

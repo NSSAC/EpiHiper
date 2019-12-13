@@ -34,7 +34,7 @@ CEdgeElementSelector::CEdgeElementSelector(const CEdgeElementSelector & src)
   , mLeft(src.mLeft)
   , mpValue(src.mpValue != NULL ? new CValue(*src.mpValue) : NULL)
   , mpValueList(src.mpValueList != NULL ? new CValueList(*src.mpValueList) : NULL)
-  , mpSelector(CSetContent::copy(src.mpSelector))
+  , mpSelector(src.mpSelector != NULL ? src.mpSelector->copy() : NULL)
   , mpComparison(src.mpComparison)
   , mpGetNode(src.mpGetNode)
 {}
@@ -56,6 +56,12 @@ CEdgeElementSelector::~CEdgeElementSelector()
   if (mpValue != NULL) delete mpValue;
   if (mpValueList != NULL) delete mpValueList;
   CSetContent::destroy(mpSelector);
+}
+
+// virtual
+CSetContent * CEdgeElementSelector::copy() const
+{
+  return new CEdgeElementSelector(*this);
 }
 
 // virtual
@@ -111,6 +117,9 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
       mpValue = new CValue(json_object_get(json, "right"));
       mValid &= (mpValue != NULL && mpValue->isValid());
 
+      if (mLeft.isReadOnly())
+        mStatic = true;
+
       return;
     }
 
@@ -121,6 +130,9 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
       mValid &= mLeft.isValid();
       mpValueList = new CValueList(json_object_get(json, "right"));
       mValid &= (mpValueList != NULL && mpValueList->isValid());
+
+      if (mLeft.isReadOnly())
+        mStatic = true;
 
       return;
     }

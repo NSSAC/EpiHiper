@@ -33,23 +33,24 @@ CObservable * CObservable::get(const CObservable::ObservableType & observableTyp
 // static
 CObservable * CObservable::get(const json_t * json)
 {
-  static CObservable Observable;
-  Observable.fromJSON(json);
+  CObservable * pNew = new CObservable(json);
 
-  if (!Observable.isValid())
+  if (!pNew->isValid())
     {
+      delete pNew;
       return NULL;
     }
 
-  CObservable * pObservable = get(Observable.mObservableType, Observable.mId);
+  CObservable * pExisting = get(pNew->mObservableType, pNew->mId);
 
-  if (pObservable == NULL)
+  if (pExisting == NULL)
     {
-      pObservable = new CObservable(json);
-      Observables[std::make_pair(Observable.mId, Observable.mObservableType)] = pObservable;
+      Observables[std::make_pair(pNew->mId, pNew->mObservableType)] = pNew;
+      return pNew;
     }
 
-  return pObservable;
+  delete pNew;
+  return pExisting;
 }
 
 CObservable::CObservable()

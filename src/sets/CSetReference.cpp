@@ -41,6 +41,12 @@ CSetReference::~CSetReference()
 {}
 
 // virtual
+CSetContent * CSetReference::copy() const
+{
+  return new CSetReference(*this);
+}
+
+// virtual
 void CSetReference::fromJSON(const json_t * json)
 {
   /*

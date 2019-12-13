@@ -15,6 +15,7 @@
 #include "math/CDependencyNode.h"
 #include "math/CDependencyGraph.h"
 #include "actions/CActionQueue.h"
+#include "actions/CConditionDefinition.h"
 
 // Uncomment this line below to get debug print out.
 // #define DEBUG_OUTPUT 1
@@ -45,24 +46,43 @@ void CDependencyGraph::buildGraph()
         Requested.insert(it->second);
     }
 
-  INSTANCE.getUpdateSequence(UPDATE_SEQUENCE, Changed, Requested);
+  INSTANCE.getUpdateSequence(UpdateSequence, Changed, CConditionDefinition::RequiredComputables);
+
+  UpToDate.clear();
+
+  CComputable::Sequence::iterator itSeq = UpdateSequence.begin();
+  CComputable::Sequence::iterator endSeq = UpdateSequence.end();
+
+  for (; itSeq != endSeq; ++itSeq)
+    UpToDate.insert(*itSeq);
 }
 
 // static
 void CDependencyGraph::applyUpdateSequence()
 {
-  CComputable::Sequence::iterator it = UPDATE_SEQUENCE.begin();
-  CComputable::Sequence::iterator end = UPDATE_SEQUENCE.end();
+  applyUpdateSequence(UpdateSequence);
+}
+
+// static
+void CDependencyGraph::applyUpdateSequence(CComputable::Sequence & updateSequence)
+{
+  CComputable::Sequence::iterator it = updateSequence.begin();
+  CComputable::Sequence::iterator end = updateSequence.end();
 
   for (; it != end; ++it)
     (*it)->compute();
 }
 
 // static
-void CDependencyGraph::addRequested(CComputable * pComputable)
+bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
+                                         const CComputableSet & requestedComputables)
 {
-  REQUESTED.insert(pComputable);
+  CComputableSet Changed;
+  Changed.insert(&CActionQueue::getCurrentTick());
+
+  return INSTANCE.getUpdateSequence(updateSequence, Changed, requestedComputables, UpToDate);
 }
+
 
 CDependencyGraph::CDependencyGraph()
   : mComputables2Nodes()

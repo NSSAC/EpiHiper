@@ -31,7 +31,7 @@ CSetOperation::CSetOperation(const CSetOperation & src)
   std::set< CSetContent * >::const_iterator end = src.mSets.end();
 
   for (; it != end; ++it)
-    mSets.insert(CSetContent::copy(*it));
+    mSets.insert((*it)->copy());
 
   mSets.erase(NULL);
 }
@@ -57,6 +57,12 @@ CSetOperation::~CSetOperation()
     }
 
   mSets.clear();
+}
+
+// virtual
+CSetContent * CSetOperation::copy() const
+{
+  return new CSetOperation(*this);
 }
 
 // virtual

@@ -33,7 +33,10 @@ public:
 
   static void applyUpdateSequence();
 
-  static void addRequested(CComputable * pComputable);
+  static void applyUpdateSequence(CComputable::Sequence & updateSequence);
+
+  static bool getUpdateSequence(CComputable::Sequence & updateSequence,
+                                const CComputableSet & requestedComputables);
 
   // Operations
   /**
@@ -146,9 +149,8 @@ public:
 
 private:
   static CDependencyGraph INSTANCE;
-  static CComputable::Sequence UPDATE_SEQUENCE;
-  static CComputableSet REQUESTED;
-
+  static CComputable::Sequence UpdateSequence;
+  static CComputableSet UpToDate;
 
   std::string getDOTNodeId(const CComputable * pComputable) const;
 

@@ -43,6 +43,8 @@ public:
 
   COperation * createOperation(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator);
 
+  const bool isReadOnly() const;
+
   static CNode * targetNode(CEdge * pEdge);
 
   static CNode * sourceNode(CEdge * pEdge);

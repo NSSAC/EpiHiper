@@ -16,6 +16,7 @@
 #include "intervention/CIntervention.h"
 #include "utilities/CSimConfig.h"
 #include "actions/CCondition.h"
+#include "math/CDependencyGraph.h"
 
 // static
 void CTrigger::loadJSON(const json_t * json)
@@ -64,6 +65,8 @@ void CTrigger::release()
 // static
 void CTrigger::processAll()
 {
+  RequiredTargets.clear();
+
   if (pGlobalTriggered == NULL)
     {
       pGlobalTriggered = new bool[INSTANCES.size()];
@@ -94,6 +97,10 @@ void CTrigger::processAll()
         (*it)->trigger(*pTriggered);
       }
   }
+
+  CComputable::Sequence UpdateSequence;
+  CDependencyGraph::getUpdateSequence(UpdateSequence, RequiredTargets);
+  CDependencyGraph::applyUpdateSequence(UpdateSequence);
 }
 
 // static
@@ -161,6 +168,7 @@ void CTrigger::trigger(const bool & triggers)
       for (; it != end; ++it)
         {
           it->second->trigger();
+          RequiredTargets.insert(it->second->getTarget());
         }
     }
 }

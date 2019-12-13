@@ -10,6 +10,8 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#include <iostream>
+
 #include "math/CComputableSet.h"
 #include "math/CComputable.h"
 

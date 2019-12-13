@@ -46,6 +46,8 @@ public:
 
   void process();
 
+  CSetContent * getTarget();
+
 private:
   CSetContent * mpTarget;
   CActionEnsemble mActionEnsemble;

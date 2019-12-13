@@ -90,6 +90,7 @@ CSetContent * CSetContent::create(const json_t * json)
 }
 
 // static
+/*
 CSetContent * CSetContent::copy(const CSetContent * pSetContent)
 {
   if (dynamic_cast< const CEdgeElementSelector * >(pSetContent) != NULL)
@@ -109,6 +110,7 @@ CSetContent * CSetContent::copy(const CSetContent * pSetContent)
 
   return NULL;
 }
+*/
 
 // static
 void CSetContent::destroy(CSetContent *& pSetContent)

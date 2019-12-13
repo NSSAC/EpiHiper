@@ -18,6 +18,28 @@
 #include "actions/CActionEnsemble.h"
 #include "sets/CSetContent.h"
 
+CSampling::CSampled::CSampled()
+  : CSetContent()
+{
+  CComputable::Instances.erase(this);
+}
+
+CSampling::CSampled::CSampled(const CSampled & src)
+  : CSetContent(src)
+{
+  CComputable::Instances.erase(this);
+}
+
+// virtual
+CSampling::CSampled::~CSampled()
+{}
+
+// virtual
+CSetContent * CSampling::CSampled::copy() const
+{
+  return new CSampled(*this);
+}
+
 CSampling::CSampling()
   : mType()
   , mPercentage()

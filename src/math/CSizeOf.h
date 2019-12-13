@@ -58,7 +58,6 @@ private:
 
   CSetContent * mpSetContent;
   size_t mIndex;
-  bool mValid;
 };
 
 #endif /* SRC_MATH_CSIZEOF_H_ */

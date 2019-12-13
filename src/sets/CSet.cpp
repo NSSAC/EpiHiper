@@ -23,7 +23,7 @@ CSet::CSet(const CSet & src)
   , CAnnotation(src)
   , mId(src.mId)
   , mType(src.mType)
-  , mpSetContent(CSetContent::copy(src.mpSetContent))
+  , mpSetContent(src.mpSetContent != NULL ? src.mpSetContent->copy() : NULL)
   , mValid(src.mValid)
 {}
 
@@ -42,6 +42,12 @@ CSet::CSet(const json_t * json)
 CSet::~CSet()
 {
   CSetContent::destroy(mpSetContent);
+}
+
+// virtual
+CSetContent * CSet::copy() const
+{
+  return new CSet(*this);
 }
 
 const std::string & CSet::getId() const

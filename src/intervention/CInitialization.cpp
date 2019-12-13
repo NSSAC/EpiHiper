@@ -93,7 +93,18 @@ void CInitialization::processAll()
   std::vector< CInitialization * >::iterator it = INSTANCES.begin();
   std::vector< CInitialization * >::iterator end = INSTANCES.end();
 
+  CComputableSet RequiredTargets;
+
   for (; it != end; ++it)
+    {
+      RequiredTargets.insert((*it)->getTarget());
+    }
+
+  CComputable::Sequence InitializationSequence;
+  CDependencyGraph::getUpdateSequence(InitializationSequence, RequiredTargets);
+  CDependencyGraph::applyUpdateSequence(InitializationSequence);
+
+  for (it = INSTANCES.begin(); it != end; ++it)
     {
       (*it)->process();
     }
@@ -108,7 +119,7 @@ CInitialization::CInitialization()
 
 CInitialization::CInitialization(const CInitialization & src)
   : CAnnotation(src)
-  , mpTarget(CSetContent::copy(src.mpTarget))
+  , mpTarget(src.mpTarget != NULL ? src.mpTarget->copy() : NULL)
   , mActionEnsemble(src.mActionEnsemble)
   , mValid(src.mValid)
 {}
@@ -164,17 +175,17 @@ void CInitialization::fromJSON(const json_t * json)
             mpTarget->isValid() &&
             mActionEnsemble.isValid());
 
-  if (mValid)
-    {
-      CDependencyGraph::addRequested(mpTarget);
-    }
-
   CAnnotation::fromJSON(json);
 }
 
 void CInitialization::process()
 {
   mActionEnsemble.process(*mpTarget);
+}
+
+CSetContent * CInitialization::getTarget()
+{
+  return mpTarget;
 }
 
 const bool & CInitialization::isValid() const

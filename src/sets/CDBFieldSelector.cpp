@@ -33,7 +33,7 @@ CDBFieldSelector::CDBFieldSelector(const CDBFieldSelector & src)
   , mTable()
   , mField()
   , mFieldType(src.mFieldType)
-  , mpSelector(CSetContent::copy(src.mpSelector))
+  , mpSelector(src.mpSelector != NULL ? src.mpSelector->copy() : NULL)
 {}
 
 CDBFieldSelector::CDBFieldSelector(const json_t * json)
@@ -49,6 +49,12 @@ CDBFieldSelector::CDBFieldSelector(const json_t * json)
 CDBFieldSelector::~CDBFieldSelector()
 {
   CSetContent::destroy(mpSelector);
+}
+
+// virtual
+CSetContent * CDBFieldSelector::copy() const
+{
+  return new CDBFieldSelector(*this);
 }
 
 // virtual

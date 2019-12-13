@@ -27,6 +27,8 @@ public:
 
   virtual ~CDBFieldSelector();
 
+  virtual CSetContent * copy() const;
+
   virtual void fromJSON(const json_t * json);
 
   virtual void computeProtected();

@@ -14,6 +14,7 @@
 #include "actions/CActionDefinition.h"
 #include "actions/CActionQueue.h"
 #include "actions/Changes.h"
+#include "actions/CConditionDefinition.h"
 #include "db/CConnection.h"
 #include "db/CSchema.h"
 #include "diseaseModel/CModel.h"
@@ -36,6 +37,9 @@
 
 // static
 std::vector< CActionDefinition * > CActionDefinition::INSTANCES;
+
+// static
+CComputableSet CConditionDefinition::RequiredComputables;
 
 // static
 CActionQueue * CActionQueue::pINSTANCE(NULL);
@@ -74,16 +78,19 @@ std::vector< CTrigger * > CTrigger::INSTANCES;
 bool * CTrigger::pGlobalTriggered(NULL);
 
 // static
+CComputableSet CTrigger::RequiredTargets;
+
+// static
 CComputableSet CComputable::Instances;
 
 // static
 CDependencyGraph CDependencyGraph::INSTANCE;
 
 // static
-CComputableSet CDependencyGraph::REQUESTED;
+CComputable::Sequence CDependencyGraph::UpdateSequence;
 
 // static
-CComputable::Sequence CDependencyGraph::UPDATE_SEQUENCE;
+CComputableSet CDependencyGraph::UpToDate;
 
 // static
 CObservable::ObservableMap CObservable::Observables;

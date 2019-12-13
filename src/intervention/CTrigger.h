@@ -31,6 +31,8 @@ public:
 
   static bool * pGlobalTriggered;
 
+  static CComputableSet RequiredTargets;
+
   static void loadJSON(const json_t * json);
 
   static void release();

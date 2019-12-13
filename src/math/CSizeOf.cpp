@@ -28,15 +28,13 @@ CSizeOf::CSizeOf()
   , CComputable()
   , mpSetContent(NULL)
   , mIndex(std::numeric_limits< size_t >::max())
-  , mValid(false)
 {}
 
 CSizeOf::CSizeOf(const CSizeOf & src)
   : CValue(src)
   , CComputable(src)
-  , mpSetContent(CSetContent::copy(src.mpSetContent))
+  , mpSetContent(src.mpSetContent != NULL ? src.mpSetContent->copy() : NULL)
   , mIndex(src.mIndex)
-  , mValid(src.mValid)
 {}
 
 CSizeOf::CSizeOf(const json_t * json)
@@ -44,7 +42,6 @@ CSizeOf::CSizeOf(const json_t * json)
   , CComputable()
   , mpSetContent(NULL)
   , mIndex(std::numeric_limits< size_t >::max())
-  , mValid(false)
 {
   fromJSON(json);
 

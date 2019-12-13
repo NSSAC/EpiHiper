@@ -21,6 +21,18 @@ class CActionEnsemble;
 
 class CSampling
 {
+  class CSampled : public CSetContent
+  {
+  public:
+    CSampled();
+
+    CSampled(const CSampled & src);
+
+    virtual ~CSampled();
+
+    virtual CSetContent * copy() const;
+  };
+
 public:
   enum struct Type
   {
@@ -54,8 +66,8 @@ private:
   CActionEnsemble * mpSampled;
   CActionEnsemble * mpNotSampled;
   CSetContent const * mpTargets;
-  CSetContent mSampledTargets;
-  CSetContent mNotSampledTargets;
+  CSampled mSampledTargets;
+  CSampled mNotSampledTargets;
   size_t mLocalLimit;
   size_t * mpCommunicateBuffer;
 

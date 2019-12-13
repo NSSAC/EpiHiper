@@ -102,6 +102,7 @@ void CConditionDefinition::ValueInstance::fromJSON(const json_t * json)
       pObservable->isValid())
     {
       type = ValueType::Observable;
+      RequiredComputables.insert(pObservable);
       return;
     }
 
@@ -144,6 +145,7 @@ void CConditionDefinition::ValueInstance::fromJSON(const json_t * json)
   if (pSizeOf->isValid())
     {
       type = ValueType::Sizeof;
+      RequiredComputables.insert(pSizeOf);
       return;
     }
 
