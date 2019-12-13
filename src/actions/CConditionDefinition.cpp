@@ -585,7 +585,7 @@ void CConditionDefinition::comparisonFromJSON(const json_t * json)
     }
 }
 
-CCondition CConditionDefinition::createCondition(const CNode * pNode) const
+CCondition * CConditionDefinition::createCondition(const CNode * pNode) const
 {
   switch (mType)
   {
@@ -593,22 +593,22 @@ CCondition CConditionDefinition::createCondition(const CNode * pNode) const
     case BooleanOperationType::Or:
     case BooleanOperationType::Not:
       {
-        std::vector< CBoolean * > Vector;
+        std::vector< CCondition * > Vector;
         std::vector< CConditionDefinition >::const_iterator it = mBooleanValues.begin();
         std::vector< CConditionDefinition >::const_iterator end = mBooleanValues.end();
 
         for (; it != end; ++it)
           {
-            Vector.push_back(it->createCondition(pNode).copy());
+            Vector.push_back(it->createCondition(pNode));
           }
 
-        return CCondition::CBooleanOperation(mType, Vector);
+        return new CBooleanOperation(mType, Vector);
       }
       break;
 
 
     case BooleanOperationType::Value:
-      return CCondition::CBooleanValue(mValue);
+      return new CBooleanValue(mValue);
       break;
 
     case BooleanOperationType::Comparison:
@@ -621,21 +621,21 @@ CCondition CConditionDefinition::createCondition(const CNode * pNode) const
           CValueInterface * pRight = mRight.value(pNode);
 
           if (pLeft != NULL && pRight != NULL)
-            return CCondition::CComparison(mComparison, pLeft, pRight);
+            return new CComparison(mComparison, pLeft, pRight);
         }
       else if (mRight.pValueList != NULL &&
                 pLeft != NULL)
         {
-          return CCondition::CContainedIn(mComparison, pLeft, *mRight.pValueList);
+          return new CContainedIn(mComparison, pLeft, *mRight.pValueList);
         }
       }
       break;
   }
 
-  return CCondition::CBooleanValue(true);
+  return new CBooleanValue(true);
 }
 
-CCondition CConditionDefinition::createCondition(const CEdge * pEdge) const
+CCondition * CConditionDefinition::createCondition(const CEdge * pEdge) const
 {
   switch (mType)
   {
@@ -643,21 +643,21 @@ CCondition CConditionDefinition::createCondition(const CEdge * pEdge) const
     case BooleanOperationType::Or:
     case BooleanOperationType::Not:
       {
-        std::vector< CBoolean * > Vector;
+        std::vector< CCondition * > Vector;
         std::vector< CConditionDefinition >::const_iterator it = mBooleanValues.begin();
         std::vector< CConditionDefinition >::const_iterator end = mBooleanValues.end();
 
         for (; it != end; ++it)
           {
-            Vector.push_back(it->createCondition(pEdge).copy());
+            Vector.push_back(it->createCondition(pEdge));
           }
 
-        return CCondition::CBooleanOperation(mType, Vector);
+        return new CBooleanOperation(mType, Vector);
       }
       break;
 
     case BooleanOperationType::Value:
-      return CCondition::CBooleanValue(mValue);
+      return new CBooleanValue(mValue);
       break;
 
     case BooleanOperationType::Comparison:
@@ -670,18 +670,18 @@ CCondition CConditionDefinition::createCondition(const CEdge * pEdge) const
             CValueInterface * pRight = mRight.value(pEdge);
 
             if (pLeft != NULL && pRight != NULL)
-              return CCondition::CComparison(mComparison, pLeft, pRight);
+              return new CComparison(mComparison, pLeft, pRight);
           }
         else if (mRight.pValueList != NULL &&
                   pLeft != NULL)
           {
-            return CCondition::CContainedIn(mComparison, pLeft, *mRight.pValueList);
+            return new CContainedIn(mComparison, pLeft, *mRight.pValueList);
           }
       }
       break;
   }
 
-  return CCondition::CBooleanValue(true);
+  return new CBooleanValue(true);
 }
 
 const bool & CConditionDefinition::isValid() const

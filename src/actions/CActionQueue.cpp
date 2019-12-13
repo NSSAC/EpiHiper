@@ -28,9 +28,16 @@ void CActionQueue::init()
 
 
 // static
-void CActionQueue::addAction(size_t deltaTick, const CAction & action)
+void CActionQueue::addAction(size_t deltaTick, CAction * pAction)
 {
-  pINSTANCE->operator [](pINSTANCE->mCurrenTick + deltaTick).addAction(action);
+  base::iterator found = pINSTANCE->find(pINSTANCE->mCurrenTick + deltaTick);
+
+  if (found == pINSTANCE->end())
+    {
+      found = pINSTANCE->insert(std::make_pair(pINSTANCE->mCurrenTick + deltaTick, new CCurrentActions())).first;
+    }
+
+  found->second->addAction(pAction);
 }
 
 // static
@@ -41,11 +48,22 @@ bool CActionQueue::processCurrentActions()
   // We need to enter the loop at least once
   do
     {
-      CCurrentActions Actions = pINSTANCE->operator [](pINSTANCE->mCurrenTick);
+      CCurrentActions * pActions = NULL;
+      base::iterator found = pINSTANCE->find(pINSTANCE->mCurrenTick);
+
+      if (found != pINSTANCE->end())
+        {
+          pActions = found->second;
+        }
+      else
+        {
+          pActions = new CCurrentActions();
+        }
+
       pINSTANCE->erase(pINSTANCE->mCurrenTick);
 
-      CCurrentActions::iterator it = Actions.begin();
-      CCurrentActions::iterator end = Actions.end();
+      CCurrentActions::iterator it = pActions->begin();
+      CCurrentActions::iterator end = pActions->end();
 
       for (; it != end; it.next())
         if (it->getCondition().isTrue())
@@ -58,6 +76,8 @@ bool CActionQueue::processCurrentActions()
                 success &= (*itOperation)->execute();
               }
           }
+
+      delete pActions;
 
       // MPI Broadcast scheduled remote actions and whether local actions are pending
       pINSTANCE->broadcastPendingActions();
@@ -72,7 +92,14 @@ bool CActionQueue::processCurrentActions()
 // static
 size_t CActionQueue::pendingActions()
 {
-  return pINSTANCE->operator [](pINSTANCE->mCurrenTick).size();
+  base::iterator found = pINSTANCE->find(pINSTANCE->mCurrenTick);
+
+  if (found == pINSTANCE->end())
+    {
+      return 0;
+    }
+
+  return found->second->size();
 }
 
 // static
@@ -113,7 +140,7 @@ void CActionQueue::addRemoteAction(const size_t & index, const CEdge * pEdge)
 
 
 CActionQueue::CActionQueue()
-  : std::map< int, CCurrentActions >()
+  : base()
   , mCurrenTick(-1)
   , mTotalPendingActions(0)
 {}

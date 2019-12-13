@@ -20,26 +20,11 @@
 #include "actions/CAction.h"
 
 CAction::CAction(const double & priority,
-               const CCondition & condition)
+                CCondition * pCondition)
   : mPriority(priority)
-  , mCondition(condition)
+  , mpCondition(pCondition)
   , mOperations()
 {}
-
-CAction::CAction(const CAction & src)
-  : mPriority(src.mPriority)
-  , mCondition(src.mCondition)
-  , mOperations(src.mOperations.size())
-{
-  std::vector< COperation * >::const_iterator itSrc = src.mOperations.begin();
-  std::vector< COperation * >::iterator it = mOperations.begin();
-  std::vector< COperation * >::iterator end = mOperations.end();
-
-  for (; it != end; ++it, ++itSrc)
-    {
-      *it = (*itSrc)->copy();
-    }
-}
 
 // virtual
 CAction::~CAction()
@@ -48,8 +33,7 @@ CAction::~CAction()
   std::vector< COperation * >::iterator end = mOperations.end();
 
   for (; it != end; ++it)
-    if (*it != NULL)
-      delete *it;
+    delete *it;
 }
 
 double CAction::getPriority() const
@@ -59,7 +43,7 @@ double CAction::getPriority() const
 
 const CCondition & CAction::getCondition() const
 {
-  return mCondition;
+  return *mpCondition;
 }
 
 const std::vector< COperation * > & CAction::getOperations() const

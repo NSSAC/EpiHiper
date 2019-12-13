@@ -17,14 +17,16 @@
 #include "actions/CCurrentActions.h"
 #include "math/CTick.h"
 
-class CActionQueue: public std::map< int, CCurrentActions >
+class CActionQueue: public std::map< int, CCurrentActions * >
 {
+  typedef std::map< int, CCurrentActions * > base;
+
   public:
     virtual ~CActionQueue();
 
     static void init();
 
-    static void addAction(size_t deltaTick, const CAction & action);
+    static void addAction(size_t deltaTick, CAction * pAction);
 
     static bool processCurrentActions();
 

@@ -154,8 +154,9 @@ CTrigger::~CTrigger()
 // virtual
 void CTrigger::process()
 {
-  CCondition Condition = mCondition.createCondition((CNode *) NULL);
-  mIsLocalTrue = Condition.isTrue();
+  CCondition *pCondition = mCondition.createCondition((CNode *) NULL);
+  mIsLocalTrue = pCondition->isTrue();
+  delete pCondition;
 }
 
 void CTrigger::trigger(const bool & triggers)

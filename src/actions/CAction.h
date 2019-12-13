@@ -36,8 +36,8 @@ class CAction
 public:
   CAction() = delete;
   CAction(const double & priority,
-         const CCondition & condition);
-  CAction(const CAction & src);
+         CCondition * pCondition);
+  CAction(const CAction & src) = delete;
   virtual ~CAction();
 
   double getPriority() const;
@@ -50,7 +50,7 @@ public:
 
 private:
   double mPriority;
-  CCondition mCondition;
+  CCondition * mpCondition;
   std::vector< COperation * > mOperations;
 };
 

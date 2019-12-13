@@ -215,7 +215,7 @@ void CActionDefinition::process(const CEdge * pEdge) const
       return;
     }
 
-  CAction Action(mPriority, mCondition.createCondition(pEdge));
+  CAction *pAction = new CAction(mPriority, mCondition.createCondition(pEdge));
 
   // Loop through the operation definitions
   std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
@@ -223,10 +223,10 @@ void CActionDefinition::process(const CEdge * pEdge) const
 
   for (; it != end; ++it)
     {
-      Action.addOperation(it->createOperation(const_cast< CEdge * >(pEdge)));
+      pAction->addOperation(it->createOperation(const_cast< CEdge * >(pEdge)));
     }
 
-  CActionQueue::addAction(mDelay, Action);
+  CActionQueue::addAction(mDelay, pAction);
 }
 
 void CActionDefinition::process(const CNode * pNode) const
@@ -238,7 +238,7 @@ void CActionDefinition::process(const CNode * pNode) const
       return;
     }
 
-  CAction Action(mPriority, mCondition.createCondition(pNode));
+  CAction * pAction = new CAction(mPriority, mCondition.createCondition(pNode));
 
   // Loop through the operation definitions
   std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
@@ -246,10 +246,10 @@ void CActionDefinition::process(const CNode * pNode) const
 
   for (; it != end; ++it)
     {
-      Action.addOperation(it->createOperation(const_cast< CNode * >(pNode)));
+      pAction->addOperation(it->createOperation(const_cast< CNode * >(pNode)));
     }
 
-  CActionQueue::addAction(mDelay, Action);
+  CActionQueue::addAction(mDelay, pAction);
 }
 
 

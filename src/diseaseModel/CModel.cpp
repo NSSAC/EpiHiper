@@ -245,15 +245,15 @@ bool CModel::_processTransmissions() const
 
             const Candidate & Candidate = (itCandidate != endCandidate) ? *itCandidate : *Candidates.rbegin();
 
-            CCondition::CComparison CheckState(CConditionDefinition::ComparisonType::Equal, CValueInterface(pNode->healthState), CValue(pNode->healthState));
+            CCondition *pCheckState = new CComparison(CConditionDefinition::ComparisonType::Equal, CValueInterface(pNode->healthState), CValue(pNode->healthState));
 
             CMetadata Info("StateChange", true);
             Info.set("ContactNode", (int) Candidate.pContact->id);
 
-            CAction ChangeState(1.0, CheckState);
-            ChangeState.addOperation(new COperationInstance<CNode, const CTransmission *>(pNode, Candidate.pTransmission, NULL, &CNode::set, Info));
+            CAction * pChangeState = new CAction(1.0, pCheckState);
+            pChangeState->addOperation(new COperationInstance<CNode, const CTransmission *>(pNode, Candidate.pTransmission, NULL, &CNode::set, Info));
 
-            CActionQueue::addAction(0, ChangeState);
+            CActionQueue::addAction(0, pChangeState);
           }
       }
 
@@ -298,13 +298,13 @@ void CModel::_stateChanged(CNode * pNode) const
 
       const CProgression * pProgression = (it != end) ? *it : *EntryStateFound->second.rbegin();
 
-      CCondition::CComparison CheckState(CConditionDefinition::ComparisonType::Equal, CValueInterface(pNode->id), CValue(pNode->id));
+      CCondition *pCheckState = new CComparison(CConditionDefinition::ComparisonType::Equal, CValueInterface(pNode->id), CValue(pNode->id));
 
       CMetadata Info("StateChange", true);
-      CAction ChangeState(1.0, CheckState);
-      ChangeState.addOperation(new COperationInstance<CNode, const CProgression *>(pNode, pProgression, NULL, &CNode::set, Info));
+      CAction *pChangeState = new CAction(1.0, pCheckState);
+      pChangeState->addOperation(new COperationInstance<CNode, const CProgression *>(pNode, pProgression, NULL, &CNode::set, Info));
 
-      CActionQueue::addAction(pProgression->getDwellTime(), ChangeState);
+      CActionQueue::addAction(pProgression->getDwellTime(), pChangeState);
     }
 }
 

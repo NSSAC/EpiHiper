@@ -25,10 +25,10 @@
 
 #include "actions/CAction.h"
 
-class CCurrentActions: protected std::map< double, std::vector< CAction > >
+class CCurrentActions: protected std::map< double, std::vector< CAction * > >
 {
 public:
-  typedef std::map< double, std::vector< CAction > > base;
+  typedef std::map< double, std::vector< CAction * > > base;
 
   class iterator
   {
@@ -53,9 +53,10 @@ public:
   };
 
   CCurrentActions();
+
   virtual ~CCurrentActions();
 
-  void addAction(const CAction & action);
+  void addAction(CAction * pAction);
 
   size_t size() const;
 

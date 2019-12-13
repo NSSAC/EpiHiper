@@ -28,138 +28,101 @@
 struct json_t;
 class CHealthState;
 
-class CBoolean
+class CCondition
 {
 protected:
-  CBoolean();
+  CCondition();
 
 public:
-  CBoolean(const CBoolean & src);
-  virtual ~CBoolean();
-  virtual CBoolean * copy() const = 0;
+  CCondition(const CCondition & src);
+  virtual ~CCondition();
 
   virtual bool isTrue() const = 0;
 };
 
-
-class CCondition : protected CBoolean
+class CComparison : public CCondition
 {
 public:
-  class CComparison : public CBoolean
-  {
-  public:
-    typedef bool (*pComparison)(const CValueInterface &, const CValueInterface &);
+  typedef bool (*pComparison)(const CValueInterface &, const CValueInterface &);
 
-    CComparison() = delete;
-    CComparison(CConditionDefinition::ComparisonType operation, CValueInterface const & left, CValueInterface const & right);
-    CComparison(CConditionDefinition::ComparisonType operation, CValueInterface const & left, CValueInterface const * right);
-    CComparison(CConditionDefinition::ComparisonType operation, CValueInterface const * left, CValueInterface const & right);
-    CComparison(CConditionDefinition::ComparisonType operation, CValueInterface const * left, CValueInterface const * right);
+  CComparison() = delete;
+  CComparison(CConditionDefinition::ComparisonType operation, CValueInterface const & left, CValueInterface const & right);
+  CComparison(CConditionDefinition::ComparisonType operation, CValueInterface const & left, CValueInterface const * right);
+  CComparison(CConditionDefinition::ComparisonType operation, CValueInterface const * left, CValueInterface const & right);
+  CComparison(CConditionDefinition::ComparisonType operation, CValueInterface const * left, CValueInterface const * right);
 
-    CComparison(const CComparison & src);
-    virtual ~CComparison();
-    virtual CBoolean * copy() const;
+  CComparison(const CComparison & src) = delete;
+  virtual ~CComparison();
 
-    virtual bool isTrue() const;
+  virtual bool isTrue() const;
 
-  private:
-    void selectComparison(CConditionDefinition::ComparisonType operation);
+private:
+  void selectComparison(CConditionDefinition::ComparisonType operation);
 
-    pComparison mpComparison;
-    bool mOwnLeft;
-    CValueInterface const * mpLeft;
-    bool mOwnRight;
-    CValueInterface const * mpRight;
-  };
-
-  class CBooleanValue : public CBoolean
-  {
-  public:
-    CBooleanValue() = delete;
-    CBooleanValue(const bool & value);
-    CBooleanValue(const CBooleanValue & src);
-    virtual ~CBooleanValue();
-    virtual CBoolean * copy() const;
-
-    virtual bool isTrue() const;
-
-  private:
-    bool mTrue;
-  };
-
-  class CBooleanOperation : public CBoolean
-  {
-  private:
-    bool _and() const;
-    bool _or() const;
-    bool _not() const;
-
-  public:
-    typedef bool (CBooleanOperation::*pOperation)() const;
-
-    CBooleanOperation() = delete;
-    CBooleanOperation(CConditionDefinition::BooleanOperationType operation, const std::vector< CBoolean * > & booleanVector);
-    CBooleanOperation(const CBooleanOperation & src);
-    virtual ~CBooleanOperation();
-    virtual CBoolean * copy() const;
-
-    virtual bool isTrue() const;
-  private:
-    pOperation mpOperation;
-    std::vector< CBoolean * > mVector;
-  };
-
-  class CContainedIn : public CBoolean
-  {
-  private:
-    static bool within(const CValueInterface &, const CValueList &);
-    static bool notWithin(const CValueInterface &, const CValueList &);
-
-  public:
-    typedef bool (*pWithin)(const CValueInterface &, const CValueList &);
-
-    CContainedIn() = delete;
-    CContainedIn(CConditionDefinition::ComparisonType operation, const CValueInterface & value, const CValueList & set);
-    CContainedIn(CConditionDefinition::ComparisonType operation, const CValueInterface * pValue, const CValueList & set);
-    CContainedIn(const CContainedIn & src);
-    virtual ~CContainedIn();
-    virtual CBoolean * copy() const;
-
-    virtual bool isTrue() const;
-
-  private:
-    pWithin mpWithin;
-    bool mOwnLeft;
-    CValueInterface const * mpLeft;
-    const CValueList & mValueList;
-  };
-
-  /**
-   * Default constructor
-   */
-  CCondition() = delete;
-
-  CCondition(const CBoolean & boolean);
-
-  /**
-   * Copy construnctor
-   * @param const Condition & src
-   */
-  CCondition(const CCondition & src);
-
-  /**
-   * Destructor
-   */
-  virtual ~CCondition();
-  virtual CBoolean * copy() const;
-
-  bool isTrue() const;
-
-  private:
-  CBoolean * mpBoolean;
-
+  pComparison mpComparison;
+  bool mOwnLeft;
+  CValueInterface const * mpLeft;
+  bool mOwnRight;
+  CValueInterface const * mpRight;
 };
 
+class CBooleanValue : public CCondition
+{
+public:
+  CBooleanValue() = delete;
+  CBooleanValue(const bool & value);
+  CBooleanValue(const CBooleanValue & src) = delete;
+  virtual ~CBooleanValue();
 
+  virtual bool isTrue() const;
+
+private:
+  bool mTrue;
+};
+
+class CBooleanOperation : public CCondition
+{
+private:
+  bool _and() const;
+  bool _or() const;
+  bool _not() const;
+
+public:
+  typedef bool (CBooleanOperation::*pOperation)() const;
+
+  CBooleanOperation() = delete;
+  CBooleanOperation(CConditionDefinition::BooleanOperationType operation, const std::vector< CCondition * > & booleanVector);
+  CBooleanOperation(const CBooleanOperation & src) = delete;
+  virtual ~CBooleanOperation();
+
+  virtual bool isTrue() const;
+private:
+  pOperation mpOperation;
+  std::vector< CCondition * > mVector;
+};
+
+class CContainedIn : public CCondition
+{
+private:
+  static bool within(const CValueInterface &, const CValueList &);
+  static bool notWithin(const CValueInterface &, const CValueList &);
+
+public:
+  typedef bool (*pWithin)(const CValueInterface &, const CValueList &);
+
+  CContainedIn() = delete;
+  CContainedIn(CConditionDefinition::ComparisonType operation, const CValueInterface & value, const CValueList & set);
+  CContainedIn(CConditionDefinition::ComparisonType operation, const CValueInterface * pValue, const CValueList & set);
+  CContainedIn(const CContainedIn & src) = delete;
+  virtual ~CContainedIn();
+
+  virtual bool isTrue() const;
+
+private:
+  pWithin mpWithin;
+  bool mOwnLeft;
+  CValueInterface const * mpLeft;
+  const CValueList & mValueList;
+};
 
 #endif /* SRC_ACTIONS_CCONDITION_H_ */

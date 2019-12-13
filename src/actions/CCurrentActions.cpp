@@ -75,12 +75,12 @@ CCurrentActions::iterator & CCurrentActions::iterator::next()
 
   mShuffled.resize(mIt->second.size());
   std::vector< CAction const * >::iterator itShuffled= mShuffled.begin();
-  std::vector< CAction >::const_iterator it = mIt->second.begin();
-  std::vector< CAction >::const_iterator end = mIt->second.end();
+  std::vector< CAction * >::const_iterator it = mIt->second.begin();
+  std::vector< CAction * >::const_iterator end = mIt->second.end();
 
   for (; it != end; ++it, ++itShuffled)
     {
-      *itShuffled = &*it;
+      *itShuffled = &(**it);
     }
 
   std::shuffle(mShuffled.begin(), mShuffled.end(), CRandom::G);
@@ -106,17 +106,29 @@ CCurrentActions::CCurrentActions()
 
 // virtual
 CCurrentActions::~CCurrentActions()
-{}
-
-void CCurrentActions::addAction(const CAction & action)
 {
-  base::iterator found = insert(std::make_pair(action.getPriority(), std::vector< CAction >())).first;
-  found->second.push_back(action);
+  base::iterator itMap = base::begin();
+  base::iterator endMap = base::end();
+
+  for (; itMap != endMap; ++itMap)
+    {
+      std::vector< CAction * >::iterator it = itMap->second.begin();
+      std::vector< CAction * >::iterator end = itMap->second.end();
+
+      for (; it != end; ++it)
+        delete *it;
+    }
+}
+
+void CCurrentActions::addAction(CAction * pAction)
+{
+  base::iterator found = insert(std::make_pair(pAction->getPriority(), std::vector< CAction * >())).first;
+  found->second.push_back(pAction);
 }
 
 size_t CCurrentActions::size() const
 {
-  return std::map< double, std::vector< CAction > >::size();
+  return base::size();
 }
 
 CCurrentActions::iterator CCurrentActions::begin()
