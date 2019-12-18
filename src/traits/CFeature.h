@@ -32,7 +32,7 @@ public:
   /**
    * Default constructor
    */
-  CFeature();
+  CFeature(const std::string & id = "");
 
   /**
    * Copy construnctor
@@ -46,6 +46,8 @@ public:
   virtual ~CFeature();
 
   virtual void fromJSON(const json_t * json);
+
+  void augment(const json_t * json);
 
   const std::string & getId() const;
 
@@ -63,6 +65,8 @@ public:
   const CEnum * operator[](const std::string & ) const;
 
   const CEnum * getDefault() const;
+
+  const CEnum * addEnum(const CEnum & enumeration);
 
 private:
   void updateEnumMap();

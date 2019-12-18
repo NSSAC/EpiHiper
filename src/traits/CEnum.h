@@ -33,7 +33,7 @@ public:
   /**
    * Default constructor
    */
-  CEnum();
+  CEnum(const std::string & id = "");
 
   /**
    * Copy construnctor

@@ -72,11 +72,17 @@ public:
 
   const CFeature * operator[](const std::string & id) const;
 
+  const CFeature * operator[](const json_t * json) const;
+
 	CTraitData::base getDefault() const;
 
   bool fromString(const char * str, CTraitData::base & data) const;
 
   std::string toString(CTraitData::base & data) const;
+
+  const CFeature * addFeature(const CFeature & feature);
+
+  void remap();
 
 private:
   void updateFeatureMap();

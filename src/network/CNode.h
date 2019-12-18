@@ -59,11 +59,6 @@ public:
   void setHealthState(const CHealthState * pHealthState);
 
   size_t id;
-
-private:
-  const CHealthState * pHealthState;
-
-public:
   CModel::state_t healthState;
   double susceptibilityFactor;
   double susceptibility;
@@ -72,6 +67,9 @@ public:
   CTraitData::base nodeTrait;
   CEdge * Edges;
   size_t EdgesSize;
+
+private:
+  const CHealthState * pHealthState;
 };
 
 #endif /* SRC_NETWORK_CNODE_H_ */

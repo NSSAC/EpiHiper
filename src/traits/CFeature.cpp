@@ -23,15 +23,21 @@
 
 #include "traits/CFeature.h"
 
-CFeature::CFeature()
+CFeature::CFeature(const std::string & id)
   : CAnnotation()
-  , mId()
-  , mDefaultId()
+  , mId(id)
+  , mDefaultId("notSet")
   , mMask(0)
   , mEnums()
   , mEnumMap()
-  , mValid(false)
-{}
+  , mValid(!id.empty())
+{
+  if (mValid)
+    {
+      mAnnId = mId;
+      addEnum(CEnum(mDefaultId));
+    }
+}
 
 CFeature::CFeature(const CFeature & src)
   : CAnnotation(src)
@@ -97,6 +103,13 @@ void CFeature::fromJSON(const json_t * json)
     {
       mDefaultId = json_string_value(pValue);
     }
+  else
+    {
+      mDefaultId = "notSet";
+
+      if (operator[]("notSet") == NULL)
+        addEnum(CEnum("notSet"));
+    }
 
   updateEnumMap();
 
@@ -104,6 +117,37 @@ void CFeature::fromJSON(const json_t * json)
 
   CAnnotation::fromJSON(json);
 }
+
+void CFeature::augment(const json_t * json)
+{
+  CFeature Augment;
+  Augment.fromJSON(json);
+
+  std::vector< CEnum >::const_iterator it = Augment.mEnums.begin();
+  std::vector< CEnum >::const_iterator end = Augment.mEnums.end();
+
+  // Add all newly defined enums.
+  for (; it != end; ++it)
+    {
+
+      if (it->isValid() &&
+          it->getId() != "notSet" &&
+          operator[](it->getId()) == NULL)
+        {
+          addEnum(*it);
+        }
+    }
+
+  // The default is overwritten if it is defined in the augmentation.
+  if (Augment.mDefaultId != "notSet")
+    {
+      mDefaultId = Augment.mDefaultId;
+    }
+
+  // Annotation is overwritten
+  CAnnotation::fromJSON(json);
+}
+
 
 const std::string & CFeature::getId() const
 {
@@ -123,7 +167,7 @@ size_t CFeature::size() const
 
 size_t CFeature::bitsRequired() const
 {
-  return ceil(log(mEnumMap.size())/log(2.0));
+  return std::max(1.0, ceil(log(mEnumMap.size())/log(2.0)));
 }
 
 void CFeature::setMask(const CTraitData::base & mask)
@@ -134,9 +178,9 @@ void CFeature::setMask(const CTraitData::base & mask)
   std::vector< CEnum >::iterator it = mEnums.begin();
   std::vector< CEnum >::iterator end = mEnums.end();
 
-  for (; it != end; ++it)
+  for (int i = 0; it != end; ++it, ++i)
     {
-      CTraitData::base Mask = it->getMask();
+      CTraitData::base Mask = CTraitData(i).to_ulong();
       Mask <<= FirstBit;
       it->setMask(Mask);
     }
@@ -174,4 +218,15 @@ const CEnum * CFeature::getDefault() const
   return operator[](mDefaultId);
 }
 
+const CEnum * CFeature::addEnum(const CEnum & enumeration)
+{
+  if (!enumeration.isValid())
+    return NULL;
+
+  mEnums.push_back(enumeration);
+
+  updateEnumMap();
+
+  return &*mEnums.rbegin();
+}
 

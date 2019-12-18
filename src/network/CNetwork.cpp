@@ -39,6 +39,16 @@ void CNetwork::init()
       INSTANCE = new CNetwork(CSimConfig::getContactNetwork());
       INSTANCE->partition(CCommunicate::MPIProcesses, false);
     }
+
+  /*
+  CEdge Edge;
+  std::cout << "Edge class size:  " << sizeof(CEdge) << std::endl;
+  std::cout << "Edge binary size: " << (reinterpret_cast<char *>(&Edge.pTarget) - reinterpret_cast<char *>(&Edge.targetId)) << std::endl;
+
+  CNode Node;
+  std::cout << "Node class size:  " << sizeof(CNode) << std::endl;
+  std::cout << "Node binary size: " << (reinterpret_cast<char *>(&Node.Edges) - reinterpret_cast<char *>(&Node.id)) << std::endl;
+  */
 }
 
 // static
@@ -923,11 +933,12 @@ int CNetwork::broadcastChanges()
   CCommunicate::ClassMemberReceive< CNetwork > ReceiveNode(CNetwork::INSTANCE, &CNetwork::receiveNodes);
   CCommunicate::broadcast(Buffer.c_str(), Buffer.length(), &ReceiveNode);
 
-  Buffer = Changes::getEdges().str();
+
+  // Buffer = Changes::getEdges().str();
 
   // std::cout << Communicate::Rank << ": ActionQueue::broadcastChanges (Edges)" << std::endl;
-  CCommunicate::ClassMemberReceive< CNetwork > ReceiveEdge(CNetwork::INSTANCE, &CNetwork::receiveEdges);
-  CCommunicate::broadcast(Buffer.c_str(), Buffer.length(), &ReceiveEdge);
+  // CCommunicate::ClassMemberReceive< CNetwork > ReceiveEdge(CNetwork::INSTANCE, &CNetwork::receiveEdges);
+  // CCommunicate::broadcast(Buffer.c_str(), Buffer.length(), &ReceiveEdge);
 
   Changes::clear();
 
@@ -936,9 +947,10 @@ int CNetwork::broadcastChanges()
 
 CCommunicate::ErrorCode CNetwork::receiveNodes(std::istream & is, int sender)
 {
+  CNode Node;
+
   while (true)
     {
-      CNode Node;
       Node.CNode::fromBinary(is);
 
       if (is.fail())
@@ -950,12 +962,12 @@ CCommunicate::ErrorCode CNetwork::receiveNodes(std::istream & is, int sender)
 
       if (pNode != NULL)
         {
-          pNode->setHealthState(Node.getHealthState());
           pNode->susceptibilityFactor = Node.susceptibilityFactor;
           pNode->susceptibility = Node.susceptibility;
           pNode->infectivityFactor = Node.infectivityFactor;
           pNode->infectivity = Node.infectivity;
           pNode->nodeTrait = Node.nodeTrait;
+          pNode->setHealthState(Node.getHealthState());
         }
     }
 
@@ -964,9 +976,10 @@ CCommunicate::ErrorCode CNetwork::receiveNodes(std::istream & is, int sender)
 
 CCommunicate::ErrorCode CNetwork::receiveEdges(std::istream & is, int sender)
 {
+  CEdge Edge;
+
   while (true)
     {
-      CEdge Edge;
       Edge.fromBinary(is);
 
       if (is.fail())

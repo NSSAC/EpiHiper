@@ -326,8 +326,7 @@ bool CSimConfig::loadScenario()
   return !mContactNetwork.empty() &&
           !mDiseaseModel.empty() &&
           !mIntervention.empty() &&
-          !mInitialization.empty() &&
-          !mTraits.empty();
+          !mInitialization.empty();
 }
 
 // static

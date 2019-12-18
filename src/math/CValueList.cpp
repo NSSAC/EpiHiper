@@ -160,8 +160,13 @@ void CValueList::fromJSON(const json_t * json)
 
       if (pFeature == NULL)
         {
-          mValid = false;
-          return;
+          pFeature = const_cast< CTrait * >(pTrait)->addFeature(CFeature(json_string_value(pValue)));
+
+          if (pFeature == NULL)
+            {
+              mValid = false;
+              return;
+            }
         }
 
       // Loop through the array elements
@@ -228,6 +233,11 @@ void CValueList::fromJSON(const json_t * json)
             {
               const CEnum * pEnum = pFeature->operator[](json_string_value(pValue));
 
+              if (pEnum == NULL)
+                {
+                  pEnum = const_cast< CFeature * >(pFeature)->addEnum(CEnum(json_string_value(pValue)));
+                  const_cast< CTrait * >(pTrait)->remap();
+                }
               if (pEnum != NULL &&
                   pEnum->isValid())
                 std::set< CValue >::insert(CTraitData::value(pFeature->getMask(), pEnum->getMask()));

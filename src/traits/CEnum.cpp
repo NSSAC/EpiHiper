@@ -14,12 +14,14 @@
 
 #include "traits/CEnum.h"
 
-CEnum::CEnum()
+CEnum::CEnum(const std::string & id)
   : CAnnotation()
-  , mId()
+  , mId(id)
   , mMask(0)
-  , mValid(false)
-{}
+  , mValid(!id.empty())
+{
+  mAnnId = mId;
+}
 
 CEnum::CEnum(const CEnum & src)
   : CAnnotation(src)

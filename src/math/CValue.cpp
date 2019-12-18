@@ -152,8 +152,13 @@ void CValue::fromJSON(const json_t * json)
 
   if (pFeature == NULL)
     {
-      mValid = false;
-      return;
+      pFeature = const_cast< CTrait * >(pTrait)->addFeature(CFeature(json_string_value(pValue)));
+
+      if (pFeature == NULL)
+        {
+          mValid = false;
+          return;
+        }
     }
 
   pValue = json_object_get(pRoot, "enum");
@@ -166,8 +171,15 @@ void CValue::fromJSON(const json_t * json)
 
   if (pEnum == NULL)
     {
-      mValid = false;
-      return;
+      pEnum = const_cast< CFeature * >(pFeature)->addEnum(CEnum(json_string_value(pValue)));
+
+      if (pEnum == NULL)
+        {
+          mValid = false;
+          return;
+        }
+
+      const_cast< CTrait * >(pTrait)->remap();
     }
 
   mType = Type::traitValue;

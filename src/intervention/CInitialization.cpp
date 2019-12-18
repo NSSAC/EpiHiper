@@ -25,6 +25,7 @@
 #include "sets/CSetList.h"
 #include "sets/CSetContent.h"
 #include "math/CDependencyGraph.h"
+#include "traits/CTrait.h"
 
 // static
 void CInitialization::load(const std::string & file)
@@ -53,6 +54,21 @@ void CInitialization::load(const std::string & file)
 
   json_t * pRoot = CSimConfig::loadJson(file, JSON_DECODE_INT_AS_REAL);
   CSetList::INSTANCE.fromJSON(json_object_get(pRoot, "sets"));
+
+  // Get the key "traits"
+  json_t * pTraits = json_object_get(pRoot, "traits");
+
+  // Iterate of the array elements
+  for (size_t i = 0, imax = json_array_size(pTraits); i < imax; ++i)
+    {
+      CTrait Trait;
+      Trait.fromJSON(json_array_get(pTraits, i));
+
+      if (Trait.isValid())
+        {
+          CTrait::INSTANCES[Trait.getId()] = Trait;
+        }
+    }
 
   json_t * pArray = json_object_get(pRoot, "initializations");
 

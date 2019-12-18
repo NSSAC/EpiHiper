@@ -141,21 +141,24 @@ void CTrait::fromJSON(const json_t * json)
 
   pValue = json_object_get(json, "features");
 
-  std::vector< size_t > Required;
-  size_t bits = 0;
-
   // Iterate of the array elements
   for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
     {
+      const CFeature * pFeature = operator[](json_array_get(pValue, i));
+
+      if (pFeature != NULL)
+        {
+          const_cast< CFeature * >(pFeature)->augment(json_array_get(pValue, i));
+          mValid &= pFeature->isValid();
+          continue;
+        }
+
       CFeature Feature;
       Feature.fromJSON(json_array_get(pValue, i));
 
       if (Feature.isValid())
         {
           mFeatures.push_back(Feature);
-          size_t required = Feature.bitsRequired();
-          Required.push_back(required);
-          bits += required;
         }
       else
         {
@@ -165,23 +168,7 @@ void CTrait::fromJSON(const json_t * json)
 
   CAnnotation::fromJSON(json);
 
-  updateFeatureMap();
-
-  mBytes = ceil(std::max(bits/8.0, 4.0));
-
-  std::vector< CFeature >::iterator it = mFeatures.begin();
-  std::vector< CFeature >::iterator end = mFeatures.end();
-  std::vector< size_t >::const_iterator itRequired = Required.begin();
-
-
-  for (size_t start = 0; it != end; ++it, ++itRequired)
-    {
-       CTraitData Data(*this);
-       Data.setBits(start, start + *itRequired);
-       start += *itRequired;
-
-       it->setMask(Data.to_ulong());
-    }
+  remap();
 }
 
 const std::string & CTrait::getId() const
@@ -216,6 +203,18 @@ const CFeature * CTrait::operator[](const std::string & id) const
   if (found != mFeatureMap.end())
     {
       return found->second;
+    }
+
+  return NULL;
+}
+
+const CFeature * CTrait::operator[](const json_t * json) const
+{
+  json_t * pValue = json_object_get(json, "id");
+
+  if (json_is_string(pValue))
+    {
+      return operator[](json_string_value(pValue));
     }
 
   return NULL;
@@ -295,6 +294,50 @@ std::string CTrait::toString(CTraitData::base & data) const
   return os.str();
 }
 
+const CFeature * CTrait::addFeature(const CFeature & feature)
+{
+  if (!feature.isValid())
+    return NULL;
+
+  mFeatures.push_back(feature);
+
+  remap();
+
+  return &*mFeatures.rbegin();
+}
+
+void CTrait::remap()
+{
+  std::vector< size_t > Required;
+  size_t bits = 0;
+
+  std::vector< CFeature >::iterator itFeature = mFeatures.begin();
+  std::vector< CFeature >::iterator endFeature = mFeatures.end();
+
+  // Iterate of the array elements
+  for (; itFeature != endFeature; ++itFeature)
+    {
+      size_t required = itFeature->bitsRequired();
+      Required.push_back(required);
+      bits += required;
+    }
+
+  updateFeatureMap();
+
+  mBytes = ceil(std::max(bits/8.0, 4.0));
+
+  itFeature = mFeatures.begin();
+  std::vector< size_t >::const_iterator itRequired = Required.begin();
+
+  for (size_t start = 0; itFeature != endFeature; ++itFeature, ++itRequired)
+    {
+       CTraitData Data(*this);
+       Data.setBits(start, start + *itRequired);
+       start += *itRequired;
+
+       itFeature->setMask(Data.to_ulong());
+    }
+}
 
 
 

@@ -89,6 +89,9 @@ CNode & CNode::operator = (const CNode & rhs)
 
 void CNode::toBinary(std::ostream & os) const
 {
+  os.write(reinterpret_cast<const char *>(&id), 56);
+
+  /*
   os.write(reinterpret_cast<const char *>(&id), sizeof(size_t));
   os.write(reinterpret_cast<const char *>(&healthState), sizeof( CModel::state_t));
   os.write(reinterpret_cast<const char *>(&susceptibilityFactor), sizeof(double));
@@ -96,10 +99,14 @@ void CNode::toBinary(std::ostream & os) const
   os.write(reinterpret_cast<const char *>(&infectivityFactor), sizeof(double));
   os.write(reinterpret_cast<const char *>(&infectivity), sizeof(double));
   os.write(reinterpret_cast<const char *>(&nodeTrait), sizeof(CTraitData::base));
+  */
 }
 
 void CNode::fromBinary(std::istream & is)
 {
+  is.read(reinterpret_cast<char *>(&id), 56);
+
+  /*
   is.read(reinterpret_cast<char *>(&id), sizeof(size_t));
   is.read(reinterpret_cast<char *>(&healthState), sizeof(CModel::state_t));
   is.read(reinterpret_cast<char *>(&susceptibilityFactor), sizeof(double));
@@ -107,6 +114,7 @@ void CNode::fromBinary(std::istream & is)
   is.read(reinterpret_cast<char *>(&infectivityFactor), sizeof(double));
   is.read(reinterpret_cast<char *>(&infectivity), sizeof(double));
   is.read(reinterpret_cast<char *>(&nodeTrait), sizeof(CTraitData::base));
+  */
 
   pHealthState = CModel::stateFromType(healthState);
 }
