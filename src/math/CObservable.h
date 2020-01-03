@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -27,7 +27,8 @@ public:
   {
     time,
     healthStateAbsolute,
-    healthStateRelative
+    healthStateRelative,
+    totalPopulation
   };
 
   static CObservable * get(const ObservableType & observableType, const size_t & id);
@@ -55,6 +56,8 @@ private:
   void fromJSON(const json_t * json);
 
   void computeTime();
+
+  void computeTotalPopulation();
 
   void computeHealthStateAbsolute();
 

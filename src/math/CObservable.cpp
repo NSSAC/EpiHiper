@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -120,6 +120,12 @@ void CObservable::computeTime()
   assignValue(&Time);
 }
 
+void CObservable::computeTotalPopulation()
+{
+  double TotalPopulation = CNetwork::INSTANCE->getGlobalNodeCount();
+  assignValue(&TotalPopulation);
+}
+
 void CObservable::computeHealthStateAbsolute()
 {
   const CHealthState * pHealthState = CModel::stateFromType(mId);
@@ -174,6 +180,11 @@ void CObservable::fromJSON(const json_t * json)
               "description": "The time property references the current simulation time.",
               "type": "string",
               "enum": ["time"]
+            },
+            {
+              "description": "The total population is number of nodes as specified in contact network JSON header.",
+              "type": "string",
+              "enum": ["totalPopulation"]
             }
           ]
         }
@@ -236,24 +247,40 @@ void CObservable::fromJSON(const json_t * json)
         mId = CModel::stateToType(pHealthState);
         mValid = true;
     }
-  else if (json_is_string(pObservable) &&
-      strcmp(json_string_value(pObservable), "time") == 0)
-    {
-      mObservableType = ObservableType::time;
-      mpCompute = &CObservable::computeTime;
-      mId = 0;
+  else if (json_is_string(pObservable))
+      {
+        if (strcmp(json_string_value(pObservable), "time") == 0)
+          {
+            mObservableType = ObservableType::time;
+            mpCompute = &CObservable::computeTime;
+            mId = 0;
 
-      destroyValue();
-      mType = Type::number;
-      mpValue = createValue(mType);
+            destroyValue();
+            mType = Type::number;
+            mpValue = createValue(mType);
 
-      mValid = true;
-      return;
-    }
-  else
-    {
-      mValid = false;
-    }
+            mValid = true;
+            return;
+          }
+        else if (strcmp(json_string_value(pObservable), "totalPopulation") == 0)
+          {
+            mObservableType = ObservableType::totalPopulation;
+            mpCompute = &CObservable::computeTotalPopulation;
+            mId = 0;
+            mStatic = true;
+
+            destroyValue();
+            mType = Type::number;
+            mpValue = createValue(mType);
+
+            mValid = true;
+            return;
+          }
+        else
+          {
+            mValid = false;
+          }
+      }
 
   return;
 }
