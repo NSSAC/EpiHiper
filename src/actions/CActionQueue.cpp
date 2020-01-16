@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -26,23 +26,38 @@ void CActionQueue::init()
     }
 }
 
+// static
+void CActionQueue::release()
+{
+  if (pINSTANCE != NULL)
+    {
+      delete pINSTANCE;
+      pINSTANCE = NULL;
+    }
+}
 
 // static
 void CActionQueue::addAction(size_t deltaTick, CAction * pAction)
 {
-  base::iterator found = pINSTANCE->find(pINSTANCE->mCurrenTick + deltaTick);
-
-  if (found == pINSTANCE->end())
+  if (pINSTANCE != NULL)
     {
-      found = pINSTANCE->insert(std::make_pair(pINSTANCE->mCurrenTick + deltaTick, new CCurrentActions())).first;
-    }
+      base::iterator found = pINSTANCE->find(pINSTANCE->mCurrenTick + deltaTick);
 
-  found->second->addAction(pAction);
+      if (found == pINSTANCE->end())
+        {
+          found = pINSTANCE->insert(std::make_pair(pINSTANCE->mCurrenTick + deltaTick, new CCurrentActions())).first;
+        }
+
+      found->second->addAction(pAction);
+    }
 }
 
 // static
 bool CActionQueue::processCurrentActions()
 {
+  if (pINSTANCE == NULL)
+    return false;
+
   bool success = true;
 
   // We need to enter the loop at least once
@@ -92,50 +107,68 @@ bool CActionQueue::processCurrentActions()
 // static
 size_t CActionQueue::pendingActions()
 {
-  base::iterator found = pINSTANCE->find(pINSTANCE->mCurrenTick);
-
-  if (found == pINSTANCE->end())
+  if (pINSTANCE != NULL)
     {
-      return 0;
+      base::iterator found = pINSTANCE->find(pINSTANCE->mCurrenTick);
+
+      if (found == pINSTANCE->end())
+        {
+          return 0;
+        }
+
+      return found->second->size();
     }
 
-  return found->second->size();
+  return 0;
 }
 
 // static
 const CTick & CActionQueue::getCurrentTick()
 {
-  return pINSTANCE->mCurrenTick;
+  if (pINSTANCE != NULL)
+    return pINSTANCE->mCurrenTick;
+
+  static CTick Zero(0);
+
+  return Zero;
 }
 
 
 // static
 void CActionQueue::setCurrentTick(const int & currentTick)
 {
-  pINSTANCE->mCurrenTick = currentTick;
+  if (pINSTANCE != NULL)
+    pINSTANCE->mCurrenTick = currentTick;
 }
 
 // static
 void CActionQueue::incrementTick()
 {
-  ++pINSTANCE->mCurrenTick;
+  if (pINSTANCE != NULL)
+    ++pINSTANCE->mCurrenTick;
 }
 
 // static
 void CActionQueue::addRemoteAction(const size_t & index, const CNode * pNode)
 {
-  pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&index), sizeof(size_t));
-  pINSTANCE->mRemoteActions << 'N';
-  pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&pNode->id), sizeof(size_t));
+  if (pINSTANCE != NULL)
+    {
+      pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&index), sizeof(size_t));
+      pINSTANCE->mRemoteActions << 'N';
+      pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&pNode->id), sizeof(size_t));
+    }
 }
 
 // static
 void CActionQueue::addRemoteAction(const size_t & index, const CEdge * pEdge)
 {
-  pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&index), sizeof(size_t));
-  pINSTANCE->mRemoteActions << 'E';
-  pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&pEdge->targetId), sizeof(size_t));
-  pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&pEdge->sourceId), sizeof(size_t));
+  if (pINSTANCE != NULL)
+    {
+      pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&index), sizeof(size_t));
+      pINSTANCE->mRemoteActions << 'E';
+      pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&pEdge->targetId), sizeof(size_t));
+      pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&pEdge->sourceId), sizeof(size_t));
+    }
 }
 
 

@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -73,9 +73,9 @@ void CStatus::load(const std::string & name)
   pName = init(pJSON, "name", "EpiHiper");
   pStatus = init(pJSON, "status", "running");
   pDetail = init(pJSON, "detail", "EpiHiper: Starting");
-  pProgress = init(pJSON, "progress", 0.0);
+  pProgress = init(pJSON, "progress", initialProgress);
 
-  initialProgress = json_real_value(pProgress);
+  json_real_set(pProgress, initialProgress);
 
   if (strcmp(json_string_value(pId), "epihiper") == 0 &&
       CDirEntry::exist(CDirEntry::dirName(CSimConfig::getStatus()) + "/job.json"))

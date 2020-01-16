@@ -100,43 +100,50 @@ int main(int argc, char *argv[]) {
 
   CSimConfig::load(Config);
 
-  if (CSimConfig::isValid()) {
-    CActionQueue::init();
-    CRandom::init();
-    CTrait::init();
-    CConnection::init();
-    CNetwork::init();
-    CTrait::load(CSimConfig::getTraits());
-    CModel::load(CSimConfig::getDiseaseModel());
-    CSchema::load(CSimConfig::getPersonTraitDB());
-    CInitialization::load(CSimConfig::getInitialization());
-    CIntervention::load(CSimConfig::getIntervention());
-    CCommunicate::allocateRMA();
-    CVariableList::INSTANCE.resetAll(true);
-    CStatus::load("EpiHiper");
+  if (CSimConfig::isValid())
+    {
+      CActionQueue::init();
+      CRandom::init();
+      CTrait::init();
+      CConnection::init();
+      CNetwork::init();
+      CTrait::load(CSimConfig::getTraits());
+      CModel::load(CSimConfig::getDiseaseModel());
+      CSchema::load(CSimConfig::getPersonTraitDB());
+      CInitialization::load(CSimConfig::getInitialization());
+      CIntervention::load(CSimConfig::getIntervention());
+      CCommunicate::allocateRMA();
+      CVariableList::INSTANCE.resetAll(true);
+      CStatus::load("EpiHiper");
 
-    CNetwork::INSTANCE->load();
-    // Network::INSTANCE->write("network.bin", true);
-    // Network::INSTANCE->write("network.txt", false);
+      CNetwork::INSTANCE->load();
+      // Network::INSTANCE->write("network.bin", true);
+      // Network::INSTANCE->write("network.txt", false);
 
-    CCommunicate::memUsage(-2);
+      CCommunicate::memUsage(-2);
 
-    Simulation sim(seed, dbconn);
-    sim.validate();
-    if (sim.isValid()) {
-      sim.run();
-      // sim.dummyRun();
-    }
-  }
+      Simulation sim(seed, dbconn);
+      sim.validate();
 
-exit:
+      if (sim.isValid())
+        {
+          sim.run();
+        }
 
-  CModel::release();
-  CInitialization::release();
-  CIntervention::release();
-  CNetwork::release();
+      CModel::release();
+      CInitialization::release();
+      CIntervention::release();
+      CNetwork::release();
       CConnection::release();
-  CStatus::finalize("EpiHiper");
+      CStatus::finalize("EpiHiper");
+      CActionQueue::release();
+    }
+  else
+    {
+      CStatus::load("EpiHiper");
+      CStatus::update("EpiHiper", "failed");
+      CStatus::finalize("EpiHiper");
+    }
   CSimConfig::release();
   CCommunicate::finalize();
 
