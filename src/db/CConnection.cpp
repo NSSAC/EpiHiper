@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -45,6 +45,16 @@ void CConnection::init()
   {
     std::cerr << e.base().what() << std::endl;
   }
+}
+
+// static
+void CConnection::release()
+{
+  if (pINSTANCE != NULL)
+    {
+      delete pINSTANCE;
+      pINSTANCE = NULL;
+    }
 }
 
 // static

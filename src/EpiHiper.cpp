@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -135,6 +135,7 @@ exit:
   CInitialization::release();
   CIntervention::release();
   CNetwork::release();
+      CConnection::release();
   CStatus::finalize("EpiHiper");
   CSimConfig::release();
   CCommunicate::finalize();
