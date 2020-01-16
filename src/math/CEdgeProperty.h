@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -43,7 +43,7 @@ public:
 
   COperation * createOperation(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator);
 
-  const bool isReadOnly() const;
+  bool isReadOnly() const;
 
   static CNode * targetNode(CEdge * pEdge);
 

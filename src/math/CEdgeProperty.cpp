@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -135,7 +135,7 @@ COperation * CEdgeProperty::createOperation(CEdge * pEdge, const CValueInterface
   return (this->*mpCreateOperation)(pEdge, value, pOperator);
 }
 
-const bool CEdgeProperty::isReadOnly() const
+bool CEdgeProperty::isReadOnly() const
 {
   return mpPropertyOf == &CEdgeProperty::targetActivity || mpPropertyOf == &CEdgeProperty::sourceActivity;
 }
