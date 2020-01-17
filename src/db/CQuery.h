@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -59,7 +59,9 @@ public:
 
 private:
   static std::string LocalConstraint;
+  static size_t Limit;
   static void init();
+  static std::string limit(size_t & offset);
 };
 
 #endif /* SRC_DB_CQUERY_H_ */

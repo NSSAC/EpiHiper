@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -20,53 +20,67 @@
 #include "network/CNetwork.h"
 #include "network/CNode.h"
 
-void toIdFieldValueList(const pqxx::result & result, CFieldValueList & list)
+size_t toIdFieldValueList(const pqxx::result & result, CFieldValueList & list)
 {
   size_t Default(-1);
+  size_t OldSize = list.size();
 
   for (const pqxx::row &Row: result)
    for (const pqxx::field &Field: Row)
      list.append(CFieldValue(Field.as(Default)));
+
+  return list.size() - OldSize;
 }
 
-void toStringFieldValueList(const pqxx::result & result, CFieldValueList & list)
+size_t toStringFieldValueList(const pqxx::result & result, CFieldValueList & list)
 {
   std::string Default("");
+  size_t OldSize = list.size();
 
   for (const pqxx::row &Row: result)
     for (const pqxx::field &Field: Row)
       list.append(CFieldValue(Field.as(Default)));
+
+  return list.size() - OldSize;
 }
 
-void toNumberFieldValueList(const pqxx::result & result, CFieldValueList & list)
+size_t toNumberFieldValueList(const pqxx::result & result, CFieldValueList & list)
 {
   double Default(std::numeric_limits< double >::quiet_NaN());
+  size_t OldSize = list.size();
 
   for (const pqxx::row &Row: result)
     for (const pqxx::field &Field: Row)
       list.append(CFieldValue(Field.as(Default)));
+
+  return list.size() - OldSize;
 }
 
-void toFieldValueList(const CField & field, const pqxx::result & result, CFieldValueList & list)
+size_t toFieldValueList(const CField & field, const pqxx::result & result, CFieldValueList & list)
 {
   switch (field.getType())
   {
     case CFieldValueList::Type::id:
-      toIdFieldValueList(result, list);
+      return toIdFieldValueList(result, list);
       break;
 
     case CFieldValueList::Type::string:
-      toStringFieldValueList(result, list);
+      return toStringFieldValueList(result, list);
       break;
 
     case CFieldValueList::Type::number:
-      toNumberFieldValueList(result, list);
+      return toNumberFieldValueList(result, list);
       break;
   }
+
+  return 0;
 }
 
 // static
 std::string CQuery::LocalConstraint = "";
+
+// static
+size_t CQuery::Limit = 100000;
 
 // static
 void CQuery::init()
@@ -82,6 +96,21 @@ void CQuery::init()
       LocalConstraint = Query.str();
     }
 }
+
+// static
+std::string CQuery::limit(size_t & offset)
+{
+  std::ostringstream Query;
+  Query << " LIMIT " << Limit;
+
+  if (offset != 0)
+    Query << " OFFSET " << offset;
+
+  offset += Limit;
+
+  return Query.str();
+}
+
 // static
 bool CQuery::all(const std::string & table,
                    const std::string & resultField,
@@ -89,9 +118,6 @@ bool CQuery::all(const std::string & table,
                    const bool & local)
 {
   init();
-  pqxx::read_transaction * pWork = CConnection::work();
-
-  if (pWork == NULL) return false;
 
   const CTable & Table = CSchema::INSTANCE.getTable(table);
 
@@ -109,19 +135,26 @@ bool CQuery::all(const std::string & table,
       Query << " WHERE " << LocalConstraint;
     }
 
-  Query << " ORDER BY " << resultField << ";";
+  Query << " ORDER BY " << resultField;
   // std::cout << Query.str() << std::endl;
+
+  pqxx::read_transaction * pWork = CConnection::work();
+
+  if (pWork == NULL) return false;
 
   try
   {
-    toFieldValueList(ResultField, pWork->exec(Query.str()), result);
+    size_t Offset = 0;
+    while (toFieldValueList(ResultField, pWork->exec(Query.str() + limit(Offset)), result) == Limit) {}
   }
 
-  catch (const pqxx::pqxx_exception & e)
+  catch (const std::exception & e)
   {
-    std::cerr << e.base().what() << std::endl;
+    std::cerr << e.what() << std::endl;
   }
 
+
+  pWork->commit();
   delete pWork;
 
   return true;
@@ -136,6 +169,8 @@ bool CQuery::in(const std::string & table,
                    const CValueList & constraints,
                    const bool & in)
 {
+  init();
+
   // We need to handle the case where the constraints are empty.
   if (constraints.size() == 0)
     {
@@ -148,11 +183,6 @@ bool CQuery::in(const std::string & table,
           return all(table, resultField, result, local);
         }
     }
-
-  init();
-  pqxx::read_transaction * pWork = CConnection::work();
-
-  if (pWork == NULL) return false;
 
   const CTable & Table = CSchema::INSTANCE.getTable(table);
 
@@ -210,19 +240,25 @@ bool CQuery::in(const std::string & table,
       Query << " AND " << LocalConstraint;
     }
 
-  Query << " ORDER BY " << resultField << ";";
+  Query << " ORDER BY " << resultField;
   // std::cout << Query.str() << std::endl;
+
+  pqxx::read_transaction * pWork = CConnection::work();
+
+  if (pWork == NULL) return false;
 
   try
   {
-    toFieldValueList(ResultField, pWork->exec(Query.str()), result);
+    size_t Offset = 0;
+    while (toFieldValueList(ResultField, pWork->exec(Query.str() + limit(Offset)), result) == Limit) {}
   }
 
-  catch (const pqxx::pqxx_exception & e)
+  catch (const std::exception & e)
   {
-    std::cerr << e.base().what() << std::endl;
+    std::cerr << e.what() << std::endl;
   }
 
+  pWork->commit();
   delete pWork;
 
   return true;
@@ -250,9 +286,6 @@ bool CQuery::where(const std::string & table,
                  const std::string & cmp)
 {
   init();
-  pqxx::read_transaction * pWork = CConnection::work();
-
-  if (pWork == NULL) return false;
 
   const CTable & Table = CSchema::INSTANCE.getTable(table);
 
@@ -291,20 +324,26 @@ bool CQuery::where(const std::string & table,
       Query << " AND " << LocalConstraint;
     }
 
-  Query << " ORDER BY " << resultField << ";";
+  Query << " ORDER BY " << resultField;
   // std::cout << Query.str() << std::endl;
+
+  pqxx::read_transaction * pWork = CConnection::work();
+
+  if (pWork == NULL) return false;
 
   try
   {
-    toFieldValueList(ResultField, pWork->exec(Query.str()), result);
+    size_t Offset = 0;
+    while (toFieldValueList(ResultField, pWork->exec(Query.str() + limit(Offset)), result) == Limit) {}
   }
 
-  catch (const pqxx::pqxx_exception & e)
+  catch (const std::exception & e)
   {
-    std::cerr << e.base().what() << std::endl;
+    std::cerr << e.what() << std::endl;
   }
 
- delete pWork;
+  pWork->commit();
+  delete pWork;
 
   return true;
 }
