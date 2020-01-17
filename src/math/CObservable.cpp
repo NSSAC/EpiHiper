@@ -248,39 +248,43 @@ void CObservable::fromJSON(const json_t * json)
         mValid = true;
     }
   else if (json_is_string(pObservable))
-      {
-        if (strcmp(json_string_value(pObservable), "time") == 0)
-          {
-            mObservableType = ObservableType::time;
-            mpCompute = &CObservable::computeTime;
-            mId = 0;
+    {
+      if (strcmp(json_string_value(pObservable), "time") == 0)
+        {
+          mObservableType = ObservableType::time;
+          mpCompute = &CObservable::computeTime;
+          mId = 0;
 
-            destroyValue();
-            mType = Type::number;
-            mpValue = createValue(mType);
+          destroyValue();
+          mType = Type::number;
+          mpValue = createValue(mType);
 
-            mValid = true;
-            return;
-          }
-        else if (strcmp(json_string_value(pObservable), "totalPopulation") == 0)
-          {
-            mObservableType = ObservableType::totalPopulation;
-            mpCompute = &CObservable::computeTotalPopulation;
-            mId = 0;
-            mStatic = true;
+          mValid = true;
+          return;
+        }
+      else if (strcmp(json_string_value(pObservable), "totalPopulation") == 0)
+        {
+          mObservableType = ObservableType::totalPopulation;
+          mpCompute = &CObservable::computeTotalPopulation;
+          mId = 0;
+          mStatic = true;
 
-            destroyValue();
-            mType = Type::number;
-            mpValue = createValue(mType);
+          destroyValue();
+          mType = Type::number;
+          mpValue = createValue(mType);
 
-            mValid = true;
-            return;
-          }
-        else
-          {
-            mValid = false;
-          }
-      }
+          mValid = true;
+          return;
+        }
+      else
+        {
+          mValid = false;
+        }
+    }
+  else
+    {
+      mValid = false;
+    }
 
   return;
 }
