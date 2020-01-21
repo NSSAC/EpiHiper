@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -298,7 +298,7 @@ void CModel::_stateChanged(CNode * pNode) const
 
       const CProgression * pProgression = (it != end) ? *it : *EntryStateFound->second.rbegin();
 
-      CCondition *pCheckState = new CComparison(CConditionDefinition::ComparisonType::Equal, CValueInterface(pNode->id), CValue(pNode->id));
+      CCondition *pCheckState = new CComparison(CConditionDefinition::ComparisonType::Equal, CValueInterface(pNode->healthState), CValue(pNode->healthState));
 
       CMetadata Info("StateChange", true);
       CAction *pChangeState = new CAction(1.0, pCheckState);
