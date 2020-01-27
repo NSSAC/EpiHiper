@@ -6,7 +6,6 @@ EpiHiper version 0.0.1 is a minimal blackbox. It can be built with a C++/MPI com
 ```
 git clone git@github.com:NSSAC/EpiHiper-code.git
 cd EpiHiper-code
-git submodule update --init dependencies/
 ```
 
 ### Build EpiHiper
