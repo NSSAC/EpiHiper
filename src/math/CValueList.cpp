@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -218,7 +218,23 @@ void CValueList::fromJSON(const json_t * json)
           pValue = json_array_get(pArray, i);
 
           if (json_is_string(pValue))
-            std::set< CValue >::insert(CModel::stateToType(CModel::getState(json_string_value(pValue))));
+            {
+              mType = Type::id;
+
+              const CHealthState * pHealthState = CModel::getState(json_string_value(pValue));
+
+              if (pHealthState == NULL)
+                {
+                  mValid = false;
+                  pHealthState = &CModel::getInitialState();
+                }
+              else
+                {
+                  mValid = true;
+                }
+
+              std::set< CValue >::insert(CModel::stateToType(pHealthState));
+            }
           else
             mValid = false;
         }
