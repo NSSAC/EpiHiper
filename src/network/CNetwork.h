@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -35,6 +35,24 @@ private:
   bool loadEdge(CEdge * pEdge, std::istream & is) const;
   void writeEdge(CEdge * pEdge, std::ostream & os) const;
   void partition(std::istream & is, const int & parts, const bool & save, const std::string & outputDirectory);
+  void convert(std::istream & is, const std::string & outputDirectory);
+  bool openPartition(const size_t & partition,
+                     const size_t & partCount,
+                     const size_t & nodeCount,
+                     const size_t & firstLocalNode,
+                     const size_t & beyondLocalNode,
+                     const size_t & edgeCount,
+                     const std::string & outputDirectory,
+                     std::ofstream & os);
+
+  void writePartition(const size_t & partition,
+                      const size_t & partCount,
+                      const size_t & nodeCount,
+                      const size_t & firstLocalNode,
+                      const size_t & beyondLocalNode,
+                      const size_t & edgeCount,
+                      const std::string & edges,
+                      const std::string & outputDirectory);
 
 
 public:
@@ -85,15 +103,6 @@ public:
 
   const size_t & getLocalNodeCount() const;
   const size_t & getGlobalNodeCount() const;
-
-  void writePartition(const size_t & partion,
-                      const size_t & partCount,
-                      const size_t & nodeCount,
-                      const size_t & firstLocalNode,
-                      const size_t & beyondLocalNode,
-                      const size_t & edgeCount,
-                      const std::string & edges,
-                      const std::string & outputDirectory);
 
   bool haveValidPartition(const int & parts);
 
