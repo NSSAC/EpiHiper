@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -27,6 +27,7 @@
 #include "math/CSizeOf.h"
 #include "network/CEdge.h"
 #include "network/CNetwork.h"
+#include "sets/CSetReference.h"
 #include "sets/CSetList.h"
 #include "traits/CTrait.h"
 #include "utilities/CCommunicate.h"
@@ -112,6 +113,9 @@ CNetwork * CNetwork::INSTANCE(NULL);
 
 // static
 CSetList CSetList::INSTANCE;
+
+// static
+std::vector< CSetReference * > CSetReference::UnResolved;
 
 // static
 std::map< std::string, CTrait > CTrait::INSTANCES;

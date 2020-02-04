@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -74,7 +74,7 @@ void CSetReference::fromJSON(const json_t * json)
       return;
     }
 
-  json_t * pIdRef =  json_object_get(pSet, "idRef");
+  json_t * pIdRef = json_object_get(pSet, "idRef");
 
   if (!json_is_string(pIdRef))
     {
@@ -83,32 +83,50 @@ void CSetReference::fromJSON(const json_t * json)
     }
 
   mIdRef = json_string_value(pIdRef);
-  mpSet = CSetList::INSTANCE[mIdRef];
+  mpSet = NULL;
+  UnResolved.push_back(this);
+}
 
-  if (mpSet != NULL &&
-      mpSet->isValid())
+// static
+bool CSetReference::resolve()
+{
+  bool success = true;
+  std::vector< CSetReference * >::iterator it = UnResolved.begin();
+  std::vector< CSetReference * >::iterator end = UnResolved.end();
+
+  for (; it != end; ++it)
     {
-      mPrerequisites.insert(mpSet);
-      mStatic = mpSet->isStatic();
-    }
-  else
-    {
-      mpSet = NULL;
+      (*it)->mpSet = CSetList::INSTANCE[(*it)->mIdRef];
+
+      if ((*it)->mpSet != NULL
+          && (*it)->mpSet->isValid())
+        {
+          (*it)->mPrerequisites.insert((*it)->mpSet);
+          (*it)->mStatic = (*it)->mpSet->isStatic();
+        }
+      else
+        {
+          (*it)->mpSet == NULL;
+          (*it)->mValid = false;
+          success = false;
+        }
     }
 
+  return success;
 }
 
 // virtual
 void CSetReference::computeProtected()
 {
-  if (!mValid) return;
+  if (!mValid)
+    return;
 
   if (mpSet == NULL)
     {
       mpSet = CSetList::INSTANCE[mIdRef];
 
-      if (mpSet != NULL &&
-          mpSet->isValid())
+      if (mpSet != NULL
+          && mpSet->isValid())
         {
           mPrerequisites.insert(mpSet);
           CDependencyGraph::buildGraph();
@@ -240,4 +258,3 @@ std::map< CValueList::Type, CValueList > & CSetReference::getDBFieldValues()
 
   return CSetContent::getDBFieldValues();
 }
-
