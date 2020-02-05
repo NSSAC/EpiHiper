@@ -81,7 +81,7 @@ private:
     ValueInstance();
     ValueInstance(const ValueInstance & src);
     ~ValueInstance();
-    void fromJSON(const json_t * json);
+    virtual void fromJSON(const json_t * json);
     CValueInterface * value(const CNode * pNode) const;
     CValueInterface * value(const CEdge * pEdge) const;
     CValueInterface * value() const;
@@ -108,7 +108,7 @@ public:
    */
   virtual ~CConditionDefinition();
 
-  void fromJSON(const json_t * json);
+  virtual void fromJSON(const json_t * json);
 
   bool valueFromJSON(const json_t * json);
 

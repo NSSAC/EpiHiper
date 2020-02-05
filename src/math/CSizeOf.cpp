@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -16,6 +16,7 @@
 
 #include "math/CSizeOf.h"
 #include "sets/CSetContent.h"
+#include "utilities/CLogger.h"
 
 // static
 std::vector< CSizeOf * > CSizeOf::GetInstances()
@@ -75,20 +76,19 @@ void CSizeOf::computeProtected()
 
 int CSizeOf::broadcastSize()
 {
-  *static_cast< double * >(mpValue) = mpSetContent->size();;
+  *static_cast< double * >(mpValue) = mpSetContent->size();
 
   CCommunicate::ClassMemberReceive< CSizeOf > Receive(this, &CSizeOf::receiveSize);
   CCommunicate::broadcast(mpValue, sizeof(size_t), &Receive);
 
   return (int) CCommunicate::ErrorCode::Success;
-
 }
 
 CCommunicate::ErrorCode CSizeOf::receiveSize(std::istream & is, int sender)
 {
   size_t RemoteSize;
 
-  is.read(reinterpret_cast<char *>(&RemoteSize), sizeof(size_t));
+  is.read(reinterpret_cast< char * >(&RemoteSize), sizeof(size_t));
   *static_cast< double * >(mpValue) += RemoteSize;
 
   return CCommunicate::ErrorCode::Success;
@@ -108,21 +108,22 @@ void CSizeOf::fromJSON(const json_t * json)
     },
   */
 
+  mValid = false; // DONE
   mpSetContent = CSetContent::create(json_object_get(json, "sizeof"));
 
   if (mpSetContent != NULL && mpSetContent->isValid())
     {
       mPrerequisites.insert(mpSetContent);
       mStatic = mpSetContent->isStatic();
+      mValid = true;
+      return;
     }
-  else
-    {
-      mValid = false;
 
-      if (mpSetContent != NULL)
-        {
-          delete mpSetContent;
-          mpSetContent = NULL;
-        }
+  if (mpSetContent != NULL)
+    {
+      delete mpSetContent;
+      mpSetContent = NULL;
     }
+
+  CLogger::error("sizeof: Missing or invalid set content.");
 }

@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -15,6 +15,7 @@
 
 #include "db/CTable.h"
 #include "db/CField.h"
+#include "utilities/CLogger.h"
 
 CTable::CTable()
   : mId()
@@ -23,7 +24,7 @@ CTable::CTable()
   , mValid(false)
 {}
 
-CTable::CTable(const CTable &src)
+CTable::CTable(const CTable & src)
   : mId(src.mId)
   , mLabel(src.mLabel)
   , mFields(src.mFields)
@@ -36,14 +37,23 @@ CTable::~CTable()
 
 void CTable::fromJSON(const json_t * json)
 {
+  mValid = false; // DONE
   json_t * pValue = json_object_get(json, "name");
 
-  if (json_is_string(pValue))
+  if (!json_is_string(pValue))
     {
-      mId = json_string_value(pValue);
+      CLogger::error("Table: Invalid or missing 'name'.");
+      return;
     }
 
-  mValid = !mId.empty();
+  mId = json_string_value(pValue);
+
+  if (mId.empty())
+    {
+      CLogger::error("Table: Invalid empty 'name'.");
+      return;
+    }
+
   mLabel = mId;
 
   pValue = json_object_get(json, "title");
@@ -57,7 +67,7 @@ void CTable::fromJSON(const json_t * json)
 
   if (!json_is_object(pSchema))
     {
-      mValid = false;
+      CLogger::error("Table: Invalid or missing 'schema'.");
       return;
     }
 
@@ -65,19 +75,29 @@ void CTable::fromJSON(const json_t * json)
 
   if (!json_is_array(pValue))
     {
-      mValid = false;
+      CLogger::error("Table: Invalid or missing 'fields'.");
       return;
     }
 
-  for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
+  mValid = true;
+
+  for (size_t i = 0, imax = json_array_size(pValue); i < imax && mValid; ++i)
     {
       CField Field;
       Field.fromJSON(json_array_get(pValue, i));
-      mValid &= Field.isValid();
 
-      mFields.insert(std::make_pair(Field.getId(), Field));
+      if (Field.isValid())
+        {
+          mFields.insert(std::make_pair(Field.getId(), Field));
+        }
+      else
+        {
+          CLogger::error() << "Table: Invalid field for item '" << i << "'.";
+          mValid = false; // DONE
+        }
     }
 
+#ifdef CHECK_PRIMARY_KEY
   pValue = json_object_get(pSchema, "primaryKey");
 
   if (json_is_string(pValue))
@@ -89,6 +109,7 @@ void CTable::fromJSON(const json_t * json)
       json_t * pKey = json_array_get(pValue, 0);
       mValid &= json_is_string(pKey) && strcmp(json_string_value(pKey), "pid") == 0;
     }
+#endif // CHECK_PRIMARY_KEY
 }
 
 const std::string & CTable::getId() const
@@ -105,7 +126,6 @@ const std::map< std::string, CField > & CTable::getFields() const
 {
   return mFields;
 }
-
 
 const CField & CTable::getField(const std::string & field) const
 {

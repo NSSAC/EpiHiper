@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -17,6 +17,7 @@
 #include "actions/CSampling.h"
 #include "actions/CActionEnsemble.h"
 #include "sets/CSetContent.h"
+#include "utilities/CLogger.h"
 
 CSampling::CSampled::CSampled()
   : CSetContent()
@@ -87,12 +88,14 @@ CSampling::CSampling(const json_t * json)
 // virtual
 CSampling::~CSampling()
 {
-  if (mpSampled != NULL) delete mpSampled;
-  if (mpNotSampled != NULL) delete mpNotSampled;
+  if (mpSampled != NULL)
+    delete mpSampled;
+  if (mpNotSampled != NULL)
+    delete mpNotSampled;
 }
 
 // virtual
-void CSampling::fromJSON(const json_t *json)
+void CSampling::fromJSON(const json_t * json)
 {
   /*
     "sampling": {
@@ -159,10 +162,12 @@ void CSampling::fromJSON(const json_t *json)
     },
    */
 
-  mValid = true;
+  mValid = false; // DONE
 
   if (json == NULL)
     {
+      // This is an optional object it is therefor permissable to be undefined
+      mValid = true;
       return;
     }
 
@@ -170,7 +175,7 @@ void CSampling::fromJSON(const json_t *json)
 
   if (pValue == NULL)
     {
-      mValid = false;
+      CLogger::error("Sampling: Missing 'type'.");
       return;
     }
 
@@ -178,17 +183,17 @@ void CSampling::fromJSON(const json_t *json)
     {
       mType = Type::relativeIndividual;
     }
-  else if(strcmp(json_string_value(pValue), "group") == 0)
+  else if (strcmp(json_string_value(pValue), "group") == 0)
     {
       mType = Type::relativeGroup;
     }
-  else if(strcmp(json_string_value(pValue), "absolute") == 0)
+  else if (strcmp(json_string_value(pValue), "absolute") == 0)
     {
       mType = Type::absolute;
     }
   else
     {
-      mValid = false;
+      CLogger::error("Sampling: Invalid 'type'.");
       return;
     }
 
@@ -196,12 +201,12 @@ void CSampling::fromJSON(const json_t *json)
 
   if (!json_is_real(pValue))
     {
-      mValid = false;
+      CLogger::error("Sampling: Missing or invalid 'number'.");
       return;
     }
 
   switch (mType)
-  {
+    {
     case Type::relativeIndividual:
     case Type::relativeGroup:
       mPercentage = json_real_value(pValue);
@@ -210,19 +215,19 @@ void CSampling::fromJSON(const json_t *json)
     case Type::absolute:
       mCount = std::round(json_real_value(pValue));
       break;
-  }
+    }
 
   pValue = json_object_get(json, "sampled");
 
   if (pValue != NULL)
     {
       mpSampled = new CActionEnsemble(pValue);
-      mValid = mpSampled->isValid();
 
-      if (!mValid)
+      if (!mpSampled->isValid())
         {
           delete mpSampled;
           mpSampled = NULL;
+          CLogger::error("Sampling: Invalid action ensemble for 'sampled'.");
 
           return;
         }
@@ -233,22 +238,23 @@ void CSampling::fromJSON(const json_t *json)
   if (pValue != NULL)
     {
       mpNotSampled = new CActionEnsemble(pValue);
-      mValid = mpNotSampled->isValid();
 
-      if (!mValid)
+      if (!mpNotSampled->isValid())
         {
           delete mpNotSampled;
           mpNotSampled = NULL;
+          CLogger::error("Sampling: Invalid action ensemble for 'nonsampled'.");
 
           return;
         }
     }
+
+  mValid = true;
 }
 
 void CSampling::process(const CSetContent & targets)
 {
-  if (mpSampled == NULL &&
-      mpNotSampled == NULL)
+  if (mpSampled == NULL && mpNotSampled == NULL)
     {
       return;
     }
@@ -257,8 +263,7 @@ void CSampling::process(const CSetContent & targets)
   // For types relativeGroup and absolute we need to communcate with the other comput nodes to determine the local number
   // even if targets are empty;
 
-  if (mType == Type::relativeGroup ||
-      mType == Type::absolute)
+  if (mType == Type::relativeGroup || mType == Type::absolute)
     {
       broadcastCount();
       mpTargets->sampleMax(mLocalLimit, mSampledTargets, mNotSampledTargets);
@@ -299,7 +304,7 @@ CCommunicate::ErrorCode CSampling::receiveCount(std::istream & is, int sender)
   if (CCommunicate::MPIRank == 0)
     if (sender != CCommunicate::MPIRank)
       {
-        is.read(reinterpret_cast<char *>(mpCommunicateBuffer + sender), sizeof(size_t));
+        is.read(reinterpret_cast< char * >(mpCommunicateBuffer + sender), sizeof(size_t));
       }
     else
       {
@@ -350,7 +355,7 @@ CCommunicate::ErrorCode CSampling::receiveCount(std::istream & is, int sender)
       }
   else
     {
-      is.read(reinterpret_cast<char *>(mpCommunicateBuffer), CCommunicate::MPIProcesses * sizeof(size_t));
+      is.read(reinterpret_cast< char * >(mpCommunicateBuffer), CCommunicate::MPIProcesses * sizeof(size_t));
     }
 
   return CCommunicate::ErrorCode::Success;

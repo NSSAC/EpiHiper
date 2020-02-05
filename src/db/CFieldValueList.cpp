@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -14,6 +14,7 @@
 
 #include "db/CFieldValueList.h"
 #include "db/CFieldValue.h"
+#include "utilities/CLogger.h"
 
 CFieldValueList::CFieldValueList(const Type & type)
   : CValueList(type)
@@ -44,12 +45,19 @@ bool CFieldValueList::append(const CFieldValue & value)
 // virtual
 void CFieldValueList::fromJSON(const json_t * json)
 {
+  mValid = false; // DONE
   json_t * pArray = json_object_get(json, "valueList");
 
-  if (!json_is_array(pArray) ||
-      json_array_size(pArray) == 0)
+  // We only report an error if json contains a 'valueList'
+  if (pArray == NULL)
     {
-      mValid = false;
+      return;
+    }
+
+  if (!json_is_array(pArray)
+      || json_array_size(pArray) == 0)
+    {
+      CLogger::error("Field value list: Invalid or missing 'valueList'.");
       return;
     }
 
@@ -65,12 +73,14 @@ void CFieldValueList::fromJSON(const json_t * json)
     }
   else
     {
-      mValid = false;
+      CLogger::error("Field value list: Invalid type for 'valueList'.");
       return;
     }
 
+  mValid = true;
+
   switch (mType)
-  {
+    {
     case Type::number:
       for (size_t i = 0, imax = json_array_size(pArray); i < imax && mValid; ++i)
         {
@@ -79,7 +89,10 @@ void CFieldValueList::fromJSON(const json_t * json)
           if (json_is_real(pValue))
             std::set< CValue >::insert(CFieldValue(json_real_value(pValue)));
           else
-            mValid = false;
+            {
+              CLogger::error() << "Field value list: Invalid type for value '" << i << "'.";
+              mValid = false; // DONE
+            }
         }
       break;
 
@@ -91,11 +104,11 @@ void CFieldValueList::fromJSON(const json_t * json)
           if (json_is_string(pValue))
             std::set< CValue >::insert(CFieldValue(json_string_value(pValue)));
           else
-            mValid = false;
+            {
+              CLogger::error() << "Field value list: Invalid type for value '" << i << "'.";
+              mValid = false; // DONE
+            }
         }
       break;
-  }
+    }
 }
-
-
-

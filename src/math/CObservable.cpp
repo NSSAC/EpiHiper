@@ -18,6 +18,7 @@
 #include "diseaseModel/CHealthState.h"
 #include "actions/CActionQueue.h"
 #include "network/CNetwork.h"
+#include "utilities/CLogger.h"
 
 // static
 CObservable * CObservable::get(const CObservable::ObservableType & observableType, const size_t & id)
@@ -60,7 +61,7 @@ CObservable::CObservable()
   , mId(-1)
   , mpCompute(NULL)
 {
-  mValid = false;
+  mValid = false; // DONE
 }
 
 CObservable::CObservable(const CObservable & src)
@@ -101,12 +102,12 @@ CObservable::~CObservable()
 // virtual
 void CObservable::computeProtected()
 {
-  if (mValid &&
-      mpCompute != NULL)
+  if (mValid
+      && mpCompute != NULL)
     (this->*mpCompute)();
 }
 
-bool CObservable::operator < (const CObservable & rhs) const
+bool CObservable::operator<(const CObservable & rhs) const
 {
   if (mObservableType != rhs.mObservableType)
     return mObservableType < rhs.mObservableType;
@@ -142,11 +143,10 @@ void CObservable::computeHealthStateRelative()
 
   if (pHealthState != NULL)
     {
-      double Relative = ((double) pHealthState->getGlobalCounts().Current)/CNetwork::INSTANCE->getGlobalNodeCount();
+      double Relative = ((double) pHealthState->getGlobalCounts().Current) / CNetwork::INSTANCE->getGlobalNodeCount();
       assignValue(&Relative);
     }
 }
-
 
 void CObservable::fromJSON(const json_t * json)
 {
@@ -192,6 +192,7 @@ void CObservable::fromJSON(const json_t * json)
     },
   */
 
+  mValid = false; // DONE
   json_t * pObservable = json_object_get(json, "observable");
 
   if (json_is_object(pObservable))
@@ -200,52 +201,53 @@ void CObservable::fromJSON(const json_t * json)
 
       if (!json_is_string(pValue))
         {
-          mValid = false;
+          CLogger::error("Observable: Invalid or missing 'type'.");
           return;
         }
 
       if (strcmp(json_string_value(pValue), "absolute") == 0)
-          {
-            mObservableType = ObservableType::healthStateAbsolute;
-            mpCompute = &CObservable::computeHealthStateAbsolute;
+        {
+          mObservableType = ObservableType::healthStateAbsolute;
+          mpCompute = &CObservable::computeHealthStateAbsolute;
 
-            destroyValue();
-            mType = Type::id;
-            mpValue = createValue(mType);
-          }
-        else if (strcmp(json_string_value(pValue), "relative") == 0)
-          {
-            mObservableType = ObservableType::healthStateRelative;
-            mpCompute = &CObservable::computeHealthStateRelative;
+          destroyValue();
+          mType = Type::id;
+          mpValue = createValue(mType);
+        }
+      else if (strcmp(json_string_value(pValue), "relative") == 0)
+        {
+          mObservableType = ObservableType::healthStateRelative;
+          mpCompute = &CObservable::computeHealthStateRelative;
 
-            destroyValue();
-            mType = Type::number;
-            mpValue = createValue(mType);
-          }
-        else
-          {
-            mValid = false;
-            return;
-          }
+          destroyValue();
+          mType = Type::number;
+          mpValue = createValue(mType);
+        }
+      else
+        {
+          CLogger::error() << "Observable: Invalid type '" << json_string_value(pValue) << "'.";
+          return;
+        }
 
-        pValue = json_object_get(pObservable, "healthState");
+      pValue = json_object_get(pObservable, "healthState");
 
-        if (!json_is_string(pValue))
-          {
-            mValid = false;
-            return;
-          }
+      if (!json_is_string(pValue))
+        {
+          CLogger::error("Observable: Invalid or missing 'healthState'.");
+          return;
+        }
 
-        const CHealthState * pHealthState = CModel::getState(json_string_value(pValue));
+      const CHealthState * pHealthState = CModel::getState(json_string_value(pValue));
 
-        if (pHealthState == NULL)
-          {
-            mValid = false;
-            return;
-          }
+      if (pHealthState == NULL)
+        {
+          CLogger::error() << "Observable: Invalid healthState '" << json_string_value(pValue) << "'.";
+          return;
+        }
 
-        mId = CModel::stateToType(pHealthState);
-        mValid = true;
+      mId = CModel::stateToType(pHealthState);
+      mValid = true;
+      return;
     }
   else if (json_is_string(pObservable))
     {
@@ -278,14 +280,10 @@ void CObservable::fromJSON(const json_t * json)
         }
       else
         {
-          mValid = false;
+          CLogger::error() << "Observable: Invalid observable '" << json_string_value(pObservable) << "'.";
+          return;
         }
-    }
-  else
-    {
-      mValid = false;
     }
 
   return;
 }
-

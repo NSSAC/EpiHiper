@@ -17,6 +17,7 @@
 #include "network/CEdge.h"
 #include "traits/CTrait.h"
 #include "actions/COperation.h"
+#include "utilities/CLogger.h"
 
 CEdgeProperty::CEdgeProperty()
   : CValueInterface(Type::boolean, NULL)
@@ -55,11 +56,11 @@ CValueInterface * CEdgeProperty::copy() const
 
 void CEdgeProperty::fromJSON(const json_t * json)
 {
+  mValid = false; // DONE
   json_t * pObject = json_object_get(json, "edge");
 
   if (!json_is_object(pObject))
     {
-      mValid = false;
       return;
     }
 
@@ -67,31 +68,33 @@ void CEdgeProperty::fromJSON(const json_t * json)
 
   if (json_is_string(pValue))
     {
-      if (strcmp(json_string_value(pValue), "weight") == 0)
+      const char * Property = json_string_value(pValue);
+
+      if (strcmp(Property, "weight") == 0)
         {
           mType = Type::number;
           mpPropertyOf = &CEdgeProperty::weight;
           mpCreateOperation = &CEdgeProperty::setWeight;
         }
-      else if (strcmp(json_string_value(pValue), "active") == 0)
+      else if (strcmp(Property, "active") == 0)
         {
           mType = Type::boolean;
           mpPropertyOf = &CEdgeProperty::active;
           mpCreateOperation = &CEdgeProperty::setActive;
         }
-      else if (strcmp(json_string_value(pValue), "targetActivity") == 0)
+      else if (strcmp(Property, "targetActivity") == 0)
         {
           mType = Type::traitData;
           mpPropertyOf = &CEdgeProperty::targetActivity;
           mpCreateOperation = &CEdgeProperty::setTargetActivity;
         }
-      else if (strcmp(json_string_value(pValue), "sourceActivity") == 0)
+      else if (strcmp(Property, "sourceActivity") == 0)
         {
           mType = Type::traitData;
           mpPropertyOf = &CEdgeProperty::sourceActivity;
           mpCreateOperation = &CEdgeProperty::setSourceActivity;
         }
-      else if (strcmp(json_string_value(pValue), "edgeTrait") == 0)
+      else if (strcmp(Property, "edgeTrait") == 0)
         {
           mType = Type::traitData;
           mpPropertyOf = &CEdgeProperty::edgeTrait;
@@ -99,13 +102,13 @@ void CEdgeProperty::fromJSON(const json_t * json)
         }
       else
         {
-          mValid = false;
+          CLogger::error() << "Edge property: Invalid property '" << Property << "'";
+          return;
         }
 
+      mValid = true;
       return;
     }
-
-  mValid = false;
 }
 
 const bool & CEdgeProperty::isValid() const
@@ -137,34 +140,35 @@ COperation * CEdgeProperty::createOperation(CEdge * pEdge, const CValueInterface
 
 bool CEdgeProperty::isReadOnly() const
 {
-  return mpPropertyOf == &CEdgeProperty::targetActivity || mpPropertyOf == &CEdgeProperty::sourceActivity;
+  return mpPropertyOf == &CEdgeProperty::targetActivity
+         || mpPropertyOf == &CEdgeProperty::sourceActivity;
 }
 
-CValueInterface &  CEdgeProperty::targetActivity(CEdge * pEdge)
+CValueInterface & CEdgeProperty::targetActivity(CEdge * pEdge)
 {
   mpValue = &pEdge->targetActivity;
   return *this;
 }
 
-CValueInterface &  CEdgeProperty::sourceActivity(CEdge * pEdge)
+CValueInterface & CEdgeProperty::sourceActivity(CEdge * pEdge)
 {
   mpValue = &pEdge->sourceActivity;
   return *this;
 }
 
-CValueInterface &  CEdgeProperty::edgeTrait(CEdge * pEdge)
+CValueInterface & CEdgeProperty::edgeTrait(CEdge * pEdge)
 {
   mpValue = &pEdge->edgeTrait;
   return *this;
 }
 
-CValueInterface &  CEdgeProperty::active(CEdge * pEdge)
+CValueInterface & CEdgeProperty::active(CEdge * pEdge)
 {
   mpValue = &pEdge->active;
   return *this;
 }
 
-CValueInterface &  CEdgeProperty::weight(CEdge * pEdge)
+CValueInterface & CEdgeProperty::weight(CEdge * pEdge)
 {
   mpValue = &pEdge->weight;
   return *this;

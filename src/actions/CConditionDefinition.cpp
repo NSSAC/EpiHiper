@@ -282,7 +282,7 @@ bool CConditionDefinition::valueFromJSON(const json_t * json)
     },
    */
 
-  mValid = false;
+  mValid = false; // DONE
   json_t * pValue = json_object_get(json, "value");
 
   if (pValue != NULL)
@@ -295,7 +295,7 @@ bool CConditionDefinition::valueFromJSON(const json_t * json)
         }
       else
         {
-          spdlog::error("Invalid Boolean value.");
+          CLogger::error("Condition: Invalid Boolean value.");
         }
 
       return true;
@@ -318,7 +318,7 @@ bool CConditionDefinition::operationFromJSON(const json_t * json)
     },
     */
 
-  mValid = false;
+  mValid = false; // DONE
   json_t * pOperation = json_object_get(json, "not");
 
   if (pOperation != NULL)
@@ -335,12 +335,12 @@ bool CConditionDefinition::operationFromJSON(const json_t * json)
             }
           else
             {
-              spdlog::error("Invalid operant for Boolean operator 'not'.");
+              CLogger::error("Condition: Invalid operant for Boolean operator 'not'.");
             }
         }
       else
         {
-          spdlog::error("Invalid Boolean operator 'not'.");
+          CLogger::error("Condition: Invalid Boolean operator 'not'.");
         }
 
       return true;
@@ -381,7 +381,7 @@ bool CConditionDefinition::operationFromJSON(const json_t * json)
     {
       if (!json_is_array(pOperation))
         {
-          spdlog::error("Invalid Boolean operator 'and'.");
+          CLogger::error("Condition: Invalid Boolean operator 'and'.");
           return true;
         }
 
@@ -395,7 +395,7 @@ bool CConditionDefinition::operationFromJSON(const json_t * json)
         {
           if (!json_is_array(pOperation))
             {
-              spdlog::error("Invalid Boolean operator 'or'.");
+              CLogger::error("Condition: Invalid Boolean operator 'or'.");
             }
 
           mType = BooleanOperationType::Or;
@@ -419,10 +419,8 @@ bool CConditionDefinition::operationFromJSON(const json_t * json)
         }
       else
         {
-          std::ostringstream msg;
-          msg << "Invalid operant for Boolean operator '" << (mType == BooleanOperationType::And ? "and" : "or") << "'.";
-          spdlog::error(msg.str());
-          mValid = false;
+          CLogger::error() << "Condition: Invalid operant for Boolean operator '" << (mType == BooleanOperationType::And ? "and" : "or") << "'.";
+          mValid = false; // DONE
         }
     }
 
@@ -554,7 +552,7 @@ bool CConditionDefinition::comparisonFromJSON(const json_t * json)
   */
 
   mType = BooleanOperationType::Comparison;
-  mValid = false;
+  mValid = false; // DONE
 
   json_t * pValue = json_object_get(json, "operator");
 
@@ -565,7 +563,7 @@ bool CConditionDefinition::comparisonFromJSON(const json_t * json)
 
   if (!json_is_string(pValue))
     {
-      spdlog::error("Invalid comparison operator.");
+      CLogger::error("Condition: Invalid comparison operator.");
       return true;
     }
 
@@ -605,9 +603,7 @@ bool CConditionDefinition::comparisonFromJSON(const json_t * json)
     }
   else
     {
-      std::ostringstream msg;
-      msg << "Invalid comparison operator '" << Comparison << "'.";
-      spdlog::error(msg.str());
+      CLogger::error() << "Condition: Invalid comparison operator '" << Comparison << "'.";
       return true;
     }
 
@@ -617,20 +613,16 @@ bool CConditionDefinition::comparisonFromJSON(const json_t * json)
 
   if (!mLeft.valid)
     {
-      std::ostringstream msg;
-      msg << "Invalid left operant for comparison operator '" << Comparison << "'.";
-      spdlog::error(msg.str());
-      mValid = false;
+      CLogger::error() << "Condition: Invalid left operant for comparison operator '" << Comparison << "'.";
+      mValid = false; // DONE
     }
 
   mRight.fromJSON(json_object_get(json, "right"));
 
   if (!mRight.valid)
     {
-      std::ostringstream msg;
-      msg << "Invalid right operant for comparison operator '" << Comparison << "'.";
-      spdlog::error(msg.str());
-      mValid = false;
+      CLogger::error() << "Condition: Invalid right operant for comparison operator '" << Comparison << "'.";
+      mValid = false; // DONE
     }
 
   if (mComparison != ComparisonType::Within
@@ -638,18 +630,14 @@ bool CConditionDefinition::comparisonFromJSON(const json_t * json)
     {
       if (mLeft.type == ValueType::ValueList)
         {
-          std::ostringstream msg;
-          msg << "Invalid value type for left operant for comparison operator '" << Comparison << "'.";
-          spdlog::error(msg.str());
-          mValid = false;
+          CLogger::error() << "Condition: Invalid value type for left operant for comparison operator '" << Comparison << "'.";
+          mValid = false; // DONE
         }
 
       if (mRight.type == ValueType::ValueList)
         {
-          std::ostringstream msg;
-          msg << "Invalid value type for right operant for comparison operator '" << Comparison << "'.";
-          spdlog::error(msg.str());
-          mValid = false;
+          CLogger::error() << "Condition: Invalid value type for right operant for comparison operator '" << Comparison << "'.";
+          mValid = false; // DONE
         }
     }
   else
@@ -657,18 +645,14 @@ bool CConditionDefinition::comparisonFromJSON(const json_t * json)
       if (mLeft.type != ValueType::NodeProperty
           && mLeft.type != ValueType::EdgeProperty)
         {
-          std::ostringstream msg;
-          msg << "Invalid value type for left operant for comparison operator '" << Comparison << "'.";
-          spdlog::error(msg.str());
-          mValid = false;
+          CLogger::error() << "Condition: Invalid value type for left operant for comparison operator '" << Comparison << "'.";
+          mValid = false; // DONE
         }
 
       if (mRight.type != ValueType::ValueList)
         {
-          std::ostringstream msg;
-          msg << "Invalid value type for right operant for comparison operator '" << Comparison << "'.";
-          spdlog::error(msg.str());
-          mValid = false;
+          CLogger::error() << "Condition: Invalid value type for right operant for comparison operator '" << Comparison << "'.";
+          mValid = false; // DONE
         }
     }
 

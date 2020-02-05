@@ -98,7 +98,7 @@ void Changes::initDefaultOutput()
         }
       else
         {
-          spdlog::error("Error (Rank 0): Failed to open file '" + CSimConfig::getOutput() + "'.");
+          CLogger::error("Error (Rank 0): Failed to open file '" + CSimConfig::getOutput() + "'.");
           exit(EXIT_FAILURE);
         }
 

@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -18,6 +18,7 @@
 #include "network/CEdge.h"
 #include "diseaseModel/CModel.h"
 #include "actions/COperation.h"
+#include "utilities/CLogger.h"
 
 CNodeProperty::CNodeProperty()
   : CValueInterface(Type::boolean, NULL)
@@ -53,57 +54,59 @@ CValueInterface * CNodeProperty::copy() const
 
 void CNodeProperty::fromJSON(const json_t * json)
 {
+  mValid = false; // DONE
   json_t * pObject = json_object_get(json, "node");
 
   if (!json_is_object(pObject))
     {
-      mValid = false;
       return;
     }
 
   json_t * pValue = json_object_get(pObject, "property");
 
-  if (!json_is_string(pValue))
+  if (json_is_string(pValue))
     {
-      mValid = false;
-      return;
-    }
+      const char * Property = json_string_value(pValue);
 
-  if (strcmp(json_string_value(pValue), "id") == 0)
-    {
-      mType = Type::id;
-      mpPropertyOf = &CNodeProperty::id;
-      mpCreateOperation = &CNodeProperty::setId;
-    }
-  else if (strcmp(json_string_value(pValue), "susceptibilityFactor") == 0)
-    {
-      mType = Type::number;
-      mpPropertyOf = &CNodeProperty::susceptibilityFactor;
-      mpCreateOperation = &CNodeProperty::setSusceptibilityFactor;
-    }
-  else if (strcmp(json_string_value(pValue), "infectivityFactor") == 0)
-    {
-      mType = Type::number;
-      mpPropertyOf = &CNodeProperty::infectivityFactor;
-      mpCreateOperation = &CNodeProperty::setInfectivityFactor;
-    }
-  else if (strcmp(json_string_value(pValue), "healthState") == 0)
-    {
-      mType = Type::id;
-      mpPropertyOf = &CNodeProperty::healthState;
-      mpCreateOperation = &CNodeProperty::setHealthState;
-    }
-  else  if (strcmp(json_string_value(pValue), "nodeTrait") == 0)
-    {
-      mType = Type::traitData;
-      mpPropertyOf = &CNodeProperty::nodeTrait;
-      mpCreateOperation = &CNodeProperty::setNodeTrait;
-    }
-  else
-    {
-      mValid = false;
-    }
+      if (strcmp(Property, "id") == 0)
+        {
+          mType = Type::id;
+          mpPropertyOf = &CNodeProperty::id;
+          mpCreateOperation = &CNodeProperty::setId;
+        }
+      else if (strcmp(Property, "susceptibilityFactor") == 0)
+        {
+          mType = Type::number;
+          mpPropertyOf = &CNodeProperty::susceptibilityFactor;
+          mpCreateOperation = &CNodeProperty::setSusceptibilityFactor;
+        }
+      else if (strcmp(Property, "infectivityFactor") == 0)
+        {
+          mType = Type::number;
+          mpPropertyOf = &CNodeProperty::infectivityFactor;
+          mpCreateOperation = &CNodeProperty::setInfectivityFactor;
+        }
+      else if (strcmp(Property, "healthState") == 0)
+        {
+          mType = Type::id;
+          mpPropertyOf = &CNodeProperty::healthState;
+          mpCreateOperation = &CNodeProperty::setHealthState;
+        }
+      else if (strcmp(Property, "nodeTrait") == 0)
+        {
+          mType = Type::traitData;
+          mpPropertyOf = &CNodeProperty::nodeTrait;
+          mpCreateOperation = &CNodeProperty::setNodeTrait;
+        }
+      else
+        {
+          CLogger::error() << "Node property: Invalid property '" << Property << "'";
+          return;
+        }
 
+      mValid = true;
+    }
+    
   return;
 }
 
@@ -188,6 +191,3 @@ COperation * CNodeProperty::setNodeTrait(CNode * pNode, const CValueInterface & 
 {
   return new COperationInstance< CNode, CTraitData::value >(pNode, value.toTraitValue(), pOperator, &CNode::setNodeTrait);
 }
-
-
-

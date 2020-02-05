@@ -24,6 +24,7 @@
 #include "network/CNetwork.h"
 #include "network/CNode.h"
 #include "utilities/CRandom.h"
+#include "utilities/CLogger.h"
 
 // static
 void CModel::load(const std::string & modelFile)
@@ -76,7 +77,7 @@ CModel::~CModel()
 
 void CModel::fromJSON(const json_t * json)
 {
-  mValid = true;
+  mValid = false; // DONE
 
   json_t * pValue = json_object_get(json, "states");
   mStates = new CHealthState[json_array_size(pValue)];
@@ -92,11 +93,13 @@ void CModel::fromJSON(const json_t * json)
         }
       else
         {
-          mValid = false;
+          CLogger::error() << "Model: Invalid state for item '" << i << "'.";
+          return;
         }
     }
 
   pValue = json_object_get(json, "initialState");
+  mpInitialState = NULL;
 
   if (json_is_string(pValue))
     {
@@ -108,7 +111,11 @@ void CModel::fromJSON(const json_t * json)
         }
     }
 
-  mValid &= (mpInitialState != NULL);
+  if (mpInitialState == NULL)
+    {
+      CLogger::error("Model: Invalid or missing 'initialState'.");
+      return;
+    }
 
   pValue = json_object_get(json, "transmissions");
 
@@ -119,8 +126,16 @@ void CModel::fromJSON(const json_t * json)
   for (size_t i = 0; itTrans != endTrans; ++itTrans, ++i)
     {
       itTrans->fromJSON(json_array_get(pValue, i), mId2State);
-      mValid &= itTrans->isValid();
-      mPossibleTransmissions[itTrans->getEntryState()][itTrans->getContactState()] = &*itTrans;
+
+      if (itTrans->isValid())
+        {
+          mPossibleTransmissions[itTrans->getEntryState()][itTrans->getContactState()] = &*itTrans;
+        }
+      else
+        {
+          CLogger::error() << "Model: Invalid transmission for item '" << i << "'.";
+          return;
+        }
     }
 
   pValue = json_object_get(json, "transitions");
@@ -132,10 +147,19 @@ void CModel::fromJSON(const json_t * json)
   for (size_t i = 0; itProg != endProg; ++itProg, ++i)
     {
       itProg->fromJSON(json_array_get(pValue, i), mId2State);
-      mValid &= itProg->isValid();
-      mPossibleProgressions[itProg->getEntryState()].push_back(&*itProg);
+      
+      if (itProg->isValid())
+        {
+          mPossibleProgressions[itProg->getEntryState()].push_back(&*itProg);
+        }
+      else
+        {
+          CLogger::error() << "Model: Invalid transition for item '" << i << "'.";
+          return;
+        }
     }
 
+  mValid = true;
   CAnnotation::fromJSON(json);
 }
 
@@ -392,7 +416,7 @@ void CModel::initGlobalStateCountOutput()
         }
       else
         {
-          spdlog::error("Error (Rank 0): Failed to open file '" + CSimConfig::getSummaryOutput() + "'.");
+          CLogger::error("Error (Rank 0): Failed to open file '" + CSimConfig::getSummaryOutput() + "'.");
           exit(EXIT_FAILURE);
         }
 
@@ -429,7 +453,7 @@ void CModel::writeGlobalStateCounts()
         }
       else
         {
-          spdlog::error("Error (Rank 0): Failed to open file '" + CSimConfig::getSummaryOutput() + "'.");
+          CLogger::error("Error (Rank 0): Failed to open file '" + CSimConfig::getSummaryOutput() + "'.");
           exit(EXIT_FAILURE);
         }
 

@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -14,6 +14,7 @@
 #include <jansson.h>
 
 #include "db/CField.h"
+#include "utilities/CLogger.h"
 
 CField::CField()
   : mId()
@@ -22,7 +23,7 @@ CField::CField()
   , mValid(false)
 {}
 
-CField::CField(const CField &src)
+CField::CField(const CField & src)
   : mId(src.mId)
   , mLabel(src.mLabel)
   , mType(src.mType)
@@ -35,18 +36,27 @@ CField::~CField()
 
 void CField::fromJSON(const json_t * json)
 {
+  mValid = false; // DONE
   json_t * pValue = json_object_get(json, "name");
 
-  if (json_is_string(pValue))
+  if (!json_is_string(pValue))
     {
-      mId = json_string_value(pValue);
+      CLogger::error("Field: Invalid or missing 'name'.");
+      return;
     }
 
-  mValid = !mId.empty();
+  mId = json_string_value(pValue);
+
+  if (mId.empty())
+    {
+      CLogger::error("Field: Invalid empty 'name'.");
+      return;
+    }
+
   mLabel = mId;
 
-  if (mId == "pid" ||
-      mId == "hid")
+  if (mId == "pid"
+      || mId == "hid")
     {
       mType = CValue::Type::id;
     }
@@ -70,10 +80,13 @@ void CField::fromJSON(const json_t * json)
             }
           else
             {
-              mValid = false;
+              CLogger::error("Field: Invalid or missing 'type'.");
+              return;
             }
         }
     }
+
+  mValid = true;
 }
 
 const std::string & CField::getId() const
@@ -90,4 +103,3 @@ const CValue::Type & CField::getType() const
 {
   return mType;
 }
-

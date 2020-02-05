@@ -83,7 +83,7 @@ CNetwork::CNetwork(const std::string & networkFile)
 {
   if (mFile.empty())
     {
-      spdlog::error("Network file is not specified");
+      CLogger::error("Network file is not specified");
       return;
     }
 
@@ -302,7 +302,7 @@ void CNetwork::convert(std::istream & is, const std::string & outputDirectory)
             {
               if (CurrentNode > Node && CurrentNode != -1)
                 {
-                  spdlog::error("Network target nodes are not sorted.");
+                  CLogger::error("Network target nodes are not sorted.");
                   return;
                 }
 
@@ -386,7 +386,7 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
             {
               if (CurrentNode > Node && CurrentNode != -1)
                 {
-                  spdlog::error("Network target nodes are not sorted.");
+                  CLogger::error("Network target nodes are not sorted.");
                   return;
                 }
               if (PartitionEdgeCount >= PartitionIndex * DesiredPerComputeNode)
@@ -484,7 +484,7 @@ void CNetwork::load()
 
   if (mFile.empty())
     {
-      spdlog::error("Network file is not specified");
+      CLogger::error("Network file is not specified");
       mValid = false;
       return;
     }
@@ -550,7 +550,7 @@ void CNetwork::load()
 
   if (is.fail())
     {
-      spdlog::error("Network file: '" + File.str() + "' cannot be opened.");
+      CLogger::error("Network file: '" + File.str() + "' cannot be opened.");
       mValid = false;
       return;
     }
@@ -579,9 +579,7 @@ void CNetwork::load()
 
       if (!loadEdge(pEdge, is))
         {
-          std::ostringstream msg;
-          msg << "Network file: '" << mFile << "' invalid edge (" << pEdge - mEdges << ").";
-          spdlog::error(msg.str());
+          CLogger::error() << "Network file: '" << mFile << "' invalid edge (" << pEdge - mEdges << ").";
 
           mValid = false;
           break;
@@ -640,11 +638,8 @@ void CNetwork::load()
 
             if (pEdge->pSource == NULL)
               {
-                std::ostringstream msg;
-                msg << "Network file: '" << mFile << "' Source not found "
-                    << pEdge << ", " << pEdge->targetId << ", " << pEdge->sourceId << std::endl;
-
-                spdlog::error(msg.str());
+                CLogger::error() << "Network file: '" << mFile << "' Source not found "
+                                 << pEdge << ", " << pEdge->targetId << ", " << pEdge->sourceId << std::endl;
                 mValid = false;
               }
           }
@@ -941,7 +936,7 @@ bool CNetwork::loadEdge(CEdge * pEdge, std::istream & is) const
 
       if (is.tellg() - p >= LineSize)
         {
-          spdlog::error("Edge line size exceeded.");
+          CLogger::error("Edge line size exceeded.");
           return false;
         }
 

@@ -17,6 +17,7 @@
 #include <getopt.h>
 #include <jansson.h>
 
+#include "git-commit.h"
 #include "network/CNetwork.h"
 #include "traits/CTrait.h"
 #include "utilities/CCommunicate.h"
@@ -185,7 +186,7 @@ int main(int argc, char * argv[])
 
   if (CCommunicate::MPIRank == 0)
     {
-      std::cout << "EpiHiperPartition version 0.0.1 (2019.06.14)" << std::endl;
+      std::cout << "EpiHiperPartition (build: " << __DATE__ << ", commit: " << GIT_COMMIT <<  ")" << std::endl;
     }
 
   if (argc < 3 || !parseArgs(argc, argv))
@@ -204,7 +205,7 @@ int main(int argc, char * argv[])
 
   if (!loadJson(Config))
     {
-      spdlog::error("Invalid paramters in: " + Config);
+      CLogger::error("Invalid paramters in: " + Config);
 
       CCommunicate::abort(CCommunicate::ErrorCode::InvalidArguments);
       CCommunicate::finalize();

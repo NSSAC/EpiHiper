@@ -162,7 +162,7 @@ CSimConfig::CSimConfig(const std::string & configFile)
 {
   if (mRunParameters.empty())
     {
-      spdlog::error("Simulation configuration file is not specified");
+      CLogger::error("Simulation configuration file is not specified");
       return;
     }
 
@@ -424,7 +424,7 @@ json_t * CSimConfig::loadJson(const std::string & jsonFile, int flags)
 
   if (jsonFile.empty())
     {
-      spdlog::error("JSON file is not specified");
+      CLogger::error("JSON file is not specified");
       return pRoot;
     }
 
@@ -432,7 +432,7 @@ json_t * CSimConfig::loadJson(const std::string & jsonFile, int flags)
 
   if (is.fail())
     {
-      spdlog::error("JSON file: '" + jsonFile + "' cannot be opened.");
+      CLogger::error("JSON file: '" + jsonFile + "' cannot be opened.");
       return pRoot;
     }
 
@@ -461,10 +461,7 @@ json_t * CSimConfig::loadJson(const std::string & jsonFile, int flags)
 
   if (pRoot == NULL)
     {
-      std::ostringstream msg;
-      msg << "JSON file: '" << jsonFile << "' error on line " << error.line << ": " << error.text << std::endl;
-
-      spdlog::error(msg.str());
+      CLogger::error() << "JSON file: '" << jsonFile << "' error on line " << error.line << ": " << error.text << std::endl;
     }
 
   return pRoot;

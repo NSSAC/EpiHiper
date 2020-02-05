@@ -45,7 +45,7 @@ void CConnection::init()
 
   catch (const pqxx::pqxx_exception & e)
     {
-      spdlog::error(e.base().what());
+      CLogger::error(e.base().what());
     }
 }
 

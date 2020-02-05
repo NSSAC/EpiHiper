@@ -53,7 +53,7 @@ private:
 
   CObservable(const json_t * json);
 
-  void fromJSON(const json_t * json);
+  virtual void fromJSON(const json_t * json);
 
   void computeTime();
 

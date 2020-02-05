@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -18,6 +18,7 @@
 #include "sets/CSetList.h"
 #include "utilities/CSimConfig.h"
 #include "variables/CVariableList.h"
+#include "utilities/CLogger.h"
 
 // static
 void CIntervention::load(const std::string & file)
@@ -49,7 +50,7 @@ void CIntervention::load(const std::string & file)
 
   for (size_t i = 0, imax = json_array_size(pArray); i < imax; ++i)
     {
-      CIntervention *pIntervention = new CIntervention(json_array_get(pArray, i));
+      CIntervention * pIntervention = new CIntervention(json_array_get(pArray, i));
 
       if (!pIntervention->isValid())
         {
@@ -60,7 +61,6 @@ void CIntervention::load(const std::string & file)
   CTrigger::loadJSON(json_object_get(pRoot, "triggers"));
 
   json_decref(pRoot);
-
 }
 
 // static
@@ -124,7 +124,6 @@ CIntervention::CIntervention(const CIntervention & src)
   , mId(src.mId)
 {}
 
-
 // virtual
 CIntervention::~CIntervention()
 {}
@@ -160,7 +159,7 @@ void CIntervention::fromJSON(const json_t * json)
   if (!mValid)
     return;
 
-  json_t *pValue = json_object_get(json, "trigger");
+  json_t * pValue = json_object_get(json, "trigger");
 
   if (json_is_object(pValue))
     {
@@ -182,12 +181,14 @@ void CIntervention::fromJSON(const json_t * json)
       else
         {
           delete pTrigger;
-          mValid = false;
+          CLogger::error("Intervention: Invalid trigger.");
+          mValid = false; // DONE
         }
 
       return;
     }
 
+  mId.clear();
   pValue = json_object_get(json, "id");
 
   if (json_is_string(pValue))
@@ -195,15 +196,14 @@ void CIntervention::fromJSON(const json_t * json)
       mId = json_string_value(pValue);
       INSTANCES[mId] = this;
 
+      if (CAnnotation::mAnnId.empty())
+        {
+          CAnnotation::mAnnId = mId;
+        }
       return;
     }
 
-  if (CAnnotation::mAnnId.empty())
-    {
-      CAnnotation::mAnnId = mId;
-    }
-
-  mValid = false;
+  mValid = false; // DONE
 }
 
 void CIntervention::process()
@@ -220,4 +220,3 @@ void CIntervention::trigger()
 {
   mIsTriggered = true;
 }
-

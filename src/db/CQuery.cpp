@@ -163,7 +163,7 @@ bool CQuery::all(const std::string & table,
 
   catch (const std::exception & e)
     {
-      spdlog::error(e.what());
+      CLogger::error(e.what());
     }
 
   pWork->commit();
@@ -274,7 +274,7 @@ bool CQuery::in(const std::string & table,
 
   catch (const std::exception & e)
     {
-      spdlog::error(e.what());
+      CLogger::error(e.what());
     }
 
   pWork->commit();
@@ -364,7 +364,7 @@ bool CQuery::where(const std::string & table,
 
   catch (const std::exception & e)
     {
-      spdlog::error(e.what());
+      CLogger::error(e.what());
     }
 
   pWork->commit();

@@ -54,7 +54,7 @@ target_link_libraries (EpiHiper
 )
 
 add_executable (EpiHiperPartition Partition.cpp)
-add_dependencies(EpiHiperPartition EpiHiperLib)
+add_dependencies(EpiHiperPartition EpiHiperLib GIT_COMMIT)
 target_link_libraries (EpiHiperPartition 
     EpiHiperLib
 	${MPI_LIBRARIES}

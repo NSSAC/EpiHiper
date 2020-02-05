@@ -65,9 +65,7 @@ void CCommunicate::init(int argc, char ** argv)
 // static
 int CCommunicate::abortMessage(ErrorCode err, const std::string & msg, const char * file, int line)
 {
-  std::ostringstream message;
-  message << "Rank: " << MPIRank << ", " << file << "(" << line << "): " << msg << std::endl;
-  spdlog::error(message.str());
+  CLogger::error() << "Rank: " << MPIRank << ", " << file << "(" << line << "): " << msg << std::endl;
 
   return abort(err);
 }

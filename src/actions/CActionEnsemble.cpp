@@ -113,8 +113,8 @@ void CActionEnsemble::fromJSON(const json_t * json)
         }
       else
         {
-          spdlog::error("Invalid action in object 'once'.");
-          mValid = false;
+          CLogger::error("Action ensemble: Invalid action in object 'once'.");
+          mValid = false; // DONE
           delete pActionDefinition;
         }
     }
@@ -131,8 +131,9 @@ void CActionEnsemble::fromJSON(const json_t * json)
         }
       else
         {
-          spdlog::error("Invalid action in object 'foreach'.");
-          mValid = false;
+          CLogger::error("Action ensemble: Invalid action in object 'foreach'.");
+          mValid = false; // DONE
+
           delete pActionDefinition;
         }
     }

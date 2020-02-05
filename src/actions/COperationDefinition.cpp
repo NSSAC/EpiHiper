@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -18,6 +18,7 @@
 #include "math/CNodeProperty.h"
 #include "math/CEdgeProperty.h"
 #include "variables/CVariableList.h"
+#include "utilities/CLogger.h"
 
 COperationDefinition::COperationDefinition()
   : CAnnotation()
@@ -57,8 +58,10 @@ COperationDefinition::COperationDefinition(const json_t * json)
 // virtual
 COperationDefinition::~COperationDefinition()
 {
-  if (mpNodeProperty != NULL) delete mpNodeProperty;
-  if (mpEdgeProperty != NULL) delete mpEdgeProperty;
+  if (mpNodeProperty != NULL)
+    delete mpNodeProperty;
+  if (mpEdgeProperty != NULL)
+    delete mpEdgeProperty;
 }
 
 void COperationDefinition::fromJSON(const json_t * json)
@@ -113,15 +116,16 @@ void COperationDefinition::fromJSON(const json_t * json)
     ]
   */
 
+  mValid = false; // DONE
   json_t * pValue = json_object_get(json, "target");
 
   if (!json_is_object(pValue))
     {
-      mValid = false;
+      CLogger::error("Operation: Invalid target.");
       return;
     }
 
-  mpVariable = & CVariableList::INSTANCE[pValue];
+  mpVariable = &CVariableList::INSTANCE[pValue];
 
   if (mpVariable->isValid())
     {
@@ -147,7 +151,7 @@ void COperationDefinition::fromJSON(const json_t * json)
             }
           else
             {
-              mValid = false;
+              CLogger::error("Operation: Invalid target.");
               return;
             }
         }
@@ -157,38 +161,39 @@ void COperationDefinition::fromJSON(const json_t * json)
 
   if (!json_is_string(pValue))
     {
-      mValid = false;
+      CLogger::error("Operation: Invalid operator.");
       return;
     }
 
-  if (strcmp(json_string_value(pValue), "=") == 0)
+  const char * Operator = json_string_value(pValue);
+
+  if (strcmp(Operator, "=") == 0)
     {
       mpOperator = &CValueInterface::equal;
     }
-  else if(strcmp(json_string_value(pValue), "+=") == 0)
+  else if (strcmp(Operator, "+=") == 0)
     {
       mpOperator = &CValueInterface::plus;
     }
-  else if(strcmp(json_string_value(pValue), "-=") == 0)
+  else if (strcmp(Operator, "-=") == 0)
     {
       mpOperator = &CValueInterface::minus;
     }
-  else if(strcmp(json_string_value(pValue), "*=") == 0)
+  else if (strcmp(Operator, "*=") == 0)
     {
       mpOperator = &CValueInterface::multiply;
     }
-  else if(strcmp(json_string_value(pValue), "/=") == 0)
+  else if (strcmp(Operator, "/=") == 0)
     {
       mpOperator = &CValueInterface::divide;
     }
   else
     {
-      mValid = false;
+      CLogger::error() << "Operation: Invalid operator '" << Operator << "'.";
       return;
     }
 
   mValue.fromJSON(json_object_get(json, "value"));
-
   mValid = mValue.isValid();
 }
 
@@ -199,8 +204,8 @@ const bool & COperationDefinition::isValid() const
 
 COperation * COperationDefinition::createOperation(CNode * pNode) const
 {
-  if (pNode != NULL &&
-      mpNodeProperty != NULL)
+  if (pNode != NULL
+      && mpNodeProperty != NULL)
     return mpNodeProperty->createOperation(pNode, mValue, mpOperator);
 
   return createOperation();
@@ -208,8 +213,8 @@ COperation * COperationDefinition::createOperation(CNode * pNode) const
 
 COperation * COperationDefinition::createOperation(CEdge * pEdge) const
 {
-  if (pEdge != NULL &&
-      mpEdgeProperty != NULL)
+  if (pEdge != NULL
+      && mpEdgeProperty != NULL)
     return mpEdgeProperty->createOperation(pEdge, mValue, mpOperator);
 
   return createOperation();

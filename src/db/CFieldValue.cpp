@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -13,6 +13,7 @@
 #include <jansson.h>
 
 #include "db/CFieldValue.h"
+#include "utilities/CLogger.h"
 
 CFieldValue::CFieldValue(const size_t & id)
   : CValue(id)
@@ -39,13 +40,20 @@ CFieldValue::~CFieldValue()
 // virtual
 void CFieldValue::fromJSON(const json_t * json)
 {
+  mValid = false; // DONE
   json_t * pValue = json_object_get(json, "value");
+
+  if (pValue == NULL)
+    {
+      CLogger::error("Field value: Missing 'value'.");
+    }
 
   if (json_is_real(pValue))
     {
       destroyValue();
       mType = Type::number;
       mpValue = new double(json_real_value(pValue));
+      mValid = true;
       return;
     }
 
@@ -54,9 +62,11 @@ void CFieldValue::fromJSON(const json_t * json)
       destroyValue();
       mType = Type::string;
       mpValue = new std::string(json_string_value(pValue));
+      mValid = true;
       return;
     }
 
-  mValid = false;
+  CLogger::error("Field value: Invalid type for 'value'.");
+
   return;
 }
