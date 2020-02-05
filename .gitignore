@@ -16,3 +16,5 @@ sciduct/data/
 sciduct/build.log
 
 sciduct/epihiper.sif
+
+src/git-commit.h

@@ -1,5 +1,5 @@
 # BEGIN: Copyright 
-# Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+# Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 # All rights reserved 
 # END: Copyright 
 
@@ -11,6 +11,28 @@
 # END: License 
 
 cmake_minimum_required (VERSION 3.11)
+
+find_package(Git QUIET)
+if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
+# Update submodules as needed
+    option(GIT_SUBMODULE "Check submodules during build" ON)
+    if(GIT_SUBMODULE)
+        message(STATUS "Submodule update")
+        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
+                        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+                        RESULT_VARIABLE GIT_SUBMOD_RESULT)
+        if(NOT GIT_SUBMOD_RESULT EQUAL "0")
+            message(FATAL_ERROR "git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+        endif()
+    endif()
+endif()
+
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/jansson/CMakeLists.txt" OR
+   NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libpqxx/CMakeLists.txt" OR
+   NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/spdlog/CMakeLists.txt")
+    message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
+endif()
+
 
 include(ExternalProject)
 
@@ -53,6 +75,6 @@ ExternalProject_Add(spdlog
   	-DSPDLOG_BUILD_EXAMPLE=OFF
   	${CMAKE_CURRENT_SOURCE_DIR}/spdlog
   	
-  BUILD_COMMAND      make 
+  BUILD_COMMAND      make && cd ${CMAKE_CURRENT_SOURCE_DIR}/spdlog && git checkout -- .
   INSTALL_COMMAND    make install
 )

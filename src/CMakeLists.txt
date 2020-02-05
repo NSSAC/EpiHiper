@@ -1,5 +1,5 @@
 # BEGIN: Copyright 
-# Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+# Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 # All rights reserved 
 # END: Copyright 
 
@@ -25,13 +25,26 @@ include(traits/CMakeLists.txt)
 include(utilities/CMakeLists.txt)
 include(variables/CMakeLists.txt)
 
+find_package(Git QUIET)
+if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
+  add_custom_target(GIT_COMMIT 
+  	COMMAND echo "\\#define GIT_COMMIT" \\\"`${GIT_EXECUTABLE} describe --always --dirty`\\\" > ${CMAKE_CURRENT_BINARY_DIR}/git-commit.h
+    COMMAND if [ ! -e git-commit.h ] || ! diff --brief git-commit.h ${CMAKE_CURRENT_BINARY_DIR}/git-commit.h &> /dev/null\; then cp ${CMAKE_CURRENT_BINARY_DIR}/git-commit.h git-commit.h\; fi
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+else()
+  add_custom_target(GIT_COMMIT 
+  	COMMAND echo "\\#define GIT_COMMIT" \\\"unknown\\\" > ${CMAKE_CURRENT_BINARY_DIR}/git-commit.h
+    COMMAND if [ ! -e git-commit.h ] || ! diff --brief git-commit.h ${CMAKE_CURRENT_BINARY_DIR}/git-commit.h &> /dev/null\; then cp ${CMAKE_CURRENT_BINARY_DIR}/git-commit.h git-commit.h\; fi
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+endif()
+
 add_library (EpiHiperLib-core OBJECT ${SOURCES_EPIHIPER} ${HEADERS_EPIHIPER})
 add_dependencies(EpiHiperLib-core jansson libpqxx spdlog)
 
 add_library (EpiHiperLib STATIC $<TARGET_OBJECTS:EpiHiperLib-core>)
 
-add_executable (EpiHiper EpiHiper.cpp Simulation.cpp Simulation.h)
-add_dependencies(EpiHiper EpiHiperLib)
+add_executable (EpiHiper EpiHiper.cpp Simulation.cpp Simulation.h git-commit.h)
+add_dependencies(EpiHiper EpiHiperLib GIT_COMMIT)
 target_link_libraries (EpiHiper 
     EpiHiperLib
 	${MPI_LIBRARIES}

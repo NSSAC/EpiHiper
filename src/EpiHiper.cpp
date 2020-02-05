@@ -15,6 +15,7 @@
 #include <getopt.h>
 
 #include "diseaseModel/CModel.h"
+#include "git-commit.h"
 #include "Simulation.h"
 #include "network/CNetwork.h"
 #include "traits/CTrait.h"
@@ -85,7 +86,7 @@ int main(int argc, char * argv[])
 
   if (CCommunicate::MPIRank == 0)
     {
-      std::cout << "EpiHiper version 0.0.1 (2019.06.14)" << std::endl;
+      std::cout << "EpiHiper (build: " << __DATE__ << ", commit: " << GIT_COMMIT <<  ")" << std::endl;
     }
 
   if (argc < 3 || !parseArgs(argc, argv))
