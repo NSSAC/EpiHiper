@@ -18,7 +18,8 @@
 // static
 void CConnection::init()
 {
-  if (pINSTANCE != NULL) return;
+  if (pINSTANCE != NULL)
+    return;
 
   const CSimConfig::db_connection & dbConnection = CSimConfig::getDBConnection();
 
@@ -29,7 +30,8 @@ void CConnection::init()
     {
       URI += dbConnection.user;
 
-      if (!dbConnection.password.empty()) URI += ":" + dbConnection.password;
+      if (!dbConnection.password.empty())
+        URI += ":" + dbConnection.password;
 
       URI += "@";
     }
@@ -37,14 +39,14 @@ void CConnection::init()
   URI += dbConnection.host + "/" + dbConnection.name;
 
   try
-  {
-    pINSTANCE = new CConnection(URI);
-  }
+    {
+      pINSTANCE = new CConnection(URI);
+    }
 
   catch (const pqxx::pqxx_exception & e)
-  {
-    std::cerr << e.base().what() << std::endl;
-  }
+    {
+      spdlog::error(e.base().what());
+    }
 }
 
 // static
@@ -72,4 +74,3 @@ CConnection::CConnection(const std::string & uri)
 
 CConnection::~CConnection()
 {}
-

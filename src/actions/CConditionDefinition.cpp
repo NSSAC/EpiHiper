@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -20,6 +20,7 @@
 #include "math/CEdgeProperty.h"
 #include "math/CSizeOf.h"
 #include "variables/CVariableList.h"
+#include "utilities/CLogger.h"
 
 CConditionDefinition::ValueInstance::ValueInstance()
   : pCounter(new size_t(1))
@@ -56,11 +57,16 @@ CConditionDefinition::ValueInstance::~ValueInstance()
   if (*pCounter == 0)
     {
       delete pCounter;
-      if (pValue != NULL) delete pValue;
-      if (pValueList != NULL) delete pValueList;
-      if (pNodeProperty != NULL) delete pNodeProperty;
-      if (pEdgeProperty != NULL) delete pEdgeProperty;
-      if (pSizeOf != NULL) delete pSizeOf;
+      if (pValue != NULL)
+        delete pValue;
+      if (pValueList != NULL)
+        delete pValueList;
+      if (pNodeProperty != NULL)
+        delete pNodeProperty;
+      if (pEdgeProperty != NULL)
+        delete pEdgeProperty;
+      if (pSizeOf != NULL)
+        delete pSizeOf;
     }
 }
 
@@ -98,8 +104,8 @@ void CConditionDefinition::ValueInstance::fromJSON(const json_t * json)
 
   pObservable = CObservable::get(json);
 
-  if (pObservable != NULL &&
-      pObservable->isValid())
+  if (pObservable != NULL
+      && pObservable->isValid())
     {
       type = ValueType::Observable;
       RequiredComputables.insert(pObservable);
@@ -130,7 +136,7 @@ void CConditionDefinition::ValueInstance::fromJSON(const json_t * json)
   delete pEdgeProperty;
   pEdgeProperty = NULL;
 
-  pVariable = & CVariableList::INSTANCE[json];
+  pVariable = &CVariableList::INSTANCE[json];
 
   if (pVariable->isValid())
     {
@@ -160,7 +166,7 @@ void CConditionDefinition::ValueInstance::fromJSON(const json_t * json)
 CValueInterface * CConditionDefinition::ValueInstance::value(const CNode * pNode) const
 {
   if (pNodeProperty != NULL)
-    return & pNodeProperty->propertyOf(pNode);
+    return &pNodeProperty->propertyOf(pNode);
 
   return value();
 }
@@ -248,24 +254,21 @@ void CConditionDefinition::fromJSON(const json_t * json)
   },
   */
 
-  valueFromJSON(json);
+  if (valueFromJSON(json))
+    return;
 
-  if (mValid) return;
+  if (comparisonFromJSON(json))
+    return;
 
-  comparisonFromJSON(json);
-
-  if (mValid) return;
-
-  operationFromJSON(json); // also handles not
-
-  if (mValid) return;
+  if (operationFromJSON(json)) // also handles not
+    return;
 
   mType = BooleanOperationType::Value;
   mValue = true;
   mValid = true;
 }
 
-void CConditionDefinition::valueFromJSON(const json_t * json)
+bool CConditionDefinition::valueFromJSON(const json_t * json)
 {
   /*
     "booleanValue": {
@@ -279,21 +282,29 @@ void CConditionDefinition::valueFromJSON(const json_t * json)
     },
    */
 
-  mType = BooleanOperationType::Value;
-
+  mValid = false;
   json_t * pValue = json_object_get(json, "value");
 
-  if (json_is_boolean(pValue))
+  if (pValue != NULL)
     {
-      mValue = json_is_true(pValue);
-      mValid = true;
-      return;
+      if (json_is_boolean(pValue))
+        {
+          mType = BooleanOperationType::Value;
+          mValue = json_is_true(pValue);
+          mValid = true;
+        }
+      else
+        {
+          spdlog::error("Invalid Boolean value.");
+        }
+
+      return true;
     }
 
-  mValid = false;
+  return false;
 }
 
-void CConditionDefinition::operationFromJSON(const json_t * json)
+bool CConditionDefinition::operationFromJSON(const json_t * json)
 {
   /*
     "booleanNot": {
@@ -306,26 +317,33 @@ void CConditionDefinition::operationFromJSON(const json_t * json)
       }
     },
     */
-  mValid = true;
 
+  mValid = false;
   json_t * pOperation = json_object_get(json, "not");
 
-  if (json_is_object(pOperation))
+  if (pOperation != NULL)
     {
-      mType = BooleanOperationType::Not;
-
-      CConditionDefinition Child(pOperation);
-
-      if (Child.isValid())
+      if (json_is_object(pOperation))
         {
-          mBooleanValues.push_back(Child);
+          mType = BooleanOperationType::Not;
+          CConditionDefinition Child(pOperation);
+
+          if (Child.isValid())
+            {
+              mValid = true;
+              mBooleanValues.push_back(Child);
+            }
+          else
+            {
+              spdlog::error("Invalid operant for Boolean operator 'not'.");
+            }
         }
       else
         {
-          mValid = false;
+          spdlog::error("Invalid Boolean operator 'not'.");
         }
 
-      return;
+      return true;
     }
 
   /*
@@ -358,21 +376,37 @@ void CConditionDefinition::operationFromJSON(const json_t * json)
     }
    */
   pOperation = json_object_get(json, "and");
-  mType = BooleanOperationType::And;
 
-  if (!json_is_array(pOperation))
+  if (pOperation != NULL)
+    {
+      if (!json_is_array(pOperation))
+        {
+          spdlog::error("Invalid Boolean operator 'and'.");
+          return true;
+        }
+
+      mType = BooleanOperationType::And;
+    }
+  else
     {
       pOperation = json_object_get(json, "or");
 
-      if (!json_is_array(pOperation))
+      if (pOperation != NULL)
         {
-          mValid = false;
-          return;
-        }
+          if (!json_is_array(pOperation))
+            {
+              spdlog::error("Invalid Boolean operator 'or'.");
+            }
 
-      mType = BooleanOperationType::Or;
+          mType = BooleanOperationType::Or;
+        }
+      else
+        {
+          return false;
+        }
     }
 
+  mValid = true;
   size_t i = 0, imax = json_array_size(pOperation);
 
   for (; i < imax && mValid; ++i)
@@ -385,12 +419,17 @@ void CConditionDefinition::operationFromJSON(const json_t * json)
         }
       else
         {
+          std::ostringstream msg;
+          msg << "Invalid operant for Boolean operator '" << (mType == BooleanOperationType::And ? "and" : "or") << "'.";
+          spdlog::error(msg.str());
           mValid = false;
         }
     }
+
+  return true;
 }
 
-void CConditionDefinition::comparisonFromJSON(const json_t * json)
+bool CConditionDefinition::comparisonFromJSON(const json_t * json)
 {
   /*
     "comparisonOperator": {
@@ -515,80 +554,131 @@ void CConditionDefinition::comparisonFromJSON(const json_t * json)
   */
 
   mType = BooleanOperationType::Comparison;
-  mValid = true;
+  mValid = false;
 
   json_t * pValue = json_object_get(json, "operator");
 
-  if (!json_is_string(pValue))
+  if (pValue == NULL)
     {
-      mValid = false;
-      return;
+      return false;
     }
 
-  if (strcmp(json_string_value(pValue), "<") == 0)
+  if (!json_is_string(pValue))
+    {
+      spdlog::error("Invalid comparison operator.");
+      return true;
+    }
+
+  const char * Comparison = json_string_value(pValue);
+
+  if (strcmp(Comparison, "<") == 0)
     {
       mComparison = ComparisonType::Less;
     }
-  else if(strcmp(json_string_value(pValue), "<=") == 0)
+  else if (strcmp(Comparison, "<=") == 0)
     {
       mComparison = ComparisonType::LessOrEqual;
     }
-  else if(strcmp(json_string_value(pValue), ">") == 0)
+  else if (strcmp(Comparison, ">") == 0)
     {
       mComparison = ComparisonType::Greater;
     }
-  else if(strcmp(json_string_value(pValue), ">=") == 0)
+  else if (strcmp(Comparison, ">=") == 0)
     {
       mComparison = ComparisonType::GreaterOrEqual;
     }
-  else if(strcmp(json_string_value(pValue), "==") == 0)
+  else if (strcmp(Comparison, "==") == 0)
     {
       mComparison = ComparisonType::Equal;
     }
-  else if(strcmp(json_string_value(pValue), "!=") == 0)
+  else if (strcmp(Comparison, "!=") == 0)
     {
       mComparison = ComparisonType::NotEqual;
-      return;
     }
-  else if(strcmp(json_string_value(pValue), "in") == 0)
+  else if (strcmp(Comparison, "in") == 0)
     {
       mComparison = ComparisonType::Within;
-      return;
     }
-  else if(strcmp(json_string_value(pValue), "not in") == 0)
+  else if (strcmp(Comparison, "not in") == 0)
     {
       mComparison = ComparisonType::NotWithin;
-      return;
     }
   else
     {
-      mValid = false;
-      return;
+      std::ostringstream msg;
+      msg << "Invalid comparison operator '" << Comparison << "'.";
+      spdlog::error(msg.str());
+      return true;
     }
+
+  mValid = true;
 
   mLeft.fromJSON(json_object_get(json, "left"));
-  mValid &= mLeft.valid;
+
+  if (!mLeft.valid)
+    {
+      std::ostringstream msg;
+      msg << "Invalid left operant for comparison operator '" << Comparison << "'.";
+      spdlog::error(msg.str());
+      mValid = false;
+    }
 
   mRight.fromJSON(json_object_get(json, "right"));
-  mValid &= mRight.valid;
 
-  if (mComparison != ComparisonType::Within &&
-      mComparison != ComparisonType::NotWithin)
+  if (!mRight.valid)
     {
-      mValid &= mLeft.type != ValueType::ValueList;
-      mValid &= mRight.type != ValueType::ValueList;
+      std::ostringstream msg;
+      msg << "Invalid right operant for comparison operator '" << Comparison << "'.";
+      spdlog::error(msg.str());
+      mValid = false;
+    }
+
+  if (mComparison != ComparisonType::Within
+      && mComparison != ComparisonType::NotWithin)
+    {
+      if (mLeft.type == ValueType::ValueList)
+        {
+          std::ostringstream msg;
+          msg << "Invalid value type for left operant for comparison operator '" << Comparison << "'.";
+          spdlog::error(msg.str());
+          mValid = false;
+        }
+
+      if (mRight.type == ValueType::ValueList)
+        {
+          std::ostringstream msg;
+          msg << "Invalid value type for right operant for comparison operator '" << Comparison << "'.";
+          spdlog::error(msg.str());
+          mValid = false;
+        }
     }
   else
     {
-      mValid &= (mLeft.type == ValueType::NodeProperty || mLeft.type == ValueType::EdgeProperty);
-      mValid &= mRight.type == ValueType::ValueList;
+      if (mLeft.type != ValueType::NodeProperty
+          && mLeft.type != ValueType::EdgeProperty)
+        {
+          std::ostringstream msg;
+          msg << "Invalid value type for left operant for comparison operator '" << Comparison << "'.";
+          spdlog::error(msg.str());
+          mValid = false;
+        }
+
+      if (mRight.type != ValueType::ValueList)
+        {
+          std::ostringstream msg;
+          msg << "Invalid value type for right operant for comparison operator '" << Comparison << "'.";
+          spdlog::error(msg.str());
+          mValid = false;
+        }
     }
+
+  return true;
 }
 
 CCondition * CConditionDefinition::createCondition(const CNode * pNode) const
 {
   switch (mType)
-  {
+    {
     case BooleanOperationType::And:
     case BooleanOperationType::Or:
     case BooleanOperationType::Not:
@@ -606,31 +696,31 @@ CCondition * CConditionDefinition::createCondition(const CNode * pNode) const
       }
       break;
 
-
     case BooleanOperationType::Value:
       return new CBooleanValue(mValue);
       break;
 
     case BooleanOperationType::Comparison:
       {
-      CValueInterface * pLeft = mLeft.value(pNode);
+        CValueInterface * pLeft = mLeft.value(pNode);
 
-      if (mComparison != ComparisonType::Within &&
-          mComparison != ComparisonType::NotWithin)
-        {
-          CValueInterface * pRight = mRight.value(pNode);
+        if (mComparison != ComparisonType::Within
+            && mComparison != ComparisonType::NotWithin)
+          {
+            CValueInterface * pRight = mRight.value(pNode);
 
-          if (pLeft != NULL && pRight != NULL)
-            return new CComparison(mComparison, pLeft, pRight);
-        }
-      else if (mRight.pValueList != NULL &&
-                pLeft != NULL)
-        {
-          return new CContainedIn(mComparison, pLeft, *mRight.pValueList);
-        }
+            if (pLeft != NULL
+                && pRight != NULL)
+              return new CComparison(mComparison, pLeft, pRight);
+          }
+        else if (mRight.pValueList != NULL
+                 && pLeft != NULL)
+          {
+            return new CContainedIn(mComparison, pLeft, *mRight.pValueList);
+          }
       }
       break;
-  }
+    }
 
   return new CBooleanValue(true);
 }
@@ -638,7 +728,7 @@ CCondition * CConditionDefinition::createCondition(const CNode * pNode) const
 CCondition * CConditionDefinition::createCondition(const CEdge * pEdge) const
 {
   switch (mType)
-  {
+    {
     case BooleanOperationType::And:
     case BooleanOperationType::Or:
     case BooleanOperationType::Not:
@@ -664,22 +754,23 @@ CCondition * CConditionDefinition::createCondition(const CEdge * pEdge) const
       {
         CValueInterface * pLeft = mLeft.value(pEdge);
 
-        if (mComparison != ComparisonType::Within &&
-            mComparison != ComparisonType::NotWithin)
+        if (mComparison != ComparisonType::Within
+            && mComparison != ComparisonType::NotWithin)
           {
             CValueInterface * pRight = mRight.value(pEdge);
 
-            if (pLeft != NULL && pRight != NULL)
+            if (pLeft != NULL
+                && pRight != NULL)
               return new CComparison(mComparison, pLeft, pRight);
           }
-        else if (mRight.pValueList != NULL &&
-                  pLeft != NULL)
+        else if (mRight.pValueList != NULL
+                 && pLeft != NULL)
           {
             return new CContainedIn(mComparison, pLeft, *mRight.pValueList);
           }
       }
       break;
-  }
+    }
 
   return new CBooleanValue(true);
 }
@@ -688,5 +779,3 @@ const bool & CConditionDefinition::isValid() const
 {
   return mValid;
 }
-
-

@@ -44,7 +44,6 @@ void CModel::release()
     }
 }
 
-
 CModel::CModel(const std::string & modelFile)
   : CAnnotation()
   , mStates()
@@ -71,7 +70,7 @@ CModel::~CModel()
 {
   if (mStates != NULL)
     {
-      delete [] mStates;
+      delete[] mStates;
     }
 }
 
@@ -190,35 +189,40 @@ bool CModel::_processTransmissions() const
   CNode * pNode = CNetwork::INSTANCE->beginNode();
   CNode * pNodeEnd = CNetwork::INSTANCE->endNode();
 
-  std::map< const CHealthState *, std::map< const CHealthState *,  const CTransmission * > >::const_iterator EntryStateFound;
-  std::map< const CHealthState *, std::map< const CHealthState *,  const CTransmission * > >::const_iterator EntryStateNotFound = mPossibleTransmissions.end();
+  std::map< const CHealthState *, std::map< const CHealthState *, const CTransmission * > >::const_iterator EntryStateFound;
+  std::map< const CHealthState *, std::map< const CHealthState *, const CTransmission * > >::const_iterator EntryStateNotFound = mPossibleTransmissions.end();
 
-  for (pNode = CNetwork::INSTANCE->beginNode(); pNode  != pNodeEnd; ++pNode)
-    if (pNode->susceptibility > 0.0 &&
-        (EntryStateFound = mPossibleTransmissions.find(pNode->getHealthState())) != EntryStateNotFound)
+  for (pNode = CNetwork::INSTANCE->beginNode(); pNode != pNodeEnd; ++pNode)
+    if (pNode->susceptibility > 0.0
+        && (EntryStateFound = mPossibleTransmissions.find(pNode->getHealthState())) != EntryStateNotFound)
       {
         CEdge * pEdge = pNode->Edges;
         CEdge * pEdgeEnd = pNode->Edges + pNode->EdgesSize;
 
-        std::map< const CHealthState *,  const CTransmission * >::const_iterator ContactStateFound;
-        std::map< const CHealthState *,  const CTransmission * >::const_iterator ContactStateNotFound = EntryStateFound->second.end();
+        std::map< const CHealthState *, const CTransmission * >::const_iterator ContactStateFound;
+        std::map< const CHealthState *, const CTransmission * >::const_iterator ContactStateNotFound = EntryStateFound->second.end();
 
-        struct Candidate { const CNode * pContact; const CTransmission * pTransmission; double Propensity; };
+        struct Candidate
+        {
+          const CNode * pContact;
+          const CTransmission * pTransmission;
+          double Propensity;
+        };
         std::vector< Candidate > Candidates;
         double A0 = 0.0;
 
         for (; pEdge != pEdgeEnd; ++pEdge)
           {
-            if (pEdge->active &&
-                pEdge->pSource->infectivity > 0.0 &&
-                (ContactStateFound = EntryStateFound->second.find(pEdge->pSource->getHealthState())) != ContactStateNotFound)
+            if (pEdge->active
+                && pEdge->pSource->infectivity > 0.0
+                && (ContactStateFound = EntryStateFound->second.find(pEdge->pSource->getHealthState())) != ContactStateNotFound)
               {
                 // ρ(P, P', Τi,j,k) = (| contactTime(P, P') ∩ [tn, tn + Δtn] |) × contactWeight(P, P') × σ(P, Χi) × ι(P',Χk) × ω(Τi,j,k)
                 Candidate Candidate;
                 Candidate.pContact = pEdge->pSource;
                 Candidate.pTransmission = ContactStateFound->second;
                 Candidate.Propensity = pEdge->duration * pEdge->weight * pNode->susceptibility
-                    * Candidate.pContact->infectivity * Candidate.pTransmission->getTransmissibility();
+                                       * Candidate.pContact->infectivity * Candidate.pTransmission->getTransmissibility();
 
                 if (Candidate.Propensity > 0.0)
                   {
@@ -228,8 +232,8 @@ bool CModel::_processTransmissions() const
               }
           }
 
-        if (A0 > 0 &&
-            -log(Uniform01(CRandom::G)) < A0/86400)
+        if (A0 > 0
+            && -log(Uniform01(CRandom::G)) < A0 / 86400)
           {
             double alpha = Uniform01(CRandom::G) * A0;
 
@@ -240,18 +244,19 @@ bool CModel::_processTransmissions() const
               {
                 alpha -= itCandidate->Propensity;
 
-                if (alpha < 0.0) break;
+                if (alpha < 0.0)
+                  break;
               }
 
             const Candidate & Candidate = (itCandidate != endCandidate) ? *itCandidate : *Candidates.rbegin();
 
-            CCondition *pCheckState = new CComparison(CConditionDefinition::ComparisonType::Equal, CValueInterface(pNode->healthState), CValue(pNode->healthState));
+            CCondition * pCheckState = new CComparison(CConditionDefinition::ComparisonType::Equal, CValueInterface(pNode->healthState), CValue(pNode->healthState));
 
             CMetadata Info("StateChange", true);
             Info.set("ContactNode", (int) Candidate.pContact->id);
 
             CAction * pChangeState = new CAction(1.0, pCheckState);
-            pChangeState->addOperation(new COperationInstance<CNode, const CTransmission *>(pNode, Candidate.pTransmission, NULL, &CNode::set, Info));
+            pChangeState->addOperation(new COperationInstance< CNode, const CTransmission * >(pNode, Candidate.pTransmission, NULL, &CNode::set, Info));
 
             CActionQueue::addAction(0, pChangeState);
           }
@@ -268,12 +273,12 @@ void CModel::stateChanged(CNode * pNode)
 
 void CModel::_stateChanged(CNode * pNode) const
 {
-
   // std::cout << pNode->id << ": " << pNode->Edges << ", " << pNode->Edges + pNode->EdgesSize << ", " << pNode->EdgesSize << std::endl;
 
   std::map< const CHealthState *, std::vector< const CProgression * > >::const_iterator EntryStateFound = mPossibleProgressions.find(pNode->getHealthState());
 
-  if (EntryStateFound == mPossibleProgressions.end()) return;
+  if (EntryStateFound == mPossibleProgressions.end())
+    return;
 
   std::vector< const CProgression * >::const_iterator it = EntryStateFound->second.begin();
   std::vector< const CProgression * >::const_iterator end = EntryStateFound->second.end();
@@ -293,16 +298,17 @@ void CModel::_stateChanged(CNode * pNode) const
         {
           alpha -= (*it)->getPropability();
 
-          if (alpha < 0.0) break;
+          if (alpha < 0.0)
+            break;
         }
 
       const CProgression * pProgression = (it != end) ? *it : *EntryStateFound->second.rbegin();
 
-      CCondition *pCheckState = new CComparison(CConditionDefinition::ComparisonType::Equal, CValueInterface(pNode->healthState), CValue(pNode->healthState));
+      CCondition * pCheckState = new CComparison(CConditionDefinition::ComparisonType::Equal, CValueInterface(pNode->healthState), CValue(pNode->healthState));
 
       CMetadata Info("StateChange", true);
-      CAction *pChangeState = new CAction(1.0, pCheckState);
-      pChangeState->addOperation(new COperationInstance<CNode, const CProgression *>(pNode, pProgression, NULL, &CNode::set, Info));
+      CAction * pChangeState = new CAction(1.0, pCheckState);
+      pChangeState->addOperation(new COperationInstance< CNode, const CProgression * >(pNode, pProgression, NULL, &CNode::set, Info));
 
       CActionQueue::addAction(pProgression->getDwellTime(), pChangeState);
     }
@@ -336,7 +342,6 @@ int CModel::updateGlobalStateCounts()
   return (int) CCommunicate::ErrorCode::Success;
 }
 
-
 // static
 CCommunicate::ErrorCode CModel::receiveGlobalStateCounts(std::istream & is, int sender)
 {
@@ -348,7 +353,7 @@ CCommunicate::ErrorCode CModel::receiveGlobalStateCounts(std::istream & is, int 
 
   for (; pState != pStateEnd; ++pState)
     {
-      is.read(reinterpret_cast<char *>(&Increment), sizeof(CHealthState::Counts));
+      is.read(reinterpret_cast< char * >(&Increment), sizeof(CHealthState::Counts));
       pState->incrementGlobalCount(Increment);
     }
 
@@ -380,14 +385,14 @@ void CModel::initGlobalStateCountOutput()
                   first = false;
                 }
 
-              out << ","  << pState->getId() << "[current]," << pState->getId() << "[in]," << pState->getId() << "[out]";
+              out << "," << pState->getId() << "[current]," << pState->getId() << "[in]," << pState->getId() << "[out]";
             }
 
           out << std::endl;
         }
       else
         {
-          std::cerr << "Error (Rank 0): Failed to open file '" << CSimConfig::getSummaryOutput() << "'.";
+          spdlog::error("Error (Rank 0): Failed to open file '" + CSimConfig::getSummaryOutput() + "'.");
           exit(EXIT_FAILURE);
         }
 
@@ -424,11 +429,10 @@ void CModel::writeGlobalStateCounts()
         }
       else
         {
-          std::cerr << "Error (Rank 0): Failed to open file '" << CSimConfig::getSummaryOutput() << "'.";
+          spdlog::error("Error (Rank 0): Failed to open file '" + CSimConfig::getSummaryOutput() + "'.");
           exit(EXIT_FAILURE);
         }
 
       out.close();
     }
 }
-

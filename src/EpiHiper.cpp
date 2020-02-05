@@ -20,6 +20,7 @@
 #include "traits/CTrait.h"
 #include "utilities/CCommunicate.h"
 #include "utilities/CRandom.h"
+#include "utilities/CLogger.h"
 #include "db/CSchema.h"
 #include "db/CConnection.h"
 #include "utilities/CSimConfig.h"
@@ -79,6 +80,7 @@ bool parseArgs(int argc, char * argv[])
 
 int main(int argc, char * argv[])
 {
+  CLogger::init();
   CCommunicate::init(argc, argv);
 
   if (CCommunicate::MPIRank == 0)
@@ -164,6 +166,7 @@ int main(int argc, char * argv[])
 
   CSimConfig::release();
   CCommunicate::finalize();
+  CLogger::release();
 
   return 0;
 }

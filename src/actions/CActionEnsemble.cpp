@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -12,6 +12,7 @@
 
 #include <jansson.h>
 
+#include "utilities/CLogger.h"
 #include "actions/CActionEnsemble.h"
 #include "sets/CSetContent.h"
 
@@ -112,6 +113,7 @@ void CActionEnsemble::fromJSON(const json_t * json)
         }
       else
         {
+          spdlog::error("Invalid action in object 'once'.");
           mValid = false;
           delete pActionDefinition;
         }
@@ -129,6 +131,7 @@ void CActionEnsemble::fromJSON(const json_t * json)
         }
       else
         {
+          spdlog::error("Invalid action in object 'foreach'.");
           mValid = false;
           delete pActionDefinition;
         }

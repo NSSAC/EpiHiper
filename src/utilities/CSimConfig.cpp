@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -12,13 +12,15 @@
 
 #include <vector>
 #include <fstream>
+#include <sstream>
 #include <iostream>
 #include <jansson.h>
 #include <limits>
+#include <cstring>
 
 #include "utilities/CSimConfig.h"
-
 #include "utilities/CDirEntry.h"
+#include "utilities/CLogger.h"
 
 // static
 void CSimConfig::load(const std::string & configFile)
@@ -40,52 +42,106 @@ void CSimConfig::release()
 }
 
 // static
-bool CSimConfig::isValid() { return CSimConfig::INSTANCE->valid; }
+bool CSimConfig::isValid()
+{
+  return CSimConfig::INSTANCE->valid;
+}
 
 // static
-int CSimConfig::getStartTick() { return CSimConfig::INSTANCE->mStartTick; }
+int CSimConfig::getStartTick()
+{
+  return CSimConfig::INSTANCE->mStartTick;
+}
 
 // static
-int CSimConfig::getEndTick() { return CSimConfig::INSTANCE->mEndTick; }
+int CSimConfig::getEndTick()
+{
+  return CSimConfig::INSTANCE->mEndTick;
+}
 
 // static
-const std::string & CSimConfig::getDiseaseModel() { return CSimConfig::INSTANCE->mDiseaseModel; }
+const std::string & CSimConfig::getDiseaseModel()
+{
+  return CSimConfig::INSTANCE->mDiseaseModel;
+}
 
 // static
-const std::string & CSimConfig::getContactNetwork() { return CSimConfig::INSTANCE->mContactNetwork; }
+const std::string & CSimConfig::getContactNetwork()
+{
+  return CSimConfig::INSTANCE->mContactNetwork;
+}
 
 // static
-const std::string & CSimConfig::getInitialization() { return CSimConfig::INSTANCE->mInitialization; }
+const std::string & CSimConfig::getInitialization()
+{
+  return CSimConfig::INSTANCE->mInitialization;
+}
 
 // static
-const std::string & CSimConfig::getTraits() { return CSimConfig::INSTANCE->mTraits; }
+const std::string & CSimConfig::getTraits()
+{
+  return CSimConfig::INSTANCE->mTraits;
+}
 
 // static
-const std::vector< std::string > & CSimConfig::getPersonTraitDB() { return CSimConfig::INSTANCE->mPersonTraitDB; }
+const std::vector< std::string > & CSimConfig::getPersonTraitDB()
+{
+  return CSimConfig::INSTANCE->mPersonTraitDB;
+}
 
 // static
-const std::string & CSimConfig::getOutput() { return CSimConfig::INSTANCE->mOutput; }
+const std::string & CSimConfig::getOutput()
+{
+  return CSimConfig::INSTANCE->mOutput;
+}
 
 // static
-const std::string & CSimConfig::getSummaryOutput() { return CSimConfig::INSTANCE->mSummaryOutput; }
+const std::string & CSimConfig::getSummaryOutput()
+{
+  return CSimConfig::INSTANCE->mSummaryOutput;
+}
 
 // static
-const std::string & CSimConfig::getStatus() { return CSimConfig::INSTANCE->mStatus; }
+const std::string & CSimConfig::getStatus()
+{
+  return CSimConfig::INSTANCE->mStatus;
+}
 
 // static
-const std::string & CSimConfig::getIntervention() { return CSimConfig::INSTANCE->mIntervention; }
+const std::string & CSimConfig::getIntervention()
+{
+  return CSimConfig::INSTANCE->mIntervention;
+}
 
 // static
-const size_t & CSimConfig::getSeed() { return CSimConfig::INSTANCE->mSeed; }
+const size_t & CSimConfig::getSeed()
+{
+  return CSimConfig::INSTANCE->mSeed;
+}
 
 // static
-const size_t & CSimConfig::getReplicate() { return CSimConfig::INSTANCE->mReplicate; }
+const size_t & CSimConfig::getReplicate()
+{
+  return CSimConfig::INSTANCE->mReplicate;
+}
 
 // static
-const CSimConfig::db_connection & CSimConfig::getDBConnection() { return CSimConfig::INSTANCE->mDBConnection; }
+CSimConfig::LogLevel CSimConfig::getLogLevel()
+{
+  if (CSimConfig::INSTANCE != NULL)
+    return CSimConfig::INSTANCE->mLogLevel;
+
+  return spdlog::level::warn;
+}
+
+// static
+const CSimConfig::db_connection & CSimConfig::getDBConnection()
+{
+  return CSimConfig::INSTANCE->mDBConnection;
+}
 
 // constructor: parse JSON
-CSimConfig::CSimConfig(const std::string& configFile)
+CSimConfig::CSimConfig(const std::string & configFile)
   : valid(false)
   , mRunParameters(configFile)
   , mModelScenario()
@@ -106,7 +162,7 @@ CSimConfig::CSimConfig(const std::string& configFile)
 {
   if (mRunParameters.empty())
     {
-      std::cerr << "Simulation configuration file is not specified" << std::endl;
+      spdlog::error("Simulation configuration file is not specified");
       return;
     }
 
@@ -132,8 +188,8 @@ CSimConfig::CSimConfig(const std::string& configFile)
 
   std::string DefaultDir;
 
-  if (CDirEntry::exist("/output") &&
-      CDirEntry::isWritable("/output"))
+  if (CDirEntry::exist("/output")
+      && CDirEntry::isWritable("/output"))
     DefaultDir = "/output";
   else
     DefaultDir = ".";
@@ -162,8 +218,8 @@ CSimConfig::CSimConfig(const std::string& configFile)
   if (!CDirEntry::exist(CDirEntry::dirName(mSummaryOutput)))
     CDirEntry::createDir(CDirEntry::dirName(mSummaryOutput));
 
-  if (CDirEntry::exist("/job") &&
-      CDirEntry::isWritable("/job"))
+  if (CDirEntry::exist("/job")
+      && CDirEntry::isWritable("/job"))
     DefaultDir = "/job";
   else
     DefaultDir = ".";
@@ -197,7 +253,7 @@ CSimConfig::CSimConfig(const std::string& configFile)
     }
 
   valid &= mEndTick != std::numeric_limits< int >::max()
-      && mStartTick < mEndTick;
+           && mStartTick < mEndTick;
 
   pValue = json_object_get(pRoot, "seed");
 
@@ -213,6 +269,27 @@ CSimConfig::CSimConfig(const std::string& configFile)
       mReplicate = json_real_value(pValue);
     }
 
+  pValue = json_object_get(pRoot, "logLevel");
+
+  if (json_is_string(pValue))
+    {
+      const char * LogLevel = json_string_value(pValue);
+      mLogLevel = spdlog::level::from_str(LogLevel);
+
+      // If the LogLevel is not found off is returned but we default to warn
+      if (mLogLevel == spdlog::level::off
+          && strcmp(LogLevel, "off") != 0)
+        {
+          mLogLevel = spdlog::level::warn;
+        }
+    }
+  else
+    {
+      mLogLevel = LogLevel::warn;
+    }
+
+  spdlog::set_level(mLogLevel);
+
   pValue = json_object_get(pRoot, "dbName");
 
   if (json_is_string(pValue))
@@ -220,9 +297,9 @@ CSimConfig::CSimConfig(const std::string& configFile)
       mDBConnection.name = json_string_value(pValue);
     }
   else
-  	{
+    {
       mDBConnection.name = "epihiper_db";
-  	}
+    }
 
   pValue = json_object_get(pRoot, "dbHost");
 
@@ -246,7 +323,6 @@ CSimConfig::CSimConfig(const std::string& configFile)
       mDBConnection.user = "epihiper";
     }
 
-
   pValue = json_object_get(pRoot, "dbPassword");
 
   if (json_is_string(pValue))
@@ -256,6 +332,17 @@ CSimConfig::CSimConfig(const std::string& configFile)
   else
     {
       mDBConnection.password.clear();
+    }
+
+  pValue = json_object_get(pRoot, "dbMaxRecords");
+
+  if (json_is_real(pValue))
+    {
+      mDBConnection.maxRecords = json_real_value(pValue);
+    }
+  else
+    {
+      mDBConnection.maxRecords = 100000;
     }
 
   json_decref(pRoot);
@@ -271,7 +358,8 @@ bool CSimConfig::loadScenario()
 {
   json_t * pRoot = loadJson(mModelScenario, JSON_DECODE_INT_AS_REAL);
 
-  if (pRoot == NULL) return false;
+  if (pRoot == NULL)
+    return false;
 
   json_t * pValue = json_object_get(pRoot, "contactNetwork");
 
@@ -323,10 +411,10 @@ bool CSimConfig::loadScenario()
 
   json_decref(pRoot);
 
-  return !mContactNetwork.empty() &&
-          !mDiseaseModel.empty() &&
-          !mIntervention.empty() &&
-          !mInitialization.empty();
+  return !mContactNetwork.empty()
+         && !mDiseaseModel.empty()
+         && !mIntervention.empty()
+         && !mInitialization.empty();
 }
 
 // static
@@ -336,7 +424,7 @@ json_t * CSimConfig::loadJson(const std::string & jsonFile, int flags)
 
   if (jsonFile.empty())
     {
-      std::cerr << "JSON file is not specified" << std::endl;
+      spdlog::error("JSON file is not specified");
       return pRoot;
     }
 
@@ -344,7 +432,7 @@ json_t * CSimConfig::loadJson(const std::string & jsonFile, int flags)
 
   if (is.fail())
     {
-      std::cerr << "JSON file: '" << jsonFile << "' cannot be opened." << std::endl;
+      spdlog::error("JSON file: '" + jsonFile + "' cannot be opened.");
       return pRoot;
     }
 
@@ -360,22 +448,24 @@ json_t * CSimConfig::loadJson(const std::string & jsonFile, int flags)
     return pRoot;
 
   // get length of file:
-  is.seekg (0, is.end);
+  is.seekg(0, is.end);
   size_t length = is.tellg();
-  is.seekg (0, is.beg);
+  is.seekg(0, is.beg);
 
-  char * buffer = new char [length + 1];
+  char * buffer = new char[length + 1];
   is.read(buffer, length);
   buffer[length] = 0;
 
   pRoot = json_loads(buffer, flags, &error);
-  delete [] buffer;
+  delete[] buffer;
 
   if (pRoot == NULL)
     {
-      std::cerr << "JSON file: '" << jsonFile << "' error on line " << error.line << ": " << error.text << std::endl;
+      std::ostringstream msg;
+      msg << "JSON file: '" << jsonFile << "' error on line " << error.line << ": " << error.text << std::endl;
+
+      spdlog::error(msg.str());
     }
 
   return pRoot;
 }
-

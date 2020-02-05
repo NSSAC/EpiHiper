@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -23,6 +23,7 @@
 #include "utilities/CSimConfig.h"
 #include "utilities/CStatus.h"
 #include "utilities/CDirEntry.h"
+#include "utilities/CLogger.h"
 
 std::string ContactNetwork;
 std::string OutputDirectory;
@@ -31,15 +32,14 @@ std::string Config;
 
 int Parts(std::numeric_limits< int >::min());
 
-bool parseArgs(int argc, char *argv[])
+bool parseArgs(int argc, char * argv[])
 {
-  const char* const short_opts = "c";
+  const char * const short_opts = "c";
 
   const option long_opts[] =
-  {
-   {"config", required_argument, nullptr, 'c'},
-   {nullptr, no_argument, nullptr, 0}
-  };
+    {
+      {"config", required_argument, nullptr, 'c'},
+      {nullptr, no_argument, nullptr, 0}};
 
   while (true)
     {
@@ -48,8 +48,8 @@ bool parseArgs(int argc, char *argv[])
       if (-1 == opt)
         break;
 
-      switch(opt)
-      {
+      switch (opt)
+        {
         case 'c':
           Config = std::string(optarg);
           break;
@@ -57,7 +57,7 @@ bool parseArgs(int argc, char *argv[])
         case '?':
         default:
           return false;
-      }
+        }
     }
 
   return true;
@@ -66,8 +66,8 @@ bool parseArgs(int argc, char *argv[])
 void printUsage()
 {
   std::cout << "\nUsage:\n\n"
-    "Partition --config <configFilename>\n"
-     "--config: required string specifying EpiHiper configuration file\n";
+               "Partition --config <configFilename>\n"
+               "--config: required string specifying EpiHiper configuration file\n";
 }
 
 bool loadJson(const std::string & file)
@@ -137,8 +137,8 @@ bool loadJson(const std::string & file)
 
   std::string DefaultDir;
 
-  if (CDirEntry::exist("/output") &&
-      CDirEntry::isWritable("/output"))
+  if (CDirEntry::exist("/output")
+      && CDirEntry::isWritable("/output"))
     DefaultDir = "/output";
   else
     DefaultDir = ".";
@@ -155,8 +155,8 @@ bool loadJson(const std::string & file)
   if (!CDirEntry::exist(CDirEntry::dirName(OutputDirectory)))
     CDirEntry::createDir(CDirEntry::dirName(OutputDirectory));
 
-  if (CDirEntry::exist("/job") &&
-      CDirEntry::isWritable("/job"))
+  if (CDirEntry::exist("/job")
+      && CDirEntry::isWritable("/job"))
     DefaultDir = "/job";
   else
     DefaultDir = ".";
@@ -178,15 +178,17 @@ bool loadJson(const std::string & file)
   return success;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char * argv[])
 {
+  CLogger::init();
   CCommunicate::init(argc, argv);
 
-  if (CCommunicate::MPIRank == 0) {
+  if (CCommunicate::MPIRank == 0)
+    {
       std::cout << "EpiHiperPartition version 0.0.1 (2019.06.14)" << std::endl;
-  }
+    }
 
-  if (argc < 3 || ! parseArgs(argc, argv))
+  if (argc < 3 || !parseArgs(argc, argv))
     {
       if (CCommunicate::MPIRank == 0)
         {
@@ -195,16 +197,18 @@ int main(int argc, char *argv[])
 
       CCommunicate::abort(CCommunicate::ErrorCode::InvalidArguments);
       CCommunicate::finalize();
+      CLogger::release();
 
       exit(EXIT_FAILURE);
     }
 
   if (!loadJson(Config))
     {
-      std::cerr << "Invalid paramters in: " << Config << std::endl;
+      spdlog::error("Invalid paramters in: " + Config);
 
       CCommunicate::abort(CCommunicate::ErrorCode::InvalidArguments);
       CCommunicate::finalize();
+      CLogger::release();
 
       exit(EXIT_FAILURE);
     }
@@ -212,8 +216,7 @@ int main(int argc, char *argv[])
   CTrait::init();
   CNetwork All(ContactNetwork);
   All.partition(Parts, true, OutputDirectory);
+
+  CCommunicate::finalize();
+  CLogger::release();
 }
-
-
-
-

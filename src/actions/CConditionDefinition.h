@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -110,11 +110,11 @@ public:
 
   void fromJSON(const json_t * json);
 
-  void valueFromJSON(const json_t * json);
+  bool valueFromJSON(const json_t * json);
 
-  void comparisonFromJSON(const json_t * json);
+  bool comparisonFromJSON(const json_t * json);
 
-  void operationFromJSON(const json_t * json);
+  bool operationFromJSON(const json_t * json);
 
   const bool & isValid() const;
 

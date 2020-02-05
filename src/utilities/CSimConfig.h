@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -16,9 +16,12 @@
 #include <vector>
 #include <string>
 
+#include "utilities/CLogger.h"
+
 struct json_t;
 
-class CSimConfig {
+class CSimConfig
+{
 public:
   struct db_connection
   {
@@ -26,7 +29,10 @@ public:
     std::string host;
     std::string user;
     std::string password;
+    size_t maxRecords;
   };
+
+  typedef spdlog::level::level_enum LogLevel;
 
 private:
   bool valid;
@@ -50,13 +56,14 @@ private:
   std::string mIntervention;
   size_t mSeed;
   size_t mReplicate;
+  LogLevel mLogLevel;
   db_connection mDBConnection;
 
 private:
   static CSimConfig * INSTANCE;
 
   CSimConfig() = delete;
-  CSimConfig(const std::string& configFile);
+  CSimConfig(const std::string & configFile);
   ~CSimConfig();
 
   bool loadScenario();
@@ -79,11 +86,10 @@ public:
   static const std::string & getIntervention();
   static const size_t & getSeed();
   static const size_t & getReplicate();
+  static LogLevel getLogLevel();
   static const db_connection & getDBConnection();
 
   static json_t * loadJson(const std::string & jsonFile, int flags);
-
-
 };
 
 #endif

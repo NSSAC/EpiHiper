@@ -19,15 +19,16 @@
 #include "db/CFieldValue.h"
 #include "network/CNetwork.h"
 #include "network/CNode.h"
+#include "utilities/CSimConfig.h"
 
 size_t toIdFieldValueList(const pqxx::result & result, CFieldValueList & list)
 {
   size_t Default(-1);
   size_t OldSize = list.size();
 
-  for (const pqxx::row &Row: result)
-   for (const pqxx::field &Field: Row)
-     list.append(CFieldValue(Field.as(Default)));
+  for (const pqxx::row & Row : result)
+    for (const pqxx::field & Field : Row)
+      list.append(CFieldValue(Field.as(Default)));
 
   return list.size() - OldSize;
 }
@@ -37,8 +38,8 @@ size_t toStringFieldValueList(const pqxx::result & result, CFieldValueList & lis
   std::string Default("");
   size_t OldSize = list.size();
 
-  for (const pqxx::row &Row: result)
-    for (const pqxx::field &Field: Row)
+  for (const pqxx::row & Row : result)
+    for (const pqxx::field & Field : Row)
       list.append(CFieldValue(Field.as(Default)));
 
   return list.size() - OldSize;
@@ -49,8 +50,8 @@ size_t toNumberFieldValueList(const pqxx::result & result, CFieldValueList & lis
   double Default(std::numeric_limits< double >::quiet_NaN());
   size_t OldSize = list.size();
 
-  for (const pqxx::row &Row: result)
-    for (const pqxx::field &Field: Row)
+  for (const pqxx::row & Row : result)
+    for (const pqxx::field & Field : Row)
       list.append(CFieldValue(Field.as(Default)));
 
   return list.size() - OldSize;
@@ -59,7 +60,7 @@ size_t toNumberFieldValueList(const pqxx::result & result, CFieldValueList & lis
 size_t toFieldValueList(const CField & field, const pqxx::result & result, CFieldValueList & list)
 {
   switch (field.getType())
-  {
+    {
     case CFieldValueList::Type::id:
       return toIdFieldValueList(result, list);
       break;
@@ -71,7 +72,7 @@ size_t toFieldValueList(const CField & field, const pqxx::result & result, CFiel
     case CFieldValueList::Type::number:
       return toNumberFieldValueList(result, list);
       break;
-  }
+    }
 
   return 0;
 }
@@ -91,15 +92,22 @@ void CQuery::init()
 
       CNode * pBegin = CNetwork::INSTANCE->beginNode();
       CNode * pEnd = CNetwork::INSTANCE->endNode() - 1;
-      Query << "pid BETWEEN " << pBegin->id << " AND " <<  pEnd->id;
+      Query << "pid BETWEEN " << pBegin->id << " AND " << pEnd->id;
 
       LocalConstraint = Query.str();
+
+      Limit = CSimConfig::getDBConnection().maxRecords;
     }
 }
 
 // static
 std::string CQuery::limit(size_t & offset)
 {
+  if (Limit == 0)
+    {
+      return "";
+    }
+
   std::ostringstream Query;
   Query << " LIMIT " << Limit;
 
@@ -113,19 +121,21 @@ std::string CQuery::limit(size_t & offset)
 
 // static
 bool CQuery::all(const std::string & table,
-                   const std::string & resultField,
-                   CFieldValueList & result,
-                   const bool & local)
+                 const std::string & resultField,
+                 CFieldValueList & result,
+                 const bool & local)
 {
   init();
 
   const CTable & Table = CSchema::INSTANCE.getTable(table);
 
-  if (!Table.isValid()) return false;
+  if (!Table.isValid())
+    return false;
 
   const CField & ResultField = Table.getField(resultField);
 
-  if (!ResultField.isValid()) return false;
+  if (!ResultField.isValid())
+    return false;
 
   std::ostringstream Query;
   Query << "SELECT DISTINCT " << resultField << " FROM " << table;
@@ -140,19 +150,21 @@ bool CQuery::all(const std::string & table,
 
   pqxx::read_transaction * pWork = CConnection::work();
 
-  if (pWork == NULL) return false;
+  if (pWork == NULL)
+    return false;
 
   try
-  {
-    size_t Offset = 0;
-    while (toFieldValueList(ResultField, pWork->exec(Query.str() + limit(Offset)), result) == Limit) {}
-  }
+    {
+      size_t Offset = 0;
+      while (toFieldValueList(ResultField, pWork->exec(Query.str() + limit(Offset)), result) == Limit
+             && Limit != 0)
+        continue;
+    }
 
   catch (const std::exception & e)
-  {
-    std::cerr << e.what() << std::endl;
-  }
-
+    {
+      spdlog::error(e.what());
+    }
 
   pWork->commit();
   delete pWork;
@@ -162,12 +174,12 @@ bool CQuery::all(const std::string & table,
 
 // static
 bool CQuery::in(const std::string & table,
-                   const std::string & resultField,
-                   CFieldValueList & result,
-                   const bool & local,
-                   const std::string & constraintField,
-                   const CValueList & constraints,
-                   const bool & in)
+                const std::string & resultField,
+                CFieldValueList & result,
+                const bool & local,
+                const std::string & constraintField,
+                const CValueList & constraints,
+                const bool & in)
 {
   init();
 
@@ -186,17 +198,21 @@ bool CQuery::in(const std::string & table,
 
   const CTable & Table = CSchema::INSTANCE.getTable(table);
 
-  if (!Table.isValid()) return false;
+  if (!Table.isValid())
+    return false;
 
   const CField & ResultField = Table.getField(resultField);
 
-  if (!ResultField.isValid()) return false;
+  if (!ResultField.isValid())
+    return false;
 
   const CField & ConstraintField = Table.getField(constraintField);
 
-  if (!ConstraintField.isValid()) return false;
+  if (!ConstraintField.isValid())
+    return false;
 
-  if (constraints.size() > 0 && constraints.getType() != ConstraintField.getType()) return false;
+  if (constraints.size() > 0 && constraints.getType() != ConstraintField.getType())
+    return false;
 
   std::ostringstream Query;
 
@@ -218,7 +234,7 @@ bool CQuery::in(const std::string & table,
         }
 
       switch (constraints.getType())
-      {
+        {
         case CFieldValueList::Type::id:
           Query << it->toId();
           break;
@@ -230,7 +246,7 @@ bool CQuery::in(const std::string & table,
         case CFieldValueList::Type::number:
           Query << it->toNumber();
           break;
-      }
+        }
     }
 
   Query << ")";
@@ -245,18 +261,21 @@ bool CQuery::in(const std::string & table,
 
   pqxx::read_transaction * pWork = CConnection::work();
 
-  if (pWork == NULL) return false;
+  if (pWork == NULL)
+    return false;
 
   try
-  {
-    size_t Offset = 0;
-    while (toFieldValueList(ResultField, pWork->exec(Query.str() + limit(Offset)), result) == Limit) {}
-  }
+    {
+      size_t Offset = 0;
+      while (toFieldValueList(ResultField, pWork->exec(Query.str() + limit(Offset)), result) == Limit
+             && Limit != 0)
+        continue;
+    }
 
   catch (const std::exception & e)
-  {
-    std::cerr << e.what() << std::endl;
-  }
+    {
+      spdlog::error(e.what());
+    }
 
   pWork->commit();
   delete pWork;
@@ -264,48 +283,51 @@ bool CQuery::in(const std::string & table,
   return true;
 }
 
-
 // static
 bool CQuery::notIn(const std::string & table,
-                 const std::string & resultField,
-                 CFieldValueList & result,
-                 const bool & local,
-                 const std::string & constraintField,
-                 const CValueList & constraint)
+                   const std::string & resultField,
+                   CFieldValueList & result,
+                   const bool & local,
+                   const std::string & constraintField,
+                   const CValueList & constraint)
 {
   return in(table, resultField, result, local, constraintField, constraint, false);
 }
 
 // static
 bool CQuery::where(const std::string & table,
-                 const std::string & resultField,
-                 CFieldValueList & result,
-                 const bool & local,
-                 const std::string & constraintField,
-                 const CValue & constraint,
-                 const std::string & cmp)
+                   const std::string & resultField,
+                   CFieldValueList & result,
+                   const bool & local,
+                   const std::string & constraintField,
+                   const CValue & constraint,
+                   const std::string & cmp)
 {
   init();
 
   const CTable & Table = CSchema::INSTANCE.getTable(table);
 
-  if (!Table.isValid()) return false;
+  if (!Table.isValid())
+    return false;
 
   const CField & ResultField = Table.getField(resultField);
 
-  if (!ResultField.isValid()) return false;
+  if (!ResultField.isValid())
+    return false;
 
   const CField & ConstraintField = Table.getField(constraintField);
 
-  if (!ConstraintField.isValid()) return false;
+  if (!ConstraintField.isValid())
+    return false;
 
-  if (constraint.getType() != ConstraintField.getType()) return false;
+  if (constraint.getType() != ConstraintField.getType())
+    return false;
 
   std::ostringstream Query;
   Query << "SELECT DISTINCT " << resultField << " FROM " << table << " WHERE " << constraintField << " " << cmp << " ";
 
   switch (constraint.getType())
-  {
+    {
     case CFieldValueList::Type::id:
       Query << constraint.toId();
       break;
@@ -317,7 +339,7 @@ bool CQuery::where(const std::string & table,
     case CFieldValueList::Type::number:
       Query << constraint.toNumber();
       break;
-  }
+    }
 
   if (local)
     {
@@ -329,22 +351,24 @@ bool CQuery::where(const std::string & table,
 
   pqxx::read_transaction * pWork = CConnection::work();
 
-  if (pWork == NULL) return false;
+  if (pWork == NULL)
+    return false;
 
   try
-  {
-    size_t Offset = 0;
-    while (toFieldValueList(ResultField, pWork->exec(Query.str() + limit(Offset)), result) == Limit) {}
-  }
+    {
+      size_t Offset = 0;
+      while (toFieldValueList(ResultField, pWork->exec(Query.str() + limit(Offset)), result) == Limit
+             && Limit != 0)
+        continue;
+    }
 
   catch (const std::exception & e)
-  {
-    std::cerr << e.what() << std::endl;
-  }
+    {
+      spdlog::error(e.what());
+    }
 
   pWork->commit();
   delete pWork;
 
   return true;
 }
-

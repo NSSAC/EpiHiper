@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -42,7 +42,8 @@ void Changes::incrementTick()
 // static
 void Changes::record(const CNode * pNode, const CMetadata & metadata)
 {
-  if (pNode == NULL) return;
+  if (pNode == NULL)
+    return;
 
   Nodes.insert(pNode);
 
@@ -65,7 +66,8 @@ void Changes::record(const CNode * pNode, const CMetadata & metadata)
 // static
 void Changes::record(const CEdge * pEdge, const CMetadata & metadata)
 {
-  if (pEdge == NULL) return;
+  if (pEdge == NULL)
+    return;
 
   Edges.insert(pEdge);
 }
@@ -96,7 +98,7 @@ void Changes::initDefaultOutput()
         }
       else
         {
-          std::cerr << "Error (Rank 0): Failed to open file '" << CSimConfig::getOutput() << "'.";
+          spdlog::error("Error (Rank 0): Failed to open file '" + CSimConfig::getOutput() + "'.");
           exit(EXIT_FAILURE);
         }
 
@@ -174,4 +176,3 @@ const std::ostringstream & Changes::getEdges()
 
 Changes::~Changes()
 {}
-

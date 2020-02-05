@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -14,15 +14,17 @@
 #include <algorithm>
 #include <unistd.h>
 #include <cassert>
+#include <sstream>
 
+#include "utilities/CLogger.h"
 #include "utilities/CCommunicate.h"
 #include "utilities/CStreamBuffer.h"
-
 
 // static
 void CCommunicate::resizeReceiveBuffer(int size)
 {
-  if (size <= ReceiveSize) return;
+  if (size <= ReceiveSize)
+    return;
 
   if (size < 0)
     {
@@ -31,24 +33,26 @@ void CCommunicate::resizeReceiveBuffer(int size)
 
   if (ReceiveBuffer != NULL)
     {
-      delete [] ReceiveBuffer;
+      delete[] ReceiveBuffer;
       ReceiveSize = 0;
     }
 
   // Assure we have a valid buffer
   ReceiveSize = std::max(1024, size);
 
-  try {
+  try
+    {
       ReceiveBuffer = new char[ReceiveSize];
-  }
+    }
 
-  catch (...) {
+  catch (...)
+    {
       FatalError(ErrorCode::AllocationError, "");
-  }
+    }
 }
 
 // static
-void CCommunicate::init(int argc, char **argv)
+void CCommunicate::init(int argc, char ** argv)
 {
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &MPIRank);
@@ -61,7 +65,9 @@ void CCommunicate::init(int argc, char **argv)
 // static
 int CCommunicate::abortMessage(ErrorCode err, const std::string & msg, const char * file, int line)
 {
-  std::cerr << "Rank: " << MPIRank << ", " << file << "(" << line << "): " << msg << std::endl;
+  std::ostringstream message;
+  message << "Rank: " << MPIRank << ", " << file << "(" << line << "): " << msg << std::endl;
+  spdlog::error(message.str());
 
   return abort(err);
 }
@@ -78,7 +84,7 @@ int CCommunicate::finalize(void)
   if (MPIWinSize)
     {
       MPI_Win_free(&MPIWin);
-      delete [] RMABuffer;
+      delete[] RMABuffer;
       MPIWinSize = 0;
     }
 
@@ -86,39 +92,39 @@ int CCommunicate::finalize(void)
 }
 
 // static
-int CCommunicate::send(const void *buf,
-                      int count,
-                      MPI_Datatype datatype,
-                      int dest,
-                      int tag)
+int CCommunicate::send(const void * buf,
+                       int count,
+                       MPI_Datatype datatype,
+                       int dest,
+                       int tag)
 {
   return MPI_Send(buf, count, datatype, dest, tag, MPI_COMM_WORLD);
 }
 
 // static
-int CCommunicate::receive(void *buf,
-                         int count,
-                         MPI_Datatype  datatype,
-                         int source,
-                         int tag,
-                         MPI_Status *status)
+int CCommunicate::receive(void * buf,
+                          int count,
+                          MPI_Datatype datatype,
+                          int source,
+                          int tag,
+                          MPI_Status * status)
 {
   return MPI_Recv(buf, count, datatype, source, tag, MPI_COMM_WORLD, status);
 }
 
 // static
-int CCommunicate::broadcast(void *buffer,
-                           int count,
-                           MPI_Datatype datatype,
-                           int root)
+int CCommunicate::broadcast(void * buffer,
+                            int count,
+                            MPI_Datatype datatype,
+                            int root)
 {
   return MPI_Bcast(buffer, count, datatype, root, MPI_COMM_WORLD);
 }
 
 // static
-int CCommunicate::broadcast(const void *buffer,
-                           int count,
-                           CCommunicate::ReceiveInterface * pReceive)
+int CCommunicate::broadcast(const void * buffer,
+                            int count,
+                            CCommunicate::ReceiveInterface * pReceive)
 {
   ErrorCode Result = ErrorCode::Success;
 
@@ -177,7 +183,7 @@ int CCommunicate::sequential(int firstRank, CCommunicate::SequentialProcessInter
     }
   else
     {
-      receive(&signal, 1, MPI_INT, MPIPreviousRank, MPIPreviousRank,  &status);
+      receive(&signal, 1, MPI_INT, MPIPreviousRank, MPIPreviousRank, &status);
 
       (*pSequential)();
 
@@ -189,7 +195,7 @@ int CCommunicate::sequential(int firstRank, CCommunicate::SequentialProcessInter
 
 // static
 int CCommunicate::central(int centerRank,
-                          const void *buffer,
+                          const void * buffer,
                           int countToCenter,
                           int countFromCenter,
                           CCommunicate::ReceiveInterface * pReceive)
@@ -302,25 +308,25 @@ size_t CCommunicate::getRMAIndex()
 // static
 void CCommunicate::memUsage(const int & tick)
 {
-    double vm_usage     = 0.0;
-    double resident_set = 0.0;
+  double vm_usage = 0.0;
+  double resident_set = 0.0;
 
-    // the two fields we want
-    unsigned long vsize;
-    long rss;
-    {
-        std::string ignore;
-        std::ifstream ifs("/proc/self/stat", std::ios_base::in);
-        ifs >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore
-                >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore
-                >> ignore >> ignore >> vsize >> rss;
-    }
+  // the two fields we want
+  unsigned long vsize;
+  long rss;
+  {
+    std::string ignore;
+    std::ifstream ifs("/proc/self/stat", std::ios_base::in);
+    ifs >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore
+      >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore >> ignore
+      >> ignore >> ignore >> vsize >> rss;
+  }
 
-    long page_size_kb = sysconf(_SC_PAGE_SIZE) / 1024; // in case x86-64 is configured to use 2MB pages
-    vm_usage = vsize / 1024.0;
-    resident_set = rss * page_size_kb;
+  long page_size_kb = sysconf(_SC_PAGE_SIZE) / 1024; // in case x86-64 is configured to use 2MB pages
+  vm_usage = vsize / 1024.0;
+  resident_set = rss * page_size_kb;
 
-    std::cout << tick <<"; Rank: " << MPIRank << "; VM: " << vm_usage << "; RSS: " << resident_set << std::endl;
+  std::cout << tick << "; Rank: " << MPIRank << "; VM: " << vm_usage << "; RSS: " << resident_set << std::endl;
 }
 
 CCommunicate::~CCommunicate()
@@ -355,5 +361,3 @@ CCommunicate::ErrorCode CCommunicate::SequentialProcess::operator()()
   // execute member function
   return (*mMethod)();
 }
-
-
