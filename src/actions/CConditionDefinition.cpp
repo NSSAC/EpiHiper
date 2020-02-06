@@ -72,20 +72,22 @@ CConditionDefinition::ValueInstance::~ValueInstance()
 
 void CConditionDefinition::ValueInstance::fromJSON(const json_t * json)
 {
-  valid = true;
+  valid = false; //DONE
 
   if (!json_is_object(json))
     {
-      valid = false;
+      CLogger::error("Value Instance: Invalid.");
       return;
     }
 
+  CLogger::pushLevel(spdlog::level::off);
   pValue = new CValue(json);
 
   if (pValue->isValid())
     {
       type = ValueType::Value;
-      return;
+      valid = true;
+      goto final;
     }
 
   delete pValue;
@@ -96,7 +98,8 @@ void CConditionDefinition::ValueInstance::fromJSON(const json_t * json)
   if (pValueList->isValid())
     {
       type = ValueType::ValueList;
-      return;
+      valid = true;
+      goto final;
     }
 
   delete pValueList;
@@ -109,7 +112,8 @@ void CConditionDefinition::ValueInstance::fromJSON(const json_t * json)
     {
       type = ValueType::Observable;
       RequiredComputables.insert(pObservable);
-      return;
+      valid = true;
+      goto final;
     }
 
   pObservable = NULL;
@@ -119,7 +123,8 @@ void CConditionDefinition::ValueInstance::fromJSON(const json_t * json)
   if (pNodeProperty->isValid())
     {
       type = ValueType::NodeProperty;
-      return;
+      valid = true;
+      goto final;
     }
 
   delete pNodeProperty;
@@ -130,7 +135,8 @@ void CConditionDefinition::ValueInstance::fromJSON(const json_t * json)
   if (pEdgeProperty->isValid())
     {
       type = ValueType::EdgeProperty;
-      return;
+      valid = true;
+      goto final;
     }
 
   delete pEdgeProperty;
@@ -141,7 +147,8 @@ void CConditionDefinition::ValueInstance::fromJSON(const json_t * json)
   if (pVariable->isValid())
     {
       type = ValueType::Variable;
-      return;
+      valid = true;
+      goto final;
     }
 
   pVariable = NULL;
@@ -152,15 +159,18 @@ void CConditionDefinition::ValueInstance::fromJSON(const json_t * json)
     {
       type = ValueType::Sizeof;
       RequiredComputables.insert(pSizeOf);
-      return;
+      valid = true;
+      goto final;
     }
 
   delete pSizeOf;
   pSizeOf = NULL;
 
-  valid = false;
+final:
+  CLogger::popLevel();
 
-  return;
+  if (!valid)
+    CLogger::error("Value Instance: Invalid.");
 }
 
 CValueInterface * CConditionDefinition::ValueInstance::value(const CNode * pNode) const

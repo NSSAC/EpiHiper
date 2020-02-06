@@ -14,6 +14,7 @@
 #define UTILITIES_CLOGGER_H
 
 #include <sstream>
+#include <stack>
 #include <spdlog/spdlog.h>
 
 class CLogger
@@ -37,6 +38,12 @@ public:
 
   static void release();
 
+  static void setLevel(spdlog::level::level_enum level);
+
+  static void pushLevel(spdlog::level::level_enum level);
+
+  static void popLevel();
+
   typedef CStream< spdlog::level::trace > trace;
   typedef CStream< spdlog::level::debug > debug;
   typedef CStream< spdlog::level::info > info;
@@ -44,6 +51,9 @@ public:
   typedef CStream< spdlog::level::err > error;
   typedef CStream< spdlog::level::critical > critical;
   typedef CStream< spdlog::level::off > off;
+
+private:
+  static std::stack< spdlog::level::level_enum > levels;
 };
 
 template < int level >

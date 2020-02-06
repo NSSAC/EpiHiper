@@ -25,6 +25,7 @@
 #include "network/CNode.h"
 #include "utilities/CRandom.h"
 #include "utilities/CLogger.h"
+#include "variables/CVariableList.h"
 
 // static
 void CModel::load(const std::string & modelFile)
@@ -54,6 +55,7 @@ CModel::CModel(const std::string & modelFile)
   , mProgressions()
   , mPossibleTransmissions()
   , mPossibleProgressions()
+  , mTransmissability(1.0)
   , mValid(false)
 {
   json_t * pRoot = CSimConfig::loadJson(modelFile, JSON_DECODE_INT_AS_REAL);
@@ -77,6 +79,49 @@ CModel::~CModel()
 
 void CModel::fromJSON(const json_t * json)
 {
+  /*
+  {
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "diseaseModel",
+  "title": "Disease Model",
+  "description": "The disease model describes the possible disease state changes within an individual including transmission.",
+  "type": "object",
+  "required": [
+    "epiHiperSchema",
+    "states",
+    "initialState",
+    "transmissions",
+    "transitions"
+  ],
+  "properties": {
+    "epiHiperSchema": {
+      "type": "string",
+      "enum": ["https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/diseaseModelSchema.json"]
+    },
+    "states": {
+      "type": "array",
+      "description": "An array of states",
+      "items": {}
+    },
+    "initialState": {"$ref": "./typeRegistry.json#/definitions/uniqueIdRef"},
+    "transmissions": {
+      "type": "array",
+      "description": "An array listing possible transmissions due to contact with other nodes.",
+      "items": {}
+    },
+    "transitions": {
+      "type": "array",
+      "description": "The transitions specifying the disease progression.",
+      "items": {}
+    },
+    "transmissability": {
+      "description": "The overal transmissability",
+      "default": 1.0,
+      "$ref": "./typeRegistry.json#/definitions/nonNegativeNumber"
+    }
+  }
+}
+*/
   mValid = false; // DONE
 
   json_t * pValue = json_object_get(json, "states");
@@ -147,7 +192,7 @@ void CModel::fromJSON(const json_t * json)
   for (size_t i = 0; itProg != endProg; ++itProg, ++i)
     {
       itProg->fromJSON(json_array_get(pValue, i), mId2State);
-      
+
       if (itProg->isValid())
         {
           mPossibleProgressions[itProg->getEntryState()].push_back(&*itProg);
@@ -157,6 +202,13 @@ void CModel::fromJSON(const json_t * json)
           CLogger::error() << "Model: Invalid transition for item '" << i << "'.";
           return;
         }
+    }
+
+  pValue = json_object_get(json, "");
+
+  if (json_is_real(pValue))
+    {
+      mTransmissability = json_real_value(pValue);
     }
 
   mValid = true;
@@ -257,7 +309,7 @@ bool CModel::_processTransmissions() const
           }
 
         if (A0 > 0
-            && -log(Uniform01(CRandom::G)) < A0 / 86400)
+            && -log(Uniform01(CRandom::G)) < A0 * mTransmissability / 86400)
           {
             double alpha = Uniform01(CRandom::G) * A0;
 
@@ -412,6 +464,14 @@ void CModel::initGlobalStateCountOutput()
               out << "," << pState->getId() << "[current]," << pState->getId() << "[in]," << pState->getId() << "[out]";
             }
 
+          // We also add the global variable
+          CVariableList::iterator it = CVariableList::INSTANCE.begin();
+          CVariableList::iterator end = CVariableList::INSTANCE.end();
+
+          for (; it != end; ++it)
+            if (it->getType() == CVariable::Type::global)
+              out << "," << it->getId();
+
           out << std::endl;
         }
       else
@@ -448,6 +508,17 @@ void CModel::writeGlobalStateCounts()
 
               out << "," << Counts.Current << "," << Counts.In << "," << Counts.Out;
             }
+
+          // We also add the global variable
+          CVariableList::iterator it = CVariableList::INSTANCE.begin();
+          CVariableList::iterator end = CVariableList::INSTANCE.end();
+
+          for (; it != end; ++it)
+            if (it->getType() == CVariable::Type::global)
+              {
+                it->process();
+                out << "," << it->toNumber();
+              }
 
           out << std::endl;
         }

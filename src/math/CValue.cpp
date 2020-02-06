@@ -17,6 +17,7 @@
 #include <jansson.h>
 
 #include "traits/CTrait.h"
+#include "utilities/CLogger.h"
 
 CValue::CValue(const bool & boolean)
   : CValueInterface(Type::boolean, createValue(Type::boolean))
@@ -53,7 +54,6 @@ CValue::CValue(const size_t & id)
   assignValue(&id);
 }
 
-
 CValue::CValue(const CValue & src)
   : CValueInterface(src.mType, createValue(src.mType))
   , mValid(src.mValid)
@@ -82,9 +82,10 @@ CValueInterface * CValue::copy() const
 
 void CValue::fromJSON(const json_t * json)
 {
+  mValid = false; // DONE
+
   if (json == NULL)
     {
-      mValid = false;
       return;
     }
 
@@ -125,14 +126,12 @@ void CValue::fromJSON(const json_t * json)
 
       if (pHealthState == NULL)
         {
-          mValid = false;
+          CLogger::error() << "Value: Invalid healthState '" << json_string_value(pValue) << "'.";
           pHealthState = &CModel::getInitialState();
-        }
-      else
-        {
-          mValid = true;
+          return;
         }
 
+      mValid = true;
       mpValue = new CModel::state_t(CModel::stateToType(pHealthState));
       return;
     }
@@ -150,7 +149,7 @@ void CValue::fromJSON(const json_t * json)
 
   if (pTrait == NULL)
     {
-      mValid = false;
+      CLogger::error("Value: Invalid or missing 'trait'.");
       return;
     }
 
@@ -159,7 +158,7 @@ void CValue::fromJSON(const json_t * json)
 
   if (json_is_string(pValue))
     {
-      pFeature = pTrait->operator [](json_string_value(pValue));
+      pFeature = pTrait->operator[](json_string_value(pValue));
     }
 
   if (pFeature == NULL)
@@ -168,7 +167,7 @@ void CValue::fromJSON(const json_t * json)
 
       if (pFeature == NULL)
         {
-          mValid = false;
+          CLogger::error("Value: Invalid or missing 'feature'.");
           return;
         }
     }
@@ -178,7 +177,7 @@ void CValue::fromJSON(const json_t * json)
 
   if (json_is_string(pValue))
     {
-      pEnum = pFeature->operator [](json_string_value(pValue));
+      pEnum = pFeature->operator[](json_string_value(pValue));
     }
 
   if (pEnum == NULL)
@@ -187,7 +186,7 @@ void CValue::fromJSON(const json_t * json)
 
       if (pEnum == NULL)
         {
-          mValid = false;
+          CLogger::error("Value: Invalid or missing 'feature'.");
           return;
         }
 
@@ -206,73 +205,71 @@ const bool & CValue::isValid() const
 
 void CValue::toBinary(std::ostream & os) const
 {
-  os.write(reinterpret_cast<const char *>(&mType), sizeof(size_t));
+  os.write(reinterpret_cast< const char * >(&mType), sizeof(size_t));
 
   switch (mType)
-  {
+    {
     case Type::boolean:
-      os.write(reinterpret_cast<const char *>(mpValue), sizeof(bool));
+      os.write(reinterpret_cast< const char * >(mpValue), sizeof(bool));
       break;
 
     case Type::number:
-      os.write(reinterpret_cast<const char *>(mpValue), sizeof(double));
+      os.write(reinterpret_cast< const char * >(mpValue), sizeof(double));
       break;
 
     case Type::traitData:
-      os.write(reinterpret_cast<const char *>(mpValue), sizeof(CTraitData::base));
+      os.write(reinterpret_cast< const char * >(mpValue), sizeof(CTraitData::base));
       break;
 
-
     case Type::traitValue:
-      os.write(reinterpret_cast<const char *>(static_cast< const CTraitData::value * >(mpValue)->first), sizeof(CTraitData::base));
-      os.write(reinterpret_cast<const char *>(static_cast< const CTraitData::value * >(mpValue)->second), sizeof(CTraitData::base));
+      os.write(reinterpret_cast< const char * >(static_cast< const CTraitData::value * >(mpValue)->first), sizeof(CTraitData::base));
+      os.write(reinterpret_cast< const char * >(static_cast< const CTraitData::value * >(mpValue)->second), sizeof(CTraitData::base));
       break;
 
     case Type::string:
       {
         size_t length = static_cast< const std::string * >(mpValue)->length();
-        os.write(reinterpret_cast<const char *>(&length), sizeof(size_t));
+        os.write(reinterpret_cast< const char * >(&length), sizeof(size_t));
         os.write(static_cast< const std::string * >(mpValue)->c_str(), length);
       }
       break;
 
     case Type::id:
-      os.write(reinterpret_cast<const char *>(mpValue), sizeof(size_t));
+      os.write(reinterpret_cast< const char * >(mpValue), sizeof(size_t));
       break;
-  }
+    }
 }
 
 void CValue::fromBinary(std::istream & is)
 {
   destroyValue();
 
-  is.read(reinterpret_cast<char *>(&mType), sizeof(size_t));
+  is.read(reinterpret_cast< char * >(&mType), sizeof(size_t));
   mpValue = createValue(mType);
 
   switch (mType)
-  {
+    {
     case Type::boolean:
-      is.read(reinterpret_cast<char *>(mpValue), sizeof(bool));
+      is.read(reinterpret_cast< char * >(mpValue), sizeof(bool));
       break;
 
     case Type::number:
-      is.read(reinterpret_cast<char *>(mpValue), sizeof(double));
+      is.read(reinterpret_cast< char * >(mpValue), sizeof(double));
       break;
 
     case Type::traitData:
-      is.read(reinterpret_cast<char *>(mpValue), sizeof(CTraitData::base));
+      is.read(reinterpret_cast< char * >(mpValue), sizeof(CTraitData::base));
       break;
 
-
     case Type::traitValue:
-      is.read(reinterpret_cast<char *>(static_cast< CTraitData::value * >(mpValue)->first), sizeof(CTraitData::base));
-      is.read(reinterpret_cast<char *>(static_cast< CTraitData::value * >(mpValue)->second), sizeof(CTraitData::base));
+      is.read(reinterpret_cast< char * >(static_cast< CTraitData::value * >(mpValue)->first), sizeof(CTraitData::base));
+      is.read(reinterpret_cast< char * >(static_cast< CTraitData::value * >(mpValue)->second), sizeof(CTraitData::base));
       break;
 
     case Type::string:
       {
         size_t length = static_cast< std::string * >(mpValue)->length();
-        is.read(reinterpret_cast<char *>(&length), sizeof(size_t));
+        is.read(reinterpret_cast< char * >(&length), sizeof(size_t));
         char str[length + 1];
         is.read(str, length);
         str[length] = 0x0;
@@ -281,16 +278,16 @@ void CValue::fromBinary(std::istream & is)
       break;
 
     case Type::id:
-      is.read(reinterpret_cast<char *>(mpValue), sizeof(size_t));
+      is.read(reinterpret_cast< char * >(mpValue), sizeof(size_t));
       break;
-  }
+    }
 }
 
 // static
 void * CValue::createValue(const CValue::Type & type)
 {
   switch (type)
-  {
+    {
     case Type::boolean:
       return new bool(false);
       break;
@@ -314,7 +311,7 @@ void * CValue::createValue(const CValue::Type & type)
     case Type::id:
       return new size_t();
       break;
-  }
+    }
 
   return NULL;
 }
@@ -322,7 +319,7 @@ void * CValue::createValue(const CValue::Type & type)
 void CValue::assignValue(const void * pValue)
 {
   switch (mType)
-  {
+    {
     case Type::boolean:
       *static_cast< bool * >(mpValue) = *static_cast< const bool * >(pValue);
       break;
@@ -346,15 +343,16 @@ void CValue::assignValue(const void * pValue)
     case Type::id:
       *static_cast< size_t * >(mpValue) = *static_cast< const size_t * >(pValue);
       break;
-  }
+    }
 }
 
 void CValue::destroyValue()
 {
-  if (mpValue == NULL) return;
+  if (mpValue == NULL)
+    return;
 
   switch (mType)
-  {
+    {
     case Type::boolean:
       delete static_cast< bool * >(mpValue);
       break;
@@ -378,8 +376,5 @@ void CValue::destroyValue()
     case Type::id:
       delete static_cast< size_t * >(mpValue);
       break;
-  }
+    }
 }
-
-
-

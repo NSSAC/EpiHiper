@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -92,6 +92,7 @@ private:
   std::vector< CProgression > mProgressions;
   std::map< const CHealthState *, std::map< const CHealthState *,  const CTransmission * > > mPossibleTransmissions;
   std::map< const CHealthState *, std::vector< const CProgression * > > mPossibleProgressions;
+  double mTransmissability;
   bool mValid;
 };
 

@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -18,6 +18,7 @@
 #include "network/CEdge.h"
 #include "network/CNode.h"
 #include "actions/CActionQueue.h"
+#include "utilities/CLogger.h"
 
 CEdgeElementSelector::CEdgeElementSelector()
   : CSetContent()
@@ -53,8 +54,10 @@ CEdgeElementSelector::CEdgeElementSelector(const json_t * json)
 
 CEdgeElementSelector::~CEdgeElementSelector()
 {
-  if (mpValue != NULL) delete mpValue;
-  if (mpValueList != NULL) delete mpValueList;
+  if (mpValue != NULL)
+    delete mpValue;
+  if (mpValueList != NULL)
+    delete mpValueList;
   CSetContent::destroy(mpSelector);
 }
 
@@ -67,11 +70,101 @@ CSetContent * CEdgeElementSelector::copy() const
 // virtual
 void CEdgeElementSelector::fromJSON(const json_t * json)
 {
+  /*
+  "edgeElementSelector": {
+      "$id": "#edgeElementSelector",
+      "description": "The specification of edge elements of a set.",
+      "type": "object",
+      "allOf": [
+        {
+          "required": ["elementType"],
+          "properties": {
+            "elementType": {
+              "type": "string",
+              "enum": ["edge"]
+            }
+          }
+        },
+        {
+          "oneOf": [
+            {
+              "description": "Select edges were the edge property value comparison with the provided value is true",
+              "type": "object",
+              "required": [
+                "operator",
+                "left",
+                "right"
+              ],
+              "properties": {
+                "operator": {"$ref": "#/definitions/comparisonOperator"},
+                "left": {
+                  "type": "object",
+                  "required": ["edge"],
+                  "properties": {
+                    "edge": {"$ref": "#/definitions/edgeProperty"}
+                  }
+                },
+                "right": {"$ref": "#/definitions/value"}
+              }
+            },
+            {
+              "description": "Select edges were the edge property value in in the provided list",
+              "type": "object",
+              "required": [
+                "operator",
+                "left",
+                "right"
+              ],
+              "properties": {
+                "operator": {
+                  "description": "",
+                  "type": "string",
+                  "enum": ["withPropertyIn"]
+                },
+                "left": {
+                  "type": "object",
+                  "required": ["edge"],
+                  "properties": {
+                    "edge": {"$ref": "#/definitions/edgeProperty"}
+                  }
+                },
+                "right": {"$ref": "#/definitions/valueList"}
+              }
+            },
+            {
+              "description": "Select edges were either target or source node is in the given set of nodes.",
+              "type": "object",
+              "required": [
+                "operator",
+                "selector"
+              ],
+              "properties": {
+                "operator": {
+                  "description": "",
+                  "type": "string",
+                  "enum": [
+                    "withTargetNodeIn",
+                    "withSourceNodeIn"
+                  ]
+                },
+                "selector": {"$ref": "#/definitions/setContent"}
+              }
+            }
+          ]
+        }
+      ]
+    }
+  */
+
+  mValid = false; // DONE
   json_t * pValue = json_object_get(json, "elementType");
 
-  mValid = (json_is_string(pValue) && strcmp(json_string_value(pValue), "edge") == 0);
-
-  if (!mValid) return;
+  if (json_is_string(pValue)
+      && strcmp(json_string_value(pValue), "edge") != 0)
+    {
+      CLogger::error("Edge selector: Invalid value for 'elementType'.");
+      return;
+    }
 
   mPrerequisites.insert(&CActionQueue::getCurrentTick());
 
@@ -81,6 +174,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
     {
       // We need to return all edges
       mStatic = true;
+      mValid = true;
       return;
     }
 
@@ -88,23 +182,23 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
     {
       mpComparison = &operator==;
     }
-  else if(strcmp(json_string_value(pValue), "!=") == 0)
+  else if (strcmp(json_string_value(pValue), "!=") == 0)
     {
       mpComparison = &operator!=;
     }
-  else if(strcmp(json_string_value(pValue), "<=") == 0)
+  else if (strcmp(json_string_value(pValue), "<=") == 0)
     {
       mpComparison = &operator<=;
     }
-  else if(strcmp(json_string_value(pValue), "<") == 0)
+  else if (strcmp(json_string_value(pValue), "<") == 0)
     {
       mpComparison = &operator<;
     }
-  else if(strcmp(json_string_value(pValue), ">=") == 0)
+  else if (strcmp(json_string_value(pValue), ">=") == 0)
     {
       mpComparison = &operator>=;
     }
-  else if(strcmp(json_string_value(pValue), ">") == 0)
+  else if (strcmp(json_string_value(pValue), ">") == 0)
     {
       mpComparison = &operator>;
     }
@@ -113,13 +207,26 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
   if (mpComparison != NULL)
     {
       mLeft.fromJSON(json_object_get(json, "left"));
-      mValid &= mLeft.isValid();
+
+      if (!mLeft.isValid())
+        {
+          CLogger::error("Edge selector: Invalid or missing value for 'left'.");
+          return;
+        }
+
       mpValue = new CValue(json_object_get(json, "right"));
-      mValid &= (mpValue != NULL && mpValue->isValid());
+
+      if (mpValue == NULL
+          || !mpValue->isValid())
+        {
+          CLogger::error("Edge selector: Invalid or missing value for 'right'.");
+          return;
+        }
 
       if (mLeft.isReadOnly())
         mStatic = true;
 
+      mValid = true;
       return;
     }
 
@@ -127,13 +234,26 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
   if (strcmp(json_string_value(pValue), "withPropertyIn") == 0)
     {
       mLeft.fromJSON(json_object_get(json, "left"));
-      mValid &= mLeft.isValid();
+
+      if (!mLeft.isValid())
+        {
+          CLogger::error("Edge selector: Invalid or missing value for 'left'.");
+          return;
+        }
+
       mpValueList = new CValueList(json_object_get(json, "right"));
-      mValid &= (mpValueList != NULL && mpValueList->isValid());
+
+      if (mpValueList == NULL
+          || !mpValueList->isValid())
+      {
+        CLogger::error("Edge selector: Invalid or missing value for 'right'.");
+        return;
+        }
 
       if (mLeft.isReadOnly())
         mStatic = true;
 
+      mValid = true;
       return;
     }
 
@@ -150,26 +270,26 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
     {
       mpSelector = CSetContent::create(json_object_get(json, "selector"));
 
-      if (mpSelector != NULL && mpSelector->isValid())
+      if (mpSelector != NULL
+          && mpSelector->isValid())
         {
           mPrerequisites.insert(mpSelector);
           mStatic = mpSelector->isStatic();
+          mValid = true;
+          return;
         }
-      else
+
+      if (mpSelector != NULL)
         {
-          mValid = false;
-
-          if (mpSelector != NULL)
-            {
-              delete mpSelector;
-              mpSelector = NULL;
-            }
+          delete mpSelector;
+          mpSelector = NULL;
         }
 
+      CLogger::error("Edge selector: Invalid or missing value for 'selector'.");
       return;
     }
 
-  mValid = false;
+  CLogger::error("Edge selector: Invalid or missing value for 'operator'.");
   return;
 }
 
@@ -180,10 +300,12 @@ void CEdgeElementSelector::computeProtected()
   std::vector< CEdge * > & Edges = getEdges();
   Edges.clear();
 
-  if (!mValid) return;
+  if (!mValid)
+    return;
 
   CEdge * pEdge = CNetwork::INSTANCE->beginEdge();
-  CEdge * pEdgeEnd = CNetwork::INSTANCE->endEdge();;
+  CEdge * pEdgeEnd = CNetwork::INSTANCE->endEdge();
+  ;
 
   if (mpValue != NULL)
     {
@@ -199,7 +321,7 @@ void CEdgeElementSelector::computeProtected()
   if (mpValueList != NULL)
     {
       for (; pEdge != pEdgeEnd; ++pEdge)
-        if(mpValueList->contains(mLeft.propertyOf(pEdge)))
+        if (mpValueList->contains(mLeft.propertyOf(pEdge)))
           {
             Edges.push_back(pEdge);
           }
@@ -210,7 +332,7 @@ void CEdgeElementSelector::computeProtected()
   if (mpSelector != NULL)
     {
       for (; pEdge != pEdgeEnd; ++pEdge)
-        if(mpSelector->contains((*mpGetNode)(pEdge)))
+        if (mpSelector->contains((*mpGetNode)(pEdge)))
           {
             Edges.push_back(pEdge);
           }
@@ -221,5 +343,3 @@ void CEdgeElementSelector::computeProtected()
   for (; pEdge != pEdgeEnd; ++pEdge)
     Edges.push_back(pEdge);
 }
-
-

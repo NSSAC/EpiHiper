@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -14,6 +14,7 @@
 
 #include "diseaseModel/CTransmission.h"
 #include "diseaseModel/CHealthState.h"
+#include "utilities/CLogger.h"
 
 CTransmission::CTransmission()
   : CAnnotation()
@@ -58,53 +59,84 @@ void CTransmission::fromJSON(const json_t * json, const std::map< std::string, C
       mAnnId = mId;
     }
 
-  mValid &= !mId.empty();
+  if (mId.empty())
+    {
+      CLogger::error("Transmission: Invalid or missing 'id'.");
+      return;
+    }
+
+  CAnnotation::fromJSON(json);
 
   pValue = json_object_get(json, "entryState");
+  mpEntryState = NULL;
 
-  if (json_is_string(pValue) &&
-      (found = states.find(json_string_value(pValue))) != notFound)
+  if (json_is_string(pValue)
+      && (found = states.find(json_string_value(pValue))) != notFound)
     {
       mpEntryState = found->second;
     }
 
-  mValid &= (mpEntryState != NULL);
+  if (mpEntryState == NULL)
+    {
+      CLogger::error("Transmission: Invalid or missing 'entryState'.");
+      return;
+    }
 
   pValue = json_object_get(json, "exitState");
+  mpExitState = NULL;
 
-  if (json_is_string(pValue) &&
-      (found = states.find(json_string_value(pValue))) != notFound)
+  if (json_is_string(pValue)
+      && (found = states.find(json_string_value(pValue))) != notFound)
     {
       mpExitState = found->second;
     }
 
-  mValid &= (mpExitState != NULL);
+  if (mpExitState == NULL)
+    {
+      CLogger::error("Transmission: Invalid or missing 'exitState'.");
+      return;
+    }
 
   pValue = json_object_get(json, "contactState");
+  mpContactState = NULL;
 
-  if (json_is_string(pValue) &&
-      (found = states.find(json_string_value(pValue))) != notFound)
+  if (json_is_string(pValue)
+      && (found = states.find(json_string_value(pValue))) != notFound)
     {
       mpContactState = found->second;
     }
 
-  mValid &= (mpContactState != NULL);
+  if (mpContactState == NULL)
+    {
+      CLogger::error("Transmission: Invalid or missing 'contactState'.");
+      return;
+    }
 
   pValue = json_object_get(json, "transmissibility");
+  mTransmissibility = -1.0;
 
   if (json_is_real(pValue))
     {
       mTransmissibility = json_real_value(pValue);
     }
 
-  mValid &= (mTransmissibility >= 0);
+  if (mTransmissibility < 0.0)
+    {
+      CLogger::error("Transmission: Invalid or missing 'transmissibility'.");
+      return;
+    }
 
   pValue = json_object_get(json, "susceptibilityFactorOperation");
 
   if (json_is_object(pValue))
     {
       mSusceptibilityFactorOperation.fromJSON(pValue);
-      mValid &= mSusceptibilityFactorOperation.isValid();
+
+      if (!mSusceptibilityFactorOperation.isValid())
+        {
+          CLogger::error("Transmission: Invalid 'susceptibilityFactorOperation'.");
+          return;
+        }
     }
 
   pValue = json_object_get(json, "infectivityFactorOperation");
@@ -112,10 +144,15 @@ void CTransmission::fromJSON(const json_t * json, const std::map< std::string, C
   if (json_is_object(pValue))
     {
       mInfectivityFactorOperation.fromJSON(pValue);
-      mValid &= mInfectivityFactorOperation.isValid();
+
+      if (!mInfectivityFactorOperation.isValid())
+        {
+          CLogger::error("Transmission: Invalid 'infectivityFactorOperation'.");
+          return;
+        }
     }
 
-  CAnnotation::fromJSON(json);
+  mValid = true;
 }
 
 const std::string & CTransmission::getId() const
@@ -157,5 +194,3 @@ void CTransmission::updateInfectivityFactor(double & factor) const
 {
   mInfectivityFactorOperation.apply(factor);
 }
-
-

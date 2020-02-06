@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -13,6 +13,7 @@
 #include <jansson.h>
 
 #include "diseaseModel/CHealthState.h"
+#include "utilities/CLogger.h"
 
 CHealthState::Counts::Counts()
   : Current(0)
@@ -55,7 +56,7 @@ CHealthState::~CHealthState()
 
 void CHealthState::fromJSON(const json_t * json)
 {
-  mValid = true;
+  mValid = false;
 
   json_t * pValue = json_object_get(json, "id");
 
@@ -65,23 +66,43 @@ void CHealthState::fromJSON(const json_t * json)
       mAnnId = mId;
     }
 
-  mValid &= !mId.empty();
+  if (mId.empty())
+    {
+      CLogger::error("Health state: Invalid or missing 'id',");
+      return;
+    }
+
+  CAnnotation::fromJSON(json);
 
   pValue = json_object_get(json, "susceptibility");
+  mSusceptibility = -1.0;
 
   if (json_is_real(pValue))
     {
       mSusceptibility = json_real_value(pValue);
     }
 
+  if (mSusceptibility < 0.0)
+    {
+      CLogger::error("Health state: Invalid or missing 'susceptibility'.");
+      return;
+    }
+
   pValue = json_object_get(json, "infectivity");
+  mInfectivity = -1.0;
 
   if (json_is_real(pValue))
     {
       mInfectivity = json_real_value(pValue);
     }
 
-  CAnnotation::fromJSON(json);
+  if (mInfectivity < 0.0)
+    {
+      CLogger::error("Health state: Invalid or missing 'infectivity'.");
+      return;
+    }
+
+  mValid = true;
 }
 
 const std::string & CHealthState::getId() const
@@ -98,7 +119,6 @@ const double & CHealthState::getInfectivity() const
 {
   return mInfectivity;
 }
-
 
 const bool & CHealthState::isValid() const
 {
@@ -129,4 +149,3 @@ void CHealthState::incrementGlobalCount(const CHealthState::Counts & i)
   mGlobalCounts.In += i.In;
   mGlobalCounts.Out += i.Out;
 }
-

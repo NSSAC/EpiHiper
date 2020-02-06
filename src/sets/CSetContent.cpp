@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -23,6 +23,7 @@
 #include "sets/CSetOperation.h"
 #include "sets/CSetList.h"
 #include "utilities/CRandom.h"
+#include "utilities/CLogger.h"
 
 CSetContent::CSetContent()
   : CComputable()
@@ -68,6 +69,7 @@ CSetContent * CSetContent::create(const json_t * json)
         }
       else
         {
+          CLogger::error("Set content: Invalid value for 'elementType'.");
           return NULL;
         }
     }
@@ -86,6 +88,7 @@ CSetContent * CSetContent::create(const json_t * json)
       return new CSetReference(json);
     }
 
+  CLogger::error("Set content: Invalid.");
   return NULL;
 }
 
@@ -115,8 +118,8 @@ CSetContent * CSetContent::copy(const CSetContent * pSetContent)
 // static
 void CSetContent::destroy(CSetContent *& pSetContent)
 {
-  if (pSetContent != NULL &&
-      dynamic_cast< CSet * >(pSetContent) == NULL)
+  if (pSetContent != NULL
+      && dynamic_cast< CSet * >(pSetContent) == NULL)
     {
       delete pSetContent;
       pSetContent = NULL;
@@ -126,12 +129,6 @@ void CSetContent::destroy(CSetContent *& pSetContent)
 const bool & CSetContent::isValid() const
 {
   return mValid;
-}
-
-// virtual
-void CSetContent::fromJSON(const json_t * json)
-{
-  mValid = false;
 }
 
 bool CSetContent::contains(CNode * pNode) const
@@ -231,9 +228,9 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
 
       for (; it != end; ++it)
         {
-          if (Available <= Requested ||
-              (Requested > 0.5 &&
-                  Percent(CRandom::G) < Requested / Available))
+          if (Available <= Requested
+              || (Requested > 0.5
+                  && Percent(CRandom::G) < Requested / Available))
             {
               sampled.mNodes.push_back(*it);
               Requested -= 1.0;
@@ -254,9 +251,9 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
 
       for (; it != end; ++it)
         {
-          if (Available <= Requested ||
-              (Requested > 0.5 &&
-                  Percent(CRandom::G) < Requested / Available))
+          if (Available <= Requested
+              || (Requested > 0.5
+                  && Percent(CRandom::G) < Requested / Available))
             {
               sampled.mEdges.push_back(*it);
               Requested -= 1.0;
@@ -292,7 +289,6 @@ void CSetContent::samplePercent(const double & percent, CSetContent & sampled, C
           sampled.mNodes.push_back(*it);
         else
           notSampled.mNodes.push_back(*it);
-
     }
   else if (size() == getEdges().size())
     {
@@ -311,4 +307,3 @@ size_t CSetContent::size() const
 {
   return getEdges().size() + getNodes().size() + getDBFieldValues().size();
 }
-

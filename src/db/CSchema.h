@@ -47,7 +47,7 @@ public:
   const std::string & getTableForField(const std::string & field) const;
 
 private:
-  void addTable(const json_t * json);
+  bool addTable(const json_t * json);
 
   std::string mId;
   std::string mLabel;

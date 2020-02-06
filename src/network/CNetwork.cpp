@@ -115,7 +115,141 @@ CNetwork::~CNetwork()
 
 void CNetwork::fromJSON(const json_t * json)
 {
-  mValid = true;
+  /*
+  {
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Schema title",
+  "description": "Description of the schema",
+  "type": "object",
+  "required": [
+    "epiHiperSchema",
+    "encoding",
+    "numberOfNodes",
+    "numberOfEdges",
+    "sizeofPID",
+    "activityEncoding",
+    "sizeofActivity",
+    "edgeTraitEncoding",
+    "sizeofEdgeTrait",
+    "accumulationTime",
+    "timeResolution",
+    "hasActiveField",
+    "hasWeightField"
+  ],
+  "properties": {
+    "epiHiperSchema": {
+      "type": "string",
+      "enum": ["https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/networkSchema.json"]
+    },
+    "encoding": {
+      "description": "Encoding used for the network edges",
+      "type": "string",
+      "enum": [
+        "binary",
+        "text"
+      ]
+    },
+    "numberOfNodes": {
+      "description": "The number of nodes in the network",
+      "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
+    },
+    "numberOfEdges": {
+      "description": "The number of edges in the network",
+      "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
+    },
+    "sizeofPID": {
+      "description": "The size of the person Id (PID) in bytes",
+      "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
+    },
+    "accumulationTime": {
+      "description": "An annotaion string describing the accumulation time for the contact",
+      "type": "string"
+    },
+    "timeResolution": {
+      "description": "The maximal value of the duration field, i.e., the value to divide the duration by to get it relative to the accumulation time",
+      "$ref": "./typeRegistry.json#/definitions/nonNegativeNumber"
+    },
+    "hasActiveField": {
+      "description": "Boolean indicating whether the network contains an active flag for each edge",
+      "type": "boolean"
+    },
+    "hasWeightField": {
+      "description": "Boolean indicating whether the network contains a weight for each edge",
+      "type": "boolean"
+    },
+    "activityEncoding": {
+      "description": "The features and their valid values encoded in the target and source activities",
+      "allOf": [
+        {"$ref": "./typeRegistry.json#/definitions/trait"},
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "enum": ["activityTrait"]
+            }
+          }
+        }
+      ]
+    },
+    "sizeofActivity": {
+      "description": "The size of the target and source activities in bytes",
+      "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
+    },
+    "edgeTraitEncoding": {
+      "description": "The features and their valid values encoded in the edge trait",
+      "allOf": [
+        {"$ref": "./typeRegistry.json#/definitions/trait"},
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "enum": ["edgeTrait"]
+            }
+          }
+        }
+      ]
+    },
+    "sizeofEdgeTrait": {
+      "description": "The size of the edge trait in bytes",
+      "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
+    },
+    "partition": {
+      "type": "object",
+      "required": [
+        "numberOfNodes",
+        "numberOfEdges",
+        "numberOfParts",
+        "firstLocalNode",
+        "beyondLocalNode"
+      ],
+      "properties": {
+        "numberOfNodes": {
+          "description": "The number of nodes in the network",
+          "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
+        },
+        "numberOfEdges": {
+          "description": "The number of edges in the network",
+          "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
+        },
+        "numberOfParts": {
+          "description": "The number of partitions of the network",
+          "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
+        },
+        "firstLocalNode": {
+          "description": "The number of the first local node",
+          "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
+        },
+        "beyondLocalNode": {
+          "description": "The number of the first node beyond the local nodes",
+          "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
+        }
+      }
+    }
+  }
+}
+  */
+
+  mValid = false;
 
   json_t * pValue = json_object_get(json, "encoding");
 
@@ -126,32 +260,49 @@ void CNetwork::fromJSON(const json_t * json)
     }
 
   pValue = json_object_get(json, "numberOfNodes");
+  mTotalNodesSize = 0;
 
   if (json_is_integer(pValue))
     {
       mTotalNodesSize = json_integer_value(pValue);
     }
 
-  mValid &= (mTotalNodesSize > 0);
+  if (mTotalNodesSize == 0)
+    {
+      CLogger::error("Network: Invalid or missing 'numberOfNodes'.");
+      return;
+    }
 
   pValue = json_object_get(json, "numberOfEdges");
+  mTotalEdgesSize = 0;
 
   if (json_is_integer(pValue))
     {
       mTotalEdgesSize = json_integer_value(pValue);
     }
 
-  mValid &= (mTotalEdgesSize > 0);
+  if (mTotalEdgesSize == 0)
+    {
+      CLogger::error("Network: Invalid or missing 'numberOfEdges'.");
+      return;
+    }
 
   pValue = json_object_get(json, "sizeofPID");
+  mSizeOfPid = 0;
 
   if (json_is_integer(pValue))
     {
       mSizeOfPid = json_integer_value(pValue);
     }
 
-  mValid &= (mSizeOfPid == 4 || mSizeOfPid == 8);
+  if (mSizeOfPid != 4
+      && mSizeOfPid != 8)
+    {
+      CLogger::error("Network: Invalid or missing 'sizeofPID'.");
+      return;
+    }
 
+  // This is only annotation for know.
   pValue = json_object_get(json, "accumulationTime");
 
   if (json_is_string(pValue))
@@ -160,11 +311,17 @@ void CNetwork::fromJSON(const json_t * json)
     }
 
   pValue = json_object_get(json, "timeResolution");
+  mTimeResolution = 0;
 
   if (json_is_integer(pValue))
     {
       mTimeResolution = json_integer_value(pValue);
-      mValid &= (mTimeResolution > 0);
+    }
+
+  if (mTimeResolution == 0)
+    {
+      CLogger::error("Network: Invalid or missing 'timeResolution'.");
+      return;
     }
 
   size_t Size = 0;
@@ -176,7 +333,11 @@ void CNetwork::fromJSON(const json_t * json)
       Size = json_integer_value(pValue);
     }
 
-  mValid &= (Size == 4);
+  if (Size == 0)
+    {
+      CLogger::error("Network: Invalid or missing 'sizeofActivity'.");
+      return;
+    }
 
   pValue = json_object_get(json, "activityEncoding");
 
@@ -191,16 +352,25 @@ void CNetwork::fromJSON(const json_t * json)
         }
     }
 
-  mValid &= CTrait::ActivityTrait->isValid();
+  if (!CTrait::ActivityTrait->isValid())
+    {
+      CLogger::error("Network: Invalid or missing 'activityEncoding'.");
+      return;
+    }
 
   pValue = json_object_get(json, "sizeofEdgeTrait");
+  Size = 1;
 
   if (json_is_integer(pValue))
     {
       Size = json_integer_value(pValue);
     }
 
-  mValid &= (Size == 4 || Size == 0);
+  if (Size != 4 && Size != 0)
+    {
+      CLogger::error("Network: Invalid or missing 'sizeofEdgeTrait'.");
+      return;
+    }
 
   pValue = json_object_get(json, "edgeTraitEncoding");
 
@@ -216,7 +386,11 @@ void CNetwork::fromJSON(const json_t * json)
         }
     }
 
-  mValid &= Size == 0 || CTrait::EdgeTrait->isValid();
+  if (Size == 4 && !CTrait::EdgeTrait->isValid())
+    {
+      CLogger::error("Network: Invalid or missing 'edgeTraitEncoding'.");
+      return;
+    }
 
   pValue = json_object_get(json, "hasActiveField");
 
@@ -233,6 +407,7 @@ void CNetwork::fromJSON(const json_t * json)
     }
 
   CAnnotation::fromJSON(json);
+  mValid = true;
 }
 
 void CNetwork::partition(const int & parts, const bool & save, const std::string & outputDirectory)
@@ -485,13 +660,14 @@ void CNetwork::load()
   if (mFile.empty())
     {
       CLogger::error("Network file is not specified");
-      mValid = false;
+      mValid = false; // DONE
       return;
     }
 
   std::ostringstream File;
   File << mFile << "." << CCommunicate::MPIRank;
-  bool havePartition = mLocalNodesSize == 0 && CDirEntry::isFile(File.str());
+  bool havePartition = mLocalNodesSize == 0
+                       && CDirEntry::isFile(File.str());
 
   std::ifstream is;
 
@@ -551,7 +727,7 @@ void CNetwork::load()
   if (is.fail())
     {
       CLogger::error("Network file: '" + File.str() + "' cannot be opened.");
-      mValid = false;
+      mValid = false; // DONE
       return;
     }
 
@@ -581,7 +757,7 @@ void CNetwork::load()
         {
           CLogger::error() << "Network file: '" << mFile << "' invalid edge (" << pEdge - mEdges << ").";
 
-          mValid = false;
+          mValid = false; // DONE
           break;
         }
 
@@ -640,7 +816,7 @@ void CNetwork::load()
               {
                 CLogger::error() << "Network file: '" << mFile << "' Source not found "
                                  << pEdge << ", " << pEdge->targetId << ", " << pEdge->sourceId << std::endl;
-                mValid = false;
+                mValid = false; // DONE
               }
           }
     }

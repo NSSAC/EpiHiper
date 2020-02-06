@@ -14,12 +14,15 @@
 
 #include "utilities/CLogger.h"
 #include "utilities/CSimConfig.h"
+
+// static 
+std::stack< spdlog::level::level_enum > CLogger::levels;
+
 // static
 void CLogger::init()
 {
   // Set global log level to info
-  spdlog::set_level(CSimConfig::getLogLevel());
-
+  setLevel(CSimConfig::getLogLevel());
   std::shared_ptr<spdlog::logger> console = spdlog::stdout_logger_st("console");
 }
 
@@ -27,4 +30,29 @@ void CLogger::init()
 void CLogger::release()
 {
   spdlog::shutdown();
+}
+
+// static 
+void CLogger::setLevel(spdlog::level::level_enum level)
+{
+  levels = std::stack< spdlog::level::level_enum >();
+  pushLevel(level);
+}
+
+// static 
+void CLogger::pushLevel(spdlog::level::level_enum level)
+{
+  levels.push(level);
+  spdlog::set_level(level);
+}
+
+// static 
+void CLogger::popLevel()
+{
+  levels.pop();
+
+  if (levels.empty())
+    spdlog::set_level(CSimConfig::getLogLevel());
+  else
+    spdlog::set_level(levels.top());
 }

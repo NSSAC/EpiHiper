@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -15,6 +15,7 @@
 #include <jansson.h>
 
 #include "sets/CSetOperation.h"
+#include "utilities/CLogger.h"
 
 CSetOperation::CSetOperation()
   : CSetContent()
@@ -43,7 +44,6 @@ CSetOperation::CSetOperation(const json_t * json)
 {
   fromJSON(json);
 }
-
 
 CSetOperation::~CSetOperation()
 {
@@ -88,11 +88,12 @@ void CSetOperation::fromJSON(const json_t * json)
     },
   */
 
+  mValid = false; // DONE
   json_t * pValue = json_object_get(json, "operation");
 
   if (!json_is_string(pValue))
     {
-      mValid = false;
+      CLogger::error("Set operation: Invalid or missing value for 'operatioon'.");
       return;
     }
 
@@ -106,7 +107,7 @@ void CSetOperation::fromJSON(const json_t * json)
     }
   else
     {
-      mValid = false;
+      CLogger::error("Set operation: Invalid value for 'operatioon'.");
       return;
     }
 
@@ -114,33 +115,41 @@ void CSetOperation::fromJSON(const json_t * json)
 
   if (!json_is_array(pValue))
     {
-      mValid = false;
+      CLogger::error("Set operation: Invalid or missing value for 'sets'.");
       return;
     }
-
-  mValid = true;
 
   for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
     {
       CSetContent * pSetContent = CSetContent::create(json_array_get(pValue, i));
 
-      if (pSetContent != NULL && pSetContent->isValid())
+      if (pSetContent != NULL
+          && pSetContent->isValid())
         {
           mSets.insert(pSetContent);
           mPrerequisites.insert(pSetContent);
         }
       else
-        mValid = false;
+        {
+          if (pSetContent != NULL)
+            {
+              delete pSetContent;
+            }
+
+          CLogger::error() << "Set operation: Invalid value for item '" << i << "'.";
+          return;
+        }
     }
 
   determineIsStatic();
+  mValid = true;
 }
 
 // virtual
 void CSetOperation::computeProtected()
 {
-  if (mValid &&
-      mpCompute != NULL)
+  if (mValid
+      && mpCompute != NULL)
     (this->*mpCompute)();
 }
 
@@ -208,9 +217,9 @@ void CSetOperation::computeUnion()
 
 void CSetOperation::computeIntersection()
 {
-  std::vector< CNode * > N1, N2, * pNin, * pNout;;
-  std::vector< CEdge * > E1, E2,  *pEin, * pEout;
-  std::map< CValueList::Type, CValueList > DB1, DB2, * pDBin, *pDBout;
+  std::vector< CNode * > N1, N2, *pNin, *pNout;
+  std::vector< CEdge * > E1, E2, *pEin, *pEout;
+  std::map< CValueList::Type, CValueList > DB1, DB2, *pDBin, *pDBout;
 
   pNin = &N1;
   pNout = &N2;
@@ -267,4 +276,3 @@ void CSetOperation::computeIntersection()
   getNodes() = *pNin;
   getDBFieldValues() = *pDBin;
 }
-

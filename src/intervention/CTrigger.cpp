@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -17,6 +17,7 @@
 #include "utilities/CSimConfig.h"
 #include "actions/CCondition.h"
 #include "math/CDependencyGraph.h"
+#include "utilities/CLogger.h"
 
 // static
 void CTrigger::loadJSON(const json_t * json)
@@ -202,14 +203,19 @@ void CTrigger::fromJSON(const json_t * json)
     ]
   },
   */
-  mValid = true;
+  mValid = false; // DONE
 
   json_t * pValue = json_object_get(json, "trigger");
 
   if (json_is_object(pValue))
     {
       mCondition.fromJSON(pValue);
-      mValid &= mCondition.isValid();
+
+      if (!mCondition.isValid())
+        {
+          CLogger::error("Trigger: Invalid value for 'trigger'.");
+          return;
+        }
     }
 
   pValue = json_object_get(json, "interventionIds");
@@ -220,10 +226,15 @@ void CTrigger::fromJSON(const json_t * json)
         std::string Id = json_string_value(json_array_get(pValue, i));
         mInterventions[Id] = CIntervention::getIntervention(Id);
 
-        mValid &= (mInterventions[Id] != NULL);
+        if (mInterventions[Id] == NULL)
+          {
+            CLogger::error() << "Trigger: Invalid id for item '" << i << "'.";
+            return;
+          }
       }
 
   CAnnotation::fromJSON(json);
+  mValid = true;
 }
 
 const bool & CTrigger::isValid() const

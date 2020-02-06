@@ -79,9 +79,7 @@ void CTable::fromJSON(const json_t * json)
       return;
     }
 
-  mValid = true;
-
-  for (size_t i = 0, imax = json_array_size(pValue); i < imax && mValid; ++i)
+  for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
     {
       CField Field;
       Field.fromJSON(json_array_get(pValue, i));
@@ -93,23 +91,38 @@ void CTable::fromJSON(const json_t * json)
       else
         {
           CLogger::error() << "Table: Invalid field for item '" << i << "'.";
-          mValid = false; // DONE
+          return;
         }
     }
 
-#ifdef CHECK_PRIMARY_KEY
   pValue = json_object_get(pSchema, "primaryKey");
 
   if (json_is_string(pValue))
     {
-      mValid &= strcmp(json_string_value(pValue), "pid") == 0;
+      if (strcmp(json_string_value(pValue), "pid") != 0)
+        {
+          CLogger::error("Table: Invalid value for 'primaryKey'.");
+          return;
+        }
     }
-  else if (json_is_array(pValue) && json_array_size(pValue) == 1)
+  else if (json_is_array(pValue)
+           && json_array_size(pValue) == 1)
     {
       json_t * pKey = json_array_get(pValue, 0);
-      mValid &= json_is_string(pKey) && strcmp(json_string_value(pKey), "pid") == 0;
+
+      if (strcmp(json_string_value(pKey), "pid") != 0)
+        {
+          CLogger::error("Table: Invalid value for 'primaryKey'.");
+          return;
+        }
     }
-#endif // CHECK_PRIMARY_KEY
+  else
+    {
+      CLogger::error("Table: Missing value for 'primaryKey'.");
+      return;
+    }
+
+  mValid = true;
 }
 
 const std::string & CTable::getId() const

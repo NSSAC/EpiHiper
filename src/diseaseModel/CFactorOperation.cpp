@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -14,6 +14,7 @@
 #include <jansson.h>
 
 #include "diseaseModel/CFactorOperation.h"
+#include "utilities/CLogger.h"
 
 CFactorOperation::CFactorOperation()
   : mType(Type::__NONE)
@@ -33,7 +34,7 @@ CFactorOperation::~CFactorOperation()
 
 void CFactorOperation::fromJSON(const json_t * json)
 {
-  mValid = true;
+  mValid = false; // DONE
 
   json_t * pValue = json_object_get(json, "operator");
 
@@ -41,21 +42,35 @@ void CFactorOperation::fromJSON(const json_t * json)
     {
       std::string Operator = json_string_value(pValue);
 
-      if (Operator == "=") mType = Type::assign;
-      else if(Operator == "*=") mType = Type::multiply;
-      else if (Operator == "/=") mType = Type::divide;
+      if (Operator == "=")
+        mType = Type::assign;
+      else if (Operator == "*=")
+        mType = Type::multiply;
+      else if (Operator == "/=")
+        mType = Type::divide;
     }
 
-  mValid &= (mType != Type::__NONE);
+  if (mType == Type::__NONE)
+    {
+      CLogger::error("Operation: Invalid or missing 'operator'.");
+      return;
+    }
 
   pValue = json_object_get(json, "value");
+  mValue = -1.0;
 
   if (json_is_real(pValue))
     {
       mValue = json_real_value(pValue);
     }
 
-  mValid &= (mValue >= 0);
+  if (mValue < 0.0)
+    {
+      CLogger::error("Operation: Invalid or missing 'value'.");
+      return;
+    }
+
+  mValid = true;
 }
 
 const bool & CFactorOperation::isValid() const
@@ -66,7 +81,7 @@ const bool & CFactorOperation::isValid() const
 void CFactorOperation::apply(double & value) const
 {
   switch (mType)
-  {
+    {
     case Type::assign:
       value = mValue;
       break;
@@ -81,7 +96,5 @@ void CFactorOperation::apply(double & value) const
 
     case Type::__NONE:
       break;
-  }
+    }
 }
-
-

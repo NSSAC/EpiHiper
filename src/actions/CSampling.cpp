@@ -41,6 +41,10 @@ CSetContent * CSampling::CSampled::copy() const
   return new CSampled(*this);
 }
 
+// virtual
+void CSampling::CSampled::fromJSON(const json_t * json)
+{}
+
 CSampling::CSampling()
   : mType()
   , mPercentage()

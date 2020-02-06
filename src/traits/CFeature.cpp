@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -22,6 +22,7 @@
 #include <jansson.h>
 
 #include "traits/CFeature.h"
+#include "utilities/CLogger.h"
 
 CFeature::CFeature(const std::string & id)
   : CAnnotation()
@@ -66,7 +67,7 @@ void CFeature::updateEnumMap()
 
 void CFeature::fromJSON(const json_t * json)
 {
-  mValid = true;
+  mValid = false; // DONE
 
   json_t * pValue = json_object_get(json, "id");
 
@@ -76,7 +77,13 @@ void CFeature::fromJSON(const json_t * json)
       mAnnId = mId;
     }
 
-  mValid &= !mId.empty();
+  if (mId.empty())
+    {
+      CLogger::error("Feature: Invalid or missing 'id'.");
+      return;
+    }
+
+  CAnnotation::fromJSON(json);
 
   pValue = json_object_get(json, "enums");
 
@@ -93,7 +100,8 @@ void CFeature::fromJSON(const json_t * json)
         }
       else
         {
-          mValid = false;
+          CLogger::error() << "Feature: Invalid value for item '" << i << "'.";
+          return;
         }
     }
 
@@ -113,9 +121,13 @@ void CFeature::fromJSON(const json_t * json)
 
   updateEnumMap();
 
-  mValid &= (mEnumMap.find(json_string_value(pValue)) != mEnumMap.end());
+  if (mEnumMap.find(mDefaultId) == mEnumMap.end())
+    {
+      CLogger::error() << "Feature: Invalid default '" << mDefaultId << "'.";
+      return;
+    }
 
-  CAnnotation::fromJSON(json);
+  mValid = true;
 }
 
 void CFeature::augment(const json_t * json)
@@ -123,16 +135,24 @@ void CFeature::augment(const json_t * json)
   CFeature Augment;
   Augment.fromJSON(json);
 
+  if (!Augment.isValid())
+    {
+      mValid = false; // DONE
+      return;
+    }
+
+  // Annotation is overwritten
+  CAnnotation::fromJSON(json);
+
   std::vector< CEnum >::const_iterator it = Augment.mEnums.begin();
   std::vector< CEnum >::const_iterator end = Augment.mEnums.end();
 
   // Add all newly defined enums.
   for (; it != end; ++it)
     {
-
-      if (it->isValid() &&
-          it->getId() != "notSet" &&
-          operator[](it->getId()) == NULL)
+      if (it->isValid()
+          && it->getId() != "notSet"
+          && operator[](it->getId()) == NULL)
         {
           addEnum(*it);
         }
@@ -143,11 +163,7 @@ void CFeature::augment(const json_t * json)
     {
       mDefaultId = Augment.mDefaultId;
     }
-
-  // Annotation is overwritten
-  CAnnotation::fromJSON(json);
 }
-
 
 const std::string & CFeature::getId() const
 {
@@ -159,7 +175,6 @@ const bool & CFeature::isValid() const
   return mValid;
 }
 
-
 size_t CFeature::size() const
 {
   return mEnumMap.size();
@@ -167,7 +182,7 @@ size_t CFeature::size() const
 
 size_t CFeature::bitsRequired() const
 {
-  return std::max(1.0, ceil(log(mEnumMap.size())/log(2.0)));
+  return std::max(1.0, ceil(log(mEnumMap.size()) / log(2.0)));
 }
 
 void CFeature::setMask(const CTraitData::base & mask)
@@ -195,7 +210,7 @@ const CEnum * CFeature::operator[](const size_t & index) const
 {
   if (index < mEnums.size())
     {
-      return & mEnums[index];
+      return &mEnums[index];
     }
 
   return NULL;
@@ -229,4 +244,3 @@ const CEnum * CFeature::addEnum(const CEnum & enumeration)
 
   return &*mEnums.rbegin();
 }
-

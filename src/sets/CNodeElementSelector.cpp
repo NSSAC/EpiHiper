@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -24,6 +24,7 @@
 #include "network/CNode.h"
 #include "network/CEdge.h"
 #include "actions/CActionQueue.h"
+#include "utilities/CLogger.h"
 
 CNodeElementSelector::CNodeElementSelector()
   : CSetContent()
@@ -80,11 +81,15 @@ CNodeElementSelector::CNodeElementSelector(const json_t * json)
 
 CNodeElementSelector::~CNodeElementSelector()
 {
-  if (mpValue != NULL) delete mpValue;
-  if (mpValueList != NULL) delete mpValueList;
+  if (mpValue != NULL)
+    delete mpValue;
+  if (mpValueList != NULL)
+    delete mpValueList;
   CSetContent::destroy(mpSelector);
-  if (mpDBFieldValue != NULL) delete mpDBFieldValue;
-  if (mpDBFieldValueList != NULL) delete mpDBFieldValueList;
+  if (mpDBFieldValue != NULL)
+    delete mpDBFieldValue;
+  if (mpDBFieldValueList != NULL)
+    delete mpDBFieldValueList;
 }
 
 // virtual
@@ -96,64 +101,221 @@ CSetContent * CNodeElementSelector::copy() const
 // virtual
 void CNodeElementSelector::fromJSON(const json_t * json)
 {
+  /*
+  "nodeElementSelector": {
+      "$id": "#nodeElementSelector",
+      "description": "The specification of node elements of a set.",
+      "type": "object",
+      "allOf": [
+        {
+          "type": "object",
+          "required": [
+            "elementType",
+            "scope"
+          ],
+          "properties": {
+            "elementType": {
+              "type": "string",
+              "enum": ["node"]
+            },
+            "scope": {
+              "type": "string",
+              "enum": [
+                "local",
+                "global"
+              ]
+            }
+          }
+        },
+        {
+          "oneOf": [
+            {
+              "required": [
+                "operator",
+                "left",
+                "right"
+              ],
+              "properties": {
+                "operator": {"$ref": "#/definitions/comparisonOperator"},
+                "left": {
+                  "type": "object",
+                  "required": ["node"],
+                  "properties": {
+                    "node": {"$ref": "#/definitions/nodeProperty"}
+                  }
+                },
+                "right": {"$ref": "#/definitions/value"}
+              }
+            },
+            {
+              "description": "",
+              "required": [
+                "operator",
+                "left",
+                "right"
+              ],
+              "properties": {
+                "operator": {
+                  "description": "",
+                  "type": "string",
+                  "enum": ["withPropertyIn"]
+                },
+                "left": {
+                  "type": "object",
+                  "required": ["node"],
+                  "properties": {
+                    "node": {"$ref": "#/definitions/nodeProperty"}
+                  }
+                },
+                "right": {"$ref": "#/definitions/valueList"}
+              }
+            },
+            {
+              "description": "",
+              "required": [
+                "operator",
+                "selector"
+              ],
+              "properties": {
+                "operator": {
+                  "description": "",
+                  "type": "string",
+                  "enum": ["withIncomingEdgeIn"]
+                },
+                "selector": {"$ref": "#/definitions/setContent"}
+              }
+            },
+            {
+              "description": "A filter selecting nodes from the external person trait database.",
+              "oneOf": [
+                {
+                  "description": "A table in the external person trait database.",
+                  "type": "object",
+                  "required": ["table"],
+                  "properties": {
+                    "table": {"$ref": "#/definitions/uniqueIdRef"}
+                  }
+                },
+                {
+                  "description": "A filter returining nodes if the result of comparing left and right values with the operator is true.",
+                  "required": [
+                    "operator",
+                    "left",
+                    "right"
+                  ],
+                  "properties": {
+                    "operator": {"$ref": "#/definitions/comparisonOperator"},
+                    "left": {"$ref": "#/definitions/dbField"},
+                    "right": {
+                      "type": "object",
+                      "description": "",
+                      "oneOf": [
+                        {"$ref": "#/definitions/dbFieldValue"},
+                        {"$ref": "#/definitions/observable"}
+                      ]
+                    }
+                  }
+                },
+                {
+                  "description": "A filter returning nodes if the left field value is or is not in the right list.",
+                  "required": [
+                    "operator",
+                    "left",
+                    "right"
+                  ],
+                  "properties": {
+                    "operator": {
+                      "description": "",
+                      "type": "string",
+                      "enum": [
+                        "in",
+                        "not in"
+                      ]
+                    },
+                    "left": {"$ref": "#/definitions/dbField"},
+                    "right": {
+                      "type": "object",
+                      "description": "",
+                      "oneOf": [
+                        {"$ref": "#/definitions/dbFieldValueList"},
+                        {"$ref": "#/definitions/dbFieldValueSelector"}
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  */
+
+  mValid = false; // DONE
+  mPrerequisites.clear();
   json_t * pValue = json_object_get(json, "elementType");
 
-  mValid = (json_is_string(pValue) && strcmp(json_string_value(pValue), "node") == 0);
-  mPrerequisites.clear();
+  if (json_is_string(pValue)
+      && strcmp(json_string_value(pValue), "node") != 0)
+    {
+      CLogger::error("Node selector: Invalid value for 'elementType'.");
+      return;
+    }
+
   mPrerequisites.insert(&CActionQueue::getCurrentTick());
-
-  if (!mValid) return;
-
   pValue = json_object_get(json, "scope");
 
   if (strcmp(json_string_value(pValue), "local") == 0)
     {
       mLocalScope = true;
     }
-  else if(strcmp(json_string_value(pValue), "global") == 0)
+  else if (strcmp(json_string_value(pValue), "global") == 0)
     {
       mLocalScope = false;
     }
   else
     {
-      mValid = false;
+      CLogger::error("Node selector: Invalid or missing value for 'scope'.");
+      return;
     }
 
   pValue = json_object_get(json, "operator");
 
   if (pValue != NULL)
     {
-      if (strcmp(json_string_value(pValue), "==") == 0)
+      const char * Operator = json_string_value(pValue);
+
+      if (strcmp(Operator, "==") == 0)
         {
           mpComparison = &operator==;
           mSQLComparison = "=";
         }
-      else if (strcmp(json_string_value(pValue), "!=") == 0)
+      else if (strcmp(Operator, "!=") == 0)
         {
           mpComparison = &operator!=;
           mSQLComparison = "<>";
         }
-      else if (strcmp(json_string_value(pValue), "<=") == 0)
+      else if (strcmp(Operator, "<=") == 0)
         {
           mpComparison = &operator<=;
           mSQLComparison = "<=";
         }
-      else if (strcmp(json_string_value(pValue), "<") == 0)
+      else if (strcmp(Operator, "<") == 0)
         {
           mpComparison = &operator<;
           mSQLComparison = "<";
         }
-      else if (strcmp(json_string_value(pValue), ">=") == 0)
+      else if (strcmp(Operator, ">=") == 0)
         {
           mpComparison = &operator>=;
           mSQLComparison = ">=";
         }
-      else if (strcmp(json_string_value(pValue), ">") == 0)
+      else if (strcmp(Operator, ">") == 0)
         {
           mpComparison = &operator>;
           mSQLComparison = ">";
         }
-      else if (strcmp(json_string_value(pValue), "withPropertyIn") == 0)
+      else if (strcmp(Operator, "withPropertyIn") == 0)
         {
           /*
          {
@@ -182,14 +344,27 @@ void CNodeElementSelector::fromJSON(const json_t * json)
            */
 
           mNodeProperty.fromJSON(json_object_get(json, "left"));
-          mValid &= mNodeProperty.isValid();
-          mpValueList = new CValueList(json_object_get(json, "right"));
-          mValid &= (mpValueList != NULL && mpValueList->isValid());
-          mpCompute = &CNodeElementSelector::nodePropertyWithin;
 
+          if (mNodeProperty.isValid())
+            {
+              CLogger::error("Node selector: Invalid or missing value for 'left'.");
+              return;
+            }
+
+          mpValueList = new CValueList(json_object_get(json, "right"));
+
+          if (mpValueList != NULL
+              && mpValueList->isValid())
+            {
+              CLogger::error("Node selector: Invalid or missing value for 'right'.");
+              return;
+            }
+
+          mpCompute = &CNodeElementSelector::nodePropertyWithin;
+          mValid = true;
           return;
         }
-      else if (strcmp(json_string_value(pValue), "withIncomingEdgeIn") == 0)
+      else if (strcmp(Operator, "withIncomingEdgeIn") == 0)
         {
           /*
         {
@@ -211,31 +386,30 @@ void CNodeElementSelector::fromJSON(const json_t * json)
           // We need to identify that we have this case
           mpSelector = CSetContent::create(json_object_get(json, "selector"));
 
-          if (mpSelector != NULL && mpSelector->isValid())
+          if (mpSelector != NULL
+              && mpSelector->isValid())
             {
               mPrerequisites.insert(mpSelector);
               mStatic = mpSelector->isStatic();
+              mpCompute = &CNodeElementSelector::nodeWithIncomingEdge;
+              mValid = true;
+              return;
             }
-          else
+
+          if (mpSelector != NULL)
             {
-              mValid = false;
-
-              if (mpSelector != NULL)
-                {
-                  delete mpSelector;
-                  mpSelector = NULL;
-                }
+              delete mpSelector;
+              mpSelector = NULL;
             }
 
-          mpCompute = &CNodeElementSelector::nodeWithIncomingEdge;
-
+          CLogger::error("Node selector: Invalid or missing value for 'selector'.");
           return;
         }
-      else if (strcmp(json_string_value(pValue), "in") == 0)
+      else if (strcmp(Operator, "in") == 0)
         {
           mpCompute = &CNodeElementSelector::nodeWithDBFieldWithin;
         }
-      else if (strcmp(json_string_value(pValue), "not in") == 0)
+      else if (strcmp(Operator, "not in") == 0)
         {
           mpCompute = &CNodeElementSelector::nodeWithDBFieldNotWithin;
         }
@@ -265,20 +439,27 @@ void CNodeElementSelector::fromJSON(const json_t * json)
            */
           mpCompute = &CNodeElementSelector::nodeInDBTable;
           mValid = true;
+          return;
         }
       else
         {
-          mpCompute = &CNodeElementSelector::nodeAll;
+          if (!mLocalScope)
+            {
+              CLogger::error("Node selector: Invalid  value for 'scope'.");
+              return;
+            }
 
-          // It is only possible to
-          mValid = mLocalScope;
+          mpCompute = &CNodeElementSelector::nodeAll;
+          mValid = true;
+          return;
         }
 
+      CLogger::error("Node selector: Missing value for 'operator'.");
       return;
     }
 
-  if (mpCompute == &CNodeElementSelector::nodeWithDBFieldWithin ||
-      mpCompute == &CNodeElementSelector::nodeWithDBFieldNotWithin)
+  if (mpCompute == &CNodeElementSelector::nodeWithDBFieldWithin
+      || mpCompute == &CNodeElementSelector::nodeWithDBFieldNotWithin)
     {
       /*
         {
@@ -341,17 +522,15 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
       if (!Table.isValid())
         {
-          mValid = false;
+          CLogger::error("Node selector: Invalid or missing value for 'mDBTable'.");
           return;
         }
 
       if (!Table.getField(mDBField).isValid())
         {
-          mValid = false;
+          CLogger::error("Node selector: Invalid or missing value for 'mDBField'.");
           return;
         }
-
-      mValid = true;
 
       CFieldValueList FieldValueList(json_object_get(json, "right"));
 
@@ -360,28 +539,27 @@ void CNodeElementSelector::fromJSON(const json_t * json)
           mpDBFieldValueList = new CFieldValueList(FieldValueList);
           mStatic = true;
           mValid = true;
-
           return;
         }
 
       mpSelector = CSetContent::create(json_object_get(json, "right"));
 
-      if (mpSelector != NULL && mpSelector->isValid())
+      if (mpSelector != NULL
+          && mpSelector->isValid())
         {
           mPrerequisites.insert(mpSelector);
           mStatic = mpSelector->isStatic();
+          mValid = true;
+          return;
         }
-      else
+
+      if (mpSelector != NULL)
         {
-          mValid = false;
-
-          if (mpSelector != NULL)
-            {
-              delete mpSelector;
-              mpSelector = NULL;
-            }
+          delete mpSelector;
+          mpSelector = NULL;
         }
 
+      CLogger::error("Node selector: Invalid or missing value for 'right'.");
       return;
     }
 
@@ -413,11 +591,23 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
       if (mNodeProperty.isValid())
         {
-          mValid = mLocalScope; // Node properties are only selectable for local nodes!
-          mpValue = new CValue(json_object_get(json, "right"));
-          mValid &= (mpValue != NULL && mpValue->isValid());
-          mpCompute = &CNodeElementSelector::nodePropertySelection;
+          if (!mLocalScope)
+            {
+              CLogger::error("Node selector: Invalid value for 'scope'.");
+              return;
+            }
 
+          mpValue = new CValue(json_object_get(json, "right"));
+
+          if (mpValue != NULL
+              && mpValue->isValid())
+            {
+              mpCompute = &CNodeElementSelector::nodePropertySelection;
+              mValid = true;
+              return;
+            }
+
+          CLogger::error("Node selector: Invalid value for 'right'.");
           return;
         }
 
@@ -470,13 +660,13 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
       if (!Table.isValid())
         {
-          mValid = false;
+          CLogger::error("Node selector: Invalid or missing value for 'mDBTable'.");
           return;
         }
 
       if (!Table.getField(mDBField).isValid())
         {
-          mValid = false;
+          CLogger::error("Node selector: Invalid or missing value for 'mDBField'.");
           return;
         }
 
@@ -484,12 +674,11 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
       mpObservable = CObservable::get(json_object_get(json, "right"));
 
-      if (mpObservable != NULL &&
-          mpObservable->isValid())
+      if (mpObservable != NULL
+          && mpObservable->isValid())
         {
           mPrerequisites.insert(mpObservable);
           mValid = true;
-
           return;
         }
 
@@ -498,22 +687,20 @@ void CNodeElementSelector::fromJSON(const json_t * json)
       if (FieldValue.isValid())
         {
           mpDBFieldValue = new CFieldValue(FieldValue);
-          mValid = true;
           mStatic = true;
-
+          mValid = true;
           return;
         }
     }
 
-  mValid = false;
-  return;
+  CLogger::error("Node selector: Invalid or missing value for 'operator'.");
 }
 
 // virtual
 void CNodeElementSelector::computeProtected()
 {
-  if (mValid &&
-      mpCompute != NULL)
+  if (mValid
+      && mpCompute != NULL)
     (this->*mpCompute)();
 }
 

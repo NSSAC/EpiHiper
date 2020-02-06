@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -14,6 +14,7 @@
 
 #include "diseaseModel/CProgression.h"
 #include "diseaseModel/CHealthState.h"
+#include "utilities/CLogger.h"
 
 CProgression::CProgression()
   : CAnnotation()
@@ -45,7 +46,7 @@ CProgression::~CProgression()
 
 void CProgression::fromJSON(const json_t * json, const std::map< std::string, CHealthState * > & states)
 {
-  mValid = true;
+  mValid = false; // DONE
 
   std::map< std::string, CHealthState * >::const_iterator found;
   std::map< std::string, CHealthState * >::const_iterator notFound = states.end();
@@ -58,36 +59,55 @@ void CProgression::fromJSON(const json_t * json, const std::map< std::string, CH
       mAnnId = mId;
     }
 
-  mValid &= !mId.empty();
+  if (mId.empty())
+    {
+      CLogger::error("Transition: Invalid or missing 'is'.");
+      return;
+    }
+
+  CAnnotation::fromJSON(json);
 
   pValue = json_object_get(json, "entryState");
 
-  if (json_is_string(pValue) &&
-      (found = states.find(json_string_value(pValue))) != notFound)
+  if (json_is_string(pValue)
+      && (found = states.find(json_string_value(pValue))) != notFound)
     {
       mpEntryState = found->second;
     }
 
-  mValid &= (mpEntryState != NULL);
+  if (mpEntryState == NULL)
+    {
+      CLogger::error("Transition: Invalid or missing 'entryState'.");
+      return;
+    }
 
   pValue = json_object_get(json, "exitState");
 
-  if (json_is_string(pValue) &&
-      (found = states.find(json_string_value(pValue))) != notFound)
+  if (json_is_string(pValue)
+      && (found = states.find(json_string_value(pValue))) != notFound)
     {
       mpExitState = found->second;
     }
 
-  mValid &= (mpExitState != NULL);
+  if (mpExitState == NULL)
+    {
+      CLogger::error("Transition: Invalid or missing 'exitState'.");
+      return;
+    }
 
   pValue = json_object_get(json, "probability");
+  mProbability = -1.0;
 
   if (json_is_real(pValue))
     {
       mProbability = json_real_value(pValue);
     }
 
-  mValid &= (0.0 <= mProbability && mProbability <= 1.0);
+  if (mProbability < 0.0 || 1.0 < mProbability)
+    {
+      CLogger::error("Transition: Invalid or missing 'probability'.");
+      return;
+    }
 
   pValue = json_object_get(json, "dwellTime");
 
@@ -96,14 +116,23 @@ void CProgression::fromJSON(const json_t * json, const std::map< std::string, CH
       mDwellTime.fromJSON(pValue);
     }
 
-  mValid &= mDwellTime.isValid();
+  if (!mDwellTime.isValid())
+    {
+      CLogger::error("Transition: Invalid or missing 'dwellTime'.");
+      return;
+    }
 
   pValue = json_object_get(json, "susceptibilityFactorOperation");
 
   if (json_is_object(pValue))
     {
       mSusceptibilityFactorOperation.fromJSON(pValue);
-      mValid &= mSusceptibilityFactorOperation.isValid();
+
+      if (!mSusceptibilityFactorOperation.isValid())
+        {
+          CLogger::error("Transition: Invalid 'susceptibilityFactorOperation'.");
+          return;
+        }
     }
 
   pValue = json_object_get(json, "infectivityFactorOperation");
@@ -111,10 +140,15 @@ void CProgression::fromJSON(const json_t * json, const std::map< std::string, CH
   if (json_is_object(pValue))
     {
       mInfectivityFactorOperation.fromJSON(pValue);
-      mValid &= mInfectivityFactorOperation.isValid();
+      
+      if (!mInfectivityFactorOperation.isValid())
+        {
+          CLogger::error("Transition: Invalid 'infectivityFactorOperation'.");
+          return;
+        }
     }
 
-  CAnnotation::fromJSON(json);
+  mValid = true;
 }
 
 const std::string & CProgression::getId() const

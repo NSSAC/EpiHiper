@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -19,6 +19,7 @@
 #include "network/CNetwork.h"
 #include "network/CEdge.h"
 #include "network/CNode.h"
+#include "utilities/CLogger.h"
 
 // static
 CActionDefinition * CActionDefinition::GetActionDefinition(const size_t & index)
@@ -165,14 +166,20 @@ void CActionDefinition::fromJSON(const json_t * json)
 
    */
 
-  mValid = true;
+  mValid = false;
 
   json_t * pValue = json_object_get(json, "operations");
 
   for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
     {
       COperationDefinition OperationDefinition(json_array_get(pValue, i));
-      mValid &= OperationDefinition.isValid();
+
+      if (!OperationDefinition.isValid())
+        {
+          CLogger::error() << "Action : Invalid value for opeartions item '" << i << "'.";
+          return;
+        }
+
       mOperations.push_back(OperationDefinition);
     }
 
@@ -195,10 +202,16 @@ void CActionDefinition::fromJSON(const json_t * json)
   if (json_is_object(pValue))
     {
       mCondition.fromJSON(pValue);
-      mValid &= mCondition.isValid();
+
+      if (!mCondition.isValid())
+        {
+          CLogger::error("Action: Invalid 'condition'.");
+          return;
+        }
     }
 
   CAnnotation::fromJSON(json);
+  mValid = true;
 }
 
 const bool & CActionDefinition::isValid() const
@@ -208,14 +221,14 @@ const bool & CActionDefinition::isValid() const
 
 void CActionDefinition::process(const CEdge * pEdge) const
 {
-  if (pEdge != NULL &&
-      CNetwork::INSTANCE->isRemoteNode(pEdge->pTarget))
+  if (pEdge != NULL
+      && CNetwork::INSTANCE->isRemoteNode(pEdge->pTarget))
     {
       CActionQueue::addRemoteAction(mIndex, pEdge);
       return;
     }
 
-  CAction *pAction = new CAction(mPriority, mCondition.createCondition(pEdge));
+  CAction * pAction = new CAction(mPriority, mCondition.createCondition(pEdge));
 
   // Loop through the operation definitions
   std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
@@ -231,8 +244,8 @@ void CActionDefinition::process(const CEdge * pEdge) const
 
 void CActionDefinition::process(const CNode * pNode) const
 {
-  if (pNode != NULL &&
-      CNetwork::INSTANCE->isRemoteNode(pNode))
+  if (pNode != NULL
+      && CNetwork::INSTANCE->isRemoteNode(pNode))
     {
       CActionQueue::addRemoteAction(mIndex, pNode);
       return;
@@ -251,5 +264,3 @@ void CActionDefinition::process(const CNode * pNode) const
 
   CActionQueue::addAction(mDelay, pAction);
 }
-
-

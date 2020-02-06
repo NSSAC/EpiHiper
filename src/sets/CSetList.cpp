@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -14,6 +14,7 @@
 #include <jansson.h>
 
 #include "sets/CSetList.h"
+#include "utilities/CLogger.h"
 
 CSetList::CSetList()
   : std::vector< CSet * >()
@@ -50,9 +51,15 @@ CSetList::~CSetList()
 
 void CSetList::fromJSON(const json_t * json)
 {
-  mValid = json_is_array(json);
+  if (json == NULL)
+    return;
 
-  if (!mValid) return;
+  if (!json_is_array(json))
+    {
+      mValid = false; // DONE
+      CLogger::error("Set list: Invalid.");
+      return;
+    }
 
   for (size_t i = 0, imax = json_array_size(json); i < imax; ++i)
     {
@@ -65,10 +72,11 @@ void CSetList::fromJSON(const json_t * json)
         }
       else
         {
-          mValid = false;
           delete pSet;
+          mValid = false; // DONE
+          CLogger::error() << "Set list: Invalid set for item '" << i << "'.";
+          return;
         }
-
     }
 }
 
@@ -76,7 +84,7 @@ void CSetList::toBinary(std::ostream & os) const
 {
   size_t Size = size();
 
-  os.write(reinterpret_cast<const char *>(&Size), sizeof(size_t));
+  os.write(reinterpret_cast< const char * >(&Size), sizeof(size_t));
 
   std::vector< CSet * >::const_iterator it = begin();
   std::vector< CSet * >::const_iterator itEnd = end();
@@ -91,11 +99,12 @@ void CSetList::fromBinary(std::istream & is)
 {
   size_t Size;
 
-  is.read(reinterpret_cast<char *>(&Size), sizeof(size_t));
+  is.read(reinterpret_cast< char * >(&Size), sizeof(size_t));
 
   mValid &= (Size == size());
 
-  if (!mValid) return;
+  if (!mValid)
+    return;
 
   std::vector< CSet * >::iterator it = begin();
   std::vector< CSet * >::iterator itEnd = end();

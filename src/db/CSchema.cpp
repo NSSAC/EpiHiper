@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -17,7 +17,7 @@
 
 #include "utilities/CSimConfig.h"
 #include "db/CTable.h"
-
+#include "utilities/CLogger.h"
 // static
 void CSchema::load(const std::vector< std::string > & schemaFiles)
 {
@@ -60,34 +60,43 @@ void CSchema::fromJSON(const json_t * json)
   if (json_is_array(json))
     {
       for (size_t i = 0, imax = json_array_size(json); i < imax; ++i)
-        {
-          addTable(json_array_get(json, i));
-        }
+        if (!addTable(json_array_get(json, i)))
+          {
+            mValid = false; // DONE
+            CLogger::error() << "Schema: Invalid table for item '" << i << "'.";
+            return;
+          }
     }
   else if (json_is_object(json))
-    {
-      addTable(json);
-    }
+    if (!addTable(json))
+      {
+        mValid = false; // DONE
+        CLogger::error("Schema: Invalid 'table'.");
+        return;
+      }
 }
 
-void CSchema::addTable(const json_t * json)
+bool CSchema::addTable(const json_t * json)
 {
   CTable Table;
   Table.fromJSON(json);
-  mValid &= Table.isValid();
 
-  if (Table.isValid())
+  if (!Table.isValid())
     {
-      CTable * pTable = &mTables.insert(std::make_pair(Table.getId(), Table)).first->second;
-
-      std::map< std::string, CField >::const_iterator it = pTable->getFields().begin();
-      std::map< std::string, CField >::const_iterator end = pTable->getFields().end();
-
-      for (; it != end; ++it)
-        {
-          mFieldToTable[it->first] = pTable->getId();
-        }
+      return false;
     }
+
+  CTable * pTable = &mTables.insert(std::make_pair(Table.getId(), Table)).first->second;
+
+  std::map< std::string, CField >::const_iterator it = pTable->getFields().begin();
+  std::map< std::string, CField >::const_iterator end = pTable->getFields().end();
+
+  for (; it != end; ++it)
+    {
+      mFieldToTable[it->first] = pTable->getId();
+    }
+
+  return true;
 }
 
 const std::string & CSchema::getId() const
@@ -123,4 +132,3 @@ const std::string & CSchema::getTableForField(const std::string & field) const
 
   return InvalidTable;
 }
-

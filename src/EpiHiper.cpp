@@ -95,6 +95,7 @@ int main(int argc, char * argv[])
         {
           printUsage();
         }
+        
       CCommunicate::abort(CCommunicate::ErrorCode::InvalidArguments);
       CCommunicate::finalize();
 

@@ -15,6 +15,7 @@
 #include "sets/CSetReference.h"
 #include "sets/CSetList.h"
 #include "math/CDependencyGraph.h"
+#include "utilities/CLogger.h"
 
 CSetReference::CSetReference()
   : CSetContent()
@@ -66,11 +67,12 @@ void CSetReference::fromJSON(const json_t * json)
       }
   */
 
+  mValid = false; // DONE
   json_t * pSet = json_object_get(json, "set");
 
   if (!json_is_object(pSet))
     {
-      mValid = false;
+      CLogger::error("Set reference: Missing or invalid value for 'set'.");
       return;
     }
 
@@ -78,12 +80,13 @@ void CSetReference::fromJSON(const json_t * json)
 
   if (!json_is_string(pIdRef))
     {
-      mValid = false;
+      CLogger::error("Set reference: Missing or invalid value for 'idRef'.");
       return;
     }
 
   mIdRef = json_string_value(pIdRef);
   mpSet = NULL;
+  mValid = true;
   UnResolved.push_back(this);
 }
 
@@ -107,7 +110,8 @@ bool CSetReference::resolve()
       else
         {
           (*it)->mpSet == NULL;
-          (*it)->mValid = false;
+          (*it)->mValid = false; // DONE
+          CLogger::error() << "Set reference: Unresolved idRef '" << (*it)->mIdRef << "'.";
           success = false;
         }
     }
@@ -117,31 +121,7 @@ bool CSetReference::resolve()
 
 // virtual
 void CSetReference::computeProtected()
-{
-  if (!mValid)
-    return;
-
-  if (mpSet == NULL)
-    {
-      mpSet = CSetList::INSTANCE[mIdRef];
-
-      if (mpSet != NULL
-          && mpSet->isValid())
-        {
-          mPrerequisites.insert(mpSet);
-          CDependencyGraph::buildGraph();
-        }
-      else
-        {
-          mValid = false;
-          return;
-        }
-
-      // This might have been already computed but we are not certain and this is only
-      // evaluated once.
-      mpSet->computeProtected();
-    }
-}
+{}
 
 // virtual
 bool CSetReference::contains(CNode * pNode) const

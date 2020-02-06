@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -14,6 +14,7 @@
 #include <jansson.h>
 
 #include "variables/CVariableList.h"
+#include "utilities/CLogger.h"
 
 CVariableList::CVariableList()
   : std::vector< CVariable >()
@@ -33,17 +34,32 @@ CVariableList::~CVariableList()
 
 void CVariableList::fromJSON(const json_t * json)
 {
-  mValid = json_is_array(json);
+  if (json == NULL)
+    return;
 
-  if (!mValid) return;
+  mValid = false; // DONE
+
+  if (!json_is_array(json))
+    {
+      CLogger::error("Variable list: Invalid.");
+      return;
+    }
 
   for (size_t i = 0, imax = json_array_size(json); i < imax; ++i)
     {
       CVariable Variable(json_array_get(json, i));
-      mValid &= Variable.isValid();
+
+      if (!Variable.isValid())
+        {
+          CLogger::error() << "Variable list: Invalid value for item '" << i << "'.";
+          return;
+        }
+
       mId2Index[Variable.getId()] = i;
       push_back(Variable);
     }
+
+  mValid = true;
 }
 
 void CVariableList::toBinary(std::ostream & os) const
@@ -82,7 +98,7 @@ void CVariableList::fromBinary(std::istream & is)
 
 CVariable & CVariableList::operator[](const size_t & index)
 {
-  static CVariable Invalid(NULL);
+  static CVariable Invalid;
 
   if (index < size())
     return std::vector< CVariable >::operator[](index);
@@ -92,7 +108,7 @@ CVariable & CVariableList::operator[](const size_t & index)
 
 CVariable & CVariableList::operator[](const std::string & id)
 {
-  static CVariable Invalid(NULL);
+  static CVariable Invalid;
 
   std::map< std::string, size_t >::iterator found = mId2Index.find(id);
 
@@ -122,7 +138,7 @@ CVariable & CVariableList::operator[](const json_t * json)
     },
   */
 
-  static CVariable Invalid(NULL);
+  static CVariable Invalid;
   json_t * pVariable = json_object_get(json, "variable");
 
   if (!json_is_object(pVariable))

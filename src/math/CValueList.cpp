@@ -15,6 +15,7 @@
 #include <jansson.h>
 
 #include "traits/CTrait.h"
+#include "utilities/CLogger.h"
 
 CValueList::CValueList(const Type & type)
   : std::set< CValue >()
@@ -36,7 +37,6 @@ CValueList::CValueList(const json_t * json)
   fromJSON(json);
 }
 
-
 CValueList::CValueList(std::istream & is)
   : std::set< CValue >()
   , mType()
@@ -45,14 +45,15 @@ CValueList::CValueList(std::istream & is)
   fromBinary(is);
 }
 
-
 bool CValueList::append(const CValue & value)
 {
-  if (value.getType() != mType) return false;
+  if (value.getType() != mType)
+    return false;
 
   if (mType == Type::traitValue
       && size() > 0
-      && begin()->toTraitValue().first != value.toTraitValue().first) return false;
+      && begin()->toTraitValue().first != value.toTraitValue().first)
+    return false;
 
   std::set< CValue >::insert(value);
 
@@ -61,7 +62,8 @@ bool CValueList::append(const CValue & value)
 
 bool CValueList::contains(const CValueInterface & value) const
 {
-  if (value.getType() != mType) return false;
+  if (value.getType() != mType)
+    return false;
 
   const CValue * pValue = reinterpret_cast< const CValue * >(&value);
 
@@ -99,6 +101,74 @@ const bool & CValueList::isValid() const
 
 void CValueList::fromJSON(const json_t * json)
 {
+  /*
+  "valueList": {
+      "$id": "#valueList",
+      "description": "A list of values used in comparisons and assignments.",
+      "type": "object",
+      "required": ["valueList"],
+      "properties": {
+        "valueList": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": ["boolean"],
+              "properties": {
+                "boolean": {
+                  "type": "array",
+                  "items": {"type": "boolean"}
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": ["number"],
+              "properties": {
+                "number": {
+                  "type": "array",
+                  "items": {"$ref": "#/definitions/nonNegativeNumber"}
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": ["healthState"],
+              "properties": {
+                "healthState": {
+                  "type": "array",
+                  "items": {"$ref": "#/definitions/uniqueIdRef"}
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "trait",
+                "feature",
+                "enum"
+              ],
+              "properties": {
+                "trait": {
+                  "description": "",
+                  "$ref": "#/definitions/uniqueIdRef"
+                },
+                "feature": {
+                  "description": "",
+                  "$ref": "#/definitions/uniqueIdRef"
+                },
+                "enum": {
+                  "type": "array",
+                  "items": {"$ref": "#/definitions/uniqueIdRef"}
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+    */
+
+  mValid = false; // DONE
   const CTrait * pTrait = NULL;
   const CFeature * pFeature = NULL;
 
@@ -135,6 +205,23 @@ void CValueList::fromJSON(const json_t * json)
 
   if (pArray == NULL)
     {
+      pValue = json_object_get(json, "enum");
+
+      if (json_is_array(pValue))
+        {
+          mType = Type::traitValue;
+          json_t * pArray = pValue;
+        }
+    }
+
+  if (pArray == NULL)
+    {
+      CLogger::error("Value list: Value type cannot be determined.");
+      return;
+    }
+
+  if (mType == Type::traitValue)
+    {
       json_t * pValue = json_object_get(json, "trait");
 
       if (json_is_string(pValue))
@@ -147,7 +234,7 @@ void CValueList::fromJSON(const json_t * json)
 
       if (pTrait == NULL)
         {
-          mValid = false;
+          CLogger::error("Value list: Missing or invalid 'trait'.");
           return;
         }
 
@@ -155,7 +242,7 @@ void CValueList::fromJSON(const json_t * json)
 
       if (json_is_string(pValue))
         {
-          pFeature = pTrait->operator [](json_string_value(pValue));
+          pFeature = pTrait->operator[](json_string_value(pValue));
         }
 
       if (pFeature == NULL)
@@ -164,56 +251,47 @@ void CValueList::fromJSON(const json_t * json)
 
           if (pFeature == NULL)
             {
-              mValid = false;
+              CLogger::error("Value list: Missing or invalid 'feature'.");
               return;
             }
         }
-
-      // Loop through the array elements
-      pValue = json_object_get(json, "enum");
-
-      if (json_is_array(pValue))
-        {
-          mType = Type::traitValue;
-          json_t * pArray = pValue;
-        }
-    }
-
-  if  (pArray == NULL)
-    {
-      mValid = false;
-      return;
     }
 
   // Iterate of the array elements
   switch (mType)
-  {
+    {
     case Type::boolean:
-      for (size_t i = 0, imax = json_array_size(pArray); i < imax && mValid; ++i)
+      for (size_t i = 0, imax = json_array_size(pArray); i < imax; ++i)
         {
           pValue = json_array_get(pArray, i);
 
           if (json_is_boolean(pValue))
             std::set< CValue >::insert(json_is_true(pValue) ? true : false);
           else
-            mValid = false;
+            {
+              CLogger::error() << "Value list (Boolean): Invalid value for item '" << i << "'.";
+              return;
+            }
         }
       break;
 
     case Type::number:
-      for (size_t i = 0, imax = json_array_size(pArray); i < imax && mValid; ++i)
+      for (size_t i = 0, imax = json_array_size(pArray); i < imax; ++i)
         {
           pValue = json_array_get(pArray, i);
 
           if (json_is_real(pValue))
             std::set< CValue >::insert(json_real_value(pValue));
           else
-            mValid = false;
+            {
+              CLogger::error() << "Value list (number): Invalid value for item '" << i << "'.";
+              return;
+            }
         }
       break;
 
     case Type::id:
-      for (size_t i = 0, imax = json_array_size(pArray); i < imax && mValid; ++i)
+      for (size_t i = 0, imax = json_array_size(pArray); i < imax; ++i)
         {
           pValue = json_array_get(pArray, i);
 
@@ -225,23 +303,22 @@ void CValueList::fromJSON(const json_t * json)
 
               if (pHealthState == NULL)
                 {
-                  mValid = false;
-                  pHealthState = &CModel::getInitialState();
-                }
-              else
-                {
-                  mValid = true;
+                  CLogger::error() << "Value list (health state): Invalid value for item '" << i << "'.";
+                  return;
                 }
 
               std::set< CValue >::insert(CModel::stateToType(pHealthState));
             }
           else
-            mValid = false;
+            {
+              CLogger::error() << "Value list (health state): Invalid value for item '" << i << "'.";
+              return;
+            }
         }
       break;
 
     case Type::traitValue:
-      for (size_t i = 0, imax = json_array_size(pArray); i < imax && mValid; ++i)
+      for (size_t i = 0, imax = json_array_size(pArray); i < imax; ++i)
         {
           pValue = json_array_get(pArray, i);
 
@@ -254,65 +331,74 @@ void CValueList::fromJSON(const json_t * json)
                   pEnum = const_cast< CFeature * >(pFeature)->addEnum(CEnum(json_string_value(pValue)));
                   const_cast< CTrait * >(pTrait)->remap();
                 }
-              if (pEnum != NULL &&
-                  pEnum->isValid())
+
+              if (pEnum != NULL
+                  && pEnum->isValid())
                 std::set< CValue >::insert(CTraitData::value(pFeature->getMask(), pEnum->getMask()));
               else
-                mValid = false;
+                {
+                  CLogger::error() << "Value list (trait): Invalid value for item '" << i << "'.";
+                  return;
+                }
             }
           else
-            mValid = false;
+            {
+              CLogger::error() << "Value list (trait): Invalid value for item '" << i << "'.";
+              return;
+            }
         }
       break;
-  }
+    }
+
+  mValid = true;
 }
 
 void CValueList::toBinary(std::ostream & os) const
 {
-  os.write(reinterpret_cast<const char *>(&mType), sizeof(Type));
+  os.write(reinterpret_cast< const char * >(&mType), sizeof(Type));
   size_t Size = size();
-  os.write(reinterpret_cast<const char *>(&Size), sizeof(size_t));
+  os.write(reinterpret_cast< const char * >(&Size), sizeof(size_t));
 
   const_iterator it = begin();
   const_iterator itEnd = end();
 
   switch (mType)
-  {
+    {
     case Type::boolean:
       for (; it != itEnd; ++it)
-        os.write(reinterpret_cast<const char *>(&it->toBoolean()), sizeof(bool));
+        os.write(reinterpret_cast< const char * >(&it->toBoolean()), sizeof(bool));
       break;
 
     case Type::number:
       for (; it != itEnd; ++it)
-        os.write(reinterpret_cast<const char *>(&it->toNumber()), sizeof(double));
+        os.write(reinterpret_cast< const char * >(&it->toNumber()), sizeof(double));
       break;
 
     case Type::id:
       for (; it != itEnd; ++it)
-        os.write(reinterpret_cast<const char *>(&it->toId()), sizeof(size_t));
+        os.write(reinterpret_cast< const char * >(&it->toId()), sizeof(size_t));
       break;
 
     case Type::traitValue:
       for (; it != itEnd; ++it)
-        os.write(reinterpret_cast<const char *>(&it->toTraitValue()), sizeof(CTraitData::value));
+        os.write(reinterpret_cast< const char * >(&it->toTraitValue()), sizeof(CTraitData::value));
       break;
-  }
+    }
 }
 
 void CValueList::fromBinary(std::istream & is)
 {
-  is.read(reinterpret_cast<char *>(&mType), sizeof(Type));
+  is.read(reinterpret_cast< char * >(&mType), sizeof(Type));
   size_t Size = 0;
-  is.read(reinterpret_cast<char *>(&Size), sizeof(size_t));
+  is.read(reinterpret_cast< char * >(&Size), sizeof(size_t));
 
   switch (mType)
-  {
+    {
     case Type::boolean:
       for (size_t i = 0; i < Size; ++i)
         {
           bool Value;
-          is.read(reinterpret_cast<char *>(&Value), sizeof(bool));
+          is.read(reinterpret_cast< char * >(&Value), sizeof(bool));
           std::set< CValue >::insert(Value);
         }
       break;
@@ -321,7 +407,7 @@ void CValueList::fromBinary(std::istream & is)
       for (size_t i = 0; i < Size; ++i)
         {
           double Value;
-          is.read(reinterpret_cast<char *>(&Value), sizeof(double));
+          is.read(reinterpret_cast< char * >(&Value), sizeof(double));
           std::set< CValue >::insert(Value);
         }
       break;
@@ -330,7 +416,7 @@ void CValueList::fromBinary(std::istream & is)
       for (size_t i = 0; i < Size; ++i)
         {
           size_t Value;
-          is.read(reinterpret_cast<char *>(&Value), sizeof(size_t));
+          is.read(reinterpret_cast< char * >(&Value), sizeof(size_t));
           std::set< CValue >::insert(Value);
         }
       break;
@@ -339,15 +425,14 @@ void CValueList::fromBinary(std::istream & is)
       for (size_t i = 0; i < Size; ++i)
         {
           CTraitData::value Value;
-          is.read(reinterpret_cast<char *>(&Value), sizeof(CTraitData::value));
+          is.read(reinterpret_cast< char * >(&Value), sizeof(CTraitData::value));
           std::set< CValue >::insert(Value);
         }
       break;
-  }
+    }
 }
 
 CValueList::iterator CValueList::insert(CValueList::iterator position, const CValueList::value_type & val)
 {
   return std::set< CValue >::insert(position, val);
 }
-

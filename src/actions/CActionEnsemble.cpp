@@ -59,7 +59,7 @@ CActionEnsemble::CActionEnsemble(const json_t * json)
 CActionEnsemble::~CActionEnsemble()
 {
   std::vector< CActionDefinition * >::iterator it = mOnce.begin();
-  std::vector< CActionDefinition * >::iterator end =mOnce.end();
+  std::vector< CActionDefinition * >::iterator end = mOnce.end();
 
   for (; it != end; ++it)
     {
@@ -123,7 +123,7 @@ void CActionEnsemble::fromJSON(const json_t * json)
 
   for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
     {
-      CActionDefinition  * pActionDefinition = new CActionDefinition(json_array_get(pValue, i));
+      CActionDefinition * pActionDefinition = new CActionDefinition(json_array_get(pValue, i));
 
       if (pActionDefinition->isValid())
         {
@@ -139,7 +139,14 @@ void CActionEnsemble::fromJSON(const json_t * json)
     }
 
   mSampling.fromJSON(json_object_get(json, "sampling"));
-  mValid &= mSampling.isValid();
+
+  if (!mSampling.isValid())
+    {
+      CLogger::error("Action ensemble: Invalid value for 'sampling'.");
+      return;
+    }
+
+  mValid = true;
 }
 
 const bool & CActionEnsemble::isValid() const
@@ -155,23 +162,24 @@ void CActionEnsemble::process(const CSetContent & targets)
   for (; it != end; ++it)
     (*it)->process((CNode *) NULL);
 
-  end = mForEach.end();
+  if (!mForEach.empty())
+    {
+      end = mForEach.end();
 
-  std::vector< CEdge * >::const_iterator itEdges = targets.beginEdges();
-  std::vector< CEdge * >::const_iterator endEdges = targets.endEdges();
+      std::vector< CEdge * >::const_iterator itEdges = targets.beginEdges();
+      std::vector< CEdge * >::const_iterator endEdges = targets.endEdges();
 
-  for (; itEdges != endEdges; ++itEdges)
-    for (it = mForEach.begin(); it != end; ++it)
-      (*it)->process(*itEdges);
+      for (; itEdges != endEdges; ++itEdges)
+        for (it = mForEach.begin(); it != end; ++it)
+          (*it)->process(*itEdges);
 
-  std::vector< CNode * >::const_iterator itNodes = targets.beginNodes();
-  std::vector< CNode * >::const_iterator endNodes = targets.endNodes();
+      std::vector< CNode * >::const_iterator itNodes = targets.beginNodes();
+      std::vector< CNode * >::const_iterator endNodes = targets.endNodes();
 
-  for (; itNodes != endNodes; ++itNodes)
-    for (it = mForEach.begin(); it != end; ++it)
-      (*it)->process(*itNodes);
-
+      for (; itNodes != endNodes; ++itNodes)
+        for (it = mForEach.begin(); it != end; ++it)
+          (*it)->process(*itNodes);
+    }
+    
   mSampling.process(targets);
 }
-
-

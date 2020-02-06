@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -27,8 +27,8 @@
 #include <jansson.h>
 
 #include "traits/CTrait.h"
-
 #include "utilities/CSimConfig.h"
+#include "utilities/CLogger.h"
 
 // static
 void CTrait::init()
@@ -40,7 +40,6 @@ void CTrait::init()
       CTrait::NodeTrait = &INSTANCES["nodeTrait"];
     }
 }
-
 
 // static
 void CTrait::load(const std::string & jsonFile)
@@ -85,7 +84,6 @@ void CTrait::updateFeatureMap()
     mFeatureMap[it->getId()] = &*it;
 }
 
-
 CTrait::CTrait()
   : CAnnotation()
   , mId()
@@ -112,7 +110,7 @@ CTrait & CTrait::operator=(const CTrait & rhs)
 {
   if (this != &rhs)
     {
-      CAnnotation::operator =(rhs);
+      CAnnotation::operator=(rhs);
 
       mId = rhs.mId;
       mBytes = rhs.mBytes;
@@ -127,7 +125,7 @@ CTrait & CTrait::operator=(const CTrait & rhs)
 
 void CTrait::fromJSON(const json_t * json)
 {
-  mValid = true;
+  mValid = false; // DONE
 
   json_t * pValue = json_object_get(json, "id");
 
@@ -137,8 +135,13 @@ void CTrait::fromJSON(const json_t * json)
       mAnnId = mId;
     }
 
-  mValid &= !mId.empty();
+  if (mId.empty())
+    {
+      CLogger::error("Trait: Invalid or missing value for 'id'.");
+      return;
+    }
 
+  CAnnotation::fromJSON(json);
   pValue = json_object_get(json, "features");
 
   // Iterate of the array elements
@@ -149,7 +152,13 @@ void CTrait::fromJSON(const json_t * json)
       if (pFeature != NULL)
         {
           const_cast< CFeature * >(pFeature)->augment(json_array_get(pValue, i));
-          mValid &= pFeature->isValid();
+
+          if (!pFeature->isValid())
+            {
+              CLogger::error() << "Trait: Invalid value for item '" << i << "'.";
+              return;
+            }
+
           continue;
         }
 
@@ -162,13 +171,13 @@ void CTrait::fromJSON(const json_t * json)
         }
       else
         {
-          mValid = false;
+          CLogger::error() << "Trait: Invalid value for item '" << i << "'.";
+          return;
         }
     }
 
-  CAnnotation::fromJSON(json);
-
   remap();
+  mValid = true;
 }
 
 const std::string & CTrait::getId() const
@@ -190,7 +199,7 @@ const CFeature * CTrait::operator[](const size_t & index) const
 {
   if (index < mFeatures.size())
     {
-      return & mFeatures[index];
+      return &mFeatures[index];
     }
 
   return NULL;
@@ -251,8 +260,8 @@ bool CTrait::fromString(const char * str, CTraitData::base & data) const
       const CFeature * pF = operator[](FeatureIndex - 1);
       const CEnum * pE = (pF != NULL) ? pF->operator[](EnumIndex - 1) : NULL;
 
-      if (pE != NULL &&
-          pE->isValid())
+      if (pE != NULL
+          && pE->isValid())
         {
           CTraitData::setValue(data, CTraitData::value(pF->getMask(), pE->getMask()));
           FeaturesFound.insert(FeatureIndex);
@@ -262,7 +271,8 @@ bool CTrait::fromString(const char * str, CTraitData::base & data) const
           success = false;
         }
 
-      if (ptr[Read] != '|') break;
+      if (ptr[Read] != '|')
+        break;
 
       ptr += Read + 1;
     }
@@ -324,20 +334,17 @@ void CTrait::remap()
 
   updateFeatureMap();
 
-  mBytes = ceil(std::max(bits/8.0, 4.0));
+  mBytes = ceil(std::max(bits / 8.0, 4.0));
 
   itFeature = mFeatures.begin();
   std::vector< size_t >::const_iterator itRequired = Required.begin();
 
   for (size_t start = 0; itFeature != endFeature; ++itFeature, ++itRequired)
     {
-       CTraitData Data(*this);
-       Data.setBits(start, start + *itRequired);
-       start += *itRequired;
+      CTraitData Data(*this);
+      Data.setBits(start, start + *itRequired);
+      start += *itRequired;
 
-       itFeature->setMask(Data.to_ulong());
+      itFeature->setMask(Data.to_ulong());
     }
 }
-
-
-

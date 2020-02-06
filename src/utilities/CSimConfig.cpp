@@ -288,7 +288,7 @@ CSimConfig::CSimConfig(const std::string & configFile)
       mLogLevel = LogLevel::warn;
     }
 
-  spdlog::set_level(mLogLevel);
+  CLogger::setLevel(mLogLevel);
 
   pValue = json_object_get(pRoot, "dbName");
 

@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -18,6 +18,19 @@
 #include "utilities/CCommunicate.h"
 #include "variables/CVariable.h"
 #include "actions/CActionQueue.h"
+#include "utilities/CLogger.h"
+
+CVariable::CVariable()
+  : CValue(std::numeric_limits< double >::quiet_NaN())
+  , CAnnotation()
+  , mId()
+  , mType()
+  , mInitialValue(std::numeric_limits< double >::quiet_NaN())
+  , mpLocalValue(static_cast< double * >(mpValue))
+  , mResetValue(0)
+  , mIndex(-1)
+  , mValid(false)
+{}
 
 CVariable::CVariable(const CVariable & src)
   : CValue(src)
@@ -44,8 +57,8 @@ CVariable::CVariable(const json_t * json)
 {
   fromJSON(json);
 
-  if (mValid &&
-      mType == Type::global)
+  if (mValid
+      && mType == Type::global)
     {
       mIndex = CCommunicate::getRMAIndex();
     }
@@ -91,6 +104,10 @@ void CVariable::fromJSON(const json_t * json)
     },
   */
 
+  if (json == NULL)
+    return;
+    
+  mValid = false; // DONE
   json_t * pValue = json_object_get(json, "id");
 
   if (json_is_string(pValue))
@@ -99,8 +116,13 @@ void CVariable::fromJSON(const json_t * json)
       mAnnId = mId;
     }
 
-  mValid &= !mId.empty();
+  if (mId.empty())
+    {
+      CLogger::error("Variable: Invalid or missing value for 'id'.");
+      return;
+    }
 
+  CAnnotation::fromJSON(json);
   pValue = json_object_get(json, "initialValue");
 
   if (json_is_real(pValue))
@@ -110,7 +132,8 @@ void CVariable::fromJSON(const json_t * json)
     }
   else
     {
-      mValid = false;
+      CLogger::error("Variable: Invalid or missing value for 'initialValue'.");
+      return;
     }
 
   pValue = json_object_get(json, "scope");
@@ -122,7 +145,8 @@ void CVariable::fromJSON(const json_t * json)
     }
   else
     {
-      mValid = false;
+      CLogger::error("Variable: Invalid or missing value for 'scope'.");
+      return;
     }
 
   pValue = json_object_get(json, "reset");
@@ -136,7 +160,7 @@ void CVariable::fromJSON(const json_t * json)
       mResetValue = 0;
     }
 
-  CAnnotation::fromJSON(json);
+  mValid = true;
 }
 
 // virtual
@@ -150,12 +174,12 @@ void CVariable::process()
 
 void CVariable::toBinary(std::ostream & os) const
 {
-  os.write(reinterpret_cast<const char *>(&mInitialValue), sizeof(double));
+  os.write(reinterpret_cast< const char * >(&mInitialValue), sizeof(double));
 }
 
 void CVariable::fromBinary(std::istream & is)
 {
-  is.read(reinterpret_cast<char *>(&mInitialValue), sizeof(double));
+  is.read(reinterpret_cast< char * >(&mInitialValue), sizeof(double));
 }
 
 const std::string & CVariable::getId() const
@@ -168,16 +192,21 @@ const bool & CVariable::isValid() const
   return mValid;
 }
 
+const CVariable::Type & CVariable::getType() const
+{
+  return mType;
+}
+
 void CVariable::reset(const bool & force)
 {
-  if ((mResetValue != 0 &&
-       CActionQueue::getCurrentTick() % mResetValue == 0) ||
-      force)
+  if ((mResetValue != 0
+       && CActionQueue::getCurrentTick() % mResetValue == 0)
+      || force)
     {
       *mpLocalValue = mInitialValue;
 
-      if (CCommunicate::MPIRank == 0 &&
-          mType == Type::global)
+      if (CCommunicate::MPIRank == 0
+          && mType == Type::global)
         {
           CCommunicate::updateRMA(mIndex, &CValueInterface::equal, *mpLocalValue);
         }
@@ -186,7 +215,6 @@ void CVariable::reset(const bool & force)
 
 bool CVariable::setValue(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
-
   if (mType == Type::global)
     {
       *mpLocalValue = CCommunicate::updateRMA(mIndex, pOperator, value);
@@ -198,5 +226,3 @@ bool CVariable::setValue(double value, CValueInterface::pOperator pOperator, con
 
   return true;
 }
-
-

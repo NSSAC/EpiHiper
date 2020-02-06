@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -17,6 +17,7 @@
 #include "network/CNode.h"
 #include "network/CEdge.h"
 #include "sets/CSetContent.h"
+#include "utilities/CLogger.h"
 
 CSet::CSet(const CSet & src)
   : CSetContent(src)
@@ -84,6 +85,7 @@ void CSet::fromJSON(const json_t * json)
     }
   */
 
+  mValid = false; // DONE
   json_t * pValue = json_object_get(json, "id");
 
   if (json_is_string(pValue))
@@ -92,7 +94,13 @@ void CSet::fromJSON(const json_t * json)
       mAnnId = mId;
     }
 
-  mValid &= !mId.empty();
+  if (mId.empty())
+    {
+      CLogger::error("Set: Invalid or missing value for 'id'.");
+      return;
+    }
+
+  CAnnotation::fromJSON(json);
 
   pValue = json_object_get(json, "scope");
 
@@ -102,7 +110,8 @@ void CSet::fromJSON(const json_t * json)
     }
   else
     {
-      mValid = false;
+      CLogger::error("Set: Invalid or missing value for 'scope'.");
+      return;
     }
 
   pValue = json_object_get(json, "content");
@@ -111,28 +120,23 @@ void CSet::fromJSON(const json_t * json)
     {
       mpSetContent = CSetContent::create(pValue);
 
-      if (mpSetContent != NULL && mpSetContent->isValid())
+      if (mpSetContent != NULL
+          && mpSetContent->isValid())
         {
           mPrerequisites.insert(mpSetContent);
           mStatic = mpSetContent->isStatic();
+          mValid = true;
+          return;
         }
-      else
+
+      if (mpSetContent != NULL)
         {
-          mValid = false;
-
-          if (mpSetContent != NULL)
-            {
-              delete mpSetContent;
-              mpSetContent = NULL;
-            }
+          delete mpSetContent;
+          mpSetContent = NULL;
         }
     }
-  else
-    {
-      mValid = false;
-    }
 
-  CAnnotation::fromJSON(json);
+  CLogger::error("Set: Invalid or missing value for 'content'.");
 }
 
 // virtual
@@ -253,4 +257,3 @@ std::map< CValueList::Type, CValueList > & CSet::getDBFieldValues()
 
   return CSetContent::getDBFieldValues();
 }
-

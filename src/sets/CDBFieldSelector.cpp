@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -19,6 +19,7 @@
 #include "db/CFieldValue.h"
 #include "db/CFieldValueList.h"
 #include "network/CNode.h"
+#include "utilities/CLogger.h"
 
 CDBFieldSelector::CDBFieldSelector()
   : CSetContent()
@@ -83,11 +84,15 @@ void CDBFieldSelector::fromJSON(const json_t * json)
     },
   */
 
+  mValid = false; // DONE
   json_t * pValue = json_object_get(json, "elementType");
 
-  mValid = (json_is_string(pValue) && strcmp(json_string_value(pValue), "dbField") == 0);
-
-  if (!mValid) return;
+  if ((json_is_string(pValue)
+       && strcmp(json_string_value(pValue), "dbField") != 0))
+    {
+      CLogger::error("Field selector: Invalid value for 'elementType.'");
+      return;
+    }
 
   // Tables are optional
   pValue = json_object_get(json, "table");
@@ -95,7 +100,6 @@ void CDBFieldSelector::fromJSON(const json_t * json)
   if (json_is_string(pValue))
     {
       mTable = json_string_value(pValue);
-      mValid &= CSchema::INSTANCE.getTable(mTable).isValid();
     }
 
   pValue = json_object_get(json, "field");
@@ -109,13 +113,26 @@ void CDBFieldSelector::fromJSON(const json_t * json)
           mTable = CSchema::INSTANCE.getTableForField(mField);
         }
 
+      if (!CSchema::INSTANCE.getTable(mTable).isValid())
+        {
+          CLogger::error("Field selector: Invalid value for 'table'.");
+          return;
+        }
+
       const CField & Field = CSchema::INSTANCE.getTable(mTable).getField(mField);
+
+      if (!Field.isValid())
+        {
+          CLogger::error("Field selector: Invalid value for 'field'.");
+          return;
+        }
+
       mFieldType = Field.getType();
-      mValid &= Field.isValid();
     }
   else
     {
-      mValid = false;
+      CLogger::error("Field selector: Invalid or missing value for 'field'.");
+      return;
     }
 
   pValue = json_object_get(json, "selector");
@@ -124,28 +141,34 @@ void CDBFieldSelector::fromJSON(const json_t * json)
     {
       mpSelector = CSetContent::create(pValue);
 
-      if (mpSelector != NULL && mpSelector->isValid())
+      if (mpSelector != NULL
+          && mpSelector->isValid())
         {
           mPrerequisites.insert(mpSelector);
           mStatic = mpSelector->isStatic();
         }
       else
         {
-          mValid = false;
-
           if (mpSelector != NULL)
             {
               delete mpSelector;
               mpSelector = NULL;
             }
+
+          {
+            CLogger::error("Field selector: Invalid value for 'selector'.");
+            return;
+          }
         }
     }
   else
     {
-      mValid = false;
+      CLogger::error("Field selector: Invalid or missing value for 'selector'.");
+      return;
     }
-}
 
+  mValid = true;
+}
 
 // virtual
 void CDBFieldSelector::computeProtected()
@@ -173,5 +196,3 @@ void CDBFieldSelector::computeProtected()
 
   // std::cout << "CDBFieldSelector::compute: " << FieldValueList.size() << std::endl;
 }
-
-
