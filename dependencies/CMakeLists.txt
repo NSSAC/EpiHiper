@@ -75,6 +75,6 @@ ExternalProject_Add(spdlog
   	-DSPDLOG_BUILD_EXAMPLE=OFF
   	${CMAKE_CURRENT_SOURCE_DIR}/spdlog
   	
-  BUILD_COMMAND      make && cd ${CMAKE_CURRENT_SOURCE_DIR}/spdlog && git checkout -- .
-  INSTALL_COMMAND    make install
+  BUILD_COMMAND      make
+  INSTALL_COMMAND    make install && cd ${CMAKE_CURRENT_SOURCE_DIR}/spdlog && git checkout -- .
 )
