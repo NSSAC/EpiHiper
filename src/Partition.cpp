@@ -17,7 +17,7 @@
 #include <getopt.h>
 #include <jansson.h>
 
-#include "git-commit.h"
+#include "EpiHiperConfig.h"
 #include "network/CNetwork.h"
 #include "traits/CTrait.h"
 #include "utilities/CCommunicate.h"
@@ -186,7 +186,9 @@ int main(int argc, char * argv[])
 
   if (CCommunicate::MPIRank == 0)
     {
-      std::cout << "EpiHiperPartition (build: " << __DATE__ << ", commit: " << GIT_COMMIT <<  ")" << std::endl;
+      std::cout << "EpiHiperPartition Version "
+                << EpiHiper_VERSION_MAJOR << "." << EpiHiper_VERSION_MINOR << "." << EpiHiper_VERSION_PATCH
+                << " (build: " << __DATE__ << ", commit: " << GIT_COMMIT << ")" << std::endl;
     }
 
   if (argc < 3 || !parseArgs(argc, argv))

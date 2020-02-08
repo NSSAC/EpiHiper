@@ -38,6 +38,8 @@ else()
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif()
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/EpiHiperConfig.h.in ${CMAKE_CURRENT_SOURCE_DIR}/EpiHiperConfig.h)
+
 add_library (EpiHiperLib-core OBJECT ${SOURCES_EPIHIPER} ${HEADERS_EPIHIPER})
 add_dependencies(EpiHiperLib-core jansson libpqxx spdlog)
 

@@ -20,3 +20,5 @@ sciduct/epihiper.sif
 src/git-commit.h
 
 .vscode/
+
+src/EpiHiperConfig.h
