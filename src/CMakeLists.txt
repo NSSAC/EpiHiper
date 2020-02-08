@@ -45,7 +45,7 @@ add_dependencies(EpiHiperLib-core jansson libpqxx spdlog)
 
 add_library (EpiHiperLib STATIC $<TARGET_OBJECTS:EpiHiperLib-core>)
 
-add_executable (EpiHiper EpiHiper.cpp Simulation.cpp Simulation.h git-commit.h)
+add_executable (EpiHiper EpiHiper.cpp Simulation.cpp Simulation.h EpiHiperConfig.h)
 add_dependencies(EpiHiper EpiHiperLib GIT_COMMIT)
 target_link_libraries (EpiHiper 
     EpiHiperLib
@@ -55,7 +55,7 @@ target_link_libraries (EpiHiper
 	${CMAKE_BINARY_DIR}/lib/libpqxx.a
 )
 
-add_executable (EpiHiperPartition Partition.cpp)
+add_executable (EpiHiperPartition Partition.cpp EpiHiperConfig.h)
 add_dependencies(EpiHiperPartition EpiHiperLib GIT_COMMIT)
 target_link_libraries (EpiHiperPartition 
     EpiHiperLib
