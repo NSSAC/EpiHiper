@@ -997,6 +997,16 @@ CEdge * CNetwork::endEdge()
   return mEdges + mEdgesSize;
 }
 
+std::map< size_t, CNode >::const_iterator CNetwork::beginRemoteNodes() const
+{
+  return mRemoteNodes.begin();
+}
+  
+std::map< size_t, CNode >::const_iterator CNetwork::endRemoteNodes() const
+{
+  return mRemoteNodes.end();
+}
+
 bool CNetwork::isRemoteNode(const CNode * pNode) const
 {
   return pNode < mLocalNodes || mLocalNodes + mLocalNodesSize <= pNode;
@@ -1060,7 +1070,7 @@ CEdge * CNetwork::lookupEdge(const size_t & targetId, const size_t & sourceId) c
   CEdge * pRight = pLeft + pTargetNode->EdgesSize;
   CEdge * pCurrent = pLeft + (pRight - pLeft) / 2;
 
-  while (pLeft <= pRight)
+ while (pLeft <= pRight)
     {
       if (pCurrent->sourceId < sourceId)
         {

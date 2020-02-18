@@ -93,6 +93,10 @@ public:
 
   CEdge * endEdge();
 
+  std::map< size_t, CNode >::const_iterator beginRemoteNodes() const;
+  
+  std::map< size_t, CNode >::const_iterator endRemoteNodes() const;
+  
   bool isRemoteNode(const CNode * pNode) const;
 
   int broadcastChanges();

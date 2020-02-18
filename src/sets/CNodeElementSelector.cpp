@@ -366,23 +366,29 @@ void CNodeElementSelector::fromJSON(const json_t * json)
         }
       else if (strcmp(Operator, "withIncomingEdgeIn") == 0)
         {
+          if (!mLocalScope)
+            {
+              CLogger::error("Node selector: Invalid  value for 'scope'.");
+              return;
+            }
+
           /*
-        {
-          "description": "",
-          "required": [
-            "operator",
-            "selector"
-          ],
-          "properties": {
-            "operator": {
+            {
               "description": "",
-              "type": "string",
-              "enum": ["withIncomingEdgeIn"]
+              "required": [
+                "operator",
+                "selector"
+              ],
+              "properties": {
+                "operator": {
+                  "description": "",
+                  "type": "string",
+                  "enum": ["withIncomingEdgeIn"]
+                },
+                "selector": {"$ref": "#/definitions/setContent"}
+              }
             },
-            "selector": {"$ref": "#/definitions/setContent"}
-          }
-        },
-           */
+              */
           // We need to identify that we have this case
           mpSelector = CSetContent::create(json_object_get(json, "selector"));
 
@@ -591,12 +597,6 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
       if (mNodeProperty.isValid())
         {
-          if (!mLocalScope)
-            {
-              CLogger::error("Node selector: Invalid value for 'scope'.");
-              return;
-            }
-
           mpValue = new CValue(json_object_get(json, "right"));
 
           if (mpValue != NULL
@@ -718,8 +718,6 @@ void CNodeElementSelector::nodeAll()
       for (; it != end; ++it, ++pNode)
         *it = pNode;
     }
-
-  // std::cout << "nodeAll: " << Nodes.size() << std::endl;
 }
 
 void CNodeElementSelector::nodePropertySelection()
@@ -734,7 +732,15 @@ void CNodeElementSelector::nodePropertySelection()
     if (mpComparison(mNodeProperty.propertyOf(pNode), *mpValue))
       Nodes.push_back(pNode);
 
-  // std::cout << "nodePropertySelection (" << *mpValue << "): " << Nodes.size() << std::endl;
+  if (mLocalScope)
+    return;
+
+  std::map< size_t, CNode >::const_iterator it = CNetwork::INSTANCE->beginRemoteNodes();
+  std::map< size_t, CNode >::const_iterator end = CNetwork::INSTANCE->endRemoteNodes();
+
+  for (; it != end; ++it)
+    if (mpComparison(mNodeProperty.propertyOf(&it->second), *mpValue))
+      Nodes.push_back(const_cast< CNode * >(&it->second));
 }
 
 void CNodeElementSelector::nodePropertyWithin()
@@ -749,7 +755,15 @@ void CNodeElementSelector::nodePropertyWithin()
     if (mpValueList->contains(mNodeProperty.propertyOf(pNode)))
       Nodes.push_back(pNode);
 
-  // std::cout << "nodePropertyWithin: " << Nodes.size() << std::endl;
+  if (mLocalScope)
+    return;
+
+  std::map< size_t, CNode >::const_iterator it = CNetwork::INSTANCE->beginRemoteNodes();
+  std::map< size_t, CNode >::const_iterator end = CNetwork::INSTANCE->endRemoteNodes();
+
+  for (; it != end; ++it)
+    if (mpValueList->contains(mNodeProperty.propertyOf(&it->second)))
+      Nodes.push_back(const_cast< CNode * >(&it->second));
 }
 
 void CNodeElementSelector::nodeWithIncomingEdge()
