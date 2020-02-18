@@ -163,12 +163,7 @@ CValueInterface & CNodeProperty::nodeTrait(CNode * pNode)
 
 COperation * CNodeProperty::setId(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator)
 {
-  std::ostringstream os;
-
-  os << "Invalid operation for node: " << pNode->id;
-
-  FatalError(CCommunicate::ErrorCode::InvalidOperation, os.str());
-
+  CLogger::critical() << "Invalid operation 'setId' for node: " << pNode->id;
   return NULL;
 }
 

@@ -50,12 +50,16 @@ public:
   static CNode * sourceNode(CEdge * pEdge);
 
 private:
+  CValueInterface & targetId(CEdge * pEdge);
+  CValueInterface & sourceId(CEdge * pEdge);
   CValueInterface & targetActivity(CEdge * pEdge);
   CValueInterface & sourceActivity(CEdge * pEdge);
   CValueInterface & edgeTrait(CEdge * pEdge);
   CValueInterface & active(CEdge * pEdge);
   CValueInterface & weight(CEdge * pEdge);
 
+  COperation * setTargetId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator);
+  COperation * setSourceId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator);
   COperation * setTargetActivity(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator);
   COperation * setSourceActivity(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator);
   COperation * setEdgeTrait(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator);

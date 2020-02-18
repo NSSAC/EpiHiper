@@ -82,6 +82,18 @@ void CEdgeProperty::fromJSON(const json_t * json)
           mpPropertyOf = &CEdgeProperty::active;
           mpCreateOperation = &CEdgeProperty::setActive;
         }
+      else if (strcmp(Property, "targetId") == 0)
+        {
+          mType = Type::id;
+          mpPropertyOf = &CEdgeProperty::targetId;
+          mpCreateOperation = &CEdgeProperty::setTargetId;
+        }
+      else if (strcmp(Property, "sourceId") == 0)
+        {
+          mType = Type::id;
+          mpPropertyOf = &CEdgeProperty::sourceId;
+          mpCreateOperation = &CEdgeProperty::setSourceId;
+        }
       else if (strcmp(Property, "targetActivity") == 0)
         {
           mType = Type::traitData;
@@ -140,8 +152,22 @@ COperation * CEdgeProperty::createOperation(CEdge * pEdge, const CValueInterface
 
 bool CEdgeProperty::isReadOnly() const
 {
-  return mpPropertyOf == &CEdgeProperty::targetActivity
+  return mpPropertyOf == &CEdgeProperty::targetId
+         || mpPropertyOf == &CEdgeProperty::sourceId
+         || mpPropertyOf == &CEdgeProperty::targetActivity
          || mpPropertyOf == &CEdgeProperty::sourceActivity;
+}
+
+CValueInterface & CEdgeProperty::targetId(CEdge * pEdge)
+{
+  mpValue = &pEdge->targetId;
+  return *this;
+}
+  
+CValueInterface & CEdgeProperty::sourceId(CEdge * pEdge)
+{
+  mpValue = &pEdge->sourceId;
+  return *this;
 }
 
 CValueInterface & CEdgeProperty::targetActivity(CEdge * pEdge)
@@ -172,6 +198,17 @@ CValueInterface & CEdgeProperty::weight(CEdge * pEdge)
 {
   mpValue = &pEdge->weight;
   return *this;
+}
+
+COperation * CEdgeProperty::setTargetId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator)
+{
+  CLogger::critical() << "Invalid operation 'setTargetId' for edge: " << pEdge->targetId << ", " << pEdge->sourceId;
+  return NULL;
+}
+COperation * CEdgeProperty::setSourceId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator)
+{
+  CLogger::critical() << "Invalid operation 'setSourceId' for edge: " << pEdge->targetId << ", " << pEdge->sourceId;
+  return NULL;
 }
 
 COperation * CEdgeProperty::setTargetActivity(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator)
