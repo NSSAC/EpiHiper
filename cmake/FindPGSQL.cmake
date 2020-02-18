@@ -99,7 +99,7 @@ set(PGSQL_ROOT_DIR_MESSAGE "Set the PGSQL_ROOT system variable to where PGSQL is
 
 
 set(PGSQL_KNOWN_VERSIONS ${PGSQL_ADDITIONAL_VERSIONS}
-    "11" "10" "9.6" "9.5" "9.4" "9.3" "9.2" "9.1" "9.0" "8.4" "8.3" "8.2" "8.1" "8.0")
+    "12" "11" "10" "9.6" "9.5" "9.4" "9.3" "9.2" "9.1" "9.0" "8.4" "8.3" "8.2" "8.1" "8.0")
 
 # Define additional search paths for root directories.
 set( PGSQL_ROOT_DIRECTORIES
