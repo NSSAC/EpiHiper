@@ -29,6 +29,7 @@ class CEdgeProperty;
 class CVariable;
 class CNode;
 class CEdge;
+class CMetadata;
 struct json_t;
 
 class COperationDefinition : public CAnnotation
@@ -63,11 +64,11 @@ public:
 
   const bool & isValid() const;
 
-  COperation * createOperation(CNode * pNode) const;
+  COperation * createOperation(CNode * pNode, const CMetadata & info) const;
 
-  COperation * createOperation(CEdge * pEdge) const;
+  COperation * createOperation(CEdge * pEdge, const CMetadata & info) const;
 
-  COperation * createOperation() const;
+  COperation * createOperation(const CMetadata & info) const;
 
 private:
   TargetType mTargetType;

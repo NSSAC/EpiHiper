@@ -45,7 +45,7 @@ void CConnection::init()
 
   catch (const pqxx::pqxx_exception & e)
     {
-      CLogger::error(e.base().what());
+      CLogger::error(CLogger::sanitize(e.base().what()));
     }
 }
 

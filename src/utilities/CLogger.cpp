@@ -19,10 +19,13 @@
 std::stack< spdlog::level::level_enum > CLogger::levels;
 
 // static
+std::string CLogger::task;
+
+// static
 void CLogger::init()
 {
   // Set global log level to info
-  setLevel(CSimConfig::getLogLevel());
+  setLevel(spdlog::level::warn);
   std::shared_ptr<spdlog::logger> console = spdlog::stdout_logger_st("console");
 }
 
@@ -55,4 +58,21 @@ void CLogger::popLevel()
     spdlog::set_level(CSimConfig::getLogLevel());
   else
     spdlog::set_level(levels.top());
+}
+
+// static 
+void CLogger::setTask(int rank, int processes)
+{
+  std::ostringstream os;
+  os << "[" << processes << ":" << rank << "] ";
+
+  task = os.str();
+}
+
+// static 
+const std::string CLogger::sanitize(std::string dirty)
+{
+  std::replace(dirty.begin(), dirty.end(), '\n', ' ');
+  std::replace(dirty.begin(), dirty.end(), '\t', ' ');
+  return dirty;
 }

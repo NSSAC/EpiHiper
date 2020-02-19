@@ -669,6 +669,56 @@ bool CConditionDefinition::comparisonFromJSON(const json_t * json)
   return true;
 }
 
+CCondition * CConditionDefinition::createCondition() const
+{
+  switch (mType)
+    {
+    case BooleanOperationType::And:
+    case BooleanOperationType::Or:
+    case BooleanOperationType::Not:
+      {
+        std::vector< CCondition * > Vector;
+        std::vector< CConditionDefinition >::const_iterator it = mBooleanValues.begin();
+        std::vector< CConditionDefinition >::const_iterator end = mBooleanValues.end();
+
+        for (; it != end; ++it)
+          {
+            Vector.push_back(it->createCondition());
+          }
+
+        return new CBooleanOperation(mType, Vector);
+      }
+      break;
+
+    case BooleanOperationType::Value:
+      return new CBooleanValue(mValue);
+      break;
+
+    case BooleanOperationType::Comparison:
+      {
+        CValueInterface * pLeft = mLeft.value();
+
+        if (mComparison != ComparisonType::Within
+            && mComparison != ComparisonType::NotWithin)
+          {
+            CValueInterface * pRight = mRight.value();
+
+            if (pLeft != NULL
+                && pRight != NULL)
+              return new CComparison(mComparison, pLeft, pRight);
+          }
+        else if (mRight.pValueList != NULL
+                 && pLeft != NULL)
+          {
+            return new CContainedIn(mComparison, pLeft, *mRight.pValueList);
+          }
+      }
+      break;
+    }
+
+  return new CBooleanValue(true);
+}
+
 CCondition * CConditionDefinition::createCondition(const CNode * pNode) const
 {
   switch (mType)

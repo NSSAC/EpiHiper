@@ -277,6 +277,8 @@ void CSampling::process(const CSetContent & targets)
       mpTargets->samplePercent(mPercentage, mSampledTargets, mNotSampledTargets);
     }
 
+  CLogger::debug() << "CSampling: Sampled set size: '" << mSampledTargets.size() << ", Not sampled set size: '" << mNotSampledTargets.size();
+
   if (mpSampled != NULL)
     {
       mpSampled->process(mSampledTargets);
@@ -296,7 +298,7 @@ int CSampling::broadcastCount()
   *mpCommunicateBuffer = mpTargets->size();
 
   CCommunicate::ClassMemberReceive< CSampling > Receive(this, &CSampling::receiveCount);
-  CCommunicate::central(0, mpCommunicateBuffer, sizeof(size_t), CCommunicate::MPIProcesses * sizeof(size_t), &Receive);
+  CCommunicate::master(0, mpCommunicateBuffer, sizeof(size_t), CCommunicate::MPIProcesses * sizeof(size_t), &Receive);
 
   mLocalLimit = *(mpCommunicateBuffer + CCommunicate::MPIRank);
 
@@ -368,4 +370,10 @@ CCommunicate::ErrorCode CSampling::receiveCount(std::istream & is, int sender)
 const bool & CSampling::isValid() const
 {
   return mValid;
+}
+
+bool CSampling::isEmpty() const
+{
+  return mpSampled == NULL
+         && mpNotSampled == NULL;
 }

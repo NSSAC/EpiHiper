@@ -60,6 +60,8 @@ void CCommunicate::init(int argc, char ** argv)
 
   MPINextRank = (MPIProcesses + MPIRank + 1) % MPIProcesses;
   MPIPreviousRank = (MPIProcesses + MPIRank - 1) % MPIProcesses;
+
+  CLogger::setTask(MPIRank, MPIProcesses);
 }
 
 // static
@@ -96,6 +98,10 @@ int CCommunicate::send(const void * buf,
                        int dest,
                        int tag)
 {
+  if (MPIProcesses == 1)
+    return MPI_SUCCESS;
+    
+  CLogger::debug() << "CCommunicate: Sending '" << count << "' bytes to '" << dest << "'.";
   return MPI_Send(buf, count, datatype, dest, tag, MPI_COMM_WORLD);
 }
 
@@ -107,6 +113,10 @@ int CCommunicate::receive(void * buf,
                           int tag,
                           MPI_Status * status)
 {
+  if (MPIProcesses == 1)
+    return MPI_SUCCESS;
+    
+  CLogger::debug() << "CCommunicate: Receiving '" << count << "' bytes from '" << source << "'.";
   return MPI_Recv(buf, count, datatype, source, tag, MPI_COMM_WORLD, status);
 }
 
@@ -116,6 +126,10 @@ int CCommunicate::broadcast(void * buffer,
                             MPI_Datatype datatype,
                             int root)
 {
+  if (MPIProcesses == 1)
+    return MPI_SUCCESS;
+
+  CLogger::debug() << "CCommunicate: Broatcast '" << count << "' bytes from '" << root << "'.";
   return MPI_Bcast(buffer, count, datatype, root, MPI_COMM_WORLD);
 }
 
@@ -176,8 +190,12 @@ int CCommunicate::sequential(int firstRank, CCommunicate::SequentialProcessInter
       (*pSequential)();
 
       signal = 1;
-      send(&signal, 1, MPI_INT, MPINextRank, firstRank);
-      receive(&signal, 1, MPI_INT, MPIPreviousRank, (firstRank - 1) % MPIProcesses, &status);
+
+      if (MPINextRank != firstRank)
+        {
+          send(&signal, 1, MPI_INT, MPINextRank, firstRank);
+          receive(&signal, 1, MPI_INT, MPIPreviousRank, (firstRank - 1) % MPIProcesses, &status);
+        }
     }
   else
     {
@@ -192,25 +210,25 @@ int CCommunicate::sequential(int firstRank, CCommunicate::SequentialProcessInter
 }
 
 // static
-int CCommunicate::central(int centerRank,
-                          const void * buffer,
-                          int countToCenter,
-                          int countFromCenter,
-                          CCommunicate::ReceiveInterface * pReceive)
+int CCommunicate::master(int masterRank,
+                         const void * buffer,
+                         int countToCenter,
+                         int countFromCenter,
+                         CCommunicate::ReceiveInterface * pReceive)
 {
   ErrorCode Result = ErrorCode::Success;
   Status status;
 
   resizeReceiveBuffer(std::min(countToCenter, countFromCenter));
 
-  if (MPIRank == centerRank)
+  if (MPIRank == masterRank)
     {
       // Receive from all other
       for (int sender = 0; sender < MPIProcesses && Result == ErrorCode::Success; ++sender)
         {
-          if (sender != centerRank)
+          if (sender != masterRank)
             {
-              receive(ReceiveBuffer, countToCenter, MPI_CHAR, sender, centerRank, &status);
+              receive(ReceiveBuffer, countToCenter, MPI_CHAR, sender, masterRank, &status);
 
               CStreamBuffer Buffer(ReceiveBuffer, countToCenter);
               std::istream is(&Buffer);
@@ -221,20 +239,20 @@ int CCommunicate::central(int centerRank,
 
       CStreamBuffer Buffer(ReceiveBuffer, 0);
       std::istream is(&Buffer);
-      Result = (*pReceive)(is, centerRank);
+      Result = (*pReceive)(is, masterRank);
 
       memcpy(ReceiveBuffer, buffer, countFromCenter * sizeof(char));
-      broadcast(ReceiveBuffer, countFromCenter, MPI_CHAR, centerRank);
+      broadcast(ReceiveBuffer, countFromCenter, MPI_CHAR, masterRank);
     }
   else
     {
-      send(buffer, countToCenter, MPI_CHAR, centerRank, centerRank);
-      broadcast(ReceiveBuffer, countFromCenter, MPI_CHAR, centerRank);
+      send(buffer, countToCenter, MPI_CHAR, masterRank, masterRank);
+      broadcast(ReceiveBuffer, countFromCenter, MPI_CHAR, masterRank);
 
       CStreamBuffer Buffer(ReceiveBuffer, countFromCenter);
       std::istream is(&Buffer);
 
-      Result = (*pReceive)(is, centerRank);
+      Result = (*pReceive)(is, masterRank);
     }
 
   return (int) Result;
@@ -324,7 +342,7 @@ void CCommunicate::memUsage(const int & tick)
   vm_usage = vsize / 1024.0;
   resident_set = rss * page_size_kb;
 
-  std::cout << tick << "; Rank: " << MPIRank << "; VM: " << vm_usage << "; RSS: " << resident_set << std::endl;
+  CLogger::info() << "Tick: " << tick << "; VM: " << vm_usage << "; RSS: " << resident_set;
 }
 
 CCommunicate::~CCommunicate()

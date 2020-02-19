@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "utilities/CAnnotation.h"
+#include "utilities/CMetadata.h"
 #include "actions/COperationDefinition.h"
 #include "actions/CConditionDefinition.h"
 
@@ -35,6 +36,8 @@ public:
 
   const bool & isValid() const;
 
+  void process() const;
+
   void process(const CEdge * pEdge) const;
 
   void process(const CNode * pNode) const;
@@ -50,6 +53,7 @@ private:
   CConditionDefinition mCondition;
   size_t mIndex;
   bool mValid;
+  CMetadata mInfo;
 };
 
 

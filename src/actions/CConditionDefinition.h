@@ -118,6 +118,8 @@ public:
 
   const bool & isValid() const;
 
+  CCondition * createCondition() const;
+
   CCondition * createCondition(const CNode * pNode) const;
 
   CCondition * createCondition(const CEdge * pEdge) const;

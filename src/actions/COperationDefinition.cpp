@@ -18,6 +18,7 @@
 #include "math/CNodeProperty.h"
 #include "math/CEdgeProperty.h"
 #include "variables/CVariableList.h"
+#include "utilities/CMetadata.h"
 #include "utilities/CLogger.h"
 
 COperationDefinition::COperationDefinition()
@@ -202,25 +203,25 @@ const bool & COperationDefinition::isValid() const
   return mValid;
 }
 
-COperation * COperationDefinition::createOperation(CNode * pNode) const
+COperation * COperationDefinition::createOperation(CNode * pNode, const CMetadata & info) const
 {
   if (pNode != NULL
       && mpNodeProperty != NULL)
-    return mpNodeProperty->createOperation(pNode, mValue, mpOperator);
+    return mpNodeProperty->createOperation(pNode, mValue, mpOperator, info);
 
-  return createOperation();
+  return createOperation(info);
 }
 
-COperation * COperationDefinition::createOperation(CEdge * pEdge) const
+COperation * COperationDefinition::createOperation(CEdge * pEdge, const CMetadata & info) const
 {
   if (pEdge != NULL
       && mpEdgeProperty != NULL)
-    return mpEdgeProperty->createOperation(pEdge, mValue, mpOperator);
+    return mpEdgeProperty->createOperation(pEdge, mValue, mpOperator, info);
 
-  return createOperation();
+  return createOperation(info);
 }
 
-COperation * COperationDefinition::createOperation() const
+COperation * COperationDefinition::createOperation(const CMetadata & info) const
 {
-  return new COperationInstance< CVariable, double >(mpVariable, mValue.toNumber(), mpOperator, &CVariable::setValue);
+  return new COperationInstance< CVariable, double >(mpVariable, mValue.toNumber(), mpOperator, &CVariable::setValue, info);
 }

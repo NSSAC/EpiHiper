@@ -163,7 +163,7 @@ public:
 
   static int sequential(int firstRank, SequentialProcessInterface * pSequential);
 
-  static int central(int centerRank,
+  static int master(int centerRank,
                      const void *buffer,
                      int countIn,
                      int countOut,

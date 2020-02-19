@@ -1,14 +1,14 @@
-// BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
-// All rights reserved 
-// END: Copyright 
+// BEGIN: Copyright
+// Copyright (C) 2019 Rector and Visitors of the University of Virginia
+// All rights reserved
+// END: Copyright
 
-// BEGIN: License 
-// Licensed under the Apache License, Version 2.0 (the "License"); 
-// you may not use this file except in compliance with the License. 
-// You may obtain a copy of the License at 
-//   http://www.apache.org/licenses/LICENSE-2.0 
-// END: License 
+// BEGIN: License
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//   http://www.apache.org/licenses/LICENSE-2.0
+// END: License
 
 /*
  * MetaData.cpp
@@ -22,6 +22,8 @@
 #include <jansson.h>
 
 #include "utilities/CMetadata.h"
+
+#define CMETADATA_BUFFER_SIZE 1024
 
 CMetadata::CMetadata()
   : mpJson(NULL)
@@ -73,6 +75,17 @@ CMetadata::~CMetadata()
 
 void CMetadata::set(const std::string & key, json_t * pValue)
 {
+  if (!mpJson)
+    {
+      mpJson = json_object();
+    }
+  else
+    {
+      json_t * pJson = mpJson;
+      mpJson = json_deep_copy(pJson);
+      json_decref(pJson);
+    }
+
   json_object_set(mpJson, key.c_str(), pValue);
   json_decref(pValue);
 }
@@ -128,7 +141,7 @@ CMetadata::Type CMetadata::getType(const std::string & key) const
   if (get(key, pValue))
     {
       switch (json_typeof(pValue))
-      {
+        {
         case JSON_OBJECT:
           return Type::Object;
           break;
@@ -160,7 +173,7 @@ CMetadata::Type CMetadata::getType(const std::string & key) const
         case JSON_NULL:
           return Type::Null;
           break;
-      }
+        }
     }
 
   return Type::NotFound;
@@ -228,24 +241,24 @@ CMetadata CMetadata::getObject(const std::string & key) const
 
 void CMetadata::toBinary(std::ostream & os) const
 {
-  static size_t BufferSize = 1024;
-  static char * pBuffer = NULL;
+  static size_t BufferSize = CMETADATA_BUFFER_SIZE;
+  static char * pBuffer = new char[CMETADATA_BUFFER_SIZE];
 
-  size_t size = (mpJson != NULL) ? json_dumpb(mpJson, pBuffer, 0, 0) : 0;
+  size_t size = (mpJson != NULL) ? json_dumpb(mpJson, pBuffer, BufferSize, JSON_COMPACT | JSON_INDENT(0)) : 0;
 
   if (pBuffer == NULL || size > BufferSize)
     {
       if (pBuffer != NULL)
-        delete [] pBuffer;
+        delete[] pBuffer;
 
       BufferSize = std::max(BufferSize, size);
 
       pBuffer = new char[BufferSize];
 
-      json_dumpb(mpJson, pBuffer, size, 0);
+      json_dumpb(mpJson, pBuffer,BufferSize, JSON_COMPACT | JSON_INDENT(0));
     }
 
-  os.write(reinterpret_cast<const char *>(&size), sizeof(size_t));
+  os.write(reinterpret_cast< const char * >(&size), sizeof(size_t));
   os.write(pBuffer, size);
 }
 
@@ -255,12 +268,12 @@ bool CMetadata::fromBinary(std::istream & is)
   static char * pBuffer = NULL;
 
   size_t size;
-  is.read(reinterpret_cast<char *>(&size), sizeof(size_t));
+  is.read(reinterpret_cast< char * >(&size), sizeof(size_t));
 
   if (pBuffer == NULL || size > BufferSize)
     {
       if (pBuffer != NULL)
-        delete [] pBuffer;
+        delete[] pBuffer;
 
       BufferSize = std::max(BufferSize, size);
 
@@ -276,4 +289,3 @@ bool CMetadata::fromBinary(std::istream & is)
 
   return (mpJson != NULL);
 }
-

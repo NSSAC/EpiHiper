@@ -18,6 +18,7 @@
 #include "utilities/CCommunicate.h"
 #include "variables/CVariable.h"
 #include "actions/CActionQueue.h"
+#include "utilities/CMetadata.h"
 #include "utilities/CLogger.h"
 
 CVariable::CVariable()
@@ -215,6 +216,15 @@ void CVariable::reset(const bool & force)
 
 bool CVariable::setValue(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
+  CLogger::trace() << "CVariable [ActionDefinition:"
+                  << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
+                  << "]: Variable ("
+                  << mId
+                  << ") value "
+                  << CValueInterface::operatorToString(pOperator)
+                  << " "
+                  << value;
+
   if (mType == Type::global)
     {
       *mpLocalValue = CCommunicate::updateRMA(mIndex, pOperator, value);

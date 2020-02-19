@@ -120,9 +120,9 @@ CValueInterface & CNodeProperty::propertyOf(const CNode * pNode)
   return (this->*mpPropertyOf)(const_cast< CNode * >(pNode));
 }
 
-COperation * CNodeProperty::createOperation(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator)
+COperation * CNodeProperty::createOperation(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
-  return (this->*mpCreateOperation)(pNode, value, pOperator);
+  return (this->*mpCreateOperation)(pNode, value, pOperator, info);
 }
 
 // static
@@ -161,28 +161,31 @@ CValueInterface & CNodeProperty::nodeTrait(CNode * pNode)
   return *this;
 }
 
-COperation * CNodeProperty::setId(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator)
+COperation * CNodeProperty::setId(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
   CLogger::critical() << "Invalid operation 'setId' for node: " << pNode->id;
   return NULL;
 }
 
-COperation * CNodeProperty::setSusceptibilityFactor(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator)
+COperation * CNodeProperty::setSusceptibilityFactor(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
-  return new COperationInstance< CNode, double >(pNode, value.toNumber(), pOperator, &CNode::setSusceptibilityFactor);
+  return new COperationInstance< CNode, double >(pNode, value.toNumber(), pOperator, &CNode::setSusceptibilityFactor, info);
 }
 
-COperation * CNodeProperty::setInfectivityFactor(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator)
+COperation * CNodeProperty::setInfectivityFactor(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
-  return new COperationInstance< CNode, double >(pNode, value.toNumber(), pOperator, &CNode::setInfectivityFactor);
+  return new COperationInstance< CNode, double >(pNode, value.toNumber(), pOperator, &CNode::setInfectivityFactor, info);
 }
 
-COperation * CNodeProperty::setHealthState(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator)
+COperation * CNodeProperty::setHealthState(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
-  return new COperationInstance< CNode, size_t >(pNode, value.toId(), pOperator, &CNode::setHealthState, CMetadata("StateChange", true));
+  CMetadata Info(info);
+  Info.set("StateChange", true);
+
+  return new COperationInstance< CNode, size_t >(pNode, value.toId(), pOperator, &CNode::setHealthState, Info);
 }
 
-COperation * CNodeProperty::setNodeTrait(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator)
+COperation * CNodeProperty::setNodeTrait(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
-  return new COperationInstance< CNode, CTraitData::value >(pNode, value.toTraitValue(), pOperator, &CNode::setNodeTrait);
+  return new COperationInstance< CNode, CTraitData::value >(pNode, value.toTraitValue(), pOperator, &CNode::setNodeTrait, info);
 }

@@ -145,9 +145,9 @@ CValueInterface & CEdgeProperty::propertyOf(const CEdge * pEdge)
   return (this->*mpPropertyOf)(const_cast< CEdge * >(pEdge));
 }
 
-COperation * CEdgeProperty::createOperation(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator)
+COperation * CEdgeProperty::createOperation(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
-  return (this->*mpCreateOperation)(pEdge, value, pOperator);
+  return (this->*mpCreateOperation)(pEdge, value, pOperator, info);
 }
 
 bool CEdgeProperty::isReadOnly() const
@@ -200,38 +200,38 @@ CValueInterface & CEdgeProperty::weight(CEdge * pEdge)
   return *this;
 }
 
-COperation * CEdgeProperty::setTargetId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator)
+COperation * CEdgeProperty::setTargetId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
   CLogger::critical() << "Invalid operation 'setTargetId' for edge: " << pEdge->targetId << ", " << pEdge->sourceId;
   return NULL;
 }
-COperation * CEdgeProperty::setSourceId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator)
+COperation * CEdgeProperty::setSourceId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
   CLogger::critical() << "Invalid operation 'setSourceId' for edge: " << pEdge->targetId << ", " << pEdge->sourceId;
   return NULL;
 }
 
-COperation * CEdgeProperty::setTargetActivity(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator)
+COperation * CEdgeProperty::setTargetActivity(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
-  return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), pOperator, &CEdge::setTargetActivity);
+  return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), pOperator, &CEdge::setTargetActivity, info);
 }
 
-COperation * CEdgeProperty::setSourceActivity(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator)
+COperation * CEdgeProperty::setSourceActivity(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
-  return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), pOperator, &CEdge::setSourceActivity);
+  return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), pOperator, &CEdge::setSourceActivity, info);
 }
 
-COperation * CEdgeProperty::setEdgeTrait(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator)
+COperation * CEdgeProperty::setEdgeTrait(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
-  return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), pOperator, &CEdge::setEdgeTrait);
+  return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), pOperator, &CEdge::setEdgeTrait, info);
 }
 
-COperation * CEdgeProperty::setActive(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator)
+COperation * CEdgeProperty::setActive(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
-  return new COperationInstance< CEdge, bool >(pEdge, value.toBoolean(), pOperator, &CEdge::setActive);
+  return new COperationInstance< CEdge, bool >(pEdge, value.toBoolean(), pOperator, &CEdge::setActive, info);
 }
 
-COperation * CEdgeProperty::setWeight(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator)
+COperation * CEdgeProperty::setWeight(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
-  return new COperationInstance< CEdge, double >(pEdge, value.toNumber(), pOperator, &CEdge::setWeight);
+  return new COperationInstance< CEdge, double >(pEdge, value.toNumber(), pOperator, &CEdge::setWeight, info);
 }

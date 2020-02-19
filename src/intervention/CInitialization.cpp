@@ -20,12 +20,12 @@
 #include <jansson.h>
 
 #include "intervention/CInitialization.h"
-
 #include "utilities/CSimConfig.h"
 #include "sets/CSetList.h"
 #include "sets/CSetContent.h"
 #include "math/CDependencyGraph.h"
 #include "traits/CTrait.h"
+#include "utilities/CLogger.h"
 
 // static
 void CInitialization::load(const std::string & file)
@@ -122,6 +122,7 @@ void CInitialization::processAll()
 
   for (it = INSTANCES.begin(); it != end; ++it)
     {
+      CLogger::debug() << "CInitialization: Process initialization '" << (*it)->getAnnId() << "'.";
       (*it)->process();
     }
 }

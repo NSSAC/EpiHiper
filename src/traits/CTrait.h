@@ -80,6 +80,8 @@ public:
 
   std::string toString(CTraitData::base & data) const;
 
+  std::string toString(CTraitData::value & value) const;
+
   const CFeature * addFeature(const CFeature & feature);
 
   void remap();

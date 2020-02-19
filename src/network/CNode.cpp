@@ -1,14 +1,14 @@
-// BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
-// All rights reserved 
-// END: Copyright 
+// BEGIN: Copyright
+// Copyright (C) 2019 Rector and Visitors of the University of Virginia
+// All rights reserved
+// END: Copyright
 
-// BEGIN: License 
-// Licensed under the Apache License, Version 2.0 (the "License"); 
-// you may not use this file except in compliance with the License. 
-// You may obtain a copy of the License at 
-//   http://www.apache.org/licenses/LICENSE-2.0 
-// END: License 
+// BEGIN: License
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//   http://www.apache.org/licenses/LICENSE-2.0
+// END: License
 
 #include "network/CNode.h"
 #include "network/CNetwork.h"
@@ -17,7 +17,8 @@
 #include "diseaseModel/CProgression.h"
 #include "diseaseModel/CTransmission.h"
 #include "traits/CTrait.h"
-
+#include "utilities/CMetadata.h"
+#include "utilities/CLogger.h"
 
 // static
 CNode CNode::getDefault()
@@ -157,6 +158,14 @@ bool CNode::set(const CProgression * pProgression, CValueInterface::pOperator /*
 
 bool CNode::setSusceptibilityFactor(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
+  CLogger::trace() << "CNode [ActionDefinition:"
+                   << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
+                   << "]: Node ("
+                   << id
+                   << ") susceptibilityFactor "
+                   << CValueInterface::operatorToString(pOperator)
+                   << " "
+                   << value;
   (*pOperator)(susceptibilityFactor, value);
   susceptibility = pHealthState->getSusceptibility() * susceptibilityFactor;
 
@@ -165,6 +174,14 @@ bool CNode::setSusceptibilityFactor(double value, CValueInterface::pOperator pOp
 
 bool CNode::setInfectivityFactor(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
+  CLogger::trace() << "CNode [ActionDefinition:"
+                   << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
+                   << "]: Node ("
+                   << id
+                   << ") infectivityFactor "
+                   << CValueInterface::operatorToString(pOperator)
+                   << " "
+                   << value;
   (*pOperator)(infectivityFactor, value);
   infectivity = pHealthState->getInfectivity() * infectivityFactor;
 
@@ -173,6 +190,14 @@ bool CNode::setInfectivityFactor(double value, CValueInterface::pOperator pOpera
 
 bool CNode::setHealthState(CModel::state_t value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
+  CLogger::trace() << "CNode [ActionDefinition:"
+                   << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
+                   << "]: Node ("
+                   << id
+                   << ") healthState "
+                   << CValueInterface::operatorToString(pOperator)
+                   << " "
+                   << CModel::stateFromType(value)->getId();
   setHealthState(CModel::stateFromType(value));
 
   susceptibility = pHealthState->getSusceptibility() * susceptibilityFactor;
@@ -185,25 +210,14 @@ bool CNode::setHealthState(CModel::state_t value, CValueInterface::pOperator pOp
 
 bool CNode::setNodeTrait(CTraitData::value value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
-  /*
-  if (value.first == 1)
-    {
-      std::cout << id << ": enteredIsymp = " << (value.second == 0 ? "true" : "false") << std::endl;
-    }
-  else if (value.first == 2)
-    {
-      std::cout << id << ": treatment = " << (value.second == 0 ? "true" : "false") << std::endl;
-    }
-  else if (value.first == 4)
-    {
-      std::cout << id << ": prophylaxTrigger = " << (value.second == 0 ? "true" : "false") << std::endl;
-    }
-  else if (value.first == 8)
-    {
-      std::cout << id << ": prophylax = " << (value.second == 0 ? "true" : "false") << std::endl;
-    }
-  */
-
+  CLogger::trace() << "CNode [ActionDefinition:"
+                   << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
+                   << "]: Node ("
+                   << id
+                   << ") nodeTrait "
+                   << CValueInterface::operatorToString(pOperator)
+                   << " "
+                   << CTrait::NodeTrait->toString(value);
   CTraitData::setValue(nodeTrait, value);
 
   return true;

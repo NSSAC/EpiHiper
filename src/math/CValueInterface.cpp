@@ -240,6 +240,27 @@ void CValueInterface::divide(double & lhs, const double & rhs)
   lhs /= rhs;
 }
 
+// static 
+std::string CValueInterface::operatorToString(CValueInterface::pOperator pOperator)
+{
+  if (pOperator == CValueInterface::equal)
+    return "=";
+
+  if (pOperator == CValueInterface::plus)
+    return "+=";
+
+  if (pOperator == CValueInterface::minus)
+    return "-=";
+
+  if (pOperator == CValueInterface::multiply)
+    return "*=";
+
+  if (pOperator == CValueInterface::divide)
+    return "/=";
+
+  return "N/A";
+}
+
 
 bool operator<(const CValueInterface & lhs, const CValueInterface & rhs)
 {

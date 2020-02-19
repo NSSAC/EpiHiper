@@ -38,6 +38,7 @@ CActionDefinition::CActionDefinition()
   , mCondition()
   , mIndex(std::numeric_limits< size_t >::max())
   , mValid(false)
+  , mInfo()
 {}
 
 CActionDefinition::CActionDefinition(const CActionDefinition & src)
@@ -48,6 +49,7 @@ CActionDefinition::CActionDefinition(const CActionDefinition & src)
   , mCondition(src.mCondition)
   , mIndex(src.mIndex)
   , mValid(src.mValid)
+  , mInfo(src.mInfo)
 {}
 
 CActionDefinition::CActionDefinition(const json_t * json)
@@ -58,12 +60,14 @@ CActionDefinition::CActionDefinition(const json_t * json)
   , mCondition()
   , mIndex(std::numeric_limits< size_t >::max())
   , mValid(false)
+  , mInfo()
 {
   fromJSON(json);
 
   if (mValid)
     {
       mIndex = INSTANCES.size();
+      mInfo.set("CActionDefinition", (int) mIndex); 
       INSTANCES.push_back(this);
     }
 }
@@ -219,11 +223,32 @@ const bool & CActionDefinition::isValid() const
   return mValid;
 }
 
+void CActionDefinition::process() const
+{
+  CAction * pAction = new CAction(mPriority, mCondition.createCondition());
+
+  // Loop through the operation definitions
+  std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
+  std::vector< COperationDefinition >::const_iterator end = mOperations.end();
+
+  for (; it != end; ++it)
+    {
+      pAction->addOperation(it->createOperation(mInfo));
+    }
+
+  CLogger::trace() << "CActionDefinition: Add node and edge independent action.";
+  CActionQueue::addAction(mDelay, pAction);
+
+}
+
 void CActionDefinition::process(const CEdge * pEdge) const
 {
-  if (pEdge != NULL
-      && CNetwork::INSTANCE->isRemoteNode(pEdge->pTarget))
+  if (pEdge == NULL)
+    return;
+    
+  if (CNetwork::INSTANCE->isRemoteNode(pEdge->pTarget))
     {
+      CLogger::trace() << "CActionDefinition: Add remote action for edge `" << pEdge->targetId << "," << pEdge->sourceId << "'.";
       CActionQueue::addRemoteAction(mIndex, pEdge);
       return;
     }
@@ -236,17 +261,21 @@ void CActionDefinition::process(const CEdge * pEdge) const
 
   for (; it != end; ++it)
     {
-      pAction->addOperation(it->createOperation(const_cast< CEdge * >(pEdge)));
+      pAction->addOperation(it->createOperation(const_cast< CEdge * >(pEdge), mInfo));
     }
 
+  CLogger::trace() << "CActionDefinition: Add action for edge `" << pEdge->targetId << "," << pEdge->sourceId << "'.";
   CActionQueue::addAction(mDelay, pAction);
 }
 
 void CActionDefinition::process(const CNode * pNode) const
 {
-  if (pNode != NULL
-      && CNetwork::INSTANCE->isRemoteNode(pNode))
+  if (pNode == NULL)
+    return;
+
+  if (CNetwork::INSTANCE->isRemoteNode(pNode))
     {
+      CLogger::trace() << "CActionDefinition: Add remote action for node `" << pNode->id << "'.";
       CActionQueue::addRemoteAction(mIndex, pNode);
       return;
     }
@@ -259,8 +288,9 @@ void CActionDefinition::process(const CNode * pNode) const
 
   for (; it != end; ++it)
     {
-      pAction->addOperation(it->createOperation(const_cast< CNode * >(pNode)));
+      pAction->addOperation(it->createOperation(const_cast< CNode * >(pNode), mInfo));
     }
 
+  CLogger::trace() << "CActionDefinition: Add action for node `" << pNode->id << "'.";
   CActionQueue::addAction(mDelay, pAction);
 }

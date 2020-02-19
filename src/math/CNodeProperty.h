@@ -18,6 +18,7 @@
 class CNode;
 class CEdge;
 class COperation;
+class CMetadata;
 struct json_t;
 
 class CNodeProperty: public CValueInterface
@@ -38,7 +39,7 @@ public:
   const bool & isValid() const;
 
   CValueInterface & propertyOf(const CNode * pNode);
-  COperation * createOperation(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator);
+  COperation * createOperation(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
 
   static std::pair< CEdge *, CEdge * > edges(CNode * pNode);
 
@@ -49,14 +50,14 @@ private:
   CValueInterface & healthState(CNode * pNode);
   CValueInterface & nodeTrait(CNode * pNode);
 
-  COperation * setId(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator);
-  COperation * setSusceptibilityFactor(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator);
-  COperation * setInfectivityFactor(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator);
-  COperation * setHealthState(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator);
-  COperation * setNodeTrait(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator);
+  COperation * setId(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+  COperation * setSusceptibilityFactor(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+  COperation * setInfectivityFactor(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+  COperation * setHealthState(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+  COperation * setNodeTrait(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
 
   CValueInterface & (CNodeProperty::*mpPropertyOf)(CNode *);
-  COperation * (CNodeProperty::*mpCreateOperation)(CNode *, const CValueInterface &, CValueInterface::pOperator pOperator);
+  COperation * (CNodeProperty::*mpCreateOperation)(CNode *, const CValueInterface &, CValueInterface::pOperator pOperator, const CMetadata & info);
 
   bool mValid;
 };

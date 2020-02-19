@@ -16,6 +16,7 @@
 #include "network/CNetwork.h"
 #include "network/CNode.h"
 #include "network/CEdge.h"
+#include "utilities/CLogger.h"
 
 // static
 void CActionQueue::init()

@@ -265,11 +265,13 @@ void CNodeElementSelector::fromJSON(const json_t * json)
   mPrerequisites.insert(&CActionQueue::getCurrentTick());
   pValue = json_object_get(json, "scope");
 
-  if (strcmp(json_string_value(pValue), "local") == 0)
+  if (pValue != NULL 
+      && strcmp(json_string_value(pValue), "local") == 0)
     {
       mLocalScope = true;
     }
-  else if (strcmp(json_string_value(pValue), "global") == 0)
+  else if (pValue != NULL
+           && strcmp(json_string_value(pValue), "global") == 0)
     {
       mLocalScope = false;
     }

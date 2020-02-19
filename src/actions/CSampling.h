@@ -55,6 +55,8 @@ public:
 
   const bool & isValid() const;
 
+  bool isEmpty() const;
+  
   void process(const CSetContent & targets);
 
 private:

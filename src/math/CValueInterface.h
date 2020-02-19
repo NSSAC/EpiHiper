@@ -102,6 +102,8 @@ public:
 
   static void divide(double & lhs, const double & rhs);
 
+  static std::string operatorToString(CValueInterface::pOperator pOperator);
+  
 protected:
   Type mType;
   void * mpValue;
