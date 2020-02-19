@@ -224,7 +224,7 @@ void CSetOperation::computeIntersection()
   pNin = &N1;
   pNout = &N2;
   pEin = &E1;
-  pEout = &E1;
+  pEout = &E2;
   pDBin = &DB1;
   pDBout = &DB2;
 

@@ -164,7 +164,7 @@ void CIntervention::fromJSON(const json_t * json)
   if (json_is_object(pValue))
     {
       std::ostringstream uniqueId;
-      uniqueId << "epiHiper:" << INSTANCES.size();
+      uniqueId << "epiHiper.intervention." << INSTANCES.size();
       mId = uniqueId.str();
       INSTANCES[mId] = this;
 
@@ -200,6 +200,7 @@ void CIntervention::fromJSON(const json_t * json)
         {
           CAnnotation::mAnnId = mId;
         }
+        
       return;
     }
 

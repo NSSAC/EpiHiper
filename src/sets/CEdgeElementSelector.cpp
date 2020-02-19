@@ -305,7 +305,6 @@ void CEdgeElementSelector::computeProtected()
 
   CEdge * pEdge = CNetwork::INSTANCE->beginEdge();
   CEdge * pEdgeEnd = CNetwork::INSTANCE->endEdge();
-  ;
 
   if (mpValue != NULL)
     {

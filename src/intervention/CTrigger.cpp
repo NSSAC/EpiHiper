@@ -158,6 +158,8 @@ void CTrigger::process()
   CCondition *pCondition = mCondition.createCondition((CNode *) NULL);
   mIsLocalTrue = pCondition->isTrue();
   delete pCondition;
+
+  CLogger::debug() << "CTrigger: Trigger '" << getAnnId() << "' condition is '" << (mIsLocalTrue ? "true" : "false") << "'."; 
 }
 
 void CTrigger::trigger(const bool & triggers)
@@ -206,6 +208,14 @@ void CTrigger::fromJSON(const json_t * json)
   },
   */
   mValid = false; // DONE
+  CAnnotation::fromJSON(json);
+
+  if (mAnnId.empty())
+    {
+      std::ostringstream os;
+      os << "epiHiper.trigger." << INSTANCES.size();
+      mAnnId = os.str();
+    }
 
   json_t * pValue = json_object_get(json, "trigger");
 
@@ -215,7 +225,7 @@ void CTrigger::fromJSON(const json_t * json)
 
       if (!mCondition.isValid())
         {
-          CLogger::error("Trigger: Invalid value for 'trigger'.");
+          CLogger::error() << "CTrigger (" << mAnnId << "): Invalid value for 'trigger'.";
           return;
         }
     }
@@ -230,12 +240,11 @@ void CTrigger::fromJSON(const json_t * json)
 
         if (mInterventions[Id] == NULL)
           {
-            CLogger::error() << "Trigger: Invalid id for item '" << i << "'.";
+            CLogger::error() << "Trigger (" << mAnnId << "): Invalid id for item '" << i << "'.";
             return;
           }
       }
 
-  CAnnotation::fromJSON(json);
   mValid = true;
 }
 
