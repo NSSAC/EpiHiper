@@ -21,6 +21,9 @@ std::stack< spdlog::level::level_enum > CLogger::levels;
 // static
 std::string CLogger::task;
 
+// static 
+bool CLogger::haveErrors = false;
+
 // static
 void CLogger::init()
 {
@@ -67,6 +70,12 @@ void CLogger::setTask(int rank, int processes)
   os << "[" << processes << ":" << rank << "] ";
 
   task = os.str();
+}
+
+// static 
+bool CLogger::hasErrors()
+{
+  return haveErrors;
 }
 
 // static 

@@ -81,6 +81,7 @@ bool parseArgs(int argc, char * argv[])
 
 int main(int argc, char * argv[])
 {
+  int EXIT = EXIT_SUCCESS;
   CLogger::init();
   CCommunicate::init(argc, argv);
 
@@ -115,62 +116,117 @@ int main(int argc, char * argv[])
 
   CSimConfig::load(Config);
 
-  if (CSimConfig::isValid())
+  if (!CSimConfig::isValid()
+      || CLogger::hasErrors())
     {
       CStatus::load("EpiHiper");
-      CActionQueue::init();
-      CRandom::init();
-      CTrait::init();
-      CConnection::init();
-      CNetwork::init();
-      CTrait::load(CSimConfig::getTraits());
-      CModel::load(CSimConfig::getDiseaseModel());
-      CSchema::load(CSimConfig::getPersonTraitDB());
-      CInitialization::load(CSimConfig::getInitialization());
-      CIntervention::load(CSimConfig::getIntervention());
-
-      if (CSetReference::resolve())
-        {
-          CCommunicate::allocateRMA();
-          CVariableList::INSTANCE.resetAll(true);
-
-          CNetwork::INSTANCE->load();
-          // Network::INSTANCE->write("network.bin", true);
-          // Network::INSTANCE->write("network.txt", false);
-
-          CCommunicate::memUsage(-2);
-
-          Simulation sim(seed, dbconn);
-          sim.validate();
-
-          if (sim.isValid())
-            {
-              sim.run();
-            }
-        }
-      else
-        {
-          CStatus::update("EpiHiper", "failed");
-        }
-
-      CModel::release();
-      CInitialization::release();
-      CIntervention::release();
-      CNetwork::release();
-      CConnection::release();
-      CStatus::finalize("EpiHiper");
-      CActionQueue::release();
+      goto failed;
     }
-  else
+
+  CStatus::load("EpiHiper");
+  CActionQueue::init();
+  CRandom::init();
+  CTrait::init();
+  CConnection::init();
+
+  if (CLogger::hasErrors())
     {
-      CStatus::load("EpiHiper");
-      CStatus::update("EpiHiper", "failed");
-      CStatus::finalize("EpiHiper");
+      goto failed;
     }
 
+  CNetwork::init();
+
+  if (CLogger::hasErrors())
+    {
+      goto failed;
+    }
+    
+  CTrait::load(CSimConfig::getTraits());
+
+  if (CLogger::hasErrors())
+    {
+      goto failed;
+    }
+    
+  CModel::load(CSimConfig::getDiseaseModel());
+
+  if (CLogger::hasErrors())
+    {
+      goto failed;
+    }
+    
+  CSchema::load(CSimConfig::getPersonTraitDB());
+
+  if (CLogger::hasErrors())
+    {
+      goto failed;
+    }
+    
+  CInitialization::load(CSimConfig::getInitialization());
+
+  if (CLogger::hasErrors())
+    {
+      goto failed;
+    }
+    
+  CIntervention::load(CSimConfig::getIntervention());
+
+  if (CLogger::hasErrors())
+    {
+      goto failed;
+    }
+    
+  if (!CSetReference::resolve())
+    {
+      goto failed;
+    }
+    
+  if (CCommunicate::allocateRMA() != (int) CCommunicate::ErrorCode::Success)
+    {
+      goto failed;
+    }
+
+  CVariableList::INSTANCE.resetAll(true);
+
+  CNetwork::INSTANCE->load();
+
+  if (CLogger::hasErrors())
+    {
+      goto failed;
+    }
+
+  CCommunicate::memUsage(-2);
+
+  {
+    Simulation sim(seed, dbconn);
+
+    sim.validate();
+
+    if (!sim.isValid())
+      {
+        goto failed;
+      }
+
+    sim.run();
+  }
+
+  CStatus::finalize("EpiHiper");
+  goto success;
+
+failed:
+  EXIT = EXIT_FAILURE;
+  CStatus::update("EpiHiper", "failed");
+
+success:
+  CModel::release();
+  CInitialization::release();
+  CIntervention::release();
+  CNetwork::release();
+  CConnection::release();
+  CActionQueue::release();
   CSimConfig::release();
   CCommunicate::finalize();
   CLogger::release();
 
-  return 0;
+  exit(EXIT);
 }

@@ -48,6 +48,8 @@ public:
   
   static const std::string sanitize(std::string dirty);
 
+  static bool hasErrors();
+
   typedef CStream< spdlog::level::trace > trace;
   typedef CStream< spdlog::level::debug > debug;
   typedef CStream< spdlog::level::info > info;
@@ -59,6 +61,7 @@ public:
 private:
   static std::stack< spdlog::level::level_enum > levels;
   static std::string task;
+  static bool haveErrors;
 };
 
 template < int level >
@@ -116,9 +119,11 @@ void CLogger::CStream< level >::flush(const std::string & msg)
       spdlog::warn(task + msg);
       break;
     case spdlog::level::err:
+      haveErrors = true;
       spdlog::error(task + msg);
       break;
     case spdlog::level::critical:
+      haveErrors = true;
       spdlog::critical(task + msg);
       break;
     case spdlog::level::off:
