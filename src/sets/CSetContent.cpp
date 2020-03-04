@@ -45,8 +45,10 @@ CSetContent::~CSetContent()
 {}
 
 // virtual
-void CSetContent::computeProtected()
-{}
+bool CSetContent::computeProtected()
+{
+  return false;
+}
 
 // static
 CSetContent * CSetContent::create(const json_t * json)

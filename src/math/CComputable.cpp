@@ -43,13 +43,13 @@ const CComputableSet & CComputable::getPrerequisites() const
   return mPrerequisites;
 }
 
-void CComputable::compute()
+bool CComputable::compute()
 {
   if (mStatic && mComputedOnce)
-    return;
+    return true;
 
-  computeProtected();
   mComputedOnce = true;
+  return computeProtected();
 }
 
 bool CComputable::isStatic() const

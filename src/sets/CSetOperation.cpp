@@ -146,14 +146,16 @@ void CSetOperation::fromJSON(const json_t * json)
 }
 
 // virtual
-void CSetOperation::computeProtected()
+bool CSetOperation::computeProtected()
 {
   if (mValid
       && mpCompute != NULL)
-    (this->*mpCompute)();
+    return (this->*mpCompute)();
+
+  return false;
 }
 
-void CSetOperation::computeUnion()
+bool CSetOperation::computeUnion()
 {
   std::vector< CNode * > & Nodes = getNodes();
   std::vector< CEdge * > & Edges = getEdges();
@@ -213,9 +215,11 @@ void CSetOperation::computeUnion()
     {
       Nodes = *pOutNodes;
     }
+
+  return true;
 }
 
-void CSetOperation::computeIntersection()
+bool CSetOperation::computeIntersection()
 {
   std::vector< CNode * > N1, N2, *pNin, *pNout;
   std::vector< CEdge * > E1, E2, *pEin, *pEout;
@@ -275,4 +279,6 @@ void CSetOperation::computeIntersection()
   getEdges() = *pEin;
   getNodes() = *pNin;
   getDBFieldValues() = *pDBin;
+
+  return true;
 }

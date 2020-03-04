@@ -41,7 +41,7 @@ public:
 
   virtual ~CObservable();
 
-  virtual void computeProtected();
+  virtual bool computeProtected() override;
 
   bool operator < (const CObservable & rhs) const;
 
@@ -55,18 +55,18 @@ private:
 
   virtual void fromJSON(const json_t * json);
 
-  void computeTime();
+  bool computeTime();
 
-  void computeTotalPopulation();
+  bool computeTotalPopulation();
 
-  void computeHealthStateAbsolute();
+  bool computeHealthStateAbsolute();
 
-  void computeHealthStateRelative();
+  bool computeHealthStateRelative();
 
   ObservableType mObservableType;
   size_t mId;
 
-  void (CObservable::*mpCompute)();
+  bool (CObservable::*mpCompute)();
 
 };
 

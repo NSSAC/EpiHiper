@@ -36,7 +36,7 @@ public:
 
   virtual CSetContent * copy() const = 0;
 
-  virtual void computeProtected();
+  virtual bool computeProtected() override;
 
   virtual void fromJSON(const json_t * json) = 0;
 

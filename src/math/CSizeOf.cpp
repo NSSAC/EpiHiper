@@ -66,12 +66,14 @@ CValueInterface * CSizeOf::copy() const
 }
 
 //  virtual
-void CSizeOf::computeProtected()
+bool CSizeOf::computeProtected()
 {
   if (mValid)
     {
-      broadcastSize();
+      return broadcastSize() == (int) CCommunicate::ErrorCode::Success;
     }
+
+  return false;
 }
 
 int CSizeOf::broadcastSize()

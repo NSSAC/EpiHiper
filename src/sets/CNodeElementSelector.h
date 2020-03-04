@@ -38,17 +38,17 @@ public:
 
   virtual void fromJSON(const json_t * json);
 
-  virtual void computeProtected();
+  virtual bool computeProtected() override;
 
 private:
-  void nodeAll();
-  void nodePropertySelection();
-  void nodePropertyWithin();
-  void nodeWithIncomingEdge();
-  void nodeInDBTable();
-  void nodeWithDBFieldSelection();
-  void nodeWithDBFieldWithin();
-  void nodeWithDBFieldNotWithin();
+  bool nodeAll();
+  bool nodePropertySelection();
+  bool nodePropertyWithin();
+  bool nodeWithIncomingEdge();
+  bool nodeInDBTable();
+  bool nodeWithDBFieldSelection();
+  bool nodeWithDBFieldWithin();
+  bool nodeWithDBFieldNotWithin();
 
   CNodeProperty mNodeProperty;
   CValue * mpValue;
@@ -62,7 +62,7 @@ private:
   CValueInterface::pComparison mpComparison;
   std::string mSQLComparison;
   bool mLocalScope;
-  void (CNodeElementSelector::*mpCompute)();
+  bool (CNodeElementSelector::*mpCompute)();
 };
 
 #endif /* SRC_SETS_CNODEELEMENTSELECTOR_H_ */

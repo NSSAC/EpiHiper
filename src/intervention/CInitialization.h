@@ -30,7 +30,7 @@ public:
 
   static void release();
 
-  static void processAll();
+  static bool processAll();
 
   CInitialization();
 

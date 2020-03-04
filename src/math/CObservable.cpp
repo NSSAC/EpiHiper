@@ -100,11 +100,13 @@ CObservable::~CObservable()
 {}
 
 // virtual
-void CObservable::computeProtected()
+bool CObservable::computeProtected()
 {
   if (mValid
       && mpCompute != NULL)
-    (this->*mpCompute)();
+    return (this->*mpCompute)();
+
+  return false;
 }
 
 bool CObservable::operator<(const CObservable & rhs) const
@@ -115,29 +117,37 @@ bool CObservable::operator<(const CObservable & rhs) const
   return mId < rhs.mId;
 }
 
-void CObservable::computeTime()
+bool CObservable::computeTime()
 {
   double Time = CActionQueue::getCurrentTick();
   assignValue(&Time);
+
+  return true;
 }
 
-void CObservable::computeTotalPopulation()
+bool CObservable::computeTotalPopulation()
 {
   double TotalPopulation = CNetwork::INSTANCE->getGlobalNodeCount();
   assignValue(&TotalPopulation);
+
+  return true;
 }
 
-void CObservable::computeHealthStateAbsolute()
+bool CObservable::computeHealthStateAbsolute()
 {
   const CHealthState * pHealthState = CModel::stateFromType(mId);
 
   if (pHealthState != NULL)
     {
       assignValue(&pHealthState->getGlobalCounts().Current);
+
+      return true;
     }
+  
+  return false;
 }
 
-void CObservable::computeHealthStateRelative()
+bool CObservable::computeHealthStateRelative()
 {
   const CHealthState * pHealthState = CModel::stateFromType(mId);
 
@@ -145,7 +155,11 @@ void CObservable::computeHealthStateRelative()
     {
       double Relative = ((double) pHealthState->getGlobalCounts().Current) / CNetwork::INSTANCE->getGlobalNodeCount();
       assignValue(&Relative);
+
+      return true;
     }
+
+  return false;
 }
 
 void CObservable::fromJSON(const json_t * json)

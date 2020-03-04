@@ -34,8 +34,10 @@ CTick::~CTick()
 {}
 
 // virtual
-void CTick::computeProtected()
-{}
+bool CTick::computeProtected()
+{
+  return true;
+}
 
 CTick::operator int() const
 {

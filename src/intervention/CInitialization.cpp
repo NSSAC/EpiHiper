@@ -104,7 +104,7 @@ void CInitialization::release()
 }
 
 // static
-void CInitialization::processAll()
+bool CInitialization::processAll()
 {
   std::vector< CInitialization * >::iterator it = INSTANCES.begin();
   std::vector< CInitialization * >::iterator end = INSTANCES.end();
@@ -118,13 +118,15 @@ void CInitialization::processAll()
 
   CComputable::Sequence InitializationSequence;
   CDependencyGraph::getUpdateSequence(InitializationSequence, RequiredTargets);
-  CDependencyGraph::applyUpdateSequence(InitializationSequence);
+  bool success = CDependencyGraph::applyUpdateSequence(InitializationSequence);
 
-  for (it = INSTANCES.begin(); it != end; ++it)
+  for (it = INSTANCES.begin(); it != end && success; ++it)
     {
       CLogger::debug() << "CInitialization: Process initialization '" << (*it)->getAnnId() << "'.";
       (*it)->process();
     }
+
+  return success;
 }
 
 CInitialization::CInitialization()

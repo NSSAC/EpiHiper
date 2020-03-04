@@ -140,8 +140,10 @@ void CSet::fromJSON(const json_t * json)
 }
 
 // virtual
-void CSet::computeProtected()
-{}
+bool CSet::computeProtected()
+{
+  return true;
+}
 
 // virtual
 bool CSet::contains(CNode * pNode) const

@@ -31,7 +31,7 @@ public:
 
   virtual void fromJSON(const json_t * json);
 
-  virtual void computeProtected();
+  virtual bool computeProtected() override;
 
 private:
   std::string mTable;

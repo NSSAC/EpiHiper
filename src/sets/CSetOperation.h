@@ -30,14 +30,14 @@ public:
 
   virtual void fromJSON(const json_t * json);
 
-  virtual void computeProtected();
+  virtual bool computeProtected() override;
 
 private:
-  void computeUnion();
+  bool computeUnion();
 
-  void computeIntersection();
+  bool computeIntersection();
 
-  void (CSetOperation::*mpCompute)();
+  bool (CSetOperation::*mpCompute)();
 
   std::set< CSetContent * > mSets;
 };

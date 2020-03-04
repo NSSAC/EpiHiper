@@ -64,7 +64,7 @@ void CTrigger::release()
 }
 
 // static
-void CTrigger::processAll()
+bool CTrigger::processAll()
 {
   RequiredTargets.clear();
 
@@ -101,7 +101,7 @@ void CTrigger::processAll()
 
   CComputable::Sequence UpdateSequence;
   CDependencyGraph::getUpdateSequence(UpdateSequence, RequiredTargets);
-  CDependencyGraph::applyUpdateSequence(UpdateSequence);
+  return CDependencyGraph::applyUpdateSequence(UpdateSequence);
 }
 
 // static

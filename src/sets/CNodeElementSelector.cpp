@@ -699,14 +699,16 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 }
 
 // virtual
-void CNodeElementSelector::computeProtected()
+bool CNodeElementSelector::computeProtected()
 {
   if (mValid
       && mpCompute != NULL)
-    (this->*mpCompute)();
+    return (this->*mpCompute)();
+
+  return false;
 }
 
-void CNodeElementSelector::nodeAll()
+bool CNodeElementSelector::nodeAll()
 {
   std::vector< CNode * > & Nodes = getNodes();
 
@@ -720,9 +722,11 @@ void CNodeElementSelector::nodeAll()
       for (; it != end; ++it, ++pNode)
         *it = pNode;
     }
+
+  return true;
 }
 
-void CNodeElementSelector::nodePropertySelection()
+bool CNodeElementSelector::nodePropertySelection()
 {
   std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
@@ -735,7 +739,7 @@ void CNodeElementSelector::nodePropertySelection()
       Nodes.push_back(pNode);
 
   if (mLocalScope)
-    return;
+    return true;
 
   std::map< size_t, CNode >::const_iterator it = CNetwork::INSTANCE->beginRemoteNodes();
   std::map< size_t, CNode >::const_iterator end = CNetwork::INSTANCE->endRemoteNodes();
@@ -743,9 +747,11 @@ void CNodeElementSelector::nodePropertySelection()
   for (; it != end; ++it)
     if (mpComparison(mNodeProperty.propertyOf(&it->second), *mpValue))
       Nodes.push_back(const_cast< CNode * >(&it->second));
+
+  return true;
 }
 
-void CNodeElementSelector::nodePropertyWithin()
+bool CNodeElementSelector::nodePropertyWithin()
 {
   std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
@@ -758,7 +764,7 @@ void CNodeElementSelector::nodePropertyWithin()
       Nodes.push_back(pNode);
 
   if (mLocalScope)
-    return;
+    return true;
 
   std::map< size_t, CNode >::const_iterator it = CNetwork::INSTANCE->beginRemoteNodes();
   std::map< size_t, CNode >::const_iterator end = CNetwork::INSTANCE->endRemoteNodes();
@@ -766,9 +772,11 @@ void CNodeElementSelector::nodePropertyWithin()
   for (; it != end; ++it)
     if (mpValueList->contains(mNodeProperty.propertyOf(&it->second)))
       Nodes.push_back(const_cast< CNode * >(&it->second));
+
+  return true;
 }
 
-void CNodeElementSelector::nodeWithIncomingEdge()
+bool CNodeElementSelector::nodeWithIncomingEdge()
 {
   std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
@@ -786,15 +794,17 @@ void CNodeElementSelector::nodeWithIncomingEdge()
 
   std::sort(Nodes.begin(), Nodes.end());
   // std::cout << "nodeWithIncomingEdge: " << Nodes.size() << std::endl;
+
+  return true;
 }
 
-void CNodeElementSelector::nodeInDBTable()
+bool CNodeElementSelector::nodeInDBTable()
 {
   std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
 
   CFieldValueList FieldValueList;
-  CQuery::all(mDBTable, "pid", FieldValueList, mLocalScope);
+  bool success = CQuery::all(mDBTable, "pid", FieldValueList, mLocalScope);
 
   CFieldValueList::const_iterator it = FieldValueList.begin();
   CFieldValueList::const_iterator end = FieldValueList.end();
@@ -807,19 +817,21 @@ void CNodeElementSelector::nodeInDBTable()
     }
 
   // std::cout << "nodeInDBTable: " << Nodes.size() << std::endl;
+  return success;
 }
 
-void CNodeElementSelector::nodeWithDBFieldSelection()
+bool CNodeElementSelector::nodeWithDBFieldSelection()
 {
+  bool success = false;
   std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
 
   CFieldValueList FieldValueList;
 
   if (mpObservable)
-    CQuery::where(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpObservable, mSQLComparison);
+    success = CQuery::where(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpObservable, mSQLComparison);
   else
-    CQuery::where(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpDBFieldValue, mSQLComparison);
+    success = CQuery::where(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpDBFieldValue, mSQLComparison);
 
   CFieldValueList::const_iterator it = FieldValueList.begin();
   CFieldValueList::const_iterator end = FieldValueList.end();
@@ -831,17 +843,19 @@ void CNodeElementSelector::nodeWithDBFieldSelection()
         Nodes.push_back(pNode);
     }
   // std::cout << "nodeWithDBFieldSelection: " << Nodes.size() << std::endl;
+  return success;
 }
 
-void CNodeElementSelector::nodeWithDBFieldWithin()
+bool CNodeElementSelector::nodeWithDBFieldWithin()
 {
+  bool success = false;
   std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
 
   CFieldValueList FieldValueList;
 
   if (mpDBFieldValueList != NULL)
-    CQuery::in(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpDBFieldValueList);
+    success = CQuery::in(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpDBFieldValueList);
   else
     {
       CField Field = CSchema::INSTANCE.getTable(mDBTable).getField(mDBField);
@@ -849,7 +863,7 @@ void CNodeElementSelector::nodeWithDBFieldWithin()
       std::map< CValueList::Type, CValueList >::const_iterator found = ValueListMap.find(Field.getType());
 
       if (found != ValueListMap.end())
-        CQuery::in(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, found->second);
+        success = CQuery::in(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, found->second);
     }
 
   CFieldValueList::const_iterator it = FieldValueList.begin();
@@ -862,17 +876,19 @@ void CNodeElementSelector::nodeWithDBFieldWithin()
         Nodes.push_back(pNode);
     }
   // std::cout << "nodeWithDBFieldWithin: " << Nodes.size() << std::endl;
+  return success;
 }
 
-void CNodeElementSelector::nodeWithDBFieldNotWithin()
+bool CNodeElementSelector::nodeWithDBFieldNotWithin()
 {
+  bool success = false;
   std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
 
   CFieldValueList FieldValueList;
 
   if (mpDBFieldValueList != NULL)
-    CQuery::notIn(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpDBFieldValueList);
+    success = CQuery::notIn(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpDBFieldValueList);
   else
     {
       CField Field = CSchema::INSTANCE.getTable(mDBTable).getField(mDBField);
@@ -880,7 +896,7 @@ void CNodeElementSelector::nodeWithDBFieldNotWithin()
       std::map< CValueList::Type, CValueList >::const_iterator found = ValueListMap.find(Field.getType());
 
       if (found != ValueListMap.end())
-        CQuery::notIn(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, found->second);
+        success = CQuery::notIn(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, found->second);
     }
 
   CFieldValueList::const_iterator it = FieldValueList.begin();
@@ -893,4 +909,5 @@ void CNodeElementSelector::nodeWithDBFieldNotWithin()
         Nodes.push_back(pNode);
     }
   // std::cout << "nodeWithDBFieldNotWithin: " << Nodes.size() << std::endl;
+  return success;
 }

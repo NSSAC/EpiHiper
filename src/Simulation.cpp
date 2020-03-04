@@ -68,12 +68,13 @@ Simulation::~Simulation() {
 }
 
 // check all required components are ready
-void Simulation::validate() {
-  valid = true;
-  if (endTick < startTick) valid = false;
+bool Simulation::validate() {
+  valid = (startTick <= startTick);
+  
+  return valid;
 }
 
-void Simulation::run()
+bool Simulation::run()
 {
   CActionQueue::setCurrentTick(startTick - 1);
   Changes::setCurrentTick(startTick - 1);
@@ -81,9 +82,13 @@ void Simulation::run()
   CModel::initGlobalStateCountOutput();
 
   CDependencyGraph::buildGraph();
-  CDependencyGraph::applyUpdateSequence();
+      
+  if (!CDependencyGraph::applyUpdateSequence())
+    return false;
 
-  CInitialization::processAll();
+  if (!CInitialization::processAll())
+    return false;
+
   CCommunicate::memUsage(CActionQueue::getCurrentTick());
 
   CActionQueue::processCurrentActions();
@@ -100,9 +105,15 @@ void Simulation::run()
   while (CActionQueue::getCurrentTick() < endTick)
     {
       CVariableList::INSTANCE.resetAll();
-      CDependencyGraph::applyUpdateSequence();
+      
+      if (!CDependencyGraph::applyUpdateSequence())
+        return false;
+
       CModel::processTransmissions();
-      CTrigger::processAll();
+      
+      if (!CTrigger::processAll())
+        return false;
+
       CIntervention::processAll();
       CCommunicate::memUsage(CActionQueue::getCurrentTick());
       CActionQueue::processCurrentActions();
@@ -117,4 +128,6 @@ void Simulation::run()
 
       CStatus::update("EpiHiper", "running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
     }
+
+  return true;
 }

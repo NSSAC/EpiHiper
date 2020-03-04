@@ -46,7 +46,7 @@ public:
 
   virtual void fromJSON(const json_t * json);
 
-  virtual void computeProtected();
+  virtual bool computeProtected() override;
 
   virtual bool contains(CNode * pNode) const;
 

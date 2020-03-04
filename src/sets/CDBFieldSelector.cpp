@@ -171,7 +171,7 @@ void CDBFieldSelector::fromJSON(const json_t * json)
 }
 
 // virtual
-void CDBFieldSelector::computeProtected()
+bool CDBFieldSelector::computeProtected()
 {
   std::map< CValueList::Type, CValueList > & DBFieldValues = getDBFieldValues();
   DBFieldValues.clear();
@@ -187,7 +187,7 @@ void CDBFieldSelector::computeProtected()
       ConstraintValueList.append(CFieldValue((*itConstraint)->id));
     }
 
-  CQuery::in(mTable, mField, FieldValueList, false, "pid", ConstraintValueList);
+  bool success = CQuery::in(mTable, mField, FieldValueList, false, "pid", ConstraintValueList);
 
   if (FieldValueList.size() > 0)
     {
@@ -195,4 +195,5 @@ void CDBFieldSelector::computeProtected()
     }
 
   // std::cout << "CDBFieldSelector::compute: " << FieldValueList.size() << std::endl;
+  return success;
 }

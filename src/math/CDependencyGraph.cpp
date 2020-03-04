@@ -58,19 +58,22 @@ void CDependencyGraph::buildGraph()
 }
 
 // static
-void CDependencyGraph::applyUpdateSequence()
+bool CDependencyGraph::applyUpdateSequence()
 {
-  applyUpdateSequence(UpdateSequence);
+  return applyUpdateSequence(UpdateSequence);
 }
 
 // static
-void CDependencyGraph::applyUpdateSequence(CComputable::Sequence & updateSequence)
+bool CDependencyGraph::applyUpdateSequence(CComputable::Sequence & updateSequence)
 {
+  bool success = true;
   CComputable::Sequence::iterator it = updateSequence.begin();
   CComputable::Sequence::iterator end = updateSequence.end();
 
-  for (; it != end; ++it)
-    (*it)->compute();
+  for (; it != end && success; ++it)
+    success &= (*it)->compute();
+
+  return success;
 }
 
 // static

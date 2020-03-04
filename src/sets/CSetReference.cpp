@@ -120,8 +120,10 @@ bool CSetReference::resolve()
 }
 
 // virtual
-void CSetReference::computeProtected()
-{}
+bool CSetReference::computeProtected()
+{
+  return true;
+}
 
 // virtual
 bool CSetReference::contains(CNode * pNode) const

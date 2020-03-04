@@ -27,9 +27,8 @@ private:
 public:
   Simulation(int seed, std::string dbconn);
   ~Simulation();
-  void validate();
-  void run();
-  inline bool isValid() { return valid; }
+  bool validate();
+  bool run();
 };
 
 #endif

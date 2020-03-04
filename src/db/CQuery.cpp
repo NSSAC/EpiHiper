@@ -153,6 +153,8 @@ bool CQuery::all(const std::string & table,
   if (pWork == NULL)
     return false;
 
+  bool success = true;
+
   try
     {
       size_t Offset = 0;
@@ -163,13 +165,14 @@ bool CQuery::all(const std::string & table,
 
   catch (const std::exception & e)
     {
-      CLogger::error(CLogger::sanitize(e.what()));
+      CLogger::error() << "CQuery: " << CLogger::sanitize(e.what());
+      success = false;
     }
 
   pWork->commit();
   delete pWork;
 
-  return true;
+  return success;
 }
 
 // static
@@ -264,6 +267,8 @@ bool CQuery::in(const std::string & table,
   if (pWork == NULL)
     return false;
 
+  bool success = true;
+
   try
     {
       size_t Offset = 0;
@@ -274,13 +279,14 @@ bool CQuery::in(const std::string & table,
 
   catch (const std::exception & e)
     {
-      CLogger::error(CLogger::sanitize(e.what()));
+      CLogger::error() << "CQuery: " << CLogger::sanitize(e.what());
+      success = false;
     }
 
   pWork->commit();
   delete pWork;
 
-  return true;
+  return success;
 }
 
 // static
@@ -354,6 +360,8 @@ bool CQuery::where(const std::string & table,
   if (pWork == NULL)
     return false;
 
+  bool success = true;
+
   try
     {
       size_t Offset = 0;
@@ -364,11 +372,12 @@ bool CQuery::where(const std::string & table,
 
   catch (const std::exception & e)
     {
-      CLogger::error(CLogger::sanitize(e.what()));
+      CLogger::error() << "CQuery: " << CLogger::sanitize(e.what());
+      success = false;
     }
 
   pWork->commit();
   delete pWork;
 
-  return true;
+  return success;
 }

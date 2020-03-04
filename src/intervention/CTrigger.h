@@ -37,7 +37,7 @@ public:
 
   static void release();
 
-  static void processAll();
+  static bool processAll();
 
   static CCommunicate::ErrorCode receive(std::istream & is, int sender);
 

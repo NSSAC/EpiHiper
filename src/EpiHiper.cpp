@@ -200,14 +200,11 @@ int main(int argc, char * argv[])
   {
     Simulation sim(seed, dbconn);
 
-    sim.validate();
+    if (!sim.validate())
+      goto failed;
 
-    if (!sim.isValid())
-      {
-        goto failed;
-      }
-
-    sim.run();
+    if (!sim.run())
+      goto failed;
   }
 
   CStatus::finalize("EpiHiper");

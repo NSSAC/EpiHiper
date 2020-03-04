@@ -31,9 +31,9 @@ public:
 
   static void buildGraph();
 
-  static void applyUpdateSequence();
+  static bool applyUpdateSequence();
 
-  static void applyUpdateSequence(CComputable::Sequence & updateSequence);
+  static bool applyUpdateSequence(CComputable::Sequence & updateSequence);
 
   static bool getUpdateSequence(CComputable::Sequence & updateSequence,
                                 const CComputableSet & requestedComputables);
