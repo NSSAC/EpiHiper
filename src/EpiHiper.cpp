@@ -213,6 +213,7 @@ int main(int argc, char * argv[])
 failed:
   EXIT = EXIT_FAILURE;
   CStatus::update("EpiHiper", "failed");
+  CCommunicate::abort((CCommunicate::ErrorCode) MPI_ERR_UNKNOWN);
 
 success:
   CModel::release();
