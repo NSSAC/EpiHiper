@@ -168,11 +168,16 @@ void CValueList::fromJSON(const json_t * json)
     }
     */
 
+  const json_t * pValueList = json_object_get(json, "valueList");
+
+  if (pValueList == NULL)
+    pValueList = json;
+
   mValid = false; // DONE
   const CTrait * pTrait = NULL;
   const CFeature * pFeature = NULL;
 
-  json_t * pValue = json_object_get(json, "boolean");
+  json_t * pValue = json_object_get(pValueList, "boolean");
   json_t * pArray = NULL;
 
   if (json_is_array(pValue))
@@ -183,34 +188,34 @@ void CValueList::fromJSON(const json_t * json)
 
   if (pArray == NULL)
     {
-      pValue = json_object_get(json, "number");
+      pValue = json_object_get(pValueList, "number");
 
       if (json_is_array(pValue))
         {
           mType = Type::number;
-          json_t * pArray = pValue;
+           pArray = pValue;
         }
     }
 
   if (pArray == NULL)
     {
-      pValue = json_object_get(json, "healthState");
+      pValue = json_object_get(pValueList, "healthState");
 
       if (json_is_array(pValue))
         {
           mType = Type::id;
-          json_t * pArray = pValue;
+           pArray = pValue;
         }
     }
 
   if (pArray == NULL)
     {
-      pValue = json_object_get(json, "enum");
+      pValue = json_object_get(pValueList, "enum");
 
       if (json_is_array(pValue))
         {
           mType = Type::traitValue;
-          json_t * pArray = pValue;
+           pArray = pValue;
         }
     }
 
@@ -222,7 +227,7 @@ void CValueList::fromJSON(const json_t * json)
 
   if (mType == Type::traitValue)
     {
-      json_t * pValue = json_object_get(json, "trait");
+      json_t * pValue = json_object_get(pValueList, "trait");
 
       if (json_is_string(pValue))
         {
@@ -238,7 +243,7 @@ void CValueList::fromJSON(const json_t * json)
           return;
         }
 
-      pValue = json_object_get(json, "feature");
+      pValue = json_object_get(pValueList, "feature");
 
       if (json_is_string(pValue))
         {

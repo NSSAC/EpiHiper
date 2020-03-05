@@ -347,7 +347,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
           mNodeProperty.fromJSON(json_object_get(json, "left"));
 
-          if (mNodeProperty.isValid())
+          if (!mNodeProperty.isValid())
             {
               CLogger::error("Node selector: Invalid or missing value for 'left'.");
               return;
@@ -356,7 +356,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
           mpValueList = new CValueList(json_object_get(json, "right"));
 
           if (mpValueList != NULL
-              && mpValueList->isValid())
+              && !mpValueList->isValid())
             {
               CLogger::error("Node selector: Invalid or missing value for 'right'.");
               return;
