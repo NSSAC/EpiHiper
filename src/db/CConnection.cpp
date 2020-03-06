@@ -38,16 +38,35 @@ void CConnection::init()
 
   URI += dbConnection.host + "/" + dbConnection.name;
 
-  URI += "?connect_timeout=60";
+  URI += "?connect_timeout=10";
 
-  try
-    {
-      pINSTANCE = new CConnection(URI);
-    }
+  int Tries = 6;
 
-  catch (const pqxx::pqxx_exception & e)
+  while (Tries > 0
+         && pINSTANCE == NULL)
     {
-      CLogger::error(CLogger::sanitize(e.base().what()));
+      Tries--;
+
+      try
+        {
+          pINSTANCE = new CConnection(URI);
+        }
+
+      catch (const pqxx::pqxx_exception & e)
+        {
+          std::string Message = CLogger::sanitize(e.base().what());
+
+          if (Message.find("timeout expired") != std::string::npos
+              || Tries == 0)
+            {
+              CLogger::error(Message);
+              Tries = 0;
+            } 
+          else
+            {
+              CLogger::warn() << Message << " tries left: " << Tries;
+            }
+        }
     }
 }
 
