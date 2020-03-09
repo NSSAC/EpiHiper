@@ -30,6 +30,7 @@ void CLogger::init()
   // Set global log level to info
   setLevel(spdlog::level::warn);
   std::shared_ptr<spdlog::logger> console = spdlog::stdout_logger_st("console");
+  spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%^%l%$] %v");
 }
 
 // static

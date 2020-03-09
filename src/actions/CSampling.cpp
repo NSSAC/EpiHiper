@@ -277,7 +277,7 @@ void CSampling::process(const CSetContent & targets)
       mpTargets->samplePercent(mPercentage, mSampledTargets, mNotSampledTargets);
     }
 
-  CLogger::debug() << "CSampling: Sampled set size: '" << mSampledTargets.size() << ", Not sampled set size: '" << mNotSampledTargets.size();
+  CLogger::debug() << "CSampling: Sampled set size: '" << mSampledTargets.size() << "', Not sampled set size: '" << mNotSampledTargets.size() << "'";
 
   if (mpSampled != NULL)
     {

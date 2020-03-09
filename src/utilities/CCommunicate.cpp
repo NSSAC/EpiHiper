@@ -129,7 +129,7 @@ int CCommunicate::broadcast(void * buffer,
   if (MPIProcesses == 1)
     return MPI_SUCCESS;
 
-  CLogger::debug() << "CCommunicate: Broatcast '" << count << "' bytes from '" << root << "'.";
+  CLogger::debug() << "CCommunicate: Broadcast '" << count << "' bytes from '" << root << "'.";
   return MPI_Bcast(buffer, count, datatype, root, MPI_COMM_WORLD);
 }
 
@@ -146,7 +146,7 @@ int CCommunicate::broadcast(const void * buffer,
     {
       if (sender != MPIRank)
         {
-          broadcast(&Count, 1, MPI_INT, sender);
+          broadcast(&Count, sizeof(count), MPI_CHAR, sender);
 
           if (Count > 0)
             {
@@ -163,7 +163,7 @@ int CCommunicate::broadcast(const void * buffer,
       else
         {
           Count = count;
-          broadcast(&Count, 1, MPI_INT, sender);
+          broadcast(&Count, sizeof(count), MPI_CHAR, sender);
 
           if (Count > 0)
             {
