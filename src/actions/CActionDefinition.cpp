@@ -1,14 +1,14 @@
-// BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
-// All rights reserved 
-// END: Copyright 
+// BEGIN: Copyright
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia
+// All rights reserved
+// END: Copyright
 
-// BEGIN: License 
-// Licensed under the Apache License, Version 2.0 (the "License"); 
-// you may not use this file except in compliance with the License. 
-// You may obtain a copy of the License at 
-//   http://www.apache.org/licenses/LICENSE-2.0 
-// END: License 
+// BEGIN: License
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//   http://www.apache.org/licenses/LICENSE-2.0
+// END: License
 
 #include <limits>
 #include <jansson.h>
@@ -67,7 +67,7 @@ CActionDefinition::CActionDefinition(const json_t * json)
   if (mValid)
     {
       mIndex = INSTANCES.size();
-      mInfo.set("CActionDefinition", (int) mIndex); 
+      mInfo.set("CActionDefinition", (int) mIndex);
       INSTANCES.push_back(this);
     }
 }
@@ -225,27 +225,33 @@ const bool & CActionDefinition::isValid() const
 
 void CActionDefinition::process() const
 {
-  CAction * pAction = new CAction(mPriority, mCondition.createCondition());
-
-  // Loop through the operation definitions
-  std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
-  std::vector< COperationDefinition >::const_iterator end = mOperations.end();
-
-  for (; it != end; ++it)
+  try
     {
-      pAction->addOperation(it->createOperation(mInfo));
+      CAction * pAction = new CAction(mPriority, mCondition.createCondition());
+
+      // Loop through the operation definitions
+      std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
+      std::vector< COperationDefinition >::const_iterator end = mOperations.end();
+
+      for (; it != end; ++it)
+        {
+          pAction->addOperation(it->createOperation(mInfo));
+        }
+
+      CLogger::trace() << "CActionDefinition: Add node and edge independent action.";
+      CActionQueue::addAction(mDelay, pAction);
     }
-
-  CLogger::trace() << "CActionDefinition: Add node and edge independent action.";
-  CActionQueue::addAction(mDelay, pAction);
-
+  catch (...)
+    {
+      CLogger::error() << "CActionDefinition:: Failed to create node and edge independent action.";
+    }
 }
 
 void CActionDefinition::process(const CEdge * pEdge) const
 {
   if (pEdge == NULL)
     return;
-    
+
   if (CNetwork::INSTANCE->isRemoteNode(pEdge->pTarget))
     {
       CLogger::trace() << "CActionDefinition: Add remote action for edge `" << pEdge->targetId << "," << pEdge->sourceId << "'.";
@@ -253,19 +259,26 @@ void CActionDefinition::process(const CEdge * pEdge) const
       return;
     }
 
-  CAction * pAction = new CAction(mPriority, mCondition.createCondition(pEdge));
-
-  // Loop through the operation definitions
-  std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
-  std::vector< COperationDefinition >::const_iterator end = mOperations.end();
-
-  for (; it != end; ++it)
+  try
     {
-      pAction->addOperation(it->createOperation(const_cast< CEdge * >(pEdge), mInfo));
-    }
+      CAction * pAction = new CAction(mPriority, mCondition.createCondition(pEdge));
 
-  CLogger::trace() << "CActionDefinition: Add action for edge `" << pEdge->targetId << "," << pEdge->sourceId << "'.";
-  CActionQueue::addAction(mDelay, pAction);
+      // Loop through the operation definitions
+      std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
+      std::vector< COperationDefinition >::const_iterator end = mOperations.end();
+
+      for (; it != end; ++it)
+        {
+          pAction->addOperation(it->createOperation(const_cast< CEdge * >(pEdge), mInfo));
+        }
+
+      CLogger::trace() << "CActionDefinition: Add action for edge `" << pEdge->targetId << "," << pEdge->sourceId << "'.";
+      CActionQueue::addAction(mDelay, pAction);
+    }
+  catch (...)
+    {
+      CLogger::error() << "CActionDefinition: Failed to create action for edge `" << pEdge->targetId << "," << pEdge->sourceId << "'.";
+    }
 }
 
 void CActionDefinition::process(const CNode * pNode) const
@@ -280,17 +293,24 @@ void CActionDefinition::process(const CNode * pNode) const
       return;
     }
 
-  CAction * pAction = new CAction(mPriority, mCondition.createCondition(pNode));
-
-  // Loop through the operation definitions
-  std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
-  std::vector< COperationDefinition >::const_iterator end = mOperations.end();
-
-  for (; it != end; ++it)
+  try
     {
-      pAction->addOperation(it->createOperation(const_cast< CNode * >(pNode), mInfo));
-    }
+      CAction * pAction = new CAction(mPriority, mCondition.createCondition(pNode));
 
-  CLogger::trace() << "CActionDefinition: Add action for node `" << pNode->id << "'.";
-  CActionQueue::addAction(mDelay, pAction);
+      // Loop through the operation definitions
+      std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
+      std::vector< COperationDefinition >::const_iterator end = mOperations.end();
+
+      for (; it != end; ++it)
+        {
+          pAction->addOperation(it->createOperation(const_cast< CNode * >(pNode), mInfo));
+        }
+
+      CLogger::trace() << "CActionDefinition: Add action for node `" << pNode->id << "'.";
+      CActionQueue::addAction(mDelay, pAction);
+    }
+  catch (const std::exception & e)
+    {
+      CLogger::error() << "CActionDefinition: Failed to create action for node `" << pNode->id << "'.";
+    }
 }

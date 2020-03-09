@@ -324,17 +324,24 @@ bool CModel::_processTransmissions() const
                   break;
               }
 
-            const Candidate & Candidate = (itCandidate != endCandidate) ? *itCandidate : *Candidates.rbegin();
+            try
+              {
+                const Candidate & Candidate = (itCandidate != endCandidate) ? *itCandidate : *Candidates.rbegin();
 
-            CCondition * pCheckState = new CComparison(CConditionDefinition::ComparisonType::Equal, CValueInterface(pNode->healthState), CValue(pNode->healthState));
+                CCondition * pCheckState = new CComparison(CConditionDefinition::ComparisonType::Equal, CValueInterface(pNode->healthState), CValue(pNode->healthState));
 
-            CMetadata Info("StateChange", true);
-            Info.set("ContactNode", (int) Candidate.pContact->id);
+                CMetadata Info("StateChange", true);
+                Info.set("ContactNode", (int) Candidate.pContact->id);
 
-            CAction * pChangeState = new CAction(1.0, pCheckState);
-            pChangeState->addOperation(new COperationInstance< CNode, const CTransmission * >(pNode, Candidate.pTransmission, NULL, &CNode::set, Info));
+                CAction * pChangeState = new CAction(1.0, pCheckState);
+                pChangeState->addOperation(new COperationInstance< CNode, const CTransmission * >(pNode, Candidate.pTransmission, NULL, &CNode::set, Info));
 
-            CActionQueue::addAction(0, pChangeState);
+                CActionQueue::addAction(0, pChangeState);
+              }
+            catch (...)
+              {
+                CLogger::error() << "CModel:: Failed to create transmission for '" << pNode->id << "'.";
+              }
           }
       }
 
@@ -380,13 +387,20 @@ void CModel::_stateChanged(CNode * pNode) const
 
       const CProgression * pProgression = (it != end) ? *it : *EntryStateFound->second.rbegin();
 
-      CCondition * pCheckState = new CComparison(CConditionDefinition::ComparisonType::Equal, CValueInterface(pNode->healthState), CValue(pNode->healthState));
+      try
+        {
+          CCondition * pCheckState = new CComparison(CConditionDefinition::ComparisonType::Equal, CValueInterface(pNode->healthState), CValue(pNode->healthState));
 
-      CMetadata Info("StateChange", true);
-      CAction * pChangeState = new CAction(1.0, pCheckState);
-      pChangeState->addOperation(new COperationInstance< CNode, const CProgression * >(pNode, pProgression, NULL, &CNode::set, Info));
+          CMetadata Info("StateChange", true);
+          CAction * pChangeState = new CAction(1.0, pCheckState);
+          pChangeState->addOperation(new COperationInstance< CNode, const CProgression * >(pNode, pProgression, NULL, &CNode::set, Info));
 
-      CActionQueue::addAction(pProgression->getDwellTime(), pChangeState);
+          CActionQueue::addAction(pProgression->getDwellTime(), pChangeState);
+        }
+      catch (...)
+        {
+          CLogger::error() << "CModel:: Failed to create progression for '" << pNode->id << "'.";
+        }
     }
 }
 

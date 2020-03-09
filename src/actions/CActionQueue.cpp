@@ -42,14 +42,21 @@ void CActionQueue::addAction(size_t deltaTick, CAction * pAction)
 {
   if (pINSTANCE != NULL)
     {
-      base::iterator found = pINSTANCE->find(pINSTANCE->mCurrenTick + deltaTick);
-
-      if (found == pINSTANCE->end())
+      try
         {
-          found = pINSTANCE->insert(std::make_pair(pINSTANCE->mCurrenTick + deltaTick, new CCurrentActions())).first;
-        }
+          base::iterator found = pINSTANCE->find(pINSTANCE->mCurrenTick + deltaTick);
 
-      found->second->addAction(pAction);
+          if (found == pINSTANCE->end())
+            {
+              found = pINSTANCE->insert(std::make_pair(pINSTANCE->mCurrenTick + deltaTick, new CCurrentActions())).first;
+            }
+
+          found->second->addAction(pAction);
+        }
+      catch (...)
+        {
+          CLogger::error("CActionQueue: Failed to add action."); 
+        }
     }
 }
 
@@ -154,9 +161,16 @@ void CActionQueue::addRemoteAction(const size_t & index, const CNode * pNode)
 {
   if (pINSTANCE != NULL)
     {
-      pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&index), sizeof(size_t));
-      pINSTANCE->mRemoteActions << 'N';
-      pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&pNode->id), sizeof(size_t));
+      try 
+        {
+          pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&index), sizeof(size_t));
+          pINSTANCE->mRemoteActions << 'N';
+          pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&pNode->id), sizeof(size_t));
+        }
+      catch (...)
+        {
+          CLogger::error() << "CActionQueue: Add remote action failed for action '" << index << "' node '" << pNode->id << "'.";
+        }
     }
 }
 
@@ -165,13 +179,19 @@ void CActionQueue::addRemoteAction(const size_t & index, const CEdge * pEdge)
 {
   if (pINSTANCE != NULL)
     {
-      pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&index), sizeof(size_t));
-      pINSTANCE->mRemoteActions << 'E';
-      pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&pEdge->targetId), sizeof(size_t));
-      pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&pEdge->sourceId), sizeof(size_t));
+      try
+        {
+          pINSTANCE->mRemoteActions.write(reinterpret_cast< const char * >(&index), sizeof(size_t));
+          pINSTANCE->mRemoteActions << 'E';
+          pINSTANCE->mRemoteActions.write(reinterpret_cast< const char * >(&pEdge->targetId), sizeof(size_t));
+          pINSTANCE->mRemoteActions.write(reinterpret_cast< const char * >(&pEdge->sourceId), sizeof(size_t));
+        }
+      catch (...)
+        {
+          CLogger::error() << "CActionQueue: Add remote action failed for action '" << index << "' edge '" << pEdge->targetId << "', '" << pEdge->sourceId << "'.";
+        }
     }
 }
-
 
 CActionQueue::CActionQueue()
   : base()
