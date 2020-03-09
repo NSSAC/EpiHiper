@@ -38,9 +38,8 @@ void CConnection::init()
 
   URI += dbConnection.host + "/" + dbConnection.name;
 
-  URI += "?connect_timeout=10";
-
-  int Tries = 6;
+  URI += "?connect_timeout=2";
+  int Tries = 15;
 
   while (Tries > 0
          && pINSTANCE == NULL)
@@ -56,10 +55,10 @@ void CConnection::init()
         {
           std::string Message = CLogger::sanitize(e.base().what());
 
-          if (Message.find("timeout expired") != std::string::npos
+          if (Message.find("timeout expired") == std::string::npos
               || Tries == 0)
             {
-              CLogger::error(Message);
+              CLogger::error() << Message;
               Tries = 0;
             } 
           else

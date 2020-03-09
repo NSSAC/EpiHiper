@@ -719,9 +719,20 @@ void CNetwork::load()
     }
 
   // std::cout << Communicate::Rank << ": " << mFirstLocalNode << ", " << mBeyondLocalNode << ", " << mLocalNodesSize << ", " << mEdgesSize << std::endl;
-  CLogger::info() << "Network: Allocating nodes '" << mLocalNodesSize << "' (" << mLocalNodesSize * sizeof(CNode) << "bytes).";
+  {
+    CLogger::info Info;
+    Info.imbue(std::locale(""));
+    Info << "Network: Allocating nodes '" << mLocalNodesSize << "' (" << mLocalNodesSize * sizeof(CNode) << " bytes).";
+  }
+
   mLocalNodes = new CNode[mLocalNodesSize];
-  CLogger::info() << "Network: Allocating edges '" << mEdgesSize << "' (" << mEdgesSize * sizeof(CEdge) << "bytes).";
+
+  {
+    CLogger::info Info;
+    Info.imbue(std::locale(""));
+    Info << "Network: Allocating edges '" << mEdgesSize << "' (" << mEdgesSize * sizeof(CEdge) << " bytes).";
+  }
+
   mEdges = new CEdge[mEdgesSize];
   CLogger::info("Network: Allocation completed");
    
