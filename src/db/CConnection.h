@@ -21,10 +21,13 @@ public:
   static void init();
   static void release();
   static pqxx::read_transaction * work();
+  static void setRequired(const bool & required);
+  
   virtual ~CConnection();
 
 private:
   static CConnection * pINSTANCE;
+  static bool required;
   CConnection(const std::string & uri = "");
   pqxx::connection mConnection;
 };

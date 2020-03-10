@@ -14,6 +14,7 @@
 #include <jansson.h>
 
 #include "sets/CDBFieldSelector.h"
+#include "db/CConnection.h"
 #include "db/CSchema.h"
 #include "db/CQuery.h"
 #include "db/CFieldValue.h"
@@ -167,6 +168,7 @@ void CDBFieldSelector::fromJSON(const json_t * json)
       return;
     }
 
+  CConnection::setRequired(true);
   mValid = true;
 }
 

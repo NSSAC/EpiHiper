@@ -1,14 +1,14 @@
-// BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
-// All rights reserved 
-// END: Copyright 
+// BEGIN: Copyright
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia
+// All rights reserved
+// END: Copyright
 
-// BEGIN: License 
-// Licensed under the Apache License, Version 2.0 (the "License"); 
-// you may not use this file except in compliance with the License. 
-// You may obtain a copy of the License at 
-//   http://www.apache.org/licenses/LICENSE-2.0 
-// END: License 
+// BEGIN: License
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//   http://www.apache.org/licenses/LICENSE-2.0
+// END: License
 
 #include <algorithm>
 #include <cstring>
@@ -16,6 +16,7 @@
 
 #include "sets/CNodeElementSelector.h"
 #include "math/CObservable.h"
+#include "db/CConnection.h"
 #include "db/CFieldValue.h"
 #include "db/CFieldValueList.h"
 #include "db/CQuery.h"
@@ -265,7 +266,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
   mPrerequisites.insert(&CActionQueue::getCurrentTick());
   pValue = json_object_get(json, "scope");
 
-  if (pValue != NULL 
+  if (pValue != NULL
       && strcmp(json_string_value(pValue), "local") == 0)
     {
       mLocalScope = true;
@@ -415,10 +416,12 @@ void CNodeElementSelector::fromJSON(const json_t * json)
         }
       else if (strcmp(Operator, "in") == 0)
         {
+          CConnection::setRequired(true);
           mpCompute = &CNodeElementSelector::nodeWithDBFieldWithin;
         }
       else if (strcmp(Operator, "not in") == 0)
         {
+          CConnection::setRequired(true);
           mpCompute = &CNodeElementSelector::nodeWithDBFieldNotWithin;
         }
     }
@@ -445,6 +448,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
               }
             },
            */
+          CConnection::setRequired(true);
           mpCompute = &CNodeElementSelector::nodeInDBTable;
           mValid = true;
           return;
@@ -672,6 +676,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
           return;
         }
 
+      CConnection::setRequired(true);
       mpCompute = &CNodeElementSelector::nodeWithDBFieldSelection;
 
       mpObservable = CObservable::get(json_object_get(json, "right"));

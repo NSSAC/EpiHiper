@@ -61,6 +61,9 @@ size_t Changes::Tick = -1;
 CConnection * CConnection::pINSTANCE = NULL;
 
 // static
+bool CConnection::required = false;
+
+// static
 CSchema CSchema::INSTANCE;
 
 // static

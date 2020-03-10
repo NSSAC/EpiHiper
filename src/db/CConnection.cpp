@@ -16,9 +16,16 @@
 #include "utilities/CSimConfig.h"
 
 // static
+void CConnection::setRequired(const bool & isRequired)
+{
+  required = isRequired;
+}
+
+// static
 void CConnection::init()
 {
-  if (pINSTANCE != NULL)
+  if (pINSTANCE != NULL
+      || !required)
     return;
 
   const CSimConfig::db_connection & dbConnection = CSimConfig::getDBConnection();

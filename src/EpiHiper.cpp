@@ -127,7 +127,6 @@ int main(int argc, char * argv[])
   CActionQueue::init();
   CRandom::init();
   CTrait::init();
-  CConnection::init();
 
   if (CLogger::hasErrors())
     {
@@ -186,6 +185,13 @@ int main(int argc, char * argv[])
       goto failed;
     }
 
+  CConnection::init();
+
+  if (CLogger::hasErrors())
+    {
+      goto failed;
+    }
+    
   CVariableList::INSTANCE.resetAll(true);
 
   CNetwork::INSTANCE->load();
