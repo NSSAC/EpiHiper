@@ -122,6 +122,7 @@ bool CSetReference::resolve()
 // virtual
 bool CSetReference::computeProtected()
 {
+  CLogger::debug("CSetReference: No operation.");
   return true;
 }
 

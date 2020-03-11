@@ -216,6 +216,20 @@ bool CSetOperation::computeUnion()
       Nodes = *pOutNodes;
     }
 
+  CLogger::debug Debug;
+  Debug << "CSetOperation: computeUnion (";
+  std::string Separator;
+
+  for (it = mSets.begin(); it != end; ++it)
+    {
+      Debug << Separator << (*it)->size();
+
+      if (Separator.empty())
+        Separator = ", ";
+    }
+
+  Debug << ") returned '" << size() << "'.";
+
   return true;
 }
 
@@ -279,6 +293,20 @@ bool CSetOperation::computeIntersection()
   getEdges() = *pEin;
   getNodes() = *pNin;
   getDBFieldValues() = *pDBin;
+
+  CLogger::debug Debug;
+  Debug << "CSetOperation: computeIntersection (";
+  std::string Separator;
+
+  for (it = mSets.begin(); it != end; ++it)
+    {
+      Debug << Separator << (*it)->size();
+
+      if (Separator.empty())
+        Separator = ", ";
+    }
+
+  Debug << ") returned '" << size() << "'.";
 
   return true;
 }

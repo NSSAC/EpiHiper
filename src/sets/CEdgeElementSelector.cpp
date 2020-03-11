@@ -313,34 +313,29 @@ bool CEdgeElementSelector::computeProtected()
           {
             Edges.push_back(pEdge);
           }
-
-      return true;
     }
-
-  if (mpValueList != NULL)
+  else if (mpValueList != NULL)
     {
       for (; pEdge != pEdgeEnd; ++pEdge)
         if (mpValueList->contains(mLeft.propertyOf(pEdge)))
           {
             Edges.push_back(pEdge);
           }
-
-      return true;
     }
-
-  if (mpSelector != NULL)
+  else if (mpSelector != NULL)
     {
       for (; pEdge != pEdgeEnd; ++pEdge)
         if (mpSelector->contains((*mpGetNode)(pEdge)))
           {
             Edges.push_back(pEdge);
           }
-
-      return true;
+    }
+  else
+    {
+      for (; pEdge != pEdgeEnd; ++pEdge)
+        Edges.push_back(pEdge);
     }
 
-  for (; pEdge != pEdgeEnd; ++pEdge)
-    Edges.push_back(pEdge);
-
+  CLogger::debug() << "CEdgeElementSelector: Returned '" << Edges.size() << "'.";
   return true;
 }

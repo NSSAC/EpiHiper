@@ -11,6 +11,7 @@
 // END: License 
 
 #include "math/CComputable.h"
+#include "utilities/CLogger.h"
 
 // static
 size_t CComputable::UniqueId(0);
@@ -49,6 +50,8 @@ bool CComputable::compute()
     return true;
 
   mComputedOnce = true;
+
+  CLogger::debug() << "CComputable: Computing '" << mComputableId << "'" <<  (mStatic ? " (static)" : "") << ".";
   return computeProtected();
 }
 

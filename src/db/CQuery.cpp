@@ -172,6 +172,8 @@ bool CQuery::all(const std::string & table,
   pWork->commit();
   delete pWork;
 
+  CLogger::debug() << "CQuery: " << Query.str() << " returned '" << result.size() << "' rows.";
+
   return success;
 }
 
@@ -286,6 +288,8 @@ bool CQuery::in(const std::string & table,
   pWork->commit();
   delete pWork;
 
+  CLogger::debug() << "CQuery: " << Query.str() << " returned '" << result.size() << "' rows.";
+
   return success;
 }
 
@@ -378,6 +382,8 @@ bool CQuery::where(const std::string & table,
 
   pWork->commit();
   delete pWork;
+
+  CLogger::debug() << "CQuery: " << Query.str() << " returned '" << result.size() << "' rows.";
 
   return success;
 }

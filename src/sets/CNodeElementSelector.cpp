@@ -728,6 +728,7 @@ bool CNodeElementSelector::nodeAll()
         *it = pNode;
     }
 
+  CLogger::debug() << "CNodeElementSelector: nodeAll returned '" << Nodes.size() << "' nodes.";
   return true;
 }
 
@@ -743,16 +744,17 @@ bool CNodeElementSelector::nodePropertySelection()
     if (mpComparison(mNodeProperty.propertyOf(pNode), *mpValue))
       Nodes.push_back(pNode);
 
-  if (mLocalScope)
-    return true;
+  if (!mLocalScope)
+    {
+      std::map< size_t, CNode >::const_iterator it = CNetwork::INSTANCE->beginRemoteNodes();
+      std::map< size_t, CNode >::const_iterator end = CNetwork::INSTANCE->endRemoteNodes();
 
-  std::map< size_t, CNode >::const_iterator it = CNetwork::INSTANCE->beginRemoteNodes();
-  std::map< size_t, CNode >::const_iterator end = CNetwork::INSTANCE->endRemoteNodes();
+      for (; it != end; ++it)
+        if (mpComparison(mNodeProperty.propertyOf(&it->second), *mpValue))
+          Nodes.push_back(const_cast< CNode * >(&it->second));
+    }
 
-  for (; it != end; ++it)
-    if (mpComparison(mNodeProperty.propertyOf(&it->second), *mpValue))
-      Nodes.push_back(const_cast< CNode * >(&it->second));
-
+  CLogger::debug() << "CNodeElementSelector: nodePropertySelection returned '" << Nodes.size() << "' nodes.";
   return true;
 }
 
@@ -768,16 +770,17 @@ bool CNodeElementSelector::nodePropertyWithin()
     if (mpValueList->contains(mNodeProperty.propertyOf(pNode)))
       Nodes.push_back(pNode);
 
-  if (mLocalScope)
-    return true;
+  if (!mLocalScope)
+    {
+      std::map< size_t, CNode >::const_iterator it = CNetwork::INSTANCE->beginRemoteNodes();
+      std::map< size_t, CNode >::const_iterator end = CNetwork::INSTANCE->endRemoteNodes();
 
-  std::map< size_t, CNode >::const_iterator it = CNetwork::INSTANCE->beginRemoteNodes();
-  std::map< size_t, CNode >::const_iterator end = CNetwork::INSTANCE->endRemoteNodes();
+      for (; it != end; ++it)
+        if (mpValueList->contains(mNodeProperty.propertyOf(&it->second)))
+          Nodes.push_back(const_cast< CNode * >(&it->second));
+    }
 
-  for (; it != end; ++it)
-    if (mpValueList->contains(mNodeProperty.propertyOf(&it->second)))
-      Nodes.push_back(const_cast< CNode * >(&it->second));
-
+  CLogger::debug() << "CNodeElementSelector: nodePropertyWithin returned '" << Nodes.size() << "' nodes.";
   return true;
 }
 
@@ -798,8 +801,8 @@ bool CNodeElementSelector::nodeWithIncomingEdge()
       }
 
   std::sort(Nodes.begin(), Nodes.end());
-  // std::cout << "nodeWithIncomingEdge: " << Nodes.size() << std::endl;
 
+  CLogger::debug() << "CNodeElementSelector: nodeWithIncomingEdge returned '" << Nodes.size() << "' nodes.";
   return true;
 }
 
@@ -821,7 +824,7 @@ bool CNodeElementSelector::nodeInDBTable()
         Nodes.push_back(pNode);
     }
 
-  // std::cout << "nodeInDBTable: " << Nodes.size() << std::endl;
+  CLogger::debug() << "CNodeElementSelector: nodeInDBTable returned '" << Nodes.size() << "' nodes.";
   return success;
 }
 
@@ -847,7 +850,8 @@ bool CNodeElementSelector::nodeWithDBFieldSelection()
       if ((pNode = CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope)) != NULL)
         Nodes.push_back(pNode);
     }
-  // std::cout << "nodeWithDBFieldSelection: " << Nodes.size() << std::endl;
+
+  CLogger::debug() << "CNodeElementSelector: nodeWithDBFieldSelection returned '" << Nodes.size() << "' nodes.";
   return success;
 }
 
@@ -880,7 +884,8 @@ bool CNodeElementSelector::nodeWithDBFieldWithin()
       if ((pNode = CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope)) != NULL)
         Nodes.push_back(pNode);
     }
-  // std::cout << "nodeWithDBFieldWithin: " << Nodes.size() << std::endl;
+
+  CLogger::debug() << "CNodeElementSelector: nodeWithDBFieldWithin returned '" << Nodes.size() << "' nodes.";
   return success;
 }
 
@@ -913,6 +918,7 @@ bool CNodeElementSelector::nodeWithDBFieldNotWithin()
       if ((pNode = CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope)) != NULL)
         Nodes.push_back(pNode);
     }
-  // std::cout << "nodeWithDBFieldNotWithin: " << Nodes.size() << std::endl;
+
+  CLogger::debug() << "CNodeElementSelector: nodeWithDBFieldNotWithin returned '" << Nodes.size() << "' nodes.";
   return success;
 }

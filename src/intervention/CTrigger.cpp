@@ -167,7 +167,7 @@ void CTrigger::trigger(const bool & triggers)
   if (triggers 
       && !mInterventions.empty())
     {
-      CLogger::debug() << "CTrigger: Trigger '" << getAnnId() << "' is true."; 
+      CLogger::debug() << "CTrigger: Processing trigger '" << getAnnId() << "'."; 
       std::map< std::string, CIntervention * >::iterator it = mInterventions.begin();
       std::map< std::string, CIntervention * >::iterator end = mInterventions.end();
 

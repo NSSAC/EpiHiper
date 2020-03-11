@@ -83,6 +83,7 @@ int CSizeOf::broadcastSize()
   CCommunicate::ClassMemberReceive< CSizeOf > Receive(this, &CSizeOf::receiveSize);
   CCommunicate::broadcast(mpValue, sizeof(size_t), &Receive);
 
+  CLogger::debug() << "CSizeOf: Returned '" <<   *static_cast< double * >(mpValue) << "'.";
   return (int) CCommunicate::ErrorCode::Success;
 }
 

@@ -142,6 +142,7 @@ void CSet::fromJSON(const json_t * json)
 // virtual
 bool CSet::computeProtected()
 {
+  CLogger::debug("CSet: No operation.");
   return true;
 }
 
