@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -52,8 +52,6 @@ public:
   const std::string & getId() const;
 
   const bool & isValid() const;
-
-  size_t size() const;
 
   size_t bitsRequired() const;
 

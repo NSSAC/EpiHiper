@@ -175,11 +175,6 @@ const bool & CFeature::isValid() const
   return mValid;
 }
 
-size_t CFeature::size() const
-{
-  return mEnumMap.size();
-}
-
 size_t CFeature::bitsRequired() const
 {
   return std::max(1.0, ceil(log(mEnumMap.size()) / log(2.0)));
