@@ -146,7 +146,7 @@ int CCommunicate::broadcast(const void * buffer,
     {
       if (sender != MPIRank)
         {
-          broadcast(&Count, sizeof(count), MPI_CHAR, sender);
+          broadcast(&Count, sizeof(int), MPI_CHAR, sender);
 
           if (Count > 0)
             {
@@ -163,7 +163,7 @@ int CCommunicate::broadcast(const void * buffer,
       else
         {
           Count = count;
-          broadcast(&Count, sizeof(count), MPI_CHAR, sender);
+          broadcast(&Count, sizeof(int), MPI_CHAR, sender);
 
           if (Count > 0)
             {
@@ -193,17 +193,17 @@ int CCommunicate::sequential(int firstRank, CCommunicate::SequentialProcessInter
 
       if (MPINextRank != firstRank)
         {
-          send(&signal, 1, MPI_INT, MPINextRank, firstRank);
-          receive(&signal, 1, MPI_INT, MPIPreviousRank, (firstRank - 1) % MPIProcesses, &status);
+          send(&signal, sizeof(int), MPI_CHAR, MPINextRank, firstRank);
+          receive(&signal, sizeof(int), MPI_CHAR, MPIPreviousRank, (firstRank - 1) % MPIProcesses, &status);
         }
     }
   else
     {
-      receive(&signal, 1, MPI_INT, MPIPreviousRank, MPIPreviousRank, &status);
+      receive(&signal, sizeof(int), MPI_CHAR, MPIPreviousRank, MPIPreviousRank, &status);
 
       (*pSequential)();
 
-      send(&signal, 1, MPI_INT, MPINextRank, MPIRank);
+      send(&signal, sizeof(int), MPI_CHAR, MPINextRank, MPIRank);
     }
 
   return (int) Result;
