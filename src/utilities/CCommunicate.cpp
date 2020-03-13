@@ -219,7 +219,7 @@ int CCommunicate::master(int masterRank,
   ErrorCode Result = ErrorCode::Success;
   Status status;
 
-  resizeReceiveBuffer(std::min(countToCenter, countFromCenter));
+  resizeReceiveBuffer(std::max(countToCenter, countFromCenter));
 
   if (MPIRank == masterRank)
     {
@@ -237,7 +237,7 @@ int CCommunicate::master(int masterRank,
             }
         }
 
-      CStreamBuffer Buffer(ReceiveBuffer, 0);
+      CStreamBuffer Buffer(ReceiveBuffer, countFromCenter);
       std::istream is(&Buffer);
       Result = (*pReceive)(is, masterRank);
 
