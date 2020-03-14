@@ -12,8 +12,6 @@
 #   http://www.apache.org/licenses/LICENSE-2.0 
 # END: License 
 
-source /opt/intel/impi/2018.5.288/bin64/mpivars.sh
-
 jobId=${SLURM_JOB_ID:-222222}
 jobName=${SLURM_JOB_NAME:-testEpiHiper}
 CONFIG_FILE=$1

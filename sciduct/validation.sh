@@ -13,28 +13,12 @@
 # END: License 
 
 SINGULARITY=${SINGULARITY:-"$(which singularity)"}
-DEF=aws.def
-IMAGE=epihiper.sif
+DEF=validation.def
+IMAGE=epiHiperValidation.sif
 ID=$(id -u)
 
 [ -e $IMAGE ] && rm $IMAGE
 
-# Local cache.aws
-[ -e cache.aws ] || mkdir -p cache.aws
-    
-cd cache.aws
-
-# EpiHiper
-[ -e EpiHiper ] || \
-    cp ~/workspace/EpiHiper-code/build/src/EpiHiper* .
-    
-# Intel MPI
-[ -e l_mpi_2019.6.166.tgz ] || \
-    wget http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/16120/l_mpi_2019.6.166.tgz
-    
-cd ..
-
 sudo "${SINGULARITY}" build $IMAGE $DEF | tee build.log
 
-[ -e cache.aws ] && sudo chown -R $ID cache.aws
 [ -e $IMAGE ] && sudo chown -R $ID $IMAGE

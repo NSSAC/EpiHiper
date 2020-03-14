@@ -13,12 +13,7 @@ From: centos:7
     [ -e ${SINGULARITY_ROOTFS}/src ] || mkdir ${SINGULARITY_ROOTFS}/src
 
 %files
-    config.json /sciduct
-    cache.aws/l_mpi_2019.6.166.tgz /src
-    cache.aws/EpiHiper /epihiper/bin
-    cache.aws/EpiHiperPartition /epihiper/bin
-    bin/epiHiper.sh /epihiper/bin
-    bin/partition.sh /epihiper/bin
+    validation.json /sciduct/config.json
     bin/validateSchema.sh /epihiper/bin
     bin/validateRules.sh /epihiper/bin
     
@@ -26,19 +21,6 @@ From: centos:7
     # Ensure the the CentOS release is the same as on rivanna
     yum -y update
         
-    echo "Installing development tools using YUM"
-    yum -y install \
-        postgresql-devel 
-
-    cd /src
-
-    # Install IntelMPI
-    tar -xf l_mpi_2019.6.166.tgz
-    yum -y install l_mpi_2019.6.166/rpm/*.rpm
-
-    cd /
-    rm -rf /src
-
     # nodejs install
     curl -sL https://rpm.nodesource.com/setup_12.x | bash -
     yum install -y nodejs
@@ -64,14 +46,3 @@ From: centos:7
     echo Job ID: ${SLURM_JOB_ID:-222222}
     /epihiper/bin/validateRules.sh $@
 	
-%apprun epiHiper
-    echo Rank $PMI_RANK: Running EpiHiper Simulation
-    echo Rank $PMI_RANK: Job ID: ${SLURM_JOB_ID:-222222}
-    source /opt/intel/compilers_and_libraries_2020.0.166/linux/mpi/intel64/bin/mpivars.sh
-    /epihiper/bin/epiHiper.sh $@
-
-%apprun partition
-    echo Partitioning Network
-    echo Job ID: ${SLURM_JOB_ID:-222222}
-    source /opt/intel/compilers_and_libraries_2020.0.166/linux/mpi/intel64/bin/mpivars.sh
-    /epihiper/bin/partition.sh $@

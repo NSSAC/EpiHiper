@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: centos:7.6.1810
+From: centos:7
 
 %setup
     # SciDuct Interface
@@ -14,71 +14,27 @@ From: centos:7.6.1810
 
 %files
     config.json /sciduct
-    cache/l_mpi_2018.5.288.tgz /src
-    cache/IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz /src
-    cache/EpiHiper /epihiper/bin
-    cache/EpiHiperPartition /epihiper/bin
+    cache.bridges/l_mpi_2019.5.281.tgz /src
+    cache.bridges/EpiHiper /epihiper/bin
+    cache.bridges/EpiHiperPartition /epihiper/bin
     bin/epiHiper.sh /epihiper/bin
     bin/partition.sh /epihiper/bin
     bin/validateSchema.sh /epihiper/bin
     bin/validateRules.sh /epihiper/bin
-    CentOS-Base.repo /etc/yum.repos.d
     
 %post
     # Ensure the the CentOS release is the same as on rivanna
-    echo 7.6.1810 > /etc/yum/vars/releasever
     yum -y update
         
     echo "Installing development tools using YUM"
     yum -y install \
-        atlas \
-        bc \
-        expect \
-        gcc-gfortran \
-        ibacm-devel \
-        infiniband-diags \
-        infinipath-psm \
-        iproute \
-        irqbalance \
-        libhfi1 \
-        libibcm \
-        libibumad \
-        libibumad-devel \
-        libibumad-static \
-        libibverbs \
-        libpsm2 \
-        librdmacm \
-        libstdc++-devel \
-        libuuid-devel \
-        net-tools \
-        numactl-libs \
-        opensm-libs \
-        openssh-server \
-        openssl \
-        openssl-devel \
-        pciutils \
-        perftest \
-        perl \
-        postgresql-devel \
-        qperf \
-        rdma \
-        sysfsutils \
-        tcl \
-        tcsh \
-        which \
-        gcc-c++ \
-        make
+        postgresql-devel 
 
     cd /src
 
-    # Install IntelOPA
-    tar -xf l_mpi_2018.5.288.tgz
-    yum -y install l_mpi_2018.5.288/rpm/*
-
-    # Install IntelOPA
-    tar -xf IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz
-    cd IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1
-    ./INSTALL --user-space -n
+    # Install IntelMPI
+    tar -xf l_mpi_2019.5.281.tgz
+    yum -y install l_mpi_2019.5.281/rpm/*.rpm
 
     cd /
     rm -rf /src
@@ -111,11 +67,11 @@ From: centos:7.6.1810
 %apprun epiHiper
     echo Rank $PMI_RANK: Running EpiHiper Simulation
     echo Rank $PMI_RANK: Job ID: ${SLURM_JOB_ID:-222222}
-    source /opt/intel/impi/2018.5.288/bin64/mpivars.sh
+    source /opt/intel/compilers_and_libraries_2019.5.281/linux/mpi/intel64/bin/mpivars.sh
     /epihiper/bin/epiHiper.sh $@
 
 %apprun partition
     echo Partitioning Network
     echo Job ID: ${SLURM_JOB_ID:-222222}
-    source /opt/intel/impi/2018.5.288/bin64/mpivars.sh
+    source /opt/intel/compilers_and_libraries_2019.5.281/linux/mpi/intel64/bin/mpivars.sh
     /epihiper/bin/partition.sh $@

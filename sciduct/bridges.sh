@@ -13,28 +13,28 @@
 # END: License 
 
 SINGULARITY=${SINGULARITY:-"$(which singularity)"}
-DEF=aws.def
-IMAGE=epihiper.sif
+DEF=bridges.def
+IMAGE=epihiper.bridges.sif
 ID=$(id -u)
 
 [ -e $IMAGE ] && rm $IMAGE
 
-# Local cache.aws
-[ -e cache.aws ] || mkdir -p cache.aws
+# Local cache.bridges
+[ -e cache.bridges ] || mkdir -p cache.bridges
     
-cd cache.aws
+cd cache.bridges
 
 # EpiHiper
 [ -e EpiHiper ] || \
     cp ~/workspace/EpiHiper-code/build/src/EpiHiper* .
     
 # Intel MPI
-[ -e l_mpi_2019.6.166.tgz ] || \
-    wget http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/16120/l_mpi_2019.6.166.tgz
-    
+[ -e l_mpi_2019.5.281.tgz ] || \
+    wget http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/15838/l_mpi_2019.5.281.tgz
+
 cd ..
 
 sudo "${SINGULARITY}" build $IMAGE $DEF | tee build.log
 
-[ -e cache.aws ] && sudo chown -R $ID cache.aws
+[ -e cache.bridges ] && sudo chown -R $ID cache.bridges
 [ -e $IMAGE ] && sudo chown -R $ID $IMAGE
