@@ -14,7 +14,7 @@
 
 SINGULARITY=${SINGULARITY:-"$(which singularity)"}
 DEF=aws.def
-IMAGE=epihiper.sif
+IMAGE=epihiper.aws.sif
 ID=$(id -u)
 
 [ -e $IMAGE ] && rm $IMAGE

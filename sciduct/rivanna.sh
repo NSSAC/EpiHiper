@@ -13,16 +13,16 @@
 # END: License 
 
 SINGULARITY=${SINGULARITY:-"$(which singularity)"}
-DEF=singularity.def
-IMAGE=epihiper.sif
+DEF=rivanna.def
+IMAGE=epihiper.rivanna.sif
 ID=$(id -u)
 
 [ -e $IMAGE ] && rm $IMAGE
 
-# Local cache
-[ -e cache ] || mkdir -p cache
+# Local cache.rivanna
+[ -e cache.rivanna ] || mkdir -p cache.rivanna
     
-cd cache
+cd cache.rivanna
 
 # EpiHiper
 [ -e EpiHiper ] || \
@@ -49,5 +49,5 @@ cd ..
 
 sudo "${SINGULARITY}" build $IMAGE $DEF | tee build.log
 
-[ -e cache ] && sudo chown -R $ID cache
+[ -e cache.rivanna ] && sudo chown -R $ID cache.rivanna
 [ -e $IMAGE ] && sudo chown -R $ID $IMAGE

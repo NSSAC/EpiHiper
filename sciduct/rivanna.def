@@ -14,10 +14,10 @@ From: centos:7.6.1810
 
 %files
     config.json /sciduct
-    cache/l_mpi_2018.5.288.tgz /src
-    cache/IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz /src
-    cache/EpiHiper /epihiper/bin
-    cache/EpiHiperPartition /epihiper/bin
+    cache.rivanna/l_mpi_2018.5.288.tgz /src
+    cache.rivanna/IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz /src
+    cache.rivanna/EpiHiper /epihiper/bin
+    cache.rivanna/EpiHiperPartition /epihiper/bin
     bin/epiHiper.sh /epihiper/bin
     bin/partition.sh /epihiper/bin
     bin/validateSchema.sh /epihiper/bin
