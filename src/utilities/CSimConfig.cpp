@@ -126,6 +126,12 @@ const size_t & CSimConfig::getReplicate()
 }
 
 // static
+const size_t & CSimConfig::getPartitionEdgeLimit()
+{
+  return CSimConfig::INSTANCE->mPartitionEdgeLimit;
+}
+
+// static
 CSimConfig::LogLevel CSimConfig::getLogLevel()
 {
   if (CSimConfig::INSTANCE != NULL)
@@ -158,6 +164,7 @@ CSimConfig::CSimConfig(const std::string & configFile)
   , mIntervention()
   , mSeed(-1)
   , mReplicate(-1)
+  , mPartitionEdgeLimit(100000000)
   , mDBConnection()
 {
   if (mRunParameters.empty())
@@ -267,6 +274,13 @@ CSimConfig::CSimConfig(const std::string & configFile)
   if (json_is_real(pValue))
     {
       mReplicate = json_real_value(pValue);
+    }
+
+  pValue = json_object_get(pRoot, "partitionEdgeLimit");
+
+  if (json_is_real(pValue))
+    {
+      mPartitionEdgeLimit = json_real_value(pValue);
     }
 
   pValue = json_object_get(pRoot, "logLevel");

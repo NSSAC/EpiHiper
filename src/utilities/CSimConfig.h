@@ -56,6 +56,7 @@ private:
   std::string mIntervention;
   size_t mSeed;
   size_t mReplicate;
+  size_t mPartitionEdgeLimit;
   LogLevel mLogLevel;
   db_connection mDBConnection;
 
@@ -86,6 +87,7 @@ public:
   static const std::string & getIntervention();
   static const size_t & getSeed();
   static const size_t & getReplicate();
+  static const size_t & getPartitionEdgeLimit();
   static LogLevel getLogLevel();
   static const db_connection & getDBConnection();
 

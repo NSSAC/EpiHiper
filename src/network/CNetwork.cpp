@@ -422,6 +422,13 @@ void CNetwork::partition(const int & parts, const bool & save, const std::string
       return;
     }
 
+  if (!save
+      && mTotalEdgesSize >= CSimConfig::getPartitionEdgeLimit())
+    {
+      CLogger::error() << "CNetwork: No valid partition (" << CCommunicate::MPIProcesses << ") found and partition edge limit (" << CSimConfig::getPartitionEdgeLimit() << ") exceded.";
+      return; 
+    }
+
   std::ifstream is(mFile.c_str());
   std::string Line;
   // Skip JSON Header
