@@ -11,9 +11,13 @@
 // END: License 
 
 #include <iostream>
+#include <thread>         // std::this_thread::sleep_for
+#include <chrono>         // std::chrono::seconds
+
 #include "db/CConnection.h"
 
 #include "utilities/CSimConfig.h"
+#include "utilities/CRandom.h"
 
 // static
 void CConnection::setRequired(const bool & isRequired)
@@ -47,10 +51,12 @@ void CConnection::init()
 
   URI += "?connect_timeout=2";
   int Tries = 15;
+  CRandom::uniform_int uniform(0, 500);
 
   while (Tries > 0
          && pINSTANCE == NULL)
     {
+      std::this_thread::sleep_for(std::chrono::milliseconds(uniform(CRandom::G)));
       Tries--;
 
       try
