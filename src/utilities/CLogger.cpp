@@ -10,6 +10,7 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
+#include <iomanip>
 #include <spdlog/sinks/stdout_sinks.h>
 
 #include "utilities/CLogger.h"
@@ -68,7 +69,9 @@ void CLogger::popLevel()
 void CLogger::setTask(int rank, int processes)
 {
   std::ostringstream os;
-  os << "[" << processes << ":" << rank << "] ";
+  int width = log10(processes) + 1;
+  
+  os << "[" << processes << ":" << std::setfill('0') << std::setw(width) << rank << "] ";
 
   task = os.str();
 }
