@@ -30,6 +30,9 @@ public:
     std::string user;
     std::string password;
     size_t maxRecords;
+    size_t connectionTimeout;
+    size_t connectionRetries;
+    size_t connectionMaxDelay;
   };
 
   typedef spdlog::level::level_enum LogLevel;

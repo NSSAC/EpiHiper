@@ -304,15 +304,21 @@ CSimConfig::CSimConfig(const std::string & configFile)
 
   CLogger::setLevel(mLogLevel);
 
+  // DB Connection Defaults
+  mDBConnection.name = "epihiper_db";
+  mDBConnection.host = "localhost:5432";
+  mDBConnection.user = "epihiper";
+  mDBConnection.password.clear();
+  mDBConnection.maxRecords = 100000;
+  mDBConnection.connectionTimeout = 2;
+  mDBConnection.connectionRetries = 15;
+  mDBConnection.connectionMaxDelay = 500;
+
   pValue = json_object_get(pRoot, "dbName");
 
   if (json_is_string(pValue))
     {
       mDBConnection.name = json_string_value(pValue);
-    }
-  else
-    {
-      mDBConnection.name = "epihiper_db";
     }
 
   pValue = json_object_get(pRoot, "dbHost");
@@ -321,20 +327,12 @@ CSimConfig::CSimConfig(const std::string & configFile)
     {
       mDBConnection.host = json_string_value(pValue);
     }
-  else
-    {
-      mDBConnection.host = "localhost:5432";
-    }
 
   pValue = json_object_get(pRoot, "dbUser");
 
   if (json_is_string(pValue))
     {
       mDBConnection.user = json_string_value(pValue);
-    }
-  else
-    {
-      mDBConnection.user = "epihiper";
     }
 
   pValue = json_object_get(pRoot, "dbPassword");
@@ -343,10 +341,6 @@ CSimConfig::CSimConfig(const std::string & configFile)
     {
       mDBConnection.password = json_string_value(pValue);
     }
-  else
-    {
-      mDBConnection.password.clear();
-    }
 
   pValue = json_object_get(pRoot, "dbMaxRecords");
 
@@ -354,9 +348,26 @@ CSimConfig::CSimConfig(const std::string & configFile)
     {
       mDBConnection.maxRecords = json_real_value(pValue);
     }
-  else
+
+  pValue = json_object_get(pRoot, "dbConnectionTimeout");
+
+  if (json_is_real(pValue))
     {
-      mDBConnection.maxRecords = 100000;
+      mDBConnection.connectionTimeout = std::max< size_t >(2, json_real_value(pValue));
+    }
+
+  pValue = json_object_get(pRoot, "dbConnectionRetries");
+
+  if (json_is_real(pValue))
+    {
+      mDBConnection.connectionRetries = json_real_value(pValue);
+    }
+
+  pValue = json_object_get(pRoot, "dbConnectionMaxDelay");
+
+  if (json_is_real(pValue))
+    {
+      mDBConnection.connectionMaxDelay = json_real_value(pValue);
     }
 
   json_decref(pRoot);

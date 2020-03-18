@@ -35,33 +35,37 @@ void CConnection::init()
   const CSimConfig::db_connection & dbConnection = CSimConfig::getDBConnection();
 
   // postgresql://[user[:password]@][netloc][:port][,...][/dbname][?param1=value1&...]
-  std::string URI = "postgresql://";
+  std::ostringstream URI;
+  URI << "postgresql://";
 
   if (!dbConnection.user.empty())
     {
-      URI += dbConnection.user;
+      URI << dbConnection.user;
 
       if (!dbConnection.password.empty())
-        URI += ":" + dbConnection.password;
+        URI << ":" << dbConnection.password;
 
-      URI += "@";
+      URI << "@";
     }
 
-  URI += dbConnection.host + "/" + dbConnection.name;
+  URI << dbConnection.host <<"/" << dbConnection.name;
 
-  URI += "?connect_timeout=2";
-  int Tries = 15;
-  CRandom::uniform_int uniform(0, 500);
+  URI << "?connect_timeout=" << dbConnection.connectionTimeout;
+  int Tries = dbConnection.connectionRetries + 1;
 
   while (Tries > 0
          && pINSTANCE == NULL)
     {
-      std::this_thread::sleep_for(std::chrono::milliseconds(uniform(CRandom::G)));
+      if (dbConnection.connectionMaxDelay > 0)
+        {
+          std::this_thread::sleep_for(std::chrono::milliseconds(CRandom::uniform_int(0, dbConnection.connectionMaxDelay)(CRandom::G)));
+        }
+
       Tries--;
 
       try
         {
-          pINSTANCE = new CConnection(URI);
+          pINSTANCE = new CConnection(URI.str());
         }
 
       catch (const pqxx::pqxx_exception & e)
