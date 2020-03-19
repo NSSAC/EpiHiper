@@ -16,6 +16,7 @@
 #include "intervention/CIntervention.h"
 #include "intervention/CTrigger.h"
 #include "sets/CSetList.h"
+#include "traits/CTrait.h"
 #include "utilities/CSimConfig.h"
 #include "variables/CVariableList.h"
 #include "utilities/CLogger.h"
@@ -45,6 +46,22 @@ void CIntervention::load(const std::string & file)
 
   CSetList::INSTANCE.fromJSON(json_object_get(pRoot, "sets"));
   CVariableList::INSTANCE.fromJSON(json_object_get(pRoot, "variables"));
+
+  // Get the key "traits"
+  json_t * pTraits = json_object_get(pRoot, "traits");
+
+  // Iterate of the array elements
+  for (size_t i = 0, imax = json_array_size(pTraits); i < imax; ++i)
+    {
+      CTrait Trait;
+      Trait.fromJSON(json_array_get(pTraits, i));
+
+      if (Trait.isValid())
+        {
+          CTrait::INSTANCES[Trait.getId()] = Trait;
+        }
+    }
+
 
   json_t * pArray = json_object_get(pRoot, "interventions");
 
