@@ -80,7 +80,6 @@ int CSizeOf::broadcastSize()
 {
   size_t LocalSize = mpSetContent->size();
   *static_cast< double * >(mpValue) = LocalSize;
-  CLogger::info() << "CSizeOf::broadcastSize: Local size '" << LocalSize << "' (" << *static_cast< double * >(mpValue) << ").";
 
   CCommunicate::ClassMemberReceive< CSizeOf > Receive(this, &CSizeOf::receiveSize);
   CCommunicate::broadcast(&LocalSize, sizeof(size_t), &Receive);
@@ -96,7 +95,6 @@ CCommunicate::ErrorCode CSizeOf::receiveSize(std::istream & is, int sender)
   is.read(reinterpret_cast< char * >(&RemoteSize), sizeof(size_t));
   *static_cast< double * >(mpValue) += RemoteSize;
 
-  CLogger::info() << "CSizeOf::receiveSize: Remote size '" << RemoteSize << "', Total Size '" << *static_cast< double * >(mpValue) << "'.";
   return CCommunicate::ErrorCode::Success;
 }
 
