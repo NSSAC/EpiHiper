@@ -228,7 +228,7 @@ void CIntervention::process()
   if (!mIsTriggered)
     return;
 
-  CLogger::debug() << "CIntervention: Process '" << mId << "'."; 
+  CLogger::info() << "CIntervention: Process '" << mId << "'."; 
 
   CInitialization::process();
 
@@ -237,7 +237,7 @@ void CIntervention::process()
 
 void CIntervention::trigger()
 {
-  CLogger::debug() << "CIntervention: Intervention '" << mId << "' has been triggered."; 
+  CLogger::info() << "CIntervention: Intervention '" << mId << "' has been triggered."; 
 
   mIsTriggered = true;
 }

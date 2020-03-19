@@ -159,7 +159,7 @@ void CTrigger::process()
   mIsLocalTrue = pCondition->isTrue();
   delete pCondition;
 
-  CLogger::debug() << "CTrigger: Trigger '" << getAnnId() << "' condition is '" << (mIsLocalTrue ? "true" : "false") << "'."; 
+  CLogger::info() << "CTrigger: Trigger '" << getAnnId() << "' condition is '" << (mIsLocalTrue ? "true" : "false") << "'."; 
 }
 
 void CTrigger::trigger(const bool & triggers)
@@ -167,7 +167,7 @@ void CTrigger::trigger(const bool & triggers)
   if (triggers 
       && !mInterventions.empty())
     {
-      CLogger::debug() << "CTrigger: Processing trigger '" << getAnnId() << "'."; 
+      CLogger::info() << "CTrigger: Processing trigger '" << getAnnId() << "'."; 
       std::map< std::string, CIntervention * >::iterator it = mInterventions.begin();
       std::map< std::string, CIntervention * >::iterator end = mInterventions.end();
 

@@ -156,20 +156,20 @@ const bool & CActionEnsemble::isValid() const
 
 void CActionEnsemble::process(const CSetContent & targets)
 {
-  CLogger::debug() << "CActionEnsemble: Target set contains '" << targets.size() << "' items.";
+  CLogger::info() << "CActionEnsemble: Target set contains '" << targets.size() << "' items.";
   
   std::vector< CActionDefinition * >::const_iterator it = mOnce.begin();
   std::vector< CActionDefinition * >::const_iterator end = mOnce.end();
 
   if (!mOnce.empty())
-    CLogger::debug() << "CActionEnsemble: Process '" << mOnce.size() << "' action definitions in 'once'.";
+    CLogger::info() << "CActionEnsemble: Process '" << mOnce.size() << "' action definitions in 'once'.";
 
   for (; it != end; ++it)
     (*it)->process();
 
   if (!mForEach.empty())
     {
-      CLogger::debug() << "CActionEnsemble: Process '" << mForEach.size() << "' action definitions in 'forEach'.";
+      CLogger::info() << "CActionEnsemble: Process '" << mForEach.size() << "' action definitions in 'forEach'.";
       end = mForEach.end();
 
       std::vector< CEdge * >::const_iterator itEdges = targets.beginEdges();
@@ -188,7 +188,7 @@ void CActionEnsemble::process(const CSetContent & targets)
     }
     
   if (!mSampling.isEmpty())
-    CLogger::debug("CActionEnsemble: Process 'sampling'.");
+    CLogger::info("CActionEnsemble: Process 'sampling'.");
     
   mSampling.process(targets);
 }
