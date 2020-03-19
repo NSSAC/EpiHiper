@@ -1,14 +1,14 @@
-// BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
-// All rights reserved 
-// END: Copyright 
+// BEGIN: Copyright
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia
+// All rights reserved
+// END: Copyright
 
-// BEGIN: License 
-// Licensed under the Apache License, Version 2.0 (the "License"); 
-// you may not use this file except in compliance with the License. 
-// You may obtain a copy of the License at 
-//   http://www.apache.org/licenses/LICENSE-2.0 
-// END: License 
+// BEGIN: License
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//   http://www.apache.org/licenses/LICENSE-2.0
+// END: License
 
 #include <sstream>
 #include <limits>
@@ -78,12 +78,14 @@ bool CSizeOf::computeProtected()
 
 int CSizeOf::broadcastSize()
 {
-  *static_cast< double * >(mpValue) = mpSetContent->size();
+  size_t LocalSize = mpSetContent->size();
+  *static_cast< double * >(mpValue) = LocalSize;
+  CLogger::info() << "CSizeOf::broadcastSize: Local size '" << LocalSize << "' (" << *static_cast< double * >(mpValue) << ").";
 
   CCommunicate::ClassMemberReceive< CSizeOf > Receive(this, &CSizeOf::receiveSize);
-  CCommunicate::broadcast(mpValue, sizeof(size_t), &Receive);
+  CCommunicate::broadcast(&LocalSize, sizeof(size_t), &Receive);
 
-  CLogger::debug() << "CSizeOf: Returned '" <<   *static_cast< double * >(mpValue) << "'.";
+  CLogger::debug() << "CSizeOf: Returned '" << *static_cast< double * >(mpValue) << "'.";
   return (int) CCommunicate::ErrorCode::Success;
 }
 
@@ -94,6 +96,7 @@ CCommunicate::ErrorCode CSizeOf::receiveSize(std::istream & is, int sender)
   is.read(reinterpret_cast< char * >(&RemoteSize), sizeof(size_t));
   *static_cast< double * >(mpValue) += RemoteSize;
 
+  CLogger::info() << "CSizeOf::receiveSize: Remote size '" << RemoteSize << "', Total Size '" << *static_cast< double * >(mpValue) << "'.";
   return CCommunicate::ErrorCode::Success;
 }
 
