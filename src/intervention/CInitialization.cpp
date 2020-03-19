@@ -53,7 +53,6 @@ void CInitialization::load(const std::string & file)
   */
 
   json_t * pRoot = CSimConfig::loadJson(file, JSON_DECODE_INT_AS_REAL);
-  CSetList::INSTANCE.fromJSON(json_object_get(pRoot, "sets"));
 
   // Get the key "traits"
   json_t * pTraits = json_object_get(pRoot, "traits");
@@ -69,6 +68,8 @@ void CInitialization::load(const std::string & file)
           CTrait::INSTANCES[Trait.getId()] = Trait;
         }
     }
+
+  CSetList::INSTANCE.fromJSON(json_object_get(pRoot, "sets"));
 
   json_t * pArray = json_object_get(pRoot, "initializations");
 

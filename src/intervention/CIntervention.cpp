@@ -44,9 +44,6 @@ void CIntervention::load(const std::string & file)
 
   json_t * pRoot = CSimConfig::loadJson(file, JSON_DECODE_INT_AS_REAL);
 
-  CSetList::INSTANCE.fromJSON(json_object_get(pRoot, "sets"));
-  CVariableList::INSTANCE.fromJSON(json_object_get(pRoot, "variables"));
-
   // Get the key "traits"
   json_t * pTraits = json_object_get(pRoot, "traits");
 
@@ -62,6 +59,8 @@ void CIntervention::load(const std::string & file)
         }
     }
 
+  CSetList::INSTANCE.fromJSON(json_object_get(pRoot, "sets"));
+  CVariableList::INSTANCE.fromJSON(json_object_get(pRoot, "variables"));
 
   json_t * pArray = json_object_get(pRoot, "interventions");
 
