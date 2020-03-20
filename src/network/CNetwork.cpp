@@ -502,6 +502,11 @@ void CNetwork::convert(std::istream & is, const std::string & outputDirectory)
           ++PartitionEdgeCount;
         }
 
+      if (CLogger::hasErrors())
+        {
+          return;
+        }
+
       *(pPartition + 3) = Node + 1;
 
       std::ofstream os;
@@ -634,6 +639,11 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
 
           // Write edge to current node buffer
           ++PartitionEdgeCount;
+        }
+
+      if (CLogger::hasErrors())
+        {
+          return;
         }
 
       *(pPartition + 3) = Node + 1;
@@ -1121,6 +1131,8 @@ bool CNetwork::loadEdge(CEdge * pEdge, std::istream & is) const
       pEdge->fromBinary(is);
 
       success = is.good() && (mFirstLocalNode == 0 || (mFirstLocalNode <= pEdge->targetId && pEdge->targetId < mBeyondLocalNode));
+      if (!success)
+        CLogger::error() << "CEdge: Invalid binary edge encoding.";
     }
   else
     {
@@ -1200,7 +1212,11 @@ bool CNetwork::loadEdge(CEdge * pEdge, std::istream & is) const
 
       if (success)
         success = (*ptr == 0 || *ptr == '\r');
+
+      if (!success)
+        CLogger::error() << "CEdge: Invalid edge encoding '" << Line << "'.";
     }
+
 
   return success;
 }

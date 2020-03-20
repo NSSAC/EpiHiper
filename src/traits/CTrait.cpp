@@ -247,7 +247,7 @@ CTraitData::base CTrait::getDefault() const
 
 bool CTrait::fromString(const char * str, CTraitData::base & data) const
 {
-  bool success = true;
+  bool success = false;
   const char * ptr = str;
 
   std::set< size_t > FeaturesFound;
@@ -265,10 +265,12 @@ bool CTrait::fromString(const char * str, CTraitData::base & data) const
         {
           CTraitData::setValue(data, CTraitData::value(pF->getMask(), pE->getMask()));
           FeaturesFound.insert(FeatureIndex);
+          success = true;
         }
       else
         {
           success = false;
+          break;
         }
 
       if (ptr[Read] != '|')
@@ -277,6 +279,9 @@ bool CTrait::fromString(const char * str, CTraitData::base & data) const
       ptr += Read + 1;
     }
 
+  if (!success)
+    CLogger::error() << "CTrait: Invalid trait encoding '" << str << "'.";
+    
   return success;
 }
 

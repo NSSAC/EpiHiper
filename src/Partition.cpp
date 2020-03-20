@@ -181,6 +181,8 @@ bool loadJson(const std::string & file)
 
 int main(int argc, char * argv[])
 {
+  int EXIT = EXIT_SUCCESS;
+
   CLogger::init();
   CCommunicate::init(argc, argv);
 
@@ -220,6 +222,13 @@ int main(int argc, char * argv[])
   CNetwork All(ContactNetwork);
   All.partition(Parts, true, OutputDirectory);
 
+  if (CLogger::hasErrors())
+    {
+      EXIT = EXIT_FAILURE;
+    }
+
   CCommunicate::finalize();
   CLogger::release();
+
+  exit(EXIT);
 }
