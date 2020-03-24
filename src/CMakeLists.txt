@@ -53,6 +53,7 @@ target_link_libraries (EpiHiper
 	${PGSQL_LIBRARY} 
 	${CMAKE_BINARY_DIR}/lib/libjansson.a 
 	${CMAKE_BINARY_DIR}/lib/libpqxx.a
+	-lpthread
 )
 
 add_executable (EpiHiperPartition Partition.cpp EpiHiperConfig.h)
@@ -63,6 +64,7 @@ target_link_libraries (EpiHiperPartition
 	${PGSQL_LIBRARY} 
 	${CMAKE_BINARY_DIR}/lib/libjansson.a 
 	${CMAKE_BINARY_DIR}/lib/libpqxx.a
+	-lpthread
 )
 
 # add_executable (rma rma-new.cpp)
@@ -74,4 +76,3 @@ target_link_libraries (EpiHiperPartition
 # 	${CMAKE_BINARY_DIR}/lib/libjansson.a 
 # 	${CMAKE_BINARY_DIR}/lib/libpqxx.a
 # )
-

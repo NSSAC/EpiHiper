@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -123,7 +123,7 @@ bool CInitialization::processAll()
 
   for (it = INSTANCES.begin(); it != end && success; ++it)
     {
-      CLogger::debug() << "CInitialization: Process initialization '" << (*it)->getAnnId() << "'.";
+      CLogger::info() << "CInitialization: Process initialization '" << (*it)->getAnnId() << "'.";
       (*it)->process();
     }
 
@@ -188,14 +188,21 @@ void CInitialization::fromJSON(const json_t * json)
     },
   */
 
+  CAnnotation::fromJSON(json);
+
+  if (mAnnId.empty())
+    {
+      std::ostringstream uniqueId;
+      uniqueId << "epiHiper.initialization." << INSTANCES.size();
+      mAnnId = uniqueId.str();
+    }
+
   mpTarget = CSetContent::create(json_object_get(json, "target"));
   mActionEnsemble.fromJSON(json);
 
   mValid = (mpTarget != NULL &&
             mpTarget->isValid() &&
             mActionEnsemble.isValid());
-
-  CAnnotation::fromJSON(json);
 }
 
 void CInitialization::process()

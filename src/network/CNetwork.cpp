@@ -1287,14 +1287,14 @@ CCommunicate::ErrorCode CNetwork::receiveNodes(std::istream & is, int sender)
       Node.CNode::fromBinary(is);
 
       if (is.fail())
-        {
-          break;
-        }
+        break;
 
       CNode * pNode = lookupNode(Node.id, false);
 
       if (pNode != NULL)
         {
+          CLogger::trace() << "CNetwork: Updating node '" << pNode->id << "'.";
+
           pNode->susceptibilityFactor = Node.susceptibilityFactor;
           pNode->susceptibility = Node.susceptibility;
           pNode->infectivityFactor = Node.infectivityFactor;

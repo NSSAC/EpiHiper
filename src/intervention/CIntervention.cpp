@@ -175,6 +175,11 @@ void CIntervention::fromJSON(const json_t * json)
   if (!mValid)
     return;
 
+  if (mAnnId.find("epiHiper.initialization.") != std::string::npos)
+    {
+      mAnnId.clear();
+    }
+    
   json_t * pValue = json_object_get(json, "trigger");
 
   if (json_is_object(pValue))

@@ -303,7 +303,8 @@ CSimConfig::CSimConfig(const std::string & configFile)
     }
 
   CLogger::setLevel(mLogLevel);
-
+  CLogger::setLogDir(CDirEntry::dirName(mSummaryOutput) + "/EpiHiper");
+  
   // DB Connection Defaults
   mDBConnection.name = "epihiper_db";
   mDBConnection.host = "localhost:5432";

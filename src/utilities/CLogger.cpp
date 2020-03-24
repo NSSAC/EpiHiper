@@ -12,6 +12,8 @@
 
 #include <iomanip>
 #include <spdlog/sinks/stdout_sinks.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/basic_file_sink.h>
 
 #include "utilities/CLogger.h"
 #include "utilities/CSimConfig.h"
@@ -25,13 +27,28 @@ std::string CLogger::task;
 // static 
 bool CLogger::haveErrors = false;
 
+// static 
+std::shared_ptr< spdlog::logger >  CLogger::pLogger = std::shared_ptr< spdlog::logger >(); 
+
+// static 
+std::shared_ptr< spdlog::sinks::sink > CLogger::pConsole = std::shared_ptr< spdlog::sinks::sink >();
+
+// static 
+std::shared_ptr< spdlog::sinks::sink > CLogger::pFile = std::shared_ptr< spdlog::sinks::sink >();
+
 // static
 void CLogger::init()
 {
   // Set global log level to info
+  pConsole = std::make_shared< spdlog::sinks::stdout_sink_st >();
+  pConsole->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%^%l%$] %v");
   setLevel(spdlog::level::warn);
-  std::shared_ptr<spdlog::logger> console = spdlog::stdout_logger_st("console");
-  spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%^%l%$] %v");
+
+  pLogger = std::make_shared< spdlog::logger >("Multi Sink", pConsole);
+  pLogger->set_level(spdlog::level::trace);
+  
+  spdlog::set_default_logger(pLogger);
+  spdlog::flush_every(std::chrono::seconds(5));
 }
 
 // static
@@ -51,7 +68,7 @@ void CLogger::setLevel(spdlog::level::level_enum level)
 void CLogger::pushLevel(spdlog::level::level_enum level)
 {
   levels.push(level);
-  spdlog::set_level(level);
+  setLevel();
 }
 
 // static 
@@ -60,19 +77,41 @@ void CLogger::popLevel()
   levels.pop();
 
   if (levels.empty())
-    spdlog::set_level(CSimConfig::getLogLevel());
+    pushLevel(CSimConfig::getLogLevel());
   else
-    spdlog::set_level(levels.top());
+    setLevel();
+}
+
+// static 
+void CLogger::setLevel()
+{
+  if (pConsole)
+    pConsole->set_level(std::max(levels.top(), spdlog::level::warn));
+
+  if (pFile)
+    pFile->set_level(levels.top());
+}
+
+// static 
+void CLogger::setLogDir(const std::string dir)
+{
+  if (task.empty())
+    task = "[1:0] ";
+
+  pFile = std::make_shared< spdlog::sinks::basic_file_sink_st >(dir + "." + task.substr(0, task.length() - 1) + ".log", true);
+  pFile->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%^%l%$] %v");
+  pLogger->sinks().push_back(pFile);
+
+  setLevel();
 }
 
 // static 
 void CLogger::setTask(int rank, int processes)
 {
-  std::ostringstream os;
   int width = log10(processes) + 1;
-  
-  os << "[" << processes << ":" << std::setfill('0') << std::setw(width) << rank << "] ";
 
+  std::ostringstream os;
+  os << "[" << processes << ":" << std::setfill('0') << std::setw(width) << rank << "] ";
   task = os.str();
 }
 

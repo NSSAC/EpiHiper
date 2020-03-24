@@ -1,14 +1,14 @@
-// BEGIN: Copyright
-// Copyright (C) 2020 Rector and Visitors of the University of Virginia
-// All rights reserved
-// END: Copyright
+// BEGIN: Copyright 
+// Copyright (C) 2020 Rector and Visitors of the University of Virginia 
+// All rights reserved 
+// END: Copyright 
 
-// BEGIN: License
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//   http://www.apache.org/licenses/LICENSE-2.0
-// END: License
+// BEGIN: License 
+// Licensed under the Apache License, Version 2.0 (the "License"); 
+// you may not use this file except in compliance with the License. 
+// You may obtain a copy of the License at 
+//   http://www.apache.org/licenses/LICENSE-2.0 
+// END: License 
 
 #ifndef UTILITIES_CLOGGER_H
 #define UTILITIES_CLOGGER_H
@@ -16,6 +16,7 @@
 #include <sstream>
 #include <stack>
 #include <spdlog/spdlog.h>
+#include <spdlog/sinks/sink.h>
 
 class CLogger
 {
@@ -45,6 +46,8 @@ public:
   static void popLevel();
 
   static void setTask(int rank, int processes);
+
+  static void setLogDir(const std::string dir);
   
   static const std::string sanitize(std::string dirty);
 
@@ -59,9 +62,13 @@ public:
   typedef CStream< spdlog::level::off > off;
 
 private:
+  static void setLevel();
   static std::stack< spdlog::level::level_enum > levels;
   static std::string task;
   static bool haveErrors;
+  static std::shared_ptr< spdlog::logger > pLogger;
+  static std::shared_ptr< spdlog::sinks::sink > pConsole;
+  static std::shared_ptr< spdlog::sinks::sink > pFile;
 };
 
 template < int level >
