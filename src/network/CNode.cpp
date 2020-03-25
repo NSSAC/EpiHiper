@@ -132,6 +132,11 @@ bool CNode::set(const CTransmission * pTransmission, CValueInterface::pOperator 
 {
   if (pHealthState == pTransmission->getExitState()) return false;
 
+  CLogger::trace() << "CNode [Transmission]: Node ("
+                   << id
+                   << ") healthState = "
+                   << pTransmission->getExitState()->getId();
+                   
   setHealthState(pTransmission->getExitState());
 
   pTransmission->updateSusceptibilityFactor(susceptibilityFactor);
@@ -150,6 +155,11 @@ bool CNode::set(const CProgression * pProgression, CValueInterface::pOperator /*
 {
   if (pHealthState == pProgression->getExitState()) return false;
 
+  CLogger::trace() << "CNode [Progression]: Node ("
+                   << id
+                   << ") healthState = "
+                   << pProgression->getExitState()->getId();
+  
   setHealthState(pProgression->getExitState());
 
   pProgression->updateSusceptibilityFactor(susceptibilityFactor);

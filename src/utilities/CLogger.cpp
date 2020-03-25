@@ -95,6 +95,9 @@ void CLogger::setLevel()
 // static 
 void CLogger::setLogDir(const std::string dir)
 {
+  if (levels.top() >= spdlog::level::warn)
+    return;
+    
   if (task.empty())
     task = "[1:0] ";
 
