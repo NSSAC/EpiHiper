@@ -38,7 +38,7 @@ void CActionQueue::release()
 }
 
 // static
-void CActionQueue::addAction(size_t deltaTick, CAction * pAction)
+void CActionQueue::addAction(size_t deltaTick, CScheduledAction * pAction)
 {
   if (pINSTANCE != NULL)
     {
@@ -89,16 +89,7 @@ bool CActionQueue::processCurrentActions()
       CCurrentActions::iterator end = pActions->end();
 
       for (; it != end; it.next())
-        if (it->getCondition().isTrue())
-          {
-            std::vector< COperation * >::const_iterator itOperation = it->getOperations().begin();
-            std::vector< COperation * >::const_iterator endOperation = it->getOperations().end();
-
-            for (; itOperation != endOperation; ++itOperation)
-              {
-                success &= (*itOperation)->execute();
-              }
-          }
+        success &= it->execute();
 
       delete pActions;
 

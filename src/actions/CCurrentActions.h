@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -23,12 +23,12 @@
 #include <map>
 #include <vector>
 
-#include "actions/CAction.h"
+#include "actions/CScheduledAction.h"
 
-class CCurrentActions: protected std::map< double, std::vector< CAction * > >
+class CCurrentActions: protected std::map< double, std::vector< CScheduledAction * > >
 {
 public:
-  typedef std::map< double, std::vector< CAction * > > base;
+  typedef std::map< double, std::vector< CScheduledAction * > > base;
 
   class iterator
   {
@@ -40,23 +40,23 @@ public:
     ~iterator();
 
     iterator & next();
-    const CAction * operator->() const;
+    const CScheduledAction * operator->() const;
 
     bool operator!=(const iterator & rhs) const;
 
   private:
     const base * mpBase;
     base::const_iterator mIt;
-    std::vector< CAction const * > mShuffled;
-    std::vector< CAction const * >::iterator mItShuffled;
-    CAction const * mpAction;
+    std::vector< CScheduledAction const * > mShuffled;
+    std::vector< CScheduledAction const * >::iterator mItShuffled;
+    CScheduledAction const * mpAction;
   };
 
   CCurrentActions();
 
   virtual ~CCurrentActions();
 
-  void addAction(CAction * pAction);
+  void addAction(CScheduledAction * pAction);
 
   size_t size() const;
 

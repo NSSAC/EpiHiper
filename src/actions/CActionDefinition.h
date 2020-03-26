@@ -42,6 +42,14 @@ public:
 
   void process(const CNode * pNode) const;
 
+  bool execute() const;
+
+  bool execute(CEdge * pEdge) const;
+
+  bool execute(CNode * pNode) const;
+
+  double getPriority() const;
+
   static CActionDefinition * GetActionDefinition(const size_t & index);
 
 private:

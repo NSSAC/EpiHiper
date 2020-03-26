@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -41,9 +41,9 @@ public:
   virtual ~CAction();
 
   double getPriority() const;
-  const CCondition & getCondition() const;
-  const std::vector< COperation * > & getOperations() const;
   void addOperation(COperation * pOperation);
+
+  bool execute() const;
 
   void toBinary(std::ostream & os) const;
   bool fromBinary(std::istream & is);

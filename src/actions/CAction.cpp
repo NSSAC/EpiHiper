@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -29,6 +29,8 @@ CAction::CAction(const double & priority,
 // virtual
 CAction::~CAction()
 {
+  delete mpCondition; 
+  
   std::vector< COperation * >::iterator it = mOperations.begin();
   std::vector< COperation * >::iterator end = mOperations.end();
 
@@ -36,19 +38,26 @@ CAction::~CAction()
     delete *it;
 }
 
+bool CAction::execute() const
+{
+  bool success = true;
+
+  if (mpCondition->isTrue())
+    {
+      std::vector< COperation * >::const_iterator it = mOperations.begin();
+      std::vector< COperation * >::const_iterator end = mOperations.end();
+
+      for (; it != end; ++it)
+        success &= (*it)->execute();
+    }
+
+  return success;
+}
+  
+
 double CAction::getPriority() const
 {
   return mPriority;
-}
-
-const CCondition & CAction::getCondition() const
-{
-  return *mpCondition;
-}
-
-const std::vector< COperation * > & CAction::getOperations() const
-{
-  return mOperations;
 }
 
 void CAction::addOperation(COperation * pOperation)

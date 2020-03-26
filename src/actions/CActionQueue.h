@@ -13,6 +13,8 @@
 #ifndef SRC_ACTIONS_CACTIONQUEUE_H_
 #define SRC_ACTIONS_CACTIONQUEUE_H_
 
+#include <sstream>
+
 #include "utilities/CCommunicate.h"
 #include "actions/CCurrentActions.h"
 #include "math/CTick.h"
@@ -28,7 +30,7 @@ class CActionQueue: public std::map< int, CCurrentActions * >
 
     static void release();
 
-    static void addAction(size_t deltaTick, CAction * pAction);
+    static void addAction(size_t deltaTick, CScheduledAction * pAction);
 
     static bool processCurrentActions();
 

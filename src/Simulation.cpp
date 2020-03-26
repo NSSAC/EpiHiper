@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -19,6 +19,7 @@
 #include "Simulation.h"
 
 #include "actions/CActionQueue.h"
+#include "actions/Changes.h"
 #include "diseaseModel/CModel.h"
 #include "intervention/CInitialization.h"
 #include "intervention/CIntervention.h"

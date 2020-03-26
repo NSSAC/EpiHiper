@@ -20,6 +20,7 @@
 #include "diseaseModel/CProgression.h"
 #include "diseaseModel/CTransmission.h"
 #include "actions/CActionQueue.h"
+#include "actions/CAction.h"
 #include "network/CEdge.h"
 #include "network/CNetwork.h"
 #include "network/CNode.h"
@@ -336,7 +337,7 @@ bool CModel::_processTransmissions() const
                 CAction * pChangeState = new CAction(1.0, pCheckState);
                 pChangeState->addOperation(new COperationInstance< CNode, const CTransmission * >(pNode, Candidate.pTransmission, NULL, &CNode::set, Info));
 
-                CActionQueue::addAction(0, pChangeState);
+                CActionQueue::addAction(0, new CScheduledAction(pChangeState));
               }
             catch (...)
               {
@@ -395,7 +396,7 @@ void CModel::_stateChanged(CNode * pNode) const
           CAction * pChangeState = new CAction(1.0, pCheckState);
           pChangeState->addOperation(new COperationInstance< CNode, const CProgression * >(pNode, pProgression, NULL, &CNode::set, Info));
 
-          CActionQueue::addAction(pProgression->getDwellTime(), pChangeState);
+          CActionQueue::addAction(pProgression->getDwellTime(), new CScheduledAction(pChangeState));
         }
       catch (...)
         {

@@ -1,14 +1,14 @@
-// BEGIN: Copyright
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia
-// All rights reserved
-// END: Copyright
+// BEGIN: Copyright 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// All rights reserved 
+// END: Copyright 
 
-// BEGIN: License
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//   http://www.apache.org/licenses/LICENSE-2.0
-// END: License
+// BEGIN: License 
+// Licensed under the Apache License, Version 2.0 (the "License"); 
+// you may not use this file except in compliance with the License. 
+// You may obtain a copy of the License at 
+//   http://www.apache.org/licenses/LICENSE-2.0 
+// END: License 
 
 #include <limits>
 #include <jansson.h>
@@ -227,19 +227,8 @@ void CActionDefinition::process() const
 {
   try
     {
-      CAction * pAction = new CAction(mPriority, mCondition.createCondition());
-
-      // Loop through the operation definitions
-      std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
-      std::vector< COperationDefinition >::const_iterator end = mOperations.end();
-
-      for (; it != end; ++it)
-        {
-          pAction->addOperation(it->createOperation(mInfo));
-        }
-
       CLogger::trace() << "CActionDefinition: Add node and edge independent action.";
-      CActionQueue::addAction(mDelay, pAction);
+      CActionQueue::addAction(mDelay, new CScheduledAction(this));
     }
   catch (...)
     {
@@ -261,19 +250,8 @@ void CActionDefinition::process(const CEdge * pEdge) const
 
   try
     {
-      CAction * pAction = new CAction(mPriority, mCondition.createCondition(pEdge));
-
-      // Loop through the operation definitions
-      std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
-      std::vector< COperationDefinition >::const_iterator end = mOperations.end();
-
-      for (; it != end; ++it)
-        {
-          pAction->addOperation(it->createOperation(const_cast< CEdge * >(pEdge), mInfo));
-        }
-
       CLogger::trace() << "CActionDefinition: Add action for edge `" << pEdge->targetId << "," << pEdge->sourceId << "'.";
-      CActionQueue::addAction(mDelay, pAction);
+      CActionQueue::addAction(mDelay, new CScheduledAction(this, pEdge));
     }
   catch (...)
     {
@@ -295,22 +273,121 @@ void CActionDefinition::process(const CNode * pNode) const
 
   try
     {
-      CAction * pAction = new CAction(mPriority, mCondition.createCondition(pNode));
-
-      // Loop through the operation definitions
-      std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
-      std::vector< COperationDefinition >::const_iterator end = mOperations.end();
-
-      for (; it != end; ++it)
-        {
-          pAction->addOperation(it->createOperation(const_cast< CNode * >(pNode), mInfo));
-        }
-
       CLogger::trace() << "CActionDefinition: Add action for node `" << pNode->id << "'.";
-      CActionQueue::addAction(mDelay, pAction);
+      CActionQueue::addAction(mDelay, new CScheduledAction(this, pNode));
     }
   catch (const std::exception & e)
     {
       CLogger::error() << "CActionDefinition: Failed to create action for node `" << pNode->id << "'.";
     }
+}
+
+bool CActionDefinition::execute() const
+{
+  bool success = true;
+  CCondition * pCondition = NULL;
+
+  try
+    {
+      CCondition * pCondition = mCondition.createCondition();
+
+      if (pCondition->isTrue())
+        {
+          // Loop through the operation definitions
+          std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
+          std::vector< COperationDefinition >::const_iterator end = mOperations.end();
+
+          for (; it != end; ++it)
+            {
+              COperation * pOperation = it->createOperation(mInfo); 
+              success &= pOperation->execute();
+              delete pOperation;
+            }
+        }
+    }
+  catch (const std::exception & e)
+    {
+      CLogger::error() << "CActionDefinition: Failed to execute action.";
+      success = false;
+    }
+
+  if (pCondition != NULL)
+    delete pCondition;
+
+  return success;
+}
+
+bool CActionDefinition::execute(CEdge * pEdge) const
+{
+  bool success = true;
+  CCondition * pCondition = NULL;
+
+  try
+    {
+      CCondition * pCondition = mCondition.createCondition(pEdge);
+
+      if (pCondition->isTrue())
+        {
+          // Loop through the operation definitions
+          std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
+          std::vector< COperationDefinition >::const_iterator end = mOperations.end();
+
+          for (; it != end; ++it)
+            {
+              COperation * pOperation = it->createOperation(pEdge, mInfo); 
+              success &= pOperation->execute();
+              delete pOperation;
+            }
+        }
+    }
+  catch (const std::exception & e)
+    {
+      CLogger::error() << "CActionDefinition: Failed to execute action for edge `" << pEdge->targetId << "," << pEdge->sourceId << "'.";
+      success = false;
+    }
+
+  if (pCondition != NULL)
+    delete pCondition;
+
+  return success;
+}
+
+bool CActionDefinition::execute(CNode * pNode) const
+{
+  bool success = true;
+  CCondition * pCondition = NULL;
+
+  try
+    {
+      CCondition * pCondition = mCondition.createCondition(pNode);
+
+      if (pCondition->isTrue())
+        {
+          // Loop through the operation definitions
+          std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
+          std::vector< COperationDefinition >::const_iterator end = mOperations.end();
+
+          for (; it != end; ++it)
+            {
+              COperation * pOperation = it->createOperation(pNode, mInfo); 
+              success &= pOperation->execute();
+              delete pOperation;
+            }
+        }
+    }
+  catch (const std::exception & e)
+    {
+      CLogger::error() << "CActionDefinition: Failed to execute action for node `" << pNode->id << "'.";
+      success = false;
+    }
+
+  if (pCondition != NULL)
+    delete pCondition;
+
+  return success;
+}
+
+double CActionDefinition::getPriority() const
+{
+  return mPriority;
 }
