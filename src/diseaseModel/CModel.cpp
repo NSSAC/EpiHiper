@@ -20,7 +20,8 @@
 #include "diseaseModel/CProgression.h"
 #include "diseaseModel/CTransmission.h"
 #include "actions/CActionQueue.h"
-#include "actions/CAction.h"
+#include "actions/CProgressionAction.h"
+#include "actions/CTransmissionAction.h"
 #include "network/CEdge.h"
 #include "network/CNetwork.h"
 #include "network/CNode.h"
@@ -328,16 +329,7 @@ bool CModel::_processTransmissions() const
             try
               {
                 const Candidate & Candidate = (itCandidate != endCandidate) ? *itCandidate : *Candidates.rbegin();
-
-                CCondition * pCheckState = new CComparison(CConditionDefinition::ComparisonType::Equal, CValueInterface(pNode->healthState), CValue(pNode->healthState));
-
-                CMetadata Info("StateChange", true);
-                Info.set("ContactNode", (int) Candidate.pContact->id);
-
-                CAction * pChangeState = new CAction(1.0, pCheckState);
-                pChangeState->addOperation(new COperationInstance< CNode, const CTransmission * >(pNode, Candidate.pTransmission, NULL, &CNode::set, Info));
-
-                CActionQueue::addAction(0, new CScheduledAction(pChangeState));
+                CActionQueue::addAction(0, new CTransmissionAction(Candidate.pTransmission, pNode, Candidate.pContact));
               }
             catch (...)
               {
@@ -390,13 +382,7 @@ void CModel::_stateChanged(CNode * pNode) const
 
       try
         {
-          CCondition * pCheckState = new CComparison(CConditionDefinition::ComparisonType::Equal, CValueInterface(pNode->healthState), CValue(pNode->healthState));
-
-          CMetadata Info("StateChange", true);
-          CAction * pChangeState = new CAction(1.0, pCheckState);
-          pChangeState->addOperation(new COperationInstance< CNode, const CProgression * >(pNode, pProgression, NULL, &CNode::set, Info));
-
-          CActionQueue::addAction(pProgression->getDwellTime(), new CScheduledAction(pChangeState));
+          CActionQueue::addAction(pProgression->getDwellTime(), new CProgressionAction(pProgression, pNode));
         }
       catch (...)
         {

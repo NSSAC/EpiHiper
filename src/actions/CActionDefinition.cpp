@@ -14,8 +14,12 @@
 #include <jansson.h>
 
 #include "actions/CActionDefinition.h"
-#include "actions/CAction.h"
+#include "actions/CEdgeAction.h"
+#include "actions/CNodeAction.h"
+#include "actions/CVariableAction.h"
 #include "actions/CActionQueue.h"
+#include "actions/CCondition.h"
+#include "actions/COperation.h"
 #include "network/CNetwork.h"
 #include "network/CEdge.h"
 #include "network/CNode.h"
@@ -228,7 +232,7 @@ void CActionDefinition::process() const
   try
     {
       CLogger::trace() << "CActionDefinition: Add node and edge independent action.";
-      CActionQueue::addAction(mDelay, new CScheduledAction(this));
+      CActionQueue::addAction(mDelay, new CVariableAction(this));
     }
   catch (...)
     {
@@ -251,7 +255,7 @@ void CActionDefinition::process(const CEdge * pEdge) const
   try
     {
       CLogger::trace() << "CActionDefinition: Add action for edge `" << pEdge->targetId << "," << pEdge->sourceId << "'.";
-      CActionQueue::addAction(mDelay, new CScheduledAction(this, pEdge));
+      CActionQueue::addAction(mDelay, new CEdgeAction(this, pEdge));
     }
   catch (...)
     {
@@ -274,7 +278,7 @@ void CActionDefinition::process(const CNode * pNode) const
   try
     {
       CLogger::trace() << "CActionDefinition: Add action for node `" << pNode->id << "'.";
-      CActionQueue::addAction(mDelay, new CScheduledAction(this, pNode));
+      CActionQueue::addAction(mDelay, new CNodeAction(this, pNode));
     }
   catch (const std::exception & e)
     {
@@ -289,7 +293,7 @@ bool CActionDefinition::execute() const
 
   try
     {
-      CCondition * pCondition = mCondition.createCondition();
+      pCondition = mCondition.createCondition();
 
       if (pCondition->isTrue())
         {
@@ -324,7 +328,7 @@ bool CActionDefinition::execute(CEdge * pEdge) const
 
   try
     {
-      CCondition * pCondition = mCondition.createCondition(pEdge);
+      pCondition = mCondition.createCondition(pEdge);
 
       if (pCondition->isTrue())
         {
@@ -359,7 +363,7 @@ bool CActionDefinition::execute(CNode * pNode) const
 
   try
     {
-      CCondition * pCondition = mCondition.createCondition(pNode);
+      pCondition = mCondition.createCondition(pNode);
 
       if (pCondition->isTrue())
         {

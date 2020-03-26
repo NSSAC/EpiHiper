@@ -38,7 +38,7 @@ void CActionQueue::release()
 }
 
 // static
-void CActionQueue::addAction(size_t deltaTick, CScheduledAction * pAction)
+void CActionQueue::addAction(size_t deltaTick, CAction * pAction)
 {
   if (pINSTANCE != NULL)
     {

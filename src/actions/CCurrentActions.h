@@ -23,12 +23,12 @@
 #include <map>
 #include <vector>
 
-#include "actions/CScheduledAction.h"
+#include "actions/CAction.h"
 
-class CCurrentActions: protected std::map< double, std::vector< CScheduledAction * > >
+class CCurrentActions: protected std::map< double, std::vector< CAction * > >
 {
 public:
-  typedef std::map< double, std::vector< CScheduledAction * > > base;
+  typedef std::map< double, std::vector< CAction * > > base;
 
   class iterator
   {
@@ -40,23 +40,23 @@ public:
     ~iterator();
 
     iterator & next();
-    const CScheduledAction * operator->() const;
+    const CAction * operator->() const;
 
     bool operator!=(const iterator & rhs) const;
 
   private:
     const base * mpBase;
     base::const_iterator mIt;
-    std::vector< CScheduledAction const * > mShuffled;
-    std::vector< CScheduledAction const * >::iterator mItShuffled;
-    CScheduledAction const * mpAction;
+    std::vector< CAction const * > mShuffled;
+    std::vector< CAction const * >::iterator mItShuffled;
+    CAction const * mpAction;
   };
 
   CCurrentActions();
 
   virtual ~CCurrentActions();
 
-  void addAction(CScheduledAction * pAction);
+  void addAction(CAction * pAction);
 
   size_t size() const;
 

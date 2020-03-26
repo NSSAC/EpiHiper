@@ -10,48 +10,22 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#ifndef SRC_ACTIONS_CACTION_H_
-#define SRC_ACTIONS_CACTION_H_
-
-/*
-class Action {
-private:
-  bool conditionsTrue;
-  std::vector<ActionCondition> conditions;
-public:
-  Action();
-  ~Action();
-  checkConditions();
-  conditionsTrue();
-};
- */
-
-#include <vector>
-
-#include "actions/CCondition.h"
-#include "actions/COperation.h"
+#ifndef SRC_ACTIONS_CSCHEDULEDACTION_H_
+#define SRC_ACTIONS_CSCHEDULEDACTION_H_
 
 class CAction
 {
+protected:
+  CAction();
+
 public:
-  CAction() = delete;
-  CAction(const double & priority,
-         CCondition * pCondition);
   CAction(const CAction & src) = delete;
+
   virtual ~CAction();
 
-  double getPriority() const;
-  void addOperation(COperation * pOperation);
+  virtual double getPriority() const = 0;
 
-  bool execute() const;
-
-  void toBinary(std::ostream & os) const;
-  bool fromBinary(std::istream & is);
-
-private:
-  double mPriority;
-  CCondition * mpCondition;
-  std::vector< COperation * > mOperations;
+  virtual bool execute() const = 0;
 };
 
-#endif /* SRC_ACTIONS_CACTION_H_ */
+#endif // SRC_ACTIONS_CSCHEDULEDACTION_H_

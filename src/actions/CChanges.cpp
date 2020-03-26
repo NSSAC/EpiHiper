@@ -66,10 +66,12 @@ void CChanges::record(const CNode * pNode, const CMetadata & metadata)
 // static
 void CChanges::record(const CEdge * pEdge, const CMetadata & metadata)
 {
+  /*
   if (pEdge == NULL)
     return;
 
   Edges.insert(pEdge);
+  */
 }
 
 // static

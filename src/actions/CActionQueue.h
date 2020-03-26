@@ -19,6 +19,9 @@
 #include "actions/CCurrentActions.h"
 #include "math/CTick.h"
 
+class CNode;
+class CEdge;
+
 class CActionQueue: public std::map< int, CCurrentActions * >
 {
   typedef std::map< int, CCurrentActions * > base;
@@ -30,7 +33,7 @@ class CActionQueue: public std::map< int, CCurrentActions * >
 
     static void release();
 
-    static void addAction(size_t deltaTick, CScheduledAction * pAction);
+    static void addAction(size_t deltaTick, CAction * pAction);
 
     static bool processCurrentActions();
 
