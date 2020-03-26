@@ -13,7 +13,7 @@
 #include "intervention/CInitialization.h"
 #include "actions/CActionDefinition.h"
 #include "actions/CActionQueue.h"
-#include "actions/Changes.h"
+#include "actions/CChanges.h"
 #include "actions/CConditionDefinition.h"
 #include "db/CConnection.h"
 #include "db/CSchema.h"
@@ -46,16 +46,16 @@ CComputableSet CConditionDefinition::RequiredComputables;
 CActionQueue * CActionQueue::pINSTANCE(NULL);
 
 // static
-std::set< const CNode * > Changes::Nodes;
+std::set< const CNode * > CChanges::Nodes;
 
 // static
-std::set< const CEdge * > Changes::Edges;
+std::set< const CEdge * > CChanges::Edges;
 
 // static
-std::stringstream Changes::DefaultOutput;
+std::stringstream CChanges::DefaultOutput;
 
 // static
-size_t Changes::Tick = -1;
+size_t CChanges::Tick = -1;
 
 // static
 CConnection * CConnection::pINSTANCE = NULL;

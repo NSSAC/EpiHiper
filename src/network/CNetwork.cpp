@@ -23,7 +23,7 @@
 #include "traits/CTrait.h"
 #include "utilities/CCommunicate.h"
 #include "utilities/CStreamBuffer.h"
-#include "actions/Changes.h"
+#include "actions/CChanges.h"
 #include "network/CEdge.h"
 #include "network/CNetwork.h"
 
@@ -1261,19 +1261,19 @@ const bool & CNetwork::isValid() const
 
 int CNetwork::broadcastChanges()
 {
-  std::string Buffer = Changes::getNodes().str();
+  std::string Buffer = CChanges::getNodes().str();
 
   // std::cout << Communicate::Rank << ": ActionQueue::broadcastChanges (Nodes)" << std::endl;
   CCommunicate::ClassMemberReceive< CNetwork > ReceiveNode(CNetwork::INSTANCE, &CNetwork::receiveNodes);
   CCommunicate::broadcast(Buffer.c_str(), Buffer.length(), &ReceiveNode);
 
-  // Buffer = Changes::getEdges().str();
+  // Buffer = CChanges::getEdges().str();
 
   // std::cout << Communicate::Rank << ": ActionQueue::broadcastChanges (Edges)" << std::endl;
   // CCommunicate::ClassMemberReceive< CNetwork > ReceiveEdge(CNetwork::INSTANCE, &CNetwork::receiveEdges);
   // CCommunicate::broadcast(Buffer.c_str(), Buffer.length(), &ReceiveEdge);
 
-  Changes::clear();
+  CChanges::clear();
 
   return (int) CCommunicate::ErrorCode::Success;
 }

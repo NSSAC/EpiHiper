@@ -19,7 +19,7 @@
 #include "Simulation.h"
 
 #include "actions/CActionQueue.h"
-#include "actions/Changes.h"
+#include "actions/CChanges.h"
 #include "diseaseModel/CModel.h"
 #include "intervention/CInitialization.h"
 #include "intervention/CIntervention.h"
@@ -78,8 +78,8 @@ bool Simulation::validate() {
 bool Simulation::run()
 {
   CActionQueue::setCurrentTick(startTick - 1);
-  Changes::setCurrentTick(startTick - 1);
-  Changes::initDefaultOutput();
+  CChanges::setCurrentTick(startTick - 1);
+  CChanges::initDefaultOutput();
   CModel::initGlobalStateCountOutput();
 
   CDependencyGraph::buildGraph();
@@ -94,9 +94,9 @@ bool Simulation::run()
 
   CActionQueue::processCurrentActions();
   CActionQueue::incrementTick();
-  Changes::incrementTick();
+  CChanges::incrementTick();
 
-  Changes::writeDefaultOutput();
+  CChanges::writeDefaultOutput();
   CModel::updateGlobalStateCounts();
   CModel::writeGlobalStateCounts();
   CNetwork::INSTANCE->broadcastChanges();
@@ -120,9 +120,9 @@ bool Simulation::run()
       CActionQueue::processCurrentActions();
 
       CActionQueue::incrementTick();
-      Changes::incrementTick();
+      CChanges::incrementTick();
 
-      Changes::writeDefaultOutput();
+      CChanges::writeDefaultOutput();
       CModel::updateGlobalStateCounts();
       CModel::writeGlobalStateCounts();
       CNetwork::INSTANCE->broadcastChanges();

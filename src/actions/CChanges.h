@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -11,7 +11,7 @@
 // END: License 
 
 /*
- * Changes.h
+ * CChanges.h
  *
  *  Created on: Jul 11, 2019
  *      Author: shoops
@@ -30,7 +30,7 @@ class CVariable;
 class CMetadata;
 
 
-class Changes
+class CChanges
 {
 public:
   static void record(const CNode * pNode, const CMetadata & metadata);
@@ -48,8 +48,8 @@ public:
   static void setCurrentTick(size_t tick);
   static void incrementTick();
 
-  Changes() = delete;
-  virtual ~Changes();
+  CChanges() = delete;
+  virtual ~CChanges();
 
 private:
   static std::set< const CNode * > Nodes;

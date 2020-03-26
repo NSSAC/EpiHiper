@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -11,7 +11,7 @@
 // END: License 
 
 /*
- * Changes.cpp
+ * CChanges.cpp
  *
  *  Created on: Jul 11, 2019
  *      Author: shoops
@@ -19,7 +19,7 @@
 
 #include <fstream>
 
-#include "actions/Changes.h"
+#include "actions/CChanges.h"
 
 #include "utilities/CSimConfig.h"
 #include "diseaseModel/CHealthState.h"
@@ -28,19 +28,19 @@
 #include "utilities/CMetadata.h"
 
 // static
-void Changes::setCurrentTick(size_t tick)
+void CChanges::setCurrentTick(size_t tick)
 {
   Tick = tick;
 }
 
 // static
-void Changes::incrementTick()
+void CChanges::incrementTick()
 {
   ++Tick;
 }
 
 // static
-void Changes::record(const CNode * pNode, const CMetadata & metadata)
+void CChanges::record(const CNode * pNode, const CMetadata & metadata)
 {
   if (pNode == NULL)
     return;
@@ -64,7 +64,7 @@ void Changes::record(const CNode * pNode, const CMetadata & metadata)
 }
 
 // static
-void Changes::record(const CEdge * pEdge, const CMetadata & metadata)
+void CChanges::record(const CEdge * pEdge, const CMetadata & metadata)
 {
   if (pEdge == NULL)
     return;
@@ -73,18 +73,18 @@ void Changes::record(const CEdge * pEdge, const CMetadata & metadata)
 }
 
 // static
-void Changes::record(const CVariable * pVariable, const CMetadata & metadata)
+void CChanges::record(const CVariable * pVariable, const CMetadata & metadata)
 {}
 
 // static
-void Changes::clear()
+void CChanges::clear()
 {
   Nodes.clear();
   Edges.clear();
 }
 
 // static
-void Changes::initDefaultOutput()
+void CChanges::initDefaultOutput()
 {
   if (CCommunicate::MPIRank == 0)
     {
@@ -107,16 +107,16 @@ void Changes::initDefaultOutput()
 }
 
 // static
-void Changes::writeDefaultOutput()
+void CChanges::writeDefaultOutput()
 {
-  CCommunicate::SequentialProcess WriteData(&Changes::writeDefaultOutputData);
+  CCommunicate::SequentialProcess WriteData(&CChanges::writeDefaultOutputData);
   CCommunicate::sequential(0, &WriteData);
 
   DefaultOutput.str("");
 }
 
 // static
-CCommunicate::ErrorCode Changes::writeDefaultOutputData()
+CCommunicate::ErrorCode CChanges::writeDefaultOutputData()
 {
   std::ofstream out;
 
@@ -133,13 +133,13 @@ CCommunicate::ErrorCode Changes::writeDefaultOutputData()
 }
 
 // static
-size_t Changes::size()
+size_t CChanges::size()
 {
   return Nodes.size() + Edges.size();
 }
 
 // static
-const std::ostringstream & Changes::getNodes()
+const std::ostringstream & CChanges::getNodes()
 {
   static std::ostringstream os;
 
@@ -157,7 +157,7 @@ const std::ostringstream & Changes::getNodes()
 }
 
 // static
-const std::ostringstream & Changes::getEdges()
+const std::ostringstream & CChanges::getEdges()
 {
   static std::ostringstream os;
 
@@ -174,5 +174,5 @@ const std::ostringstream & Changes::getEdges()
   return os;
 }
 
-Changes::~Changes()
+CChanges::~CChanges()
 {}

@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -13,7 +13,7 @@
 #ifndef SRC_ACTIONS_COPERATION_H_
 #define SRC_ACTIONS_COPERATION_H_
 
-#include "actions/Changes.h"
+#include "actions/CChanges.h"
 #include "utilities/CMetadata.h"
 #include "math/CValueInterface.h"
 
@@ -71,7 +71,7 @@ public:
 
     if (changed)
       {
-        Changes::record(mpTarget, mMetadata);
+        CChanges::record(mpTarget, mMetadata);
       }
 
     return changed;
