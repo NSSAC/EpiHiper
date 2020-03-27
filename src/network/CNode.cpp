@@ -246,6 +246,7 @@ void CNode::setHealthState(const CHealthState * pNewHealthState)
   if (CNetwork::INSTANCE->isRemoteNode(this))
     {
       pHealthState = pNewHealthState;
+      healthState = CModel::stateToType(pHealthState);
       return;
     }
 

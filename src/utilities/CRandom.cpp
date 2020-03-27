@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -41,7 +41,7 @@ void CRandom::init()
 void CRandom::seed(CRandom::result_t value)
 {
   uint64_t Seed = value;
-  CCommunicate::broadcast(&Seed, 1, MPI_UINT64_T, 0);
+  CCommunicate::broadcast(&Seed, sizeof(uint64_t), MPI_CHAR, 0);
 
   CRandom::G.seed(Seed + CCommunicate::MPIRank);
 }

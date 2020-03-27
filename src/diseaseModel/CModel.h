@@ -82,16 +82,28 @@ public:
   static void writeGlobalStateCounts();
 
 private:
+  struct PossibleTransmissions
+  {
+    CTransmission ** Transmissions;
+  };
+
+  struct PossibleProgressions
+  {
+    double A0;
+    std::vector< const CProgression * > Progressions;
+  };
+
   bool _processTransmissions() const;
   void _stateChanged(CNode * pNode) const;
 
   CHealthState * mStates;
+  size_t mStateCount;
   std::map< std::string, CHealthState * > mId2State;
   CHealthState const * mpInitialState;
   std::vector< CTransmission > mTransmissions;
   std::vector< CProgression > mProgressions;
-  std::map< const CHealthState *, std::map< const CHealthState *,  const CTransmission * > > mPossibleTransmissions;
-  std::map< const CHealthState *, std::vector< const CProgression * > > mPossibleProgressions;
+  PossibleTransmissions * mPossibleTransmissions;
+  PossibleProgressions * mPossibleProgressions;
   double mTransmissability;
   bool mValid;
 };

@@ -51,12 +51,13 @@ void CModel::release()
 CModel::CModel(const std::string & modelFile)
   : CAnnotation()
   , mStates()
+  , mStateCount(0)
   , mId2State()
   , mpInitialState(NULL)
   , mTransmissions()
   , mProgressions()
-  , mPossibleTransmissions()
-  , mPossibleProgressions()
+  , mPossibleTransmissions(NULL)
+  , mPossibleProgressions(NULL)
   , mTransmissability(1.0)
   , mValid(false)
 {
@@ -127,12 +128,21 @@ void CModel::fromJSON(const json_t * json)
   mValid = false; // DONE
 
   json_t * pValue = json_object_get(json, "states");
-  mStates = new CHealthState[json_array_size(pValue)];
+
+  mStateCount = json_array_size(pValue);
+  mStates = new CHealthState[mStateCount];
+  mPossibleTransmissions = new PossibleTransmissions[mStateCount];
+  mPossibleProgressions = new PossibleProgressions[mStateCount];
+
+  PossibleTransmissions * pTransmissions = mPossibleTransmissions;
+  PossibleProgressions * pProgressions = mPossibleProgressions;
   CHealthState * pState = mStates;
 
-  for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i, ++pState)
+  for (size_t i = 0; i < mStateCount; ++i, ++pState, ++pTransmissions, ++pProgressions)
     {
       pState->fromJSON(json_array_get(pValue, i));
+      pTransmissions->Transmissions = NULL;
+      pProgressions->A0 = 0.0;
 
       if (pState->isValid())
         {
@@ -176,7 +186,13 @@ void CModel::fromJSON(const json_t * json)
 
       if (itTrans->isValid())
         {
-          mPossibleTransmissions[itTrans->getEntryState()][itTrans->getContactState()] = &*itTrans;
+          if (mPossibleTransmissions[itTrans->getEntryState() - mStates].Transmissions == NULL)
+            {
+              mPossibleTransmissions[itTrans->getEntryState() - mStates].Transmissions = new CTransmission*[mStateCount];
+              memset(mPossibleTransmissions[itTrans->getEntryState() - mStates].Transmissions, 0, sizeof(void *) * mStateCount);
+            }
+
+          mPossibleTransmissions[itTrans->getEntryState() - mStates].Transmissions[itTrans->getContactState() - mStates] = &*itTrans;
         }
       else
         {
@@ -197,7 +213,8 @@ void CModel::fromJSON(const json_t * json)
 
       if (itProg->isValid())
         {
-          mPossibleProgressions[itProg->getEntryState()].push_back(&*itProg);
+          mPossibleProgressions[itProg->getEntryState() - mStates].A0 += itProg->getPropability();
+          mPossibleProgressions[itProg->getEntryState() - mStates].Progressions.push_back(&*itProg);
         }
       else
         {
@@ -267,18 +284,16 @@ bool CModel::_processTransmissions() const
   CNode * pNode = CNetwork::INSTANCE->beginNode();
   CNode * pNodeEnd = CNetwork::INSTANCE->endNode();
 
-  std::map< const CHealthState *, std::map< const CHealthState *, const CTransmission * > >::const_iterator EntryStateFound;
-  std::map< const CHealthState *, std::map< const CHealthState *, const CTransmission * > >::const_iterator EntryStateNotFound = mPossibleTransmissions.end();
-
+  CTransmission ** pPossibleTransmissions = NULL;
+  
   for (pNode = CNetwork::INSTANCE->beginNode(); pNode != pNodeEnd; ++pNode)
     if (pNode->susceptibility > 0.0
-        && (EntryStateFound = mPossibleTransmissions.find(pNode->getHealthState())) != EntryStateNotFound)
+        && (pPossibleTransmissions = mPossibleTransmissions[pNode->healthState].Transmissions) != NULL)
       {
         CEdge * pEdge = pNode->Edges;
         CEdge * pEdgeEnd = pNode->Edges + pNode->EdgesSize;
 
-        std::map< const CHealthState *, const CTransmission * >::const_iterator ContactStateFound;
-        std::map< const CHealthState *, const CTransmission * >::const_iterator ContactStateNotFound = EntryStateFound->second.end();
+        CTransmission * pTransmission = NULL;
 
         struct Candidate
         {
@@ -293,12 +308,12 @@ bool CModel::_processTransmissions() const
           {
             if (pEdge->active
                 && pEdge->pSource->infectivity > 0.0
-                && (ContactStateFound = EntryStateFound->second.find(pEdge->pSource->getHealthState())) != ContactStateNotFound)
+                && (pTransmission = pPossibleTransmissions[pEdge->pSource->healthState]) != NULL)
               {
                 // ρ(P, P', Τi,j,k) = (| contactTime(P, P') ∩ [tn, tn + Δtn] |) × contactWeight(P, P') × σ(P, Χi) × ι(P',Χk) × ω(Τi,j,k)
                 Candidate Candidate;
                 Candidate.pContact = pEdge->pSource;
-                Candidate.pTransmission = ContactStateFound->second;
+                Candidate.pTransmission = pTransmission;
                 Candidate.Propensity = pEdge->duration * pEdge->weight * pNode->susceptibility
                                        * Candidate.pContact->infectivity * Candidate.pTransmission->getTransmissibility();
 
@@ -351,26 +366,15 @@ void CModel::_stateChanged(CNode * pNode) const
 {
   // std::cout << pNode->id << ": " << pNode->Edges << ", " << pNode->Edges + pNode->EdgesSize << ", " << pNode->EdgesSize << std::endl;
 
-  std::map< const CHealthState *, std::vector< const CProgression * > >::const_iterator EntryStateFound = mPossibleProgressions.find(pNode->getHealthState());
+  PossibleProgressions & Progressions = mPossibleProgressions[pNode->healthState];
 
-  if (EntryStateFound == mPossibleProgressions.end())
-    return;
-
-  std::vector< const CProgression * >::const_iterator it = EntryStateFound->second.begin();
-  std::vector< const CProgression * >::const_iterator end = EntryStateFound->second.end();
-
-  double A0 = 0.0;
-
-  for (; it != end; ++it)
+  if (Progressions.A0 > 0.0)
     {
-      A0 += (*it)->getPropability();
-    }
+      double alpha = CRandom::uniform_real(0.0, Progressions.A0)(CRandom::G);
+      std::vector< const CProgression * >::const_iterator it = Progressions.Progressions.begin();
+      std::vector< const CProgression * >::const_iterator end = Progressions.Progressions.end();
 
-  if (A0 > 0)
-    {
-      double alpha = CRandom::uniform_real(0.0, A0)(CRandom::G);
-
-      for (it = EntryStateFound->second.begin(); it != end; ++it)
+      for (; it != end; ++it)
         {
           alpha -= (*it)->getPropability();
 
@@ -378,7 +382,7 @@ void CModel::_stateChanged(CNode * pNode) const
             break;
         }
 
-      const CProgression * pProgression = (it != end) ? *it : *EntryStateFound->second.rbegin();
+      const CProgression * pProgression = (it != end) ? *it : *Progressions.Progressions.rbegin();
 
       try
         {
@@ -400,7 +404,7 @@ const std::vector< CTransmission > & CModel::getTransmissions()
 // static
 int CModel::updateGlobalStateCounts()
 {
-  size_t Size = INSTANCE->mId2State.size();
+  size_t Size = INSTANCE->mStateCount;
   CHealthState::Counts LocalStateCounts[Size];
 
   CHealthState * pState = INSTANCE->mStates;
@@ -422,7 +426,7 @@ int CModel::updateGlobalStateCounts()
 // static
 CCommunicate::ErrorCode CModel::receiveGlobalStateCounts(std::istream & is, int sender)
 {
-  size_t Size = INSTANCE->mId2State.size();
+  size_t Size = INSTANCE->mStateCount;
 
   CHealthState::Counts Increment;
   CHealthState * pState = INSTANCE->mStates;
@@ -448,7 +452,7 @@ void CModel::initGlobalStateCountOutput()
 
       if (out.good())
         {
-          size_t Size = INSTANCE->mId2State.size();
+          size_t Size = INSTANCE->mStateCount;
           CHealthState * pState = INSTANCE->mStates;
           CHealthState * pStateEnd = pState + Size;
           bool first = true;
@@ -496,7 +500,7 @@ void CModel::writeGlobalStateCounts()
 
       if (out.good())
         {
-          size_t Size = INSTANCE->mId2State.size();
+          size_t Size = INSTANCE->mStateCount;
           CHealthState * pState = INSTANCE->mStates;
           CHealthState * pStateEnd = pState + Size;
 
