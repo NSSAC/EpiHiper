@@ -653,7 +653,9 @@ bool CConditionDefinition::comparisonFromJSON(const json_t * json)
   else
     {
       if (mLeft.type != ValueType::NodeProperty
-          && mLeft.type != ValueType::EdgeProperty)
+          && mLeft.type != ValueType::EdgeProperty
+          && mLeft.type != ValueType::Observable
+          && mLeft.type != ValueType::Variable)
         {
           CLogger::error() << "Condition: Invalid value type for left operant for comparison operator '" << Comparison << "'.";
           mValid = false; // DONE
