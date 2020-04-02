@@ -209,6 +209,8 @@ std::map< CValueList::Type, CValueList > & CSetContent::getDBFieldValues()
 
 void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetContent & notSampled) const
 {
+  const std::vector< CNode * > & Nodes = getNodes();
+  const std::vector< CEdge * > & Edges = getEdges();
   sampled.mEdges.clear();
   sampled.mNodes.clear();
   sampled.mDBFieldValues.clear();
@@ -220,13 +222,13 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
   CRandom::uniform_real Percent(0.0, 1.0);
 
   // Sampling is only supported if we have either only nodes or only edges;
-  if (size() == mNodes.size())
+  if (size() == Nodes.size())
     {
       double Requested = max;
-      double Available = mNodes.size();
+      double Available = Nodes.size();
 
-      std::vector< CNode * >::const_iterator it = mNodes.begin();
-      std::vector< CNode * >::const_iterator end = mNodes.end();
+      std::vector< CNode * >::const_iterator it = Nodes.begin();
+      std::vector< CNode * >::const_iterator end = Nodes.end();
 
       for (; it != end; ++it)
         {
@@ -243,13 +245,13 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
           Available -= 1.0;
         }
     }
-  else if (size() == mEdges.size())
+  else if (size() == Edges.size())
     {
       double Requested = max;
-      double Available = mEdges.size();
+      double Available = Edges.size();
 
-      std::vector< CEdge * >::const_iterator it = mEdges.begin();
-      std::vector< CEdge * >::const_iterator end = mEdges.end();
+      std::vector< CEdge * >::const_iterator it = Edges.begin();
+      std::vector< CEdge * >::const_iterator end = Edges.end();
 
       for (; it != end; ++it)
         {
