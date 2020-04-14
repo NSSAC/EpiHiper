@@ -1,14 +1,14 @@
-// BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
-// All rights reserved 
-// END: Copyright 
+// BEGIN: Copyright
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia
+// All rights reserved
+// END: Copyright
 
-// BEGIN: License 
-// Licensed under the Apache License, Version 2.0 (the "License"); 
-// you may not use this file except in compliance with the License. 
-// You may obtain a copy of the License at 
-//   http://www.apache.org/licenses/LICENSE-2.0 
-// END: License 
+// BEGIN: License
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//   http://www.apache.org/licenses/LICENSE-2.0
+// END: License
 
 #include "math/CValueList.h"
 
@@ -62,6 +62,10 @@ bool CValueList::append(const CValue & value)
 
 bool CValueList::contains(const CValueInterface & value) const
 {
+  if (value.getType() == CValueInterface::Type::traitData 
+      && !empty())
+    return contains(CValue(CTraitData::getValue(value.toTraitData(), std::set< CValue >::begin()->toTraitValue().first)));
+
   if (value.getType() != mType)
     return false;
 
@@ -193,7 +197,7 @@ void CValueList::fromJSON(const json_t * json)
       if (json_is_array(pValue))
         {
           mType = Type::number;
-           pArray = pValue;
+          pArray = pValue;
         }
     }
 
@@ -204,7 +208,7 @@ void CValueList::fromJSON(const json_t * json)
       if (json_is_array(pValue))
         {
           mType = Type::id;
-           pArray = pValue;
+          pArray = pValue;
         }
     }
 
@@ -215,7 +219,7 @@ void CValueList::fromJSON(const json_t * json)
       if (json_is_array(pValue))
         {
           mType = Type::traitValue;
-           pArray = pValue;
+          pArray = pValue;
         }
     }
 
