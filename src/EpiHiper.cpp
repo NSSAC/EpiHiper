@@ -14,9 +14,10 @@
 #include <cstdlib>
 #include <getopt.h>
 
-#include "diseaseModel/CModel.h"
 #include "EpiHiperConfig.h"
-#include "Simulation.h"
+
+#include "diseaseModel/CModel.h"
+#include "utilities/CSimulation.h"
 #include "network/CNetwork.h"
 #include "traits/CTrait.h"
 #include "utilities/CCommunicate.h"
@@ -204,7 +205,7 @@ int main(int argc, char * argv[])
   CCommunicate::memUsage(-2);
 
   {
-    Simulation sim(seed, dbconn);
+    CSimulation sim(seed, dbconn);
 
     if (!sim.validate())
       goto failed;

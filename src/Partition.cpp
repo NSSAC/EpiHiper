@@ -18,6 +18,7 @@
 #include <jansson.h>
 
 #include "EpiHiperConfig.h"
+
 #include "network/CNetwork.h"
 #include "traits/CTrait.h"
 #include "utilities/CCommunicate.h"

@@ -45,7 +45,7 @@ add_dependencies(EpiHiperLib-core jansson libpqxx spdlog)
 
 add_library (EpiHiperLib STATIC $<TARGET_OBJECTS:EpiHiperLib-core>)
 
-add_executable (EpiHiper EpiHiper.cpp Simulation.cpp Simulation.h EpiHiperConfig.h)
+add_executable (EpiHiper EpiHiper.cpp EpiHiperConfig.h)
 add_dependencies(EpiHiper EpiHiperLib GIT_COMMIT)
 target_link_libraries (EpiHiper 
     EpiHiperLib

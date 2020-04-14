@@ -15,7 +15,7 @@
 
 #include "utilities/CCommunicate.h"
 
-class Simulation {
+class CSimulation {
 private:
   bool valid;
   int randomSeed;
@@ -25,8 +25,8 @@ private:
   std::string outputFile;
 
 public:
-  Simulation(int seed, std::string dbconn);
-  ~Simulation();
+  CSimulation(int seed, std::string dbconn);
+  ~CSimulation();
   bool validate();
   bool run();
 };

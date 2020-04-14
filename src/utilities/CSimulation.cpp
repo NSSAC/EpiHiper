@@ -16,8 +16,8 @@
 #include <fstream>
 #include <algorithm>
 #include <cmath>
-#include "Simulation.h"
 
+#include "utilities/CSimulation.h"
 #include "actions/CActionQueue.h"
 #include "actions/CChanges.h"
 #include "diseaseModel/CModel.h"
@@ -35,7 +35,7 @@
 #include "variables/CVariableList.h"
 
 // initialize according to config
-Simulation::Simulation(int seed, std::string dbconn) {
+CSimulation::CSimulation(int seed, std::string dbconn) {
   valid = false;
   randomSeed = seed;
   startTick = 0;
@@ -65,17 +65,17 @@ Simulation::Simulation(int seed, std::string dbconn) {
   */
 }
 
-Simulation::~Simulation() {
+CSimulation::~CSimulation() {
 }
 
 // check all required components are ready
-bool Simulation::validate() {
+bool CSimulation::validate() {
   valid = (startTick <= startTick);
   
   return valid;
 }
 
-bool Simulation::run()
+bool CSimulation::run()
 {
   CActionQueue::setCurrentTick(startTick - 1);
   CChanges::setCurrentTick(startTick - 1);
