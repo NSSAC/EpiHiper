@@ -177,6 +177,8 @@ public:
 
   static int allocateRMA();
 
+  static int barrierRMA();
+
   static double getRMA(const int & index);
 
   static double updateRMA(const int & index, Operator pOperator, const double & value);

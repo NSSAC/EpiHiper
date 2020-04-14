@@ -85,6 +85,7 @@ bool CTrigger::processAll()
       }
   }
 
+  CCommunicate::barrierRMA();
   CCommunicate::Receive Receive(receive);
   CCommunicate::broadcast(pGlobalTriggered, INSTANCES.size() * sizeof(bool), &Receive);
 

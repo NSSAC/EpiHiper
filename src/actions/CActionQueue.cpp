@@ -1,14 +1,14 @@
-// BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
-// All rights reserved 
-// END: Copyright 
+// BEGIN: Copyright
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia
+// All rights reserved
+// END: Copyright
 
-// BEGIN: License 
-// Licensed under the Apache License, Version 2.0 (the "License"); 
-// you may not use this file except in compliance with the License. 
-// You may obtain a copy of the License at 
-//   http://www.apache.org/licenses/LICENSE-2.0 
-// END: License 
+// BEGIN: License
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//   http://www.apache.org/licenses/LICENSE-2.0
+// END: License
 
 #include "actions/CActionQueue.h"
 #include "actions/CActionDefinition.h"
@@ -55,7 +55,7 @@ void CActionQueue::addAction(size_t deltaTick, CAction * pAction)
         }
       catch (...)
         {
-          CLogger::error("CActionQueue: Failed to add action."); 
+          CLogger::error("CActionQueue: Failed to add action.");
         }
     }
 }
@@ -94,11 +94,13 @@ bool CActionQueue::processCurrentActions()
       delete pActions;
 
       // MPI Broadcast scheduled remote actions and whether local actions are pending
+      CCommunicate::barrierRMA();
       pINSTANCE->broadcastPendingActions();
 
       // If no local actions are pending anywhere and no remote actions where broadcasted, i.e.,
       // if (Total actions size == 0) break;
-    } while (pINSTANCE->mTotalPendingActions > 0);
+    }
+  while (pINSTANCE->mTotalPendingActions > 0);
 
   return success;
 }
@@ -132,7 +134,6 @@ const CTick & CActionQueue::getCurrentTick()
   return Zero;
 }
 
-
 // static
 void CActionQueue::setCurrentTick(const int & currentTick)
 {
@@ -152,11 +153,11 @@ void CActionQueue::addRemoteAction(const size_t & index, const CNode * pNode)
 {
   if (pINSTANCE != NULL)
     {
-      try 
+      try
         {
-          pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&index), sizeof(size_t));
+          pINSTANCE->mRemoteActions.write(reinterpret_cast< const char * >(&index), sizeof(size_t));
           pINSTANCE->mRemoteActions << 'N';
-          pINSTANCE->mRemoteActions.write(reinterpret_cast<const char *>(&pNode->id), sizeof(size_t));
+          pINSTANCE->mRemoteActions.write(reinterpret_cast< const char * >(&pNode->id), sizeof(size_t));
         }
       catch (...)
         {
@@ -199,7 +200,7 @@ int CActionQueue::broadcastPendingActions()
   std::ostringstream os;
 
   mTotalPendingActions = pendingActions();
-  os.write(reinterpret_cast<const char *>(&mTotalPendingActions), sizeof(size_t));
+  os.write(reinterpret_cast< const char * >(&mTotalPendingActions), sizeof(size_t));
   os << mRemoteActions.str();
   mRemoteActions.str("");
 
@@ -217,34 +218,39 @@ CCommunicate::ErrorCode CActionQueue::receivePendingActions(std::istream & is, i
 {
   size_t RemotePendingActions;
 
-  is.read(reinterpret_cast<char *>(&RemotePendingActions), sizeof(size_t));
+  is.read(reinterpret_cast< char * >(&RemotePendingActions), sizeof(size_t));
   mTotalPendingActions += RemotePendingActions;
 
   // Check whether we received actions from remote;
-  while(true)
+  while (true)
     {
       size_t ActionId;
-      is.read(reinterpret_cast<char *>(&ActionId), sizeof(size_t));
-      if (is.fail()) break;
+      is.read(reinterpret_cast< char * >(&ActionId), sizeof(size_t));
+
+      if (is.fail())
+        break;
 
       CActionDefinition * pActionDefinition = CActionDefinition::GetActionDefinition(ActionId);
 
       char TargetType;
       is.read(&TargetType, sizeof(char));
-      if (is.fail()) break;
+
+      if (is.fail())
+        break;
 
       switch (TargetType)
-      {
+        {
         case 'N':
           {
             size_t NodeId;
-            is.read(reinterpret_cast<char *>(&NodeId), sizeof(size_t));
-            if (is.fail()) break;
+            is.read(reinterpret_cast< char * >(&NodeId), sizeof(size_t));
+            if (is.fail())
+              break;
 
             CNode * pNode = CNetwork::INSTANCE->lookupNode(NodeId, true);
 
-            if (pNode != NULL &&
-                pActionDefinition != NULL)
+            if (pNode != NULL
+                && pActionDefinition != NULL)
               {
                 pActionDefinition->process(pNode);
                 ++mTotalPendingActions;
@@ -255,26 +261,26 @@ CCommunicate::ErrorCode CActionQueue::receivePendingActions(std::istream & is, i
         case 'E':
           {
             size_t TargetId;
-            is.read(reinterpret_cast<char *>(&TargetId), sizeof(size_t));
-            if (is.fail()) break;
+            is.read(reinterpret_cast< char * >(&TargetId), sizeof(size_t));
+            if (is.fail())
+              break;
 
             size_t SourceId;
-            is.read(reinterpret_cast<char *>(&SourceId), sizeof(size_t));
-            if (is.fail()) break;
+            is.read(reinterpret_cast< char * >(&SourceId), sizeof(size_t));
+            if (is.fail())
+              break;
 
             CEdge * pEdge = CNetwork::INSTANCE->lookupEdge(TargetId, SourceId);
 
-            if (pEdge != NULL &&
-                pActionDefinition != NULL)
+            if (pEdge != NULL
+                && pActionDefinition != NULL)
               {
                 pActionDefinition->process(pEdge);
               }
           }
           break;
-      }
+        }
     }
 
   return CCommunicate::ErrorCode::Success;
 }
-
-

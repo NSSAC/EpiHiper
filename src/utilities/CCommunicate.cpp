@@ -1,14 +1,14 @@
-// BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
-// All rights reserved 
-// END: Copyright 
+// BEGIN: Copyright
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia
+// All rights reserved
+// END: Copyright
 
-// BEGIN: License 
-// Licensed under the Apache License, Version 2.0 (the "License"); 
-// you may not use this file except in compliance with the License. 
-// You may obtain a copy of the License at 
-//   http://www.apache.org/licenses/LICENSE-2.0 
-// END: License 
+// BEGIN: License
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//   http://www.apache.org/licenses/LICENSE-2.0
+// END: License
 
 #include <fstream>
 #include <algorithm>
@@ -84,8 +84,10 @@ int CCommunicate::finalize(void)
   if (MPIWinSize)
     {
       MPI_Win_free(&MPIWin);
-      delete[] RMABuffer;
       MPIWinSize = 0;
+
+      if (MPIRank == 0)
+        delete[] RMABuffer;
     }
 
   return MPI_Finalize();
@@ -100,7 +102,7 @@ int CCommunicate::send(const void * buf,
 {
   if (MPIProcesses == 1)
     return MPI_SUCCESS;
-    
+
   CLogger::debug() << "CCommunicate: Sending '" << count << "' bytes to '" << dest << "'.";
   return MPI_Send(buf, count, datatype, dest, tag, MPI_COMM_WORLD);
 }
@@ -115,7 +117,7 @@ int CCommunicate::receive(void * buf,
 {
   if (MPIProcesses == 1)
     return MPI_SUCCESS;
-    
+
   CLogger::debug() << "CCommunicate: Receiving '" << count << "' bytes from '" << source << "'.";
   return MPI_Recv(buf, count, datatype, source, tag, MPI_COMM_WORLD, status);
 }
@@ -262,17 +264,37 @@ int CCommunicate::master(int masterRank,
 int CCommunicate::allocateRMA()
 {
   MPIWinSize = RMAIndex;
+  int result = (int) ErrorCode::Success;
 
   if (MPIWinSize > 0)
     {
-      RMABuffer = new double[MPIWinSize];
-      int result = MPI_Win_create(RMABuffer, MPIWinSize, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &MPIWin);
-      MPI_Win_fence(0, MPIWin);
+      if (MPIRank == 0)
+        {
+          /* Everyone will retrieve from a buffer on root */
+          RMABuffer = new double[MPIWinSize];
+          result = MPI_Win_create(RMABuffer, MPIWinSize, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &MPIWin);
+        }
+      else
+        {
+          /* Others only retrieve, so these windows can be size 0 */
+          result = MPI_Win_create(NULL, 0, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &MPIWin);
+        }
 
-      return result;
+      MPI_Win_fence(0, MPIWin);
     }
 
-  return (int) ErrorCode::Success;
+  return result;
+}
+
+// static 
+int CCommunicate::barrierRMA()
+{
+  int result = (int) ErrorCode::Success;
+
+  if (MPIWinSize > 0)
+    result = MPI_Win_fence(0, MPIWin);
+
+  return result; 
 }
 
 // static
