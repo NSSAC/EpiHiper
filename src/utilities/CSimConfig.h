@@ -95,6 +95,7 @@ public:
   static const db_connection & getDBConnection();
 
   static json_t * loadJson(const std::string & jsonFile, int flags);
+  static json_t * loadJsonPreamble(const std::string & jsonFile, int flags);
 };
 
 #endif

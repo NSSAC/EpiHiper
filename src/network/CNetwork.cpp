@@ -87,7 +87,7 @@ CNetwork::CNetwork(const std::string & networkFile)
       return;
     }
 
-  mpJson = CSimConfig::loadJson(mFile, 0);
+  mpJson = CSimConfig::loadJsonPreamble(mFile, 0);
 
   fromJSON(mpJson);
 }
@@ -690,7 +690,7 @@ void CNetwork::load()
 
   if (havePartition)
     {
-      json_t * pJson = CSimConfig::loadJson(File.str(), 0);
+      json_t * pJson = CSimConfig::loadJsonPreamble(File.str(), 0);
       json_t * pPartition = json_object_get(pJson, "partition");
       json_t * pValue = json_object_get(pPartition, "numberOfNodes");
 
@@ -981,7 +981,7 @@ bool CNetwork::haveValidPartition(const int & parts)
 
       if (CDirEntry::isFile(File.str()))
         {
-          json_t * pJson = CSimConfig::loadJson(File.str(), 0);
+          json_t * pJson = CSimConfig::loadJsonPreamble(File.str(), 0);
 
           valid &= pJson != NULL;
 

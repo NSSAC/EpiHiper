@@ -26,7 +26,7 @@ void CSchema::load(const std::vector< std::string > & schemaFiles)
 
   for (; it != end; ++it)
     {
-      json_t * pRoot = CSimConfig::loadJson(*it, JSON_DECODE_INT_AS_REAL);
+      json_t * pRoot = CSimConfig::loadJsonPreamble(*it, JSON_DECODE_INT_AS_REAL);
 
       if (pRoot != NULL)
         {

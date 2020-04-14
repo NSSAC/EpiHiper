@@ -444,13 +444,13 @@ bool CSimConfig::loadScenario()
 }
 
 // static
-json_t * CSimConfig::loadJson(const std::string & jsonFile, int flags)
+json_t * CSimConfig::loadJsonPreamble(const std::string & jsonFile, int flags)
 {
   json_t * pRoot = NULL;
 
   if (jsonFile.empty())
     {
-      CLogger::error("JSON file is not specified");
+      CLogger::error("JSON Preamble file is not specified");
       return pRoot;
     }
 
@@ -458,7 +458,7 @@ json_t * CSimConfig::loadJson(const std::string & jsonFile, int flags)
 
   if (is.fail())
     {
-      CLogger::error("JSON file: '" + jsonFile + "' cannot be opened.");
+      CLogger::error("JSON Preamble file: '" + jsonFile + "' cannot be opened.");
       return pRoot;
     }
 
@@ -470,20 +470,40 @@ json_t * CSimConfig::loadJson(const std::string & jsonFile, int flags)
 
   pRoot = json_loads(Line.c_str(), flags, &error);
 
-  if (pRoot != NULL)
-    return pRoot;
+  if (pRoot == NULL)
+    {
+      CLogger::error() << "JSON Preamble file: '" << jsonFile << "' error on line " << error.line << ": " << error.text << std::endl;
+    }
 
-  // get length of file:
-  is.seekg(0, is.end);
-  size_t length = is.tellg();
-  is.seekg(0, is.beg);
+  return pRoot;
+}
 
-  char * buffer = new char[length + 1];
-  is.read(buffer, length);
-  buffer[length] = 0;
+// static
+json_t * CSimConfig::loadJson(const std::string & jsonFile, int flags)
+{
+  json_t * pRoot = NULL;
 
-  pRoot = json_loads(buffer, flags, &error);
-  delete[] buffer;
+  if (jsonFile.empty())
+    {
+      CLogger::error("JSON file is not specified.");
+      return pRoot;
+    }
+
+  if (!CDirEntry::isFile(jsonFile))
+    {
+      CLogger::error() << "JSON file '" <<  jsonFile << "' not found.";
+      return pRoot;
+    }
+
+  if (!CDirEntry::isReadable(jsonFile))
+    {
+      CLogger::error() << "JSON file '" <<  jsonFile << "' is not readable.";
+      return pRoot;
+    }
+
+  json_error_t error;
+
+  pRoot = json_load_file(jsonFile.c_str(), flags, &error);
 
   if (pRoot == NULL)
     {
