@@ -14,7 +14,6 @@ From: centos:7
 
 %files
     config.json /sciduct
-    cache.aws/l_mpi_2019.6.166.tgz /src
     cache.aws/EpiHiper /epihiper/bin
     cache.aws/EpiHiperPartition /epihiper/bin
     bin/epiHiper.sh /epihiper/bin
@@ -28,14 +27,15 @@ From: centos:7
         
     echo "Installing development tools using YUM"
     yum -y install \
-        postgresql-devel 
+        postgresql-devel
 
     cd /src
 
-    # Install IntelMPI
-    tar -xf l_mpi_2019.6.166.tgz
-    yum -y install l_mpi_2019.6.166/rpm/*.rpm
-
+    curl -O https://s3.us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-latest.tar.gz
+    tar -xvf aws-efa-installer-latest.tar.gz
+    cd aws-efa-installer
+    ./efa_installer.sh -y --skip-kmod
+    
     cd /
     rm -rf /src
 
@@ -49,7 +49,6 @@ From: centos:7
     # Install the EpiHiper validator
     npm install -g @shoops/epi-hiper-validator
     ln -s /usr/lib/node_modules/@shoops/epi-hiper-validator/bin/epiHiper* /epihiper/bin
-
 
 %apprun sciduct
     cat /sciduct/config.json
@@ -67,11 +66,9 @@ From: centos:7
 %apprun epiHiper
     echo Rank $PMI_RANK: Running EpiHiper Simulation
     echo Rank $PMI_RANK: Job ID: ${SLURM_JOB_ID:-222222}
-    source /opt/intel/compilers_and_libraries_2020.0.166/linux/mpi/intel64/bin/mpivars.sh
     /epihiper/bin/epiHiper.sh $@
 
 %apprun partition
     echo Partitioning Network
     echo Job ID: ${SLURM_JOB_ID:-222222}
-    source /opt/intel/compilers_and_libraries_2020.0.166/linux/mpi/intel64/bin/mpivars.sh
     /epihiper/bin/partition.sh $@
