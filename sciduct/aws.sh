@@ -34,7 +34,7 @@ cd cache.aws
     
 cd ..
 
-sudo "${SINGULARITY}" build $IMAGE $DEF | tee build.log
+sudo "${SINGULARITY}" build $IMAGE $DEF | tee aws.log
 
 [ -e cache.aws ] && sudo chown -R $ID cache.aws
 [ -e $IMAGE ] && sudo chown -R $ID $IMAGE

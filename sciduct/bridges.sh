@@ -34,7 +34,7 @@ cd cache.bridges
 
 cd ..
 
-sudo "${SINGULARITY}" build $IMAGE $DEF | tee build.log
+sudo "${SINGULARITY}" build $IMAGE $DEF | tee bridges.log
 
 [ -e cache.bridges ] && sudo chown -R $ID cache.bridges
 [ -e $IMAGE ] && sudo chown -R $ID $IMAGE

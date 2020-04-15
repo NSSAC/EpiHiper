@@ -47,7 +47,7 @@ cd cache.rivanna
 
 cd ..
 
-sudo "${SINGULARITY}" build $IMAGE $DEF | tee build.log
+sudo "${SINGULARITY}" build $IMAGE $DEF | tee rivanna.log
 
 [ -e cache.rivanna ] && sudo chown -R $ID cache.rivanna
 [ -e $IMAGE ] && sudo chown -R $ID $IMAGE
