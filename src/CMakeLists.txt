@@ -67,12 +67,13 @@ target_link_libraries (EpiHiperPartition
 	-lpthread
 )
 
-# add_executable (rma rma-new.cpp)
-# add_dependencies(rma EpiHiperLib)
-# target_link_libraries (rma 
-#     EpiHiperLib
-# 	${MPI_LIBRARIES}
-# 	${PGSQL_LIBRARY} 
-# 	${CMAKE_BINARY_DIR}/lib/libjansson.a 
-# 	${CMAKE_BINARY_DIR}/lib/libpqxx.a
-# )
+add_executable (EpiHiperR0 EpiHiperR0.cpp EpiHiperConfig.h)
+add_dependencies(EpiHiperR0 EpiHiperLib GIT_COMMIT)
+target_link_libraries (EpiHiperR0 
+    EpiHiperLib
+	${MPI_LIBRARIES}
+	${PGSQL_LIBRARY} 
+	${CMAKE_BINARY_DIR}/lib/libjansson.a 
+	${CMAKE_BINARY_DIR}/lib/libpqxx.a
+	-lpthread
+)

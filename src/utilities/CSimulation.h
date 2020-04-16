@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -18,14 +18,11 @@
 class CSimulation {
 private:
   bool valid;
-  int randomSeed;
   int startTick;
   int endTick;
-  std::string networkFile;
-  std::string outputFile;
 
 public:
-  CSimulation(int seed, std::string dbconn);
+  CSimulation();
   ~CSimulation();
   bool validate();
   bool run();

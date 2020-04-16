@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -35,38 +35,17 @@
 #include "variables/CVariableList.h"
 
 // initialize according to config
-CSimulation::CSimulation(int seed, std::string dbconn) {
-  valid = false;
-  randomSeed = seed;
-  startTick = 0;
-  endTick = -1;
-
-  /*
-  disease = NULL;
-  network = NULL;
-  actionQueue = NULL;
-  compEnv = NULL;
-  db = NULL;
-  output = NULL;
-  log = NULL;
-  */
-
+CSimulation::CSimulation()
+  : valid(false)
+  , startTick(0)
+  , endTick(0)
+{
   startTick = CSimConfig::getStartTick();
   endTick = CSimConfig::getEndTick();
-  networkFile = CSimConfig::getContactNetwork();
-  outputFile = CSimConfig::getOutput();
-
-  /*
-  readDiseaseModel();
-  partition();
-  readNetwork();
-  readInterventions();
-  initializeNodes();
-  */
 }
 
-CSimulation::~CSimulation() {
-}
+CSimulation::~CSimulation() 
+{}
 
 // check all required components are ready
 bool CSimulation::validate() {

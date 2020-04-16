@@ -14,10 +14,9 @@
 #include <limits>
 #include <iostream>
 #include <cstdlib>
-#include <getopt.h>
 #include <jansson.h>
 
-#include "EpiHiperConfig.h"
+#include "utilities/CArgs.h"
 
 #include "network/CNetwork.h"
 #include "traits/CTrait.h"
@@ -30,47 +29,8 @@
 std::string ContactNetwork;
 std::string OutputDirectory;
 std::string Status;
-std::string Config;
 
 int Parts(std::numeric_limits< int >::min());
-
-bool parseArgs(int argc, char * argv[])
-{
-  const char * const short_opts = "c";
-
-  const option long_opts[] =
-    {
-      {"config", required_argument, nullptr, 'c'},
-      {nullptr, no_argument, nullptr, 0}};
-
-  while (true)
-    {
-      const auto opt = getopt_long(argc, argv, short_opts, long_opts, nullptr);
-
-      if (-1 == opt)
-        break;
-
-      switch (opt)
-        {
-        case 'c':
-          Config = std::string(optarg);
-          break;
-
-        case '?':
-        default:
-          return false;
-        }
-    }
-
-  return true;
-}
-
-void printUsage()
-{
-  std::cout << "\nUsage:\n\n"
-               "Partition --config <configFilename>\n"
-               "--config: required string specifying EpiHiper configuration file\n";
-}
 
 bool loadJson(const std::string & file)
 {
@@ -186,20 +146,15 @@ int main(int argc, char * argv[])
 
   CLogger::init();
   CCommunicate::init(argc, argv);
+  bool ArgumentsValid = CArgs::parseArgs(argc, argv);
 
   if (CCommunicate::MPIRank == 0)
-    {
-      std::cout << "EpiHiperPartition Version "
-                << EpiHiper_VERSION_MAJOR << "." << EpiHiper_VERSION_MINOR << "." << EpiHiper_VERSION_PATCH
-                << " (build: " << __DATE__ << ", commit: " << GIT_COMMIT << ")" << std::endl;
-    }
+    CArgs::printWhoAmI();
 
-  if (argc < 3 || !parseArgs(argc, argv))
+  if (!ArgumentsValid)
     {
       if (CCommunicate::MPIRank == 0)
-        {
-          printUsage();
-        }
+        CArgs::printUsage();
 
       CCommunicate::abort(CCommunicate::ErrorCode::InvalidArguments);
       CCommunicate::finalize();
@@ -208,9 +163,9 @@ int main(int argc, char * argv[])
       exit(EXIT_FAILURE);
     }
 
-  if (!loadJson(Config))
+  if (!loadJson(CArgs::getConfig()))
     {
-      CLogger::error("Invalid paramters in: " + Config);
+      CLogger::error("Invalid paramters in: " + CArgs::getConfig());
 
       CCommunicate::abort(CCommunicate::ErrorCode::InvalidArguments);
       CCommunicate::finalize();

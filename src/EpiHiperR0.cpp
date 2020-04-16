@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -9,9 +9,6 @@
 // You may obtain a copy of the License at 
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
-
-#include <iostream>
-#include <cstdlib>
 
 #include "utilities/CArgs.h"
 
@@ -40,6 +37,7 @@
 #  include <unistd.h>
 #endif // DEBUG_WAIT
 
+
 int main(int argc, char * argv[])
 {
   int EXIT = EXIT_SUCCESS;
@@ -54,7 +52,7 @@ int main(int argc, char * argv[])
     {
       if (CCommunicate::MPIRank == 0)
         CArgs::printUsage();
-        
+
       CCommunicate::abort(CCommunicate::ErrorCode::InvalidArguments);
       CCommunicate::finalize();
       CLogger::release();
@@ -96,47 +94,47 @@ int main(int argc, char * argv[])
     {
       goto failed;
     }
-
+    
   CTrait::load(CSimConfig::getTraits());
 
   if (CLogger::hasErrors())
     {
       goto failed;
     }
-
+    
   CModel::load(CSimConfig::getDiseaseModel());
 
   if (CLogger::hasErrors())
     {
       goto failed;
     }
-
+    
   CSchema::load(CSimConfig::getPersonTraitDB());
 
   if (CLogger::hasErrors())
     {
       goto failed;
     }
-
+    
   CInitialization::load(CSimConfig::getInitialization());
 
   if (CLogger::hasErrors())
     {
       goto failed;
     }
-
+    
   CIntervention::load(CSimConfig::getIntervention());
 
   if (CLogger::hasErrors())
     {
       goto failed;
     }
-
+    
   if (!CSetReference::resolve())
     {
       goto failed;
     }
-
+    
   if (CCommunicate::allocateRMA() != (int) CCommunicate::ErrorCode::Success)
     {
       goto failed;
@@ -148,7 +146,7 @@ int main(int argc, char * argv[])
     {
       goto failed;
     }
-
+    
   CVariableList::INSTANCE.resetAll(true);
 
   CNetwork::INSTANCE->load();
