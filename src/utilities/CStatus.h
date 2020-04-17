@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -28,11 +28,11 @@ struct json_t;
 class CStatus
 {
 public:
-  static void load(const std::string & name);
+  static void load(const std::string & id, const std::string & name, const std::string &file);
 
-  static void update(const std::string & name, const std::string & status, const double & progress = std::numeric_limits< double >::quiet_NaN());
+  static void update(const std::string & status, const double & progress = std::numeric_limits< double >::quiet_NaN());
 
-  static void finalize(const std::string & name);
+  static void success();
 
 private:
   static json_t * pJSON;
@@ -41,7 +41,7 @@ private:
   static json_t * pStatus;
   static json_t * pDetail;
   static json_t * pProgress;
-  static double initialProgress;
+  static std::string fileName;
 };
 
 #endif /* SRC_UTILITIES_CSTATUS_H_ */

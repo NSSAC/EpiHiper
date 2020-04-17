@@ -30,7 +30,7 @@
 #include "variables/CVariableList.h"
 
 // static
-void CModel::load(const std::string & modelFile)
+void CModel::Load(const std::string & modelFile)
 {
   if (INSTANCE == NULL)
     {
@@ -39,7 +39,7 @@ void CModel::load(const std::string & modelFile)
 }
 
 // static
-void CModel::release()
+void CModel::Release()
 {
   if (INSTANCE != NULL)
     {
@@ -235,13 +235,13 @@ void CModel::fromJSON(const json_t * json)
 }
 
 // static
-const CHealthState & CModel::getInitialState()
+const CHealthState & CModel::GetInitialState()
 {
   return *INSTANCE->mpInitialState;
 }
 
 // static
-CHealthState * CModel::getState(const std::string & id)
+CHealthState * CModel::GetState(const std::string & id)
 {
   std::map< std::string, CHealthState * >::const_iterator found = INSTANCE->mId2State.find(id);
 
@@ -252,15 +252,15 @@ CHealthState * CModel::getState(const std::string & id)
 }
 
 // static
-CModel::state_t CModel::stateToType(const CHealthState * pState)
+CModel::state_t CModel::StateToType(const CHealthState * pState)
 {
-  return pState - INSTANCE->mStates;
+  return INSTANCE->stateToType(pState);
 }
 
 // static
-CHealthState * CModel::stateFromType(const CModel::state_t & type)
+CHealthState * CModel::StateFromType(const CModel::state_t & type)
 {
-  return INSTANCE->mStates + type;
+  return INSTANCE->stateFromType(type);
 }
 
 // static
@@ -270,12 +270,12 @@ const bool & CModel::isValid()
 }
 
 // static
-bool CModel::processTransmissions()
+bool CModel::ProcessTransmissions()
 {
-  return INSTANCE->_processTransmissions();
+  return INSTANCE->processTransmissions();
 }
 
-bool CModel::_processTransmissions() const
+bool CModel::processTransmissions() const
 {
   bool success = true;
 
@@ -357,16 +357,39 @@ bool CModel::_processTransmissions() const
 }
 
 // static
-void CModel::stateChanged(CNode * pNode)
+void CModel::StateChanged(CNode * pNode)
 {
-  INSTANCE->_stateChanged(pNode);
+  INSTANCE->stateChanged(pNode);
 }
 
-void CModel::_stateChanged(CNode * pNode) const
+void CModel::stateChanged(CNode * pNode) const
 {
   // std::cout << pNode->id << ": " << pNode->Edges << ", " << pNode->Edges + pNode->EdgesSize << ", " << pNode->EdgesSize << std::endl;
 
-  PossibleProgressions & Progressions = mPossibleProgressions[pNode->healthState];
+  const CProgression * pProgression = nextProgression(pNode->healthState);
+
+  if (pProgression != NULL)
+    {
+      try
+        {
+          CActionQueue::addAction(pProgression->getDwellTime(), new CProgressionAction(pProgression, pNode));
+        }
+      catch (...)
+        {
+          CLogger::error() << "CModel:: Failed to create progression for '" << pNode->id << "'.";
+        }
+    }
+}
+
+// static
+const CProgression * CModel::NextProgression(const CModel::state_t & state)
+{
+  return INSTANCE->nextProgression(state);
+}
+
+const CProgression * CModel::nextProgression(const CModel::state_t & state) const
+{
+  PossibleProgressions & Progressions = mPossibleProgressions[state];
 
   if (Progressions.A0 > 0.0)
     {
@@ -382,27 +405,45 @@ void CModel::_stateChanged(CNode * pNode) const
             break;
         }
 
-      const CProgression * pProgression = (it != end) ? *it : *Progressions.Progressions.rbegin();
-
-      try
-        {
-          CActionQueue::addAction(pProgression->getDwellTime(), new CProgressionAction(pProgression, pNode));
-        }
-      catch (...)
-        {
-          CLogger::error() << "CModel:: Failed to create progression for '" << pNode->id << "'.";
-        }
+      return (it != end) ? *it : *Progressions.Progressions.rbegin();
     }
+
+  return NULL;
 }
 
-// static
-const std::vector< CTransmission > & CModel::getTransmissions()
+const CHealthState * CModel::getStates() const
 {
-  return INSTANCE->mTransmissions;
+  return mStates;
+}
+
+const size_t & CModel::getStateCount() const
+{
+  return mStateCount;
+}
+
+const std::vector< CTransmission > &  CModel::getTransmissions() const
+{
+  return mTransmissions;
+}
+
+CModel::state_t CModel::stateToType(const CHealthState * pState) const
+{
+  return  pState - mStates;
+}
+
+CHealthState * CModel::stateFromType(const CModel::state_t & type) const
+{
+  return mStates + type;
 }
 
 // static
-int CModel::updateGlobalStateCounts()
+const std::vector< CTransmission > & CModel::GetTransmissions()
+{
+  return INSTANCE->getTransmissions();
+}
+
+// static
+int CModel::UpdateGlobalStateCounts()
 {
   size_t Size = INSTANCE->mStateCount;
   CHealthState::Counts LocalStateCounts[Size];
@@ -417,14 +458,14 @@ int CModel::updateGlobalStateCounts()
       pState->resetCounts();
     }
 
-  CCommunicate::Receive ReceiveCounts(&CModel::receiveGlobalStateCounts);
+  CCommunicate::Receive ReceiveCounts(&CModel::ReceiveGlobalStateCounts);
   CCommunicate::broadcast(LocalStateCounts, Size * sizeof(CHealthState::Counts), &ReceiveCounts);
 
   return (int) CCommunicate::ErrorCode::Success;
 }
 
 // static
-CCommunicate::ErrorCode CModel::receiveGlobalStateCounts(std::istream & is, int sender)
+CCommunicate::ErrorCode CModel::ReceiveGlobalStateCounts(std::istream & is, int sender)
 {
   size_t Size = INSTANCE->mStateCount;
 
@@ -442,7 +483,7 @@ CCommunicate::ErrorCode CModel::receiveGlobalStateCounts(std::istream & is, int 
 }
 
 // static
-void CModel::initGlobalStateCountOutput()
+void CModel::InitGlobalStateCountOutput()
 {
   if (CCommunicate::MPIRank == 0)
     {
@@ -490,7 +531,7 @@ void CModel::initGlobalStateCountOutput()
 }
 
 // static
-void CModel::writeGlobalStateCounts()
+void CModel::WriteGlobalStateCounts()
 {
   if (CCommunicate::MPIRank == 0)
     {

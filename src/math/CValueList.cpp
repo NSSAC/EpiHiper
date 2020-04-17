@@ -1,14 +1,14 @@
-// BEGIN: Copyright
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia
-// All rights reserved
-// END: Copyright
+// BEGIN: Copyright 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// All rights reserved 
+// END: Copyright 
 
-// BEGIN: License
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//   http://www.apache.org/licenses/LICENSE-2.0
-// END: License
+// BEGIN: License 
+// Licensed under the Apache License, Version 2.0 (the "License"); 
+// you may not use this file except in compliance with the License. 
+// You may obtain a copy of the License at 
+//   http://www.apache.org/licenses/LICENSE-2.0 
+// END: License 
 
 #include "math/CValueList.h"
 
@@ -308,7 +308,7 @@ void CValueList::fromJSON(const json_t * json)
             {
               mType = Type::id;
 
-              const CHealthState * pHealthState = CModel::getState(json_string_value(pValue));
+              const CHealthState * pHealthState = CModel::GetState(json_string_value(pValue));
 
               if (pHealthState == NULL)
                 {
@@ -316,7 +316,7 @@ void CValueList::fromJSON(const json_t * json)
                   return;
                 }
 
-              std::set< CValue >::insert(CModel::stateToType(pHealthState));
+              std::set< CValue >::insert(CModel::StateToType(pHealthState));
             }
           else
             {

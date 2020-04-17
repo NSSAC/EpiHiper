@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -30,7 +30,7 @@ public:
   static generator_t G;
 
   static void seed(result_t seed);
-  static void init();
+  static void init(size_t seed);
 };
 
 #endif /* SRC_UTILITIES_CRANDOM_H_ */

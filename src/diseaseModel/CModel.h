@@ -33,13 +33,14 @@ class CModel: public CAnnotation
 private:
   static CModel * INSTANCE;
 
+public:
   /**
    * Default constructor
    */
   CModel() = delete;
 
   /**
-   * Copy construnctor
+   * Specific construnctor
    * @param const std::string & modelFile
    */
   CModel(const std::string & modelFile);
@@ -49,38 +50,50 @@ private:
    */
   virtual ~CModel();
 
-public:
   typedef size_t state_t;
 
-  static void load(const std::string & modelFile);
-  static void release();
+  static void Load(const std::string & modelFile);
+  static void Release();
 
   virtual void fromJSON(const json_t * json);
 
-  static const CHealthState & getInitialState();
+  static const CHealthState & GetInitialState();
 
-  static CHealthState * getState(const std::string & id);
+  static CHealthState * GetState(const std::string & id);
 
-  static state_t stateToType(const CHealthState * pState);
+  static state_t StateToType(const CHealthState * pState);
 
-  static CHealthState * stateFromType(const state_t & type);
+  static CHealthState * StateFromType(const state_t & type);
 
   static const bool & isValid();
 
-  static bool processTransmissions();
+  static bool ProcessTransmissions();
 
-  static void stateChanged(CNode * pNode);
+  static void StateChanged(CNode * pNode);
 
-  static const std::vector< CTransmission > & getTransmissions();
+  static const std::vector< CTransmission > & GetTransmissions();
 
-  static int updateGlobalStateCounts();
+  static int UpdateGlobalStateCounts();
 
-  static CCommunicate::ErrorCode receiveGlobalStateCounts(std::istream & is, int sender);
+  static CCommunicate::ErrorCode ReceiveGlobalStateCounts(std::istream & is, int sender);
 
-  static void initGlobalStateCountOutput();
+  static void InitGlobalStateCountOutput();
 
-  static void writeGlobalStateCounts();
+  static void WriteGlobalStateCounts();
 
+  static const CProgression * NextProgression(const CModel::state_t & state); 
+
+  const CProgression * nextProgression(const CModel::state_t & state) const; 
+
+  const CHealthState * getStates() const;
+
+  const size_t & getStateCount() const;
+
+  const std::vector< CTransmission > & getTransmissions() const;
+
+  state_t stateToType(const CHealthState * pState) const;
+
+  CHealthState * stateFromType(const state_t & type) const;
 private:
   struct PossibleTransmissions
   {
@@ -93,8 +106,8 @@ private:
     std::vector< const CProgression * > Progressions;
   };
 
-  bool _processTransmissions() const;
-  void _stateChanged(CNode * pNode) const;
+  bool processTransmissions() const;
+  void stateChanged(CNode * pNode) const;
 
   CHealthState * mStates;
   size_t mStateCount;

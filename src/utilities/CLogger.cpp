@@ -19,7 +19,7 @@
 #include "utilities/CSimConfig.h"
 
 // static 
-std::stack< spdlog::level::level_enum > CLogger::levels;
+std::stack< CLogger::LogLevel > CLogger::levels;
 
 // static
 std::string CLogger::task;
@@ -58,14 +58,14 @@ void CLogger::release()
 }
 
 // static 
-void CLogger::setLevel(spdlog::level::level_enum level)
+void CLogger::setLevel(LogLevel level)
 {
-  levels = std::stack< spdlog::level::level_enum >();
+  levels = std::stack< LogLevel >();
   pushLevel(level);
 }
 
 // static 
-void CLogger::pushLevel(spdlog::level::level_enum level)
+void CLogger::pushLevel(LogLevel level)
 {
   levels.push(level);
   setLevel();

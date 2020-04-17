@@ -35,13 +35,15 @@ private:
   };
 
 public:
+  typedef spdlog::level::level_enum LogLevel;
+
   static void init();
 
   static void release();
 
-  static void setLevel(spdlog::level::level_enum level);
+  static void setLevel(LogLevel level);
 
-  static void pushLevel(spdlog::level::level_enum level);
+  static void pushLevel(LogLevel level);
 
   static void popLevel();
 
@@ -63,7 +65,7 @@ public:
 
 private:
   static void setLevel();
-  static std::stack< spdlog::level::level_enum > levels;
+  static std::stack< LogLevel > levels;
   static std::string task;
   static bool haveErrors;
   static std::shared_ptr< spdlog::logger > pLogger;
@@ -111,7 +113,7 @@ void CLogger::CStream< level >::flush()
 template < int level >
 void CLogger::CStream< level >::flush(const std::string & msg)
 {
-  switch (static_cast< spdlog::level::level_enum >(level))
+  switch (static_cast< LogLevel >(level))
     {
     case spdlog::level::trace:
       spdlog::trace(task + msg);

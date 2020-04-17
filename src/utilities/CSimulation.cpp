@@ -59,7 +59,7 @@ bool CSimulation::run()
   CActionQueue::setCurrentTick(startTick - 1);
   CChanges::setCurrentTick(startTick - 1);
   CChanges::initDefaultOutput();
-  CModel::initGlobalStateCountOutput();
+  CModel::InitGlobalStateCountOutput();
 
   CDependencyGraph::buildGraph();
       
@@ -76,11 +76,11 @@ bool CSimulation::run()
   CChanges::incrementTick();
 
   CChanges::writeDefaultOutput();
-  CModel::updateGlobalStateCounts();
-  CModel::writeGlobalStateCounts();
+  CModel::UpdateGlobalStateCounts();
+  CModel::WriteGlobalStateCounts();
   CNetwork::INSTANCE->broadcastChanges();
 
-  CStatus::update("EpiHiper", "running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
+  CStatus::update("running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
 
   while (CActionQueue::getCurrentTick() < endTick)
     {
@@ -89,7 +89,7 @@ bool CSimulation::run()
       if (!CDependencyGraph::applyUpdateSequence())
         return false;
 
-      CModel::processTransmissions();
+      CModel::ProcessTransmissions();
       
       if (!CTrigger::processAll())
         return false;
@@ -102,11 +102,11 @@ bool CSimulation::run()
       CChanges::incrementTick();
 
       CChanges::writeDefaultOutput();
-      CModel::updateGlobalStateCounts();
-      CModel::writeGlobalStateCounts();
+      CModel::UpdateGlobalStateCounts();
+      CModel::WriteGlobalStateCounts();
       CNetwork::INSTANCE->broadcastChanges();
 
-      CStatus::update("EpiHiper", "running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
+      CStatus::update("running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
     }
 
   return true;

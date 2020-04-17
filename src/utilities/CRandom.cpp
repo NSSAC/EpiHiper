@@ -16,11 +16,10 @@
 #include "utilities/CCommunicate.h"
 
 // static
-void CRandom::init()
+void CRandom::init(size_t seed)
 {
-  const size_t & Seed = CSimConfig::getSeed();
 
-  if (Seed == -1)
+  if (seed == -1)
     {
       CRandom::seed(std::random_device()());
       return;
@@ -30,11 +29,11 @@ void CRandom::init()
 
   if (Replicate == -1)
     {
-      CRandom::seed(Seed);
+      CRandom::seed(seed);
       return;
     }
 
-  CRandom::seed(Seed + Replicate);
+  CRandom::seed(seed + Replicate);
 }
 
 // static

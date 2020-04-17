@@ -26,8 +26,8 @@ CNode CNode::getDefault()
   CNode Default;
 
   Default.id = -1;
-  Default.pHealthState = &CModel::getInitialState();
-  Default.healthState = CModel::stateToType(Default.pHealthState);
+  Default.pHealthState = &CModel::GetInitialState();
+  Default.healthState = CModel::StateToType(Default.pHealthState);
   Default.susceptibilityFactor = 1.0;
   Default.susceptibility = Default.pHealthState->getSusceptibility();
   Default.infectivityFactor = 1.0;
@@ -125,7 +125,7 @@ void CNode::fromBinary(std::istream & is)
   is.read(reinterpret_cast<char *>(&nodeTrait), sizeof(CTraitData::base));
   */
 
-  pHealthState = CModel::stateFromType(healthState);
+  pHealthState = CModel::StateFromType(healthState);
 }
 
 bool CNode::set(const CTransmission * pTransmission, CValueInterface::pOperator /* pOperator */, const CMetadata & metadata)
@@ -146,7 +146,7 @@ bool CNode::set(const CTransmission * pTransmission, CValueInterface::pOperator 
 
   // std::cout << id << "," << pTransmission->getEntryState() << "," << pTransmission->getExitState() << "," << pTransmission->getContactState() << std::endl;
 
-  CModel::stateChanged(this);
+  CModel::StateChanged(this);
 
   return true;
 }
@@ -169,7 +169,7 @@ bool CNode::set(const CProgression * pProgression, CValueInterface::pOperator /*
 
   // std::cout << id << "," << pProgression->getEntryState() << "," << pProgression->getExitState() << std::endl;
 
-  CModel::stateChanged(this);
+  CModel::StateChanged(this);
 
   return true;
 }
@@ -215,13 +215,13 @@ bool CNode::setHealthState(CModel::state_t value, CValueInterface::pOperator pOp
                    << ") healthState "
                    << CValueInterface::operatorToString(pOperator)
                    << " "
-                   << CModel::stateFromType(value)->getId();
-  setHealthState(CModel::stateFromType(value));
+                   << CModel::StateFromType(value)->getId();
+  setHealthState(CModel::StateFromType(value));
 
   susceptibility = pHealthState->getSusceptibility() * susceptibilityFactor;
   infectivity = pHealthState->getInfectivity() * infectivityFactor;
 
-  CModel::stateChanged(this);
+  CModel::StateChanged(this);
 
   return true;
 }
@@ -246,7 +246,7 @@ void CNode::setHealthState(const CHealthState * pNewHealthState)
   if (CNetwork::INSTANCE->isRemoteNode(this))
     {
       pHealthState = pNewHealthState;
-      healthState = CModel::stateToType(pHealthState);
+      healthState = CModel::StateToType(pHealthState);
       return;
     }
 
@@ -258,7 +258,7 @@ void CNode::setHealthState(const CHealthState * pNewHealthState)
   if (pHealthState != NULL)
     pHealthState->increment();
 
-  healthState = CModel::stateToType(pHealthState);
+  healthState = CModel::StateToType(pHealthState);
 }
 
 

@@ -122,17 +122,17 @@ void CValue::fromJSON(const json_t * json)
     {
       mType = Type::id;
 
-      const CHealthState * pHealthState = CModel::getState(json_string_value(pValue));
+      const CHealthState * pHealthState = CModel::GetState(json_string_value(pValue));
 
       if (pHealthState == NULL)
         {
           CLogger::error() << "Value: Invalid healthState '" << json_string_value(pValue) << "'.";
-          pHealthState = &CModel::getInitialState();
+          pHealthState = &CModel::GetInitialState();
           return;
         }
 
       mValid = true;
-      mpValue = new CModel::state_t(CModel::stateToType(pHealthState));
+      mpValue = new CModel::state_t(CModel::StateToType(pHealthState));
       return;
     }
 

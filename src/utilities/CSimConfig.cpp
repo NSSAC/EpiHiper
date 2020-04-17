@@ -132,7 +132,7 @@ const size_t & CSimConfig::getPartitionEdgeLimit()
 }
 
 // static
-CSimConfig::LogLevel CSimConfig::getLogLevel()
+CLogger::LogLevel CSimConfig::getLogLevel()
 {
   if (CSimConfig::INSTANCE != NULL)
     return CSimConfig::INSTANCE->mLogLevel;
@@ -291,15 +291,15 @@ CSimConfig::CSimConfig(const std::string & configFile)
       mLogLevel = spdlog::level::from_str(LogLevel);
 
       // If the LogLevel is not found off is returned but we default to warn
-      if (mLogLevel == spdlog::level::off
+      if (mLogLevel == CLogger::LogLevel::off
           && strcmp(LogLevel, "off") != 0)
         {
-          mLogLevel = spdlog::level::warn;
+          mLogLevel = CLogger::LogLevel::warn;
         }
     }
   else
     {
-      mLogLevel = LogLevel::warn;
+      mLogLevel = CLogger::LogLevel::warn;
     }
 
   CLogger::setLevel(mLogLevel);

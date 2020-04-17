@@ -77,3 +77,14 @@ target_link_libraries (EpiHiperR0
 	${CMAKE_BINARY_DIR}/lib/libpqxx.a
 	-lpthread
 )
+
+add_executable (EpiHiperModelAnalyzer EpiHiperModelAnalyzer.cpp EpiHiperConfig.h)
+add_dependencies(EpiHiperModelAnalyzer EpiHiperLib GIT_COMMIT)
+target_link_libraries (EpiHiperModelAnalyzer 
+    EpiHiperLib
+	${MPI_LIBRARIES}
+	${PGSQL_LIBRARY} 
+	${CMAKE_BINARY_DIR}/lib/libjansson.a 
+	${CMAKE_BINARY_DIR}/lib/libpqxx.a
+	-lpthread
+)

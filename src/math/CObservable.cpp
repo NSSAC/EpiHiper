@@ -135,7 +135,7 @@ bool CObservable::computeTotalPopulation()
 
 bool CObservable::computeHealthStateAbsolute()
 {
-  const CHealthState * pHealthState = CModel::stateFromType(mId);
+  const CHealthState * pHealthState = CModel::StateFromType(mId);
 
   if (pHealthState != NULL)
     {
@@ -149,7 +149,7 @@ bool CObservable::computeHealthStateAbsolute()
 
 bool CObservable::computeHealthStateRelative()
 {
-  const CHealthState * pHealthState = CModel::stateFromType(mId);
+  const CHealthState * pHealthState = CModel::StateFromType(mId);
 
   if (pHealthState != NULL)
     {
@@ -251,7 +251,7 @@ void CObservable::fromJSON(const json_t * json)
           return;
         }
 
-      const CHealthState * pHealthState = CModel::getState(json_string_value(pValue));
+      const CHealthState * pHealthState = CModel::GetState(json_string_value(pValue));
 
       if (pHealthState == NULL)
         {
@@ -259,7 +259,7 @@ void CObservable::fromJSON(const json_t * json)
           return;
         }
 
-      mId = CModel::stateToType(pHealthState);
+      mId = CModel::StateToType(pHealthState);
       mValid = true;
       return;
     }

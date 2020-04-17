@@ -35,8 +35,6 @@ public:
     size_t connectionMaxDelay;
   };
 
-  typedef spdlog::level::level_enum LogLevel;
-
 private:
   bool valid;
 
@@ -60,7 +58,7 @@ private:
   size_t mSeed;
   size_t mReplicate;
   size_t mPartitionEdgeLimit;
-  LogLevel mLogLevel;
+  CLogger::LogLevel mLogLevel;
   db_connection mDBConnection;
 
 private:
@@ -91,7 +89,7 @@ public:
   static const size_t & getSeed();
   static const size_t & getReplicate();
   static const size_t & getPartitionEdgeLimit();
-  static LogLevel getLogLevel();
+  static CLogger::LogLevel getLogLevel();
   static const db_connection & getDBConnection();
 
   static json_t * loadJson(const std::string & jsonFile, int flags);

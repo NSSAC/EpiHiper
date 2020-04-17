@@ -76,13 +76,13 @@ int main(int argc, char * argv[])
   if (!CSimConfig::isValid()
       || CLogger::hasErrors())
     {
-      CStatus::load(CArgs::getName());
+      CStatus::load("epihiper", CArgs::getName(), CSimConfig::getStatus());
       goto failed;
     }
 
-  CStatus::load(CArgs::getName());
+  CStatus::load("epihiper", CArgs::getName(), CSimConfig::getStatus());
   CActionQueue::init();
-  CRandom::init();
+  CRandom::init(CSimConfig::getSeed());
   CTrait::init();
 
   if (CLogger::hasErrors())
@@ -104,7 +104,7 @@ int main(int argc, char * argv[])
       goto failed;
     }
 
-  CModel::load(CSimConfig::getDiseaseModel());
+  CModel::Load(CSimConfig::getDiseaseModel());
 
   if (CLogger::hasErrors())
     {
@@ -170,16 +170,16 @@ int main(int argc, char * argv[])
       goto failed;
   }
 
-  CStatus::finalize(CArgs::getName());
+  CStatus::success();
   goto success;
 
 failed:
   EXIT = EXIT_FAILURE;
-  CStatus::update(CArgs::getName(), "failed");
+  CStatus::update("failed");
   CCommunicate::abort((CCommunicate::ErrorCode) MPI_ERR_UNKNOWN);
 
 success:
-  CModel::release();
+  CModel::Release();
   CInitialization::release();
   CIntervention::release();
   CNetwork::release();

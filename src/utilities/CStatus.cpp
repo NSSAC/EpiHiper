@@ -15,11 +15,12 @@
 
 #include "utilities/CStatus.h"
 #include "utilities/CSimConfig.h"
+#include "utilities/CArgs.h"
 #include "utilities/CDirEntry.h"
 #include "actions/CActionQueue.h"
 
 // static
-double CStatus::initialProgress(0.0);
+std::string CStatus::fileName;
 
 json_t * init(json_t * pObject, const char * key, const char * value)
 {
@@ -51,36 +52,38 @@ json_t * init(json_t * pObject, const char * key, const double & value)
 
 
 // static
-void CStatus::load(const std::string & name)
+void CStatus::load(const std::string & id, const std::string & name, const std::string &file)
 {
+  fileName = file;
+
   if (CCommunicate::MPIRank != 0) return;
 
-  if (CDirEntry::exist(CSimConfig::getStatus()))
+  if (CDirEntry::exist(fileName))
     {
-      pJSON = CSimConfig::loadJson(CSimConfig::getStatus(), JSON_DECODE_INT_AS_REAL);
+      pJSON = CSimConfig::loadJson(fileName, JSON_DECODE_INT_AS_REAL);
     }
 
   if (pJSON == NULL)
     {
-      std::string Default("{\"id\":\"epihiper\",\"name\":\"EpiHiper\",\"status\":\"running\",\"progress\":0.0,\"detail\":\"Starting\"}");
+      std::string Default("{\"id\":\"" + id + "\",\"name\":\"" + name + "\",\"status\":\"running\",\"progress\":0.0,\"detail\":\"Starting\"}");
 
       json_error_t error;
 
       pJSON = json_loads(Default.c_str(), JSON_DECODE_INT_AS_REAL, &error);
     }
 
-  pId = init(pJSON, "id", "epihiper");
-  pName = init(pJSON, "name", "EpiHiper");
+  pId = init(pJSON, "id", id.c_str());
+  pName = init(pJSON, "name", name.c_str());
   pStatus = init(pJSON, "status", "running");
-  pDetail = init(pJSON, "detail", "EpiHiper: Starting");
-  pProgress = init(pJSON, "progress", initialProgress);
+  pDetail = init(pJSON, "detail", (name + ": Starting").c_str());
+  pProgress = init(pJSON, "progress", 0.0);
 
-  json_real_set(pProgress, initialProgress);
+  json_real_set(pProgress, 0.0);
 
-  if (strcmp(json_string_value(pId), "epihiper") == 0 &&
-      CDirEntry::exist(CDirEntry::dirName(CSimConfig::getStatus()) + "/job.json"))
+  if (strcmp(json_string_value(pId), id.c_str()) == 0 &&
+      CDirEntry::exist(CDirEntry::dirName(fileName) + "/job.json"))
     {
-      json_t * pRoot = CSimConfig::loadJson(CDirEntry::dirName(CSimConfig::getStatus()) + "/job.json", JSON_DECODE_INT_AS_REAL);
+      json_t * pRoot = CSimConfig::loadJson(CDirEntry::dirName(fileName) + "/job.json", JSON_DECODE_INT_AS_REAL);
       json_t * pValue = json_object_get(pRoot, "id");
 
       if (json_is_string(pValue))
@@ -91,42 +94,44 @@ void CStatus::load(const std::string & name)
       json_decref(pRoot);
     }
 
-  update(name, "running");
+  update("running");
 }
 
 // static
-void CStatus::update(const std::string & name, const std::string & status, const double & progress)
+void CStatus::update(const std::string & status, const double & progress)
 {
   if (CCommunicate::MPIRank != 0) return;
 
   json_string_set(pStatus, status.c_str());
 
-  double Progress = initialProgress + ((100.0 - initialProgress) * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1);
-  json_real_set(pProgress, Progress);
+  if (!std::isnan(progress))
+    json_real_set(pProgress, progress);
+
+  std::string Name = json_string_value(pName);
 
   if (status == "running")
     {
-      if (Progress == initialProgress)
-        json_string_set(pDetail, "EpiHiper: Starting");
+      if (progress == 0.0)
+        json_string_set(pDetail,  (Name + ": Starting").c_str());
       else
-        json_string_set(pDetail, "EpiHiper: Running");
+        json_string_set(pDetail,  (Name + ": Running").c_str());
     }
   else if (status == "completed")
     {
-      json_string_set(pDetail, "EpiHiper: Completed");
+      json_string_set(pDetail,  (Name + ": Completed").c_str());
     }
   else // status must be "failed"
     {
-      json_string_set(pDetail, "EpiHiper: Failed");
+      json_string_set(pDetail,  (Name + ": Failed").c_str());
     }
 
-  json_dump_file(pJSON, CSimConfig::getStatus().c_str(), JSON_INDENT(2));
+  json_dump_file(pJSON, fileName.c_str(), JSON_INDENT(2));
 }
 
 // static
-void CStatus::finalize(const std::string & name)
+void CStatus::success()
 {
-  update(name, "completed", 100.0);
+  update("completed", 100.0);
   json_decref(pJSON);
 }
 

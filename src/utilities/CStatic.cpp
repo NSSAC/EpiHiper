@@ -18,6 +18,7 @@
 #include "db/CConnection.h"
 #include "db/CSchema.h"
 #include "diseaseModel/CModel.h"
+#include "diseaseModel/CAnalyzer.h"
 #include "intervention/CInitialization.h"
 #include "intervention/CIntervention.h"
 #include "intervention/CTrigger.h"
@@ -68,6 +69,9 @@ CSchema CSchema::INSTANCE;
 
 // static
 CModel * CModel::INSTANCE(NULL);
+
+// static
+CAnalyzer * CAnalyzer::INSTANCE(NULL);
 
 // static
 std::vector< CInitialization * > CInitialization::INSTANCES;
