@@ -18,8 +18,10 @@ From: centos:7.6.1810
     cache.rivanna/IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz /src
     cache.rivanna/EpiHiper /epihiper/bin
     cache.rivanna/EpiHiperPartition /epihiper/bin
+    cache.rivanna/EpiHiperModelAnalyzer /epihiper/bin
     bin/epiHiper.sh /epihiper/bin
     bin/partition.sh /epihiper/bin
+    bin/analyze.sh /epihiper/bin
     bin/validateSchema.sh /epihiper/bin
     bin/validateRules.sh /epihiper/bin
     CentOS-Base.repo /etc/yum.repos.d
@@ -94,7 +96,6 @@ From: centos:7.6.1810
     npm install -g @shoops/epi-hiper-validator
     ln -s /usr/lib/node_modules/@shoops/epi-hiper-validator/bin/epiHiper* /epihiper/bin
 
-
 %apprun sciduct
     cat /sciduct/config.json
 
@@ -119,3 +120,9 @@ From: centos:7.6.1810
     echo Job ID: ${SLURM_JOB_ID:-222222}
     source /opt/intel/impi/2018.5.288/bin64/mpivars.sh
     /epihiper/bin/partition.sh $@
+
+%apprun analyze
+    echo Analyzing Disease Model
+    echo Job ID: ${SLURM_JOB_ID:-222222}
+    source /opt/intel/impi/2018.5.288/bin64/mpivars.sh
+    /epihiper/bin/analyze.sh $@

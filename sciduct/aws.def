@@ -16,8 +16,10 @@ From: centos:7
     config.json /sciduct
     cache.aws/EpiHiper /epihiper/bin
     cache.aws/EpiHiperPartition /epihiper/bin
+    cache.aws/EpiHiperModelAnalyzer /epihiper/bin
     bin/epiHiper.sh /epihiper/bin
     bin/partition.sh /epihiper/bin
+    bin/analyze.sh /epihiper/bin
     bin/validateSchema.sh /epihiper/bin
     bin/validateRules.sh /epihiper/bin
     
@@ -72,3 +74,8 @@ From: centos:7
     echo Partitioning Network
     echo Job ID: ${SLURM_JOB_ID:-222222}
     /epihiper/bin/partition.sh $@
+
+%apprun analyze
+    echo Analyzing Disease Model
+    echo Job ID: ${SLURM_JOB_ID:-222222}
+    /epihiper/bin/analyze.sh $@

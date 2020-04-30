@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # BEGIN: Copyright 
-# Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+# Copyright (C) 2020 Rector and Visitors of the University of Virginia 
 # All rights reserved 
 # END: Copyright 
 
@@ -13,7 +13,7 @@
 # END: License 
 
 jobId=${SLURM_JOB_ID:-222222}
-jobName=${SLURM_JOB_NAME:-testEpiHiperPartition}
+jobName=${SLURM_JOB_NAME:-testEpiHiperModelAnalyzer}
 CONFIG_FILE=$1
 CONFIG_FILE=${CONFIG_FILE:-"/input/runParameters"}
 statusFile=`cat $CONFIG_FILE | jq -r .status`
@@ -22,9 +22,9 @@ statusFile=${statusFile:-"/job/sciduct.status.json"}
 [ -e ${statusFile} ] || \
 /epihiper/bin/epiHiperStatus -i "${jobId}" -n "${jobName}" -s running -p 0 ${statusFile}  
 
-/epihiper/bin/epiHiperStatus -d "Running Partitioning Network" ${statusFile}
+/epihiper/bin/epiHiperStatus -d "Running Analyzing Disease Model" ${statusFile}
 
-/epihiper/bin/EpiHiperPartition --config $CONFIG_FILE
+/epihiper/bin/EpiHiperModelAnalyzer --config $CONFIG_FILE
 
 let retval=$?
 

@@ -277,6 +277,47 @@
         "output_schema": {},
         "output_files": {}
       }
+    },
+    {
+      "analyze": {
+        "binds": [
+          "input",
+          "output",
+          "job"
+        ],
+        "input_schema": {},
+        "input_files": [
+          {
+            "name": "analyze.json",
+            "required": true,
+            "types": [
+              "epihiperAnalyze",
+              "json"
+            ]
+          },
+          {
+            "name": "diseaseModel.json",
+            "required": true,
+            "types": [
+              "epihiperDiseaseModel",
+              "json"
+            ]
+          }
+        ],
+        "output_schema": {},
+        "output_files": {
+          "type": "epiHiperModelAnalyzer",
+          "associateJobMeta": true,
+          "contents": [
+            {
+              "file": "output.csv",
+              "name": "output.csv",
+              "associateJobMeta": true,
+              "type": "csv"
+            }
+          ]
+        }
+      }
     }
   ]
 }

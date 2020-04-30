@@ -17,8 +17,10 @@ From: centos:7
     cache.bridges/l_mpi_2019.5.281.tgz /src
     cache.bridges/EpiHiper /epihiper/bin
     cache.bridges/EpiHiperPartition /epihiper/bin
+    cache.bridges/EpiHiperModelAnalyzer /epihiper/bin
     bin/epiHiper.sh /epihiper/bin
     bin/partition.sh /epihiper/bin
+    bin/analyze.sh /epihiper/bin
     bin/validateSchema.sh /epihiper/bin
     bin/validateRules.sh /epihiper/bin
     
@@ -75,3 +77,9 @@ From: centos:7
     echo Job ID: ${SLURM_JOB_ID:-222222}
     source /opt/intel/compilers_and_libraries_2019.5.281/linux/mpi/intel64/bin/mpivars.sh
     /epihiper/bin/partition.sh $@
+
+%apprun analyze
+    echo Analyzing Disease Model
+    echo Job ID: ${SLURM_JOB_ID:-222222}
+    source /opt/intel/compilers_and_libraries_2019.5.281/linux/mpi/intel64/bin/mpivars.sh
+    /epihiper/bin/analyze.sh $@
