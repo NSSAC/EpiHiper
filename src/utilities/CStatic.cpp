@@ -107,6 +107,9 @@ CObservable::ObservableMap CObservable::Observables;
 std::vector< CSizeOf * > CSizeOf::INSTANCES;
 
 // static
+bool CEdge::HasLocationId(false);
+
+// static
 bool CEdge::HasEdgeTrait(false);
 
 // static

@@ -15,3 +15,5 @@
 #define EpiHiper_VERSION_PATCH @EpiHiper_VERSION_PATCH@
 
 #include "git-commit.h"
+
+#cmakedefine USE_LOCATION_ID

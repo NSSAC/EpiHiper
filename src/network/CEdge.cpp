@@ -1,14 +1,14 @@
-// BEGIN: Copyright
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia
-// All rights reserved
-// END: Copyright
+// BEGIN: Copyright 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// All rights reserved 
+// END: Copyright 
 
-// BEGIN: License
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//   http://www.apache.org/licenses/LICENSE-2.0
-// END: License
+// BEGIN: License 
+// Licensed under the Apache License, Version 2.0 (the "License"); 
+// you may not use this file except in compliance with the License. 
+// You may obtain a copy of the License at 
+//   http://www.apache.org/licenses/LICENSE-2.0 
+// END: License 
 
 #include "network/CEdge.h"
 #include "traits/CTrait.h"
@@ -25,6 +25,9 @@ CEdge CEdge::getDefault()
   Default.sourceId = -1;
   Default.sourceActivity = CTrait::ActivityTrait->getDefault();
   Default.duration = 0.0;
+#ifdef USE_LOCATION_ID
+  Default.locationId = -1;
+#endif
   Default.edgeTrait = CTrait::EdgeTrait->getDefault();
   Default.active = true;
   Default.weight = 1.0;
@@ -40,6 +43,9 @@ CEdge::CEdge()
   , sourceId(-1)
   , sourceActivity()
   , duration(0.0)
+#ifdef USE_LOCATION_ID
+  , locationId(-1)
+#endif
   , edgeTrait()
   , active(true)
   , weight(1.0)
@@ -53,6 +59,9 @@ CEdge::CEdge(const CEdge & src)
   , sourceId(src.sourceId)
   , sourceActivity(src.sourceActivity)
   , duration(src.duration)
+#ifdef USE_LOCATION_ID
+  , locationId(src.locationId)
+#endif
   , edgeTrait(src.edgeTrait)
   , active(src.active)
   , weight(src.weight)
@@ -65,14 +74,24 @@ CEdge::~CEdge()
 
 void CEdge::toBinary(std::ostream & os) const
 {
+#ifdef USE_LOCATION_ID
+  if (CEdge::HasLocationId)
+    os.write(reinterpret_cast< const char * >(&targetId), 64);
+  else
+    {
+      os.write(reinterpret_cast< const char * >(&targetId), 40);
+      os.write(reinterpret_cast< const char * >(&edgeTrait), 16);
+    }
+#else
   os.write(reinterpret_cast< const char * >(&targetId), 56);
-
+#endif
   /*
   os.write(reinterpret_cast<const char *>(&targetId), sizeof(size_t));
   os.write(reinterpret_cast<const char *>(&targetActivity), sizeof(CTraitData::base));
   os.write(reinterpret_cast<const char *>(&sourceId), sizeof(size_t));
   os.write(reinterpret_cast<const char *>(&sourceActivity), sizeof(CTraitData::base));
   os.write(reinterpret_cast<const char *>(&duration), sizeof(double));
+  os.write(reinterpret_cast<const char *>(&locationId), sizeof(size_t));
   os.write(reinterpret_cast<const char *>(&edgeTrait), sizeof(CTraitData::base));
   os.write(reinterpret_cast<const char *>(&active), sizeof(char));
   os.write(reinterpret_cast<const char *>(&weight), sizeof(double));
@@ -81,13 +100,25 @@ void CEdge::toBinary(std::ostream & os) const
 
 void CEdge::fromBinary(std::istream & is)
 {
+#ifdef USE_LOCATION_ID
+  if (CEdge::HasLocationId)
+    is.read(reinterpret_cast< char * >(&targetId), 64);
+  else
+    {
+      is.read(reinterpret_cast< char * >(&targetId), 40);
+      is.read(reinterpret_cast< char * >(&edgeTrait), 16);
+    }
+#else
   is.read(reinterpret_cast< char * >(&targetId), 56);
+#endif
+
   /*
   is.read(reinterpret_cast<char *>(&targetId), sizeof(size_t));
   is.read(reinterpret_cast<char *>(&targetActivity), sizeof(CTraitData::base));
   is.read(reinterpret_cast<char *>(&sourceId), sizeof(size_t));
   is.read(reinterpret_cast<char *>(&sourceActivity), sizeof(CTraitData::base));
   is.read(reinterpret_cast<char *>(&duration), sizeof(double));
+  is.read(reinterpret_cast<char *>(&locationId), sizeof(size_t));
   is.read(reinterpret_cast<char *>(&edgeTrait), sizeof(CTraitData::base));
   is.read(reinterpret_cast<char *>(&active), sizeof(char));
   is.read(reinterpret_cast<char *>(&weight), sizeof(double));

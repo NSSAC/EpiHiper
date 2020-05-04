@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -15,6 +15,7 @@
 
 #include <iostream>
 
+#include "EpiHiperConfig.h"
 #include "traits/CTraitData.h"
 #include "math/CValueInterface.h"
 
@@ -24,6 +25,7 @@ class CMetadata;
 class CEdge
 {
 public:
+  static bool HasLocationId;
   static bool HasEdgeTrait;
   static bool HasActiveField;
   static bool HasWeightField;
@@ -47,6 +49,9 @@ public:
   size_t sourceId;
   CTraitData::base sourceActivity;
   double duration;
+#ifdef USE_LOCATION_ID
+  size_t locationId;
+#endif
   CTraitData::base edgeTrait;
   bool active;
   double weight;

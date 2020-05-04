@@ -55,6 +55,7 @@ private:
   CValueInterface & sourceId(CEdge * pEdge);
   CValueInterface & targetActivity(CEdge * pEdge);
   CValueInterface & sourceActivity(CEdge * pEdge);
+  CValueInterface & locationId(CEdge * pEdge);
   CValueInterface & edgeTrait(CEdge * pEdge);
   CValueInterface & active(CEdge * pEdge);
   CValueInterface & weight(CEdge * pEdge);
@@ -63,6 +64,7 @@ private:
   COperation * setSourceId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
   COperation * setTargetActivity(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
   COperation * setSourceActivity(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+  COperation * setLocationId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
   COperation * setEdgeTrait(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
   COperation * setActive(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
   COperation * setWeight(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);

@@ -169,6 +169,10 @@ void CNetwork::fromJSON(const json_t * json)
       "description": "The maximal value of the duration field, i.e., the value to divide the duration by to get it relative to the accumulation time",
       "$ref": "./typeRegistry.json#/definitions/nonNegativeNumber"
     },
+    "hasLocationIDField": {
+      "description": "Boolean indicating whether the network contains a Location ID (LID) for each edge (Default: false).",
+      "type": "boolean"
+    },
     "hasActiveField": {
       "description": "Boolean indicating whether the network contains an active flag for each edge",
       "type": "boolean"
@@ -357,6 +361,22 @@ void CNetwork::fromJSON(const json_t * json)
       CLogger::error("Network: Invalid or missing 'activityEncoding'.");
       return;
     }
+
+  pValue = json_object_get(json, "hasLocationIDField");
+
+  if (json_is_boolean(pValue))
+    {
+      CEdge::HasLocationId = json_boolean_value(pValue);
+    }
+  else
+    {
+      CEdge::HasLocationId =  false;
+    }
+
+#ifndef USE_LOCATION_ID
+  if (CEdge::HasLocationId)
+    CLogger::error("Network: To support location ids please configure EpiHiper with '-DENABLE_LOCATION_ID=ON'.");
+#endif
 
   pValue = json_object_get(json, "sizeofEdgeTrait");
   Size = 1;
@@ -868,6 +888,9 @@ void CNetwork::write(const std::string & file, bool binary)
   os << json_dumps(mpJson, JSON_COMPACT | JSON_INDENT(0)) << std::endl;
   os << "targetPID,targetActivity,sourcePID,sourceActivity,duration";
 
+  if (CEdge::HasLocationId)
+    os << ",LID";
+
   if (CEdge::HasEdgeTrait)
     os << ",edgeTrait";
 
@@ -936,7 +959,11 @@ bool CNetwork::openPartition(const size_t & partition,
     }
 
   os << json_dumps(pJson, JSON_COMPACT | JSON_INDENT(0)) << std::endl;
-  os << "targetPID,targetActivity,sourcePID,sourceActivity,duration,edgeTrait,active,weight";
+
+  if (CEdge::HasLocationId)
+    os << "targetPID,targetActivity,sourcePID,sourceActivity,duration,LID,edgeTrait,active,weight";
+  else
+    os << "targetPID,targetActivity,sourcePID,sourceActivity,duration,edgeTrait,active,weight";
 
   os << std::endl;
 
@@ -1176,6 +1203,18 @@ bool CNetwork::loadEdge(CEdge * pEdge, std::istream & is) const
 
       ptr += Read;
 
+#ifdef USE_LOCATION_ID
+      if (CEdge::HasLocationId)
+        {
+          if (1 != sscanf(ptr, ",%zu%n", &pEdge->locationId, &Read))
+            {
+              success = false;
+            }
+
+          ptr += Read;
+        }
+#endif
+
       if (CEdge::HasEdgeTrait)
         {
           if (1 != sscanf(ptr, ",%[^,]%n", edgeTrait, &Read))
@@ -1234,6 +1273,13 @@ void CNetwork::writeEdge(CEdge * pEdge, std::ostream & os) const
       os << "," << pEdge->sourceId;
       os << "," << CTrait::ActivityTrait->toString(pEdge->sourceActivity);
       os << "," << pEdge->duration;
+
+#ifdef USE_LOCATION_ID
+      if (CEdge::HasLocationId)
+        {
+          os << "," << pEdge->locationId;
+        }
+#endif
 
       if (CEdge::HasEdgeTrait)
         {

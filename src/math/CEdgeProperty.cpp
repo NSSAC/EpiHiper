@@ -106,6 +106,12 @@ void CEdgeProperty::fromJSON(const json_t * json)
           mpPropertyOf = &CEdgeProperty::sourceActivity;
           mpCreateOperation = &CEdgeProperty::setSourceActivity;
         }
+      else if (strcmp(Property, "locationId") == 0)
+        {
+          mType = Type::id;
+          mpPropertyOf = &CEdgeProperty::locationId;
+          mpCreateOperation = &CEdgeProperty::setLocationId;
+        }
       else if (strcmp(Property, "edgeTrait") == 0)
         {
           mType = Type::traitData;
@@ -155,7 +161,8 @@ bool CEdgeProperty::isReadOnly() const
   return mpPropertyOf == &CEdgeProperty::targetId
          || mpPropertyOf == &CEdgeProperty::sourceId
          || mpPropertyOf == &CEdgeProperty::targetActivity
-         || mpPropertyOf == &CEdgeProperty::sourceActivity;
+         || mpPropertyOf == &CEdgeProperty::sourceActivity
+         || mpPropertyOf == &CEdgeProperty::locationId;
 }
 
 CValueInterface & CEdgeProperty::targetId(CEdge * pEdge)
@@ -182,6 +189,14 @@ CValueInterface & CEdgeProperty::sourceActivity(CEdge * pEdge)
   return *this;
 }
 
+CValueInterface & CEdgeProperty::locationId(CEdge * pEdge)
+{
+#ifdef USE_LOCATION_ID
+  mpValue = &pEdge->locationId;
+#endif
+  return *this;
+}
+
 CValueInterface & CEdgeProperty::edgeTrait(CEdge * pEdge)
 {
   mpValue = &pEdge->edgeTrait;
@@ -205,6 +220,7 @@ COperation * CEdgeProperty::setTargetId(CEdge * pEdge, const CValueInterface & v
   CLogger::critical() << "Invalid operation 'setTargetId' for edge: " << pEdge->targetId << ", " << pEdge->sourceId;
   return NULL;
 }
+
 COperation * CEdgeProperty::setSourceId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
   CLogger::critical() << "Invalid operation 'setSourceId' for edge: " << pEdge->targetId << ", " << pEdge->sourceId;
@@ -219,6 +235,12 @@ COperation * CEdgeProperty::setTargetActivity(CEdge * pEdge, const CValueInterfa
 COperation * CEdgeProperty::setSourceActivity(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
   return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), pOperator, &CEdge::setSourceActivity, info);
+}
+
+COperation * CEdgeProperty::setLocationId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
+{
+  CLogger::critical() << "Invalid operation 'setLocationId' for edge: " << pEdge->targetId << ", " << pEdge->sourceId;
+  return NULL;
 }
 
 COperation * CEdgeProperty::setEdgeTrait(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
