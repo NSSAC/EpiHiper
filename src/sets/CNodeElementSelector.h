@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -41,14 +41,14 @@ public:
   virtual bool computeProtected() override;
 
 private:
-  bool nodeAll();
-  bool nodePropertySelection();
-  bool nodePropertyWithin();
-  bool nodeWithIncomingEdge();
-  bool nodeInDBTable();
-  bool nodeWithDBFieldSelection();
-  bool nodeWithDBFieldWithin();
-  bool nodeWithDBFieldNotWithin();
+  bool all();
+  bool propertySelection();
+  bool propertyWithin();
+  bool withIncomingEdge();
+  bool inDBTable();
+  bool withDBFieldSelection();
+  bool withDBFieldWithin();
+  bool withDBFieldNotWithin();
 
   CNodeProperty mNodeProperty;
   CValue * mpValue;

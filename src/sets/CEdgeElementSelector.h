@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -16,6 +16,10 @@
 #include "math/CEdgeProperty.h"
 #include "math/CValueList.h"
 #include "sets/CSetContent.h"
+
+class CFieldValue;
+class CFieldValueList;
+class CObservable;
 
 class CEdgeElementSelector: public CSetContent
 {
@@ -35,12 +39,28 @@ public:
   virtual bool computeProtected() override;
 
 private:
-  CEdgeProperty mLeft;
+  bool all();
+  bool propertySelection();
+  bool propertyWithin();
+  bool withNodeIn();
+  bool inDBTable();
+  bool withDBFieldSelection();
+  bool withDBFieldWithin();
+  bool withDBFieldNotWithin();
+
+  CEdgeProperty mEdgeProperty;
   CValue * mpValue;
   CValueList * mpValueList;
   CSetContent * mpSelector;
+  std::string mDBTable;
+  std::string mDBField;
+  CObservable * mpObservable;
+  CFieldValue * mpDBFieldValue;
+  CFieldValueList * mpDBFieldValueList;
   CValueInterface::pComparison mpComparison;
+  std::string mSQLComparison;
   CEdgeProperty::pGetNode mpGetNode;
+  bool (CEdgeElementSelector::*mpCompute)();
 };
 
 #endif /* SRC_SETS_CEDGEELEMENTSELECTOR_H_ */

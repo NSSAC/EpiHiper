@@ -1391,3 +1391,8 @@ const size_t & CNetwork::getGlobalNodeCount() const
 {
   return mTotalNodesSize;
 }
+
+const size_t & CNetwork::getLocalEdgeCount() const
+{
+  return mEdgesSize;
+}

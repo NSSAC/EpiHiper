@@ -107,6 +107,7 @@ public:
 
   const size_t & getLocalNodeCount() const;
   const size_t & getGlobalNodeCount() const;
+  const size_t & getLocalEdgeCount() const;
 
   bool haveValidPartition(const int & parts);
 

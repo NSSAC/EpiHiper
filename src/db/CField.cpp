@@ -56,7 +56,8 @@ void CField::fromJSON(const json_t * json)
   mLabel = mId;
 
   if (mId == "pid"
-      || mId == "hid")
+      || mId == "hid"
+      || mId == "lid")
     {
       mType = CValue::Type::id;
     }

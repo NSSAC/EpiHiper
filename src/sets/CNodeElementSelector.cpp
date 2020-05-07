@@ -84,11 +84,15 @@ CNodeElementSelector::~CNodeElementSelector()
 {
   if (mpValue != NULL)
     delete mpValue;
+
   if (mpValueList != NULL)
     delete mpValueList;
+
   CSetContent::destroy(mpSelector);
+
   if (mpDBFieldValue != NULL)
     delete mpDBFieldValue;
+
   if (mpDBFieldValueList != NULL)
     delete mpDBFieldValueList;
 }
@@ -363,7 +367,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
               return;
             }
 
-          mpCompute = &CNodeElementSelector::nodePropertyWithin;
+          mpCompute = &CNodeElementSelector::propertyWithin;
           mValid = true;
           return;
         }
@@ -400,7 +404,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
             {
               mPrerequisites.insert(mpSelector);
               mStatic = mpSelector->isStatic();
-              mpCompute = &CNodeElementSelector::nodeWithIncomingEdge;
+              mpCompute = &CNodeElementSelector::withIncomingEdge;
               mValid = true;
               return;
             }
@@ -417,12 +421,12 @@ void CNodeElementSelector::fromJSON(const json_t * json)
       else if (strcmp(Operator, "in") == 0)
         {
           CConnection::setRequired(true);
-          mpCompute = &CNodeElementSelector::nodeWithDBFieldWithin;
+          mpCompute = &CNodeElementSelector::withDBFieldWithin;
         }
       else if (strcmp(Operator, "not in") == 0)
         {
           CConnection::setRequired(true);
-          mpCompute = &CNodeElementSelector::nodeWithDBFieldNotWithin;
+          mpCompute = &CNodeElementSelector::withDBFieldNotWithin;
         }
     }
   else
@@ -449,7 +453,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
             },
            */
           CConnection::setRequired(true);
-          mpCompute = &CNodeElementSelector::nodeInDBTable;
+          mpCompute = &CNodeElementSelector::inDBTable;
           mValid = true;
           return;
         }
@@ -461,7 +465,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
               return;
             }
 
-          mpCompute = &CNodeElementSelector::nodeAll;
+          mpCompute = &CNodeElementSelector::all;
           mValid = true;
           return;
         }
@@ -470,8 +474,8 @@ void CNodeElementSelector::fromJSON(const json_t * json)
       return;
     }
 
-  if (mpCompute == &CNodeElementSelector::nodeWithDBFieldWithin
-      || mpCompute == &CNodeElementSelector::nodeWithDBFieldNotWithin)
+  if (mpCompute == &CNodeElementSelector::withDBFieldWithin
+      || mpCompute == &CNodeElementSelector::withDBFieldNotWithin)
     {
       /*
         {
@@ -510,7 +514,6 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
       json_t * pLeft = json_object_get(json, "left");
 
-      // We do not have an operator, i.e., we have either all nodes or all nodes with a table.
       pValue = json_object_get(pLeft, "table");
 
       if (json_is_string(pValue))
@@ -608,7 +611,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
           if (mpValue != NULL
               && mpValue->isValid())
             {
-              mpCompute = &CNodeElementSelector::nodePropertySelection;
+              mpCompute = &CNodeElementSelector::propertySelection;
               mValid = true;
               return;
             }
@@ -642,7 +645,6 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
       json_t * pLeft = json_object_get(json, "left");
 
-      // We do not have an operator, i.e., we have either all nodes or all nodes with a table.
       pValue = json_object_get(pLeft, "table");
 
       if (json_is_string(pValue))
@@ -677,7 +679,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
         }
 
       CConnection::setRequired(true);
-      mpCompute = &CNodeElementSelector::nodeWithDBFieldSelection;
+      mpCompute = &CNodeElementSelector::withDBFieldSelection;
 
       mpObservable = CObservable::get(json_object_get(json, "right"));
 
@@ -713,7 +715,7 @@ bool CNodeElementSelector::computeProtected()
   return false;
 }
 
-bool CNodeElementSelector::nodeAll()
+bool CNodeElementSelector::all()
 {
   std::vector< CNode * > & Nodes = getNodes();
 
@@ -728,11 +730,11 @@ bool CNodeElementSelector::nodeAll()
         *it = pNode;
     }
 
-  CLogger::debug() << "CNodeElementSelector: nodeAll returned '" << Nodes.size() << "' nodes.";
+  CLogger::debug() << "CNodeElementSelector: all returned '" << Nodes.size() << "' nodes.";
   return true;
 }
 
-bool CNodeElementSelector::nodePropertySelection()
+bool CNodeElementSelector::propertySelection()
 {
   std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
@@ -762,11 +764,11 @@ bool CNodeElementSelector::nodePropertySelection()
         std::sort(Nodes.begin(), Nodes.end());
     }
 
-  CLogger::debug() << "CNodeElementSelector: nodePropertySelection returned '" << Nodes.size() << "' nodes.";
+  CLogger::debug() << "CNodeElementSelector: propertySelection returned '" << Nodes.size() << "' nodes.";
   return true;
 }
 
-bool CNodeElementSelector::nodePropertyWithin()
+bool CNodeElementSelector::propertyWithin()
 {
   std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
@@ -797,11 +799,11 @@ bool CNodeElementSelector::nodePropertyWithin()
         std::sort(Nodes.begin(), Nodes.end());
     }
 
-  CLogger::debug() << "CNodeElementSelector: nodePropertyWithin returned '" << Nodes.size() << "' nodes.";
+  CLogger::debug() << "CNodeElementSelector: propertyWithin returned '" << Nodes.size() << "' nodes.";
   return true;
 }
 
-bool CNodeElementSelector::nodeWithIncomingEdge()
+bool CNodeElementSelector::withIncomingEdge()
 {
   std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
@@ -819,11 +821,11 @@ bool CNodeElementSelector::nodeWithIncomingEdge()
 
   std::sort(Nodes.begin(), Nodes.end());
 
-  CLogger::debug() << "CNodeElementSelector: nodeWithIncomingEdge returned '" << Nodes.size() << "' nodes.";
+  CLogger::debug() << "CNodeElementSelector: withIncomingEdge returned '" << Nodes.size() << "' nodes.";
   return true;
 }
 
-bool CNodeElementSelector::nodeInDBTable()
+bool CNodeElementSelector::inDBTable()
 {
   std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
@@ -841,11 +843,14 @@ bool CNodeElementSelector::nodeInDBTable()
         Nodes.push_back(pNode);
     }
 
-  CLogger::debug() << "CNodeElementSelector: nodeInDBTable returned '" << Nodes.size() << "' nodes.";
+  if (!mLocalScope)
+    std::sort(Nodes.begin(), Nodes.end());
+
+  CLogger::debug() << "CNodeElementSelector: inDBTable returned '" << Nodes.size() << "' nodes.";
   return success;
 }
 
-bool CNodeElementSelector::nodeWithDBFieldSelection()
+bool CNodeElementSelector::withDBFieldSelection()
 {
   bool success = false;
   std::vector< CNode * > & Nodes = getNodes();
@@ -868,11 +873,14 @@ bool CNodeElementSelector::nodeWithDBFieldSelection()
         Nodes.push_back(pNode);
     }
 
-  CLogger::debug() << "CNodeElementSelector: nodeWithDBFieldSelection returned '" << Nodes.size() << "' nodes.";
+  if (!mLocalScope)
+    std::sort(Nodes.begin(), Nodes.end());
+
+  CLogger::debug() << "CNodeElementSelector: withDBFieldSelection returned '" << Nodes.size() << "' nodes.";
   return success;
 }
 
-bool CNodeElementSelector::nodeWithDBFieldWithin()
+bool CNodeElementSelector::withDBFieldWithin()
 {
   bool success = false;
   std::vector< CNode * > & Nodes = getNodes();
@@ -902,11 +910,14 @@ bool CNodeElementSelector::nodeWithDBFieldWithin()
         Nodes.push_back(pNode);
     }
 
-  CLogger::debug() << "CNodeElementSelector: nodeWithDBFieldWithin returned '" << Nodes.size() << "' nodes.";
+  if (!mLocalScope)
+    std::sort(Nodes.begin(), Nodes.end());
+
+  CLogger::debug() << "CNodeElementSelector: withDBFieldWithin returned '" << Nodes.size() << "' nodes.";
   return success;
 }
 
-bool CNodeElementSelector::nodeWithDBFieldNotWithin()
+bool CNodeElementSelector::withDBFieldNotWithin()
 {
   bool success = false;
   std::vector< CNode * > & Nodes = getNodes();
@@ -936,6 +947,9 @@ bool CNodeElementSelector::nodeWithDBFieldNotWithin()
         Nodes.push_back(pNode);
     }
 
-  CLogger::debug() << "CNodeElementSelector: nodeWithDBFieldNotWithin returned '" << Nodes.size() << "' nodes.";
+  if (!mLocalScope)
+    std::sort(Nodes.begin(), Nodes.end());
+
+  CLogger::debug() << "CNodeElementSelector: withDBFieldNotWithin returned '" << Nodes.size() << "' nodes.";
   return success;
 }
