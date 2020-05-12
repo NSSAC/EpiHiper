@@ -172,8 +172,8 @@ bool CSetOperation::computeUnion()
 
   std::vector< CNode * > * pInNodes = &TmpNodes;
   std::vector< CEdge * > * pInEdges = &TmpEdges;
-  std::vector< CNode * > * pOutNodes = &getNodes();
-  std::vector< CEdge * > * pOutEdges = &getEdges();
+  std::vector< CNode * > * pOutNodes = &Nodes;
+  std::vector< CEdge * > * pOutEdges = &Edges;
 
   std::set< CSetContent * >::const_iterator it = mSets.begin();
   std::set< CSetContent * >::const_iterator end = mSets.end();
@@ -191,11 +191,11 @@ bool CSetOperation::computeUnion()
       else
         {
           pOutEdges->clear();
-          std::set_union((*it)->beginEdges(), (*it)->endEdges(), pInEdges->begin(), pInEdges->end(), pOutEdges->begin());
+          std::set_union((*it)->beginEdges(), (*it)->endEdges(), pInEdges->begin(), pInEdges->end(), std::back_inserter(*pOutEdges));
           std::swap(pInEdges, pOutEdges);
 
           pOutNodes->clear();
-          std::set_union((*it)->beginNodes(), (*it)->endNodes(), pInNodes->begin(), pInNodes->end(), pOutNodes->begin());
+          std::set_union((*it)->beginNodes(), (*it)->endNodes(), pInNodes->begin(), pInNodes->end(), std::back_inserter(*pOutNodes));
           std::swap(pInNodes, pOutNodes);
 
           std::map< CValueList::Type, CValueList >::const_iterator itDB = (*it)->getDBFieldValues().begin();
@@ -206,14 +206,14 @@ bool CSetOperation::computeUnion()
         }
     }
 
-  if (pOutEdges != &Edges)
+  if (pInEdges != &Edges)
     {
-      Edges = *pOutEdges;
+      Edges = *pInEdges;
     }
 
-  if (pOutNodes != &Nodes)
+  if (pInNodes != &Nodes)
     {
-      Nodes = *pOutNodes;
+      Nodes = *pInNodes;
     }
 
   CLogger::debug Debug;
