@@ -82,11 +82,11 @@ public:
 
   std::string toString(CTraitData::value & value) const;
 
-  const CFeature * addFeature(const CFeature & feature);
-
   void remap();
 
 private:
+  const CFeature * addFeature(const CFeature & feature);
+
   void updateFeatureMap();
 
 	std::string mId;

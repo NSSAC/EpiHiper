@@ -133,7 +133,7 @@ void CValue::fromJSON(const json_t * json)
 
       if (pHealthState == NULL)
         {
-          CLogger::error() << "Value: Invalid healthState '" << json_string_value(pValue) << "'.";
+          CLogger::error() << "Value: Invalid healthState: '" << json_string_value(pValue) << "'.";
           pHealthState = &CModel::GetInitialState();
           return;
         }
@@ -152,11 +152,16 @@ void CValue::fromJSON(const json_t * json)
 
       if (found != CTrait::INSTANCES.end())
         pTrait = &found->second;
-    }
 
-  if (pTrait == NULL)
+      if (pTrait == NULL)
+        {
+          CLogger::error() << "Value: Invalid trait '" << json_string_value(pValue) << "'.";
+          return;
+        }
+    }
+  else
     {
-      CLogger::error("Value: Invalid or missing 'trait'.");
+      CLogger::error("Value: Missing trait.");
       return;
     }
 
@@ -166,17 +171,17 @@ void CValue::fromJSON(const json_t * json)
   if (json_is_string(pValue))
     {
       pFeature = pTrait->operator[](json_string_value(pValue));
-    }
-
-  if (pFeature == NULL)
-    {
-      pFeature = const_cast< CTrait * >(pTrait)->addFeature(CFeature(json_string_value(pValue)));
 
       if (pFeature == NULL)
         {
-          CLogger::error("Value: Invalid or missing 'feature'.");
+          CLogger::error() << "Value: Invalid feature '" << json_string_value(pValue) << "' for trait '" << pTrait->getId() << "'.";
           return;
         }
+    }
+  else
+    {
+      CLogger::error() << "Value: Missing feature for trait '" << pTrait->getId() << "'.";
+      return;
     }
 
   pValue = json_object_get(pRoot, "enum");
@@ -185,19 +190,17 @@ void CValue::fromJSON(const json_t * json)
   if (json_is_string(pValue))
     {
       pEnum = pFeature->operator[](json_string_value(pValue));
-    }
-
-  if (pEnum == NULL)
-    {
-      pEnum = const_cast< CFeature * >(pFeature)->addEnum(CEnum(json_string_value(pValue)));
 
       if (pEnum == NULL)
         {
-          CLogger::error("Value: Invalid or missing 'feature'.");
+          CLogger::error() << "Value: Invalid enum '" << json_string_value(pValue) << "' for feature '" << pFeature->getId() << "' for trait '" << pTrait->getId() << "'.";
           return;
         }
-
-      const_cast< CTrait * >(pTrait)->remap();
+    }
+  else
+    {
+      CLogger::error() << "Value: Missing enum for feature '" << pFeature->getId() << "' for trait '" << pTrait->getId() << "'.";
+      return;
     }
 
   mType = Type::traitValue;
