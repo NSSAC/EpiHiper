@@ -45,7 +45,9 @@ public:
    */
   virtual ~CFeature();
 
-  virtual void fromJSON(const json_t * json) override;
+	CFeature & operator=(const CFeature & rhs);
+
+  virtual void fromJSON(const json_t * json);
 
   void augment(const json_t * json);
 
@@ -64,9 +66,9 @@ public:
 
   const CEnum * getDefault() const;
 
+private:
   const CEnum * addEnum(const CEnum & enumeration);
 
-private:
   void updateEnumMap();
 
   std::string mId;

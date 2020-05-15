@@ -54,6 +54,23 @@ CFeature::CFeature(const CFeature & src)
 
 CFeature::~CFeature() {}
 
+CFeature & CFeature::operator=(const CFeature & rhs)
+{
+  if (this != &rhs)
+    {
+      CAnnotation::operator=(rhs);
+      mId = rhs.mId;
+      mMask = rhs.mMask;
+      mDefaultId = rhs.mDefaultId;
+      mEnums = rhs.mEnums;
+      mValid = rhs.mValid;
+
+      updateEnumMap();
+    }
+
+  return *this;
+}
+
 void CFeature::updateEnumMap()
 {
   mEnumMap.clear();
