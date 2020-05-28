@@ -59,6 +59,7 @@ private:
   CValueInterface & edgeTrait(CEdge * pEdge);
   CValueInterface & active(CEdge * pEdge);
   CValueInterface & weight(CEdge * pEdge);
+  CValueInterface & duration(CEdge * pEdge);
 
   COperation * setTargetId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
   COperation * setSourceId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
@@ -68,6 +69,7 @@ private:
   COperation * setEdgeTrait(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
   COperation * setActive(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
   COperation * setWeight(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+  COperation * setDuration(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
 
   CValueInterface & (CEdgeProperty::*mpPropertyOf)(CEdge *);
   COperation * (CEdgeProperty::*mpCreateOperation)(CEdge *, const CValueInterface &, CValueInterface::pOperator pOperator, const CMetadata & info);

@@ -70,7 +70,13 @@ void CEdgeProperty::fromJSON(const json_t * json)
     {
       const char * Property = json_string_value(pValue);
 
-      if (strcmp(Property, "weight") == 0)
+      if (strcmp(Property, "duration") == 0)
+        {
+          mType = Type::number;
+          mpPropertyOf = &CEdgeProperty::duration;
+          mpCreateOperation = &CEdgeProperty::setDuration;
+        }
+      else if (strcmp(Property, "weight") == 0)
         {
           mType = Type::number;
           mpPropertyOf = &CEdgeProperty::weight;
@@ -162,7 +168,8 @@ bool CEdgeProperty::isReadOnly() const
          || mpPropertyOf == &CEdgeProperty::sourceId
          || mpPropertyOf == &CEdgeProperty::targetActivity
          || mpPropertyOf == &CEdgeProperty::sourceActivity
-         || mpPropertyOf == &CEdgeProperty::locationId;
+         || mpPropertyOf == &CEdgeProperty::locationId
+         || mpPropertyOf == &CEdgeProperty::duration;
 }
 
 CValueInterface & CEdgeProperty::targetId(CEdge * pEdge)
@@ -215,6 +222,12 @@ CValueInterface & CEdgeProperty::weight(CEdge * pEdge)
   return *this;
 }
 
+CValueInterface & CEdgeProperty::duration(CEdge * pEdge)
+{
+  mpValue = &pEdge->duration;
+  return *this;
+}
+
 COperation * CEdgeProperty::setTargetId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
   CLogger::critical() << "Invalid operation 'setTargetId' for edge: " << pEdge->targetId << ", " << pEdge->sourceId;
@@ -257,3 +270,10 @@ COperation * CEdgeProperty::setWeight(CEdge * pEdge, const CValueInterface & val
 {
   return new COperationInstance< CEdge, double >(pEdge, value.toNumber(), pOperator, &CEdge::setWeight, info);
 }
+
+COperation * CEdgeProperty::setDuration(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
+{
+  CLogger::critical() << "Invalid operation 'setDuration' for edge: " << pEdge->targetId << ", " << pEdge->sourceId;
+  return NULL;
+}
+

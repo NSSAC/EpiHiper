@@ -11,7 +11,7 @@
 # END: License 
 
 cmake_minimum_required (VERSION 3.11)
-project (EpiHiper VERSION 1.1.5)
+project (EpiHiper VERSION 1.1.6)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 
