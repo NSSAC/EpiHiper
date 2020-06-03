@@ -1,0 +1,152 @@
+{
+  "epiHiperSchema": "https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/initializationSchema.json",
+  "sets": [
+    {
+      "id": "agegroup_p",
+      "scope": "local",
+      "content": {
+        "elementType": "node",
+        "scope": "local",
+        "left": {"field": "age_group"},
+        "operator": "==",
+        "right": {"value": "p"}
+      }
+    },
+    {
+      "id": "agegroup_s",
+      "scope": "local",
+      "content": {
+        "elementType": "node",
+        "scope": "local",
+        "left": {"field": "age_group"},
+        "operator": "==",
+        "right": {"value": "s"}
+      }
+    },
+    {
+      "id": "agegroup_a",
+      "scope": "local",
+      "content": {
+        "elementType": "node",
+        "scope": "local",
+        "left": {"field": "age_group"},
+        "operator": "==",
+        "right": {"value": "a"}
+      }
+    },
+    {
+      "id": "agegroup_o",
+      "scope": "local",
+      "content": {
+        "elementType": "node",
+        "scope": "local",
+        "left": {"field": "age_group"},
+        "operator": "==",
+        "right": {"value": "o"}
+      }
+    },
+    {
+      "id": "agegroup_g",
+      "scope": "local",
+      "content": {
+        "scope": "local",
+        "elementType": "node",
+        "left": {"field": "age_group"},
+        "operator": "==",
+        "right": {"value": "g"}
+      }
+    }
+  ],
+  "initializations": [
+    {
+      "target": {
+        "set": {"idRef": "agegroup_p"}
+      },
+      "foreach": [
+        {
+          "operations": [
+            {
+              "target": {
+                "node": {"property": "healthState"}
+              },
+              "operator": "=",
+              "value": {"healthState": "S_p"}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": {
+        "set": {"idRef": "agegroup_s"}
+      },
+      "foreach": [
+        {
+          "operations": [
+            {
+              "target": {
+                "node": {"property": "healthState"}
+              },
+              "operator": "=",
+              "value": {"healthState": "S_s"}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": {
+        "set": {"idRef": "agegroup_a"}
+      },
+      "foreach": [
+        {
+          "operations": [
+            {
+              "target": {
+                "node": {"property": "healthState"}
+              },
+              "operator": "=",
+              "value": {"healthState": "S_a"}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": {
+        "set": {"idRef": "agegroup_o"}
+      },
+      "foreach": [
+        {
+          "operations": [
+            {
+              "target": {
+                "node": {"property": "healthState"}
+              },
+              "operator": "=",
+              "value": {"healthState": "S_o"}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": {
+        "set": {"idRef": "agegroup_g"}
+      },
+      "foreach": [
+        {
+          "operations": [
+            {
+              "target": {
+                "node": {"property": "healthState"}
+              },
+              "operator": "=",
+              "value": {"healthState": "S_g"}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+- take unique county fips from `county_seeds.csv` file; for each county, insert a **set** definition to the initialization file, and insert a **set** definition for combination of the county with each of the 5 age groups, as show in `init-sample.json`.
+- for each row of `county_seeds.csv` file, `fips,day,count`, insert an **initialization** to the initialization file, which targets the county-age_group **set** defined above, sample `count` pids, with a **delay** of `day` days, put them to corresponding `E` state.

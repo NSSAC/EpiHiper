@@ -1,0 +1,121 @@
+{
+  "epiHiperSchema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/initerventionSchema.json",
+  "sets": [
+    {
+      "id": "availableForVaccination",
+      "scope": "local",
+      "content": {
+        "elementType": "node",
+        "scope": "local",
+        "left": {
+          "node": {"property": "healthState"}
+        },
+        "operator": "withPropertyIn",
+        "right": {
+          "valueList": {
+            "healthState": [
+              "S_p",
+              "S_s",
+              "S_a",
+              "S_o",
+              "S_g",
+              "E_p",
+              "E_s",
+              "E_a",
+              "E_o",
+              "E_g",
+              "Ipresymp_p",
+              "Ipresymp_s",
+              "Ipresymp_a",
+              "Ipresymp_o",
+              "Ipresymp_g",
+              "Iasymp_p",
+              "Iasymp_s",
+              "Iasymp_a",
+              "Iasymp_o",
+              "Iasymp_g"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "trigger": [
+    {
+      "ann:id": "triggerVacinationDay_n",
+      "ann:description": "This needs to be created for each scheduled vacination day.",
+      "trigger": {
+        "left": {"observable": "time"},
+        "operator": "==",
+        "right": {
+          "value": {"number": 79}
+        }
+      },
+      "interventionIds": []
+    }
+  ],
+  "interventions": [
+    {
+      "ann:description": "This needs to be created for each county by age group set NNNNN_?. Note the sets are provided by county initilization",
+      "id": "interventionVacinationDay_day_fips_agegroup",
+      "target": {
+        "operation": "intersection",
+        "sets": [
+          {
+            "set": {"idRef": "51059_p"}
+          },
+          {
+            "set": {"idRef": "availableForVaccination"}
+          }
+        ]
+      },
+      "sampling": {
+        "type": "absolute",
+        "number": 10,
+        "sampled": {
+          "foreach": [
+            {
+              "operations": [
+                {
+                  "target": {
+                    "node": {
+                      "property": "nodeTrait",
+                      "feature": "vaccinated"
+                    }
+                  },
+                  "operator": "=",
+                  "value": {
+                    "trait": "nodeTrait",
+                    "feature": "vaccinated",
+                    "enum": "true"
+                  }
+                }
+              ]
+            },
+            {
+              "delay": 10,
+              "condition": {
+                "left": {
+                  "node": {"property": "healthState"}
+                },
+                "operator": "==",
+                "right": {
+                  "value": {"healthState": "S_p"}
+                }
+              },
+              "operations": [
+                {
+                  "target": {
+                    "node": {"property": "healthState"}
+                  },
+                  "operator": "=",
+                  "value": {"healthState": "HypRxProt_p"}
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
