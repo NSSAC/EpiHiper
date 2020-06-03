@@ -1,46 +1,70 @@
 {
-  "epiHiperSchema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/initerventionSchema.json",
+  "epiHiperSchema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/interventionSchema.json",
   "sets": [
     {
       "id": "availableForVaccination",
+      "ann:label": "Nodes available for vaccination.",
       "scope": "local",
       "content": {
-        "elementType": "node",
-        "scope": "local",
-        "left": {
-          "node": {"property": "healthState"}
-        },
-        "operator": "withPropertyIn",
-        "right": {
-          "valueList": {
-            "healthState": [
-              "S_p",
-              "S_s",
-              "S_a",
-              "S_o",
-              "S_g",
-              "E_p",
-              "E_s",
-              "E_a",
-              "E_o",
-              "E_g",
-              "Ipresymp_p",
-              "Ipresymp_s",
-              "Ipresymp_a",
-              "Ipresymp_o",
-              "Ipresymp_g",
-              "Iasymp_p",
-              "Iasymp_s",
-              "Iasymp_a",
-              "Iasymp_o",
-              "Iasymp_g"
-            ]
+        "operation": "intersection",
+        "sets": [
+          {
+            "elementType": "node",
+            "scope": "local",
+            "left": {
+              "node": {"property": "healthState"}
+            },
+            "operator": "withPropertyIn",
+            "right": {
+              "valueList": {
+                "healthState": [
+                  "S_p",
+                  "S_s",
+                  "S_a",
+                  "S_o",
+                  "S_g",
+                  "E_p",
+                  "E_s",
+                  "E_a",
+                  "E_o",
+                  "E_g",
+                  "Ipresymp_p",
+                  "Ipresymp_s",
+                  "Ipresymp_a",
+                  "Ipresymp_o",
+                  "Ipresymp_g",
+                  "Iasymp_p",
+                  "Iasymp_s",
+                  "Iasymp_a",
+                  "Iasymp_o",
+                  "Iasymp_g"
+                ]
+              }
+            }
+          },
+          {
+            "elementType": "node",
+            "scope": "local",
+            "left": {
+              "node": {
+                "property": "nodeTrait",
+                "feature": "vaccinated"
+              }
+            },
+            "operator": "==",
+            "right": {
+              "value": {
+                "trait": "nodeTrait",
+                "feature": "vaccinated",
+                "enum": "false"
+              }
+            }
           }
-        }
+        ]
       }
     }
   ],
-  "trigger": [
+  "triggers": [
     {
       "ann:id": "triggerVacinationDay_n",
       "ann:description": "This needs to be created for each scheduled vacination day.",
