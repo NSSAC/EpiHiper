@@ -36,7 +36,7 @@ logging_basicConfig()
 
 logger.info(f'Starting logging level: {getLevelName(logger.level)}')
 
-county_node_template = {
+county_node_set = {
   "ann:description": "This needs to be created for each county.",
   "id": "county_NNNNN",
   "scope": "local",
@@ -49,14 +49,38 @@ county_node_template = {
   }
 }
 
+agegroup_node_set = {
+  "id": "agegroup_A",
+  "scope": "local",
+  "content": {
+    "elementType": "node",
+    "scope": "local",
+    "left": {"field": "age_group"},
+    "operator": "==",
+    "right": {"value": "A"}
+  }
+}
+
 age_groups = tuple('psaog')
 num_groups = len(age_groups)
 
-county_agegroup_template = {
-  "ann:description": "This needs to be created for each county by age group.",
-  "id": "NNNNN_A",
-  "scope": "local",
-  "content": {
+day_trigger = {
+  "ann:id": "triggerVacinationDay_DD",
+  "ann:description": "This needs to be created for each scheduled vacination day.",
+  "trigger": {
+    "left": {"observable": "time"},
+    "operator": "==",
+    "right": {
+      "value": {"number": 0}
+    }
+  },
+  "interventionIds": []
+}
+
+day_county_agegroup_intervention = {
+  "ann:description": "This needs to be created for each county by age group set NNNNN_?. Note the sets are provided by county initilization",
+  "id": "interventionVacinationDay_DD_NNNNN_A",
+  "target": {
     "operation": "intersection",
     "sets": [
       {
@@ -64,38 +88,59 @@ county_agegroup_template = {
       },
       {
         "set": {"idRef": "agegroup_A"}
-      }
-    ]
-  }
-}
-
-county_agegroup_init_template = {
-  "ann:description": "This needs to be created for each county by age group set NNNNN_?.",
-  "target": {
-    "set": {"idRef": "NNNNN_A"}
-  }
-}
- 
-sampling_template = {
-  "type": "absolute",
-  "number": None,
-  "sampled": {
-    "foreach": [
+      },
       {
-        "delay": None,
-        "operations": [
-          {
-            "target": {
-              "node": {"property": "healthState"}
-            },
-            "operator": "=",
-            "value": {"healthState": "E_AGEGROUP"}
-          }
-        ]
+        "set": {"idRef": "availableForVaccination"}
       }
     ]
   },
-  "nonsampled": {}
+  "sampling": {
+    "type": "absolute",
+    "number": 0,
+    "sampled": {
+      "foreach": [
+        {
+          "operations": [
+            {
+              "target": {
+                "node": {
+                  "property": "nodeTrait",
+                  "feature": "vaccinated"
+                }
+              },
+              "operator": "=",
+              "value": {
+                "trait": "nodeTrait",
+                "feature": "vaccinated",
+                "enum": "true"
+              }
+            }
+          ]
+        },
+        {
+          "delay": 10,
+          "condition": {
+            "left": {
+              "node": {"property": "healthState"}
+            },
+            "operator": "==",
+            "right": {
+              "value": {"healthState": "S_A"}
+            }
+          },
+          "operations": [
+            {
+              "target": {
+                "node": {"property": "healthState"}
+              },
+              "operator": "=",
+              "value": {"healthState": "HypRxProt_A"}
+            }
+          ]
+        }
+      ]
+    }
+  }
 }
 
 def main(input):
@@ -113,76 +158,73 @@ def main(input):
     assert seeds_file_path.exists()
     logger.info(f'seeds_file_path = {seeds_file_path}')
    
-    assert 'template_file' in input
-    template_file_path = Path(input['template_file'])
-    assert template_file_path.exists()
-    logger.info(f'template_file_path = {template_file_path}')
-   
+    template_data = {
+      "epiHiperSchema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/interventionSchema.json",
+      "sets": [], 
+      "triggers": [], 
+      "interventions": []
+    }
+
+    for A in age_groups:
+      agegroup_node = deepcopy(agegroup_node_set)
+      agegroup_node['id'] = agegroup_node['id'].replace('A', A)
+      agegroup_node['content']['right']['value'] = agegroup_node['content']['right']['value'].replace('A', A)
+      template_data['sets'].append(agegroup_node)
+      
     # Load fips data into a dictionary
-    fips_data = {}
+    seed_data = {}
+
     with seeds_file_path.open() as seeds_file_handle:
-        # Eat the header line
-        header = seeds_file_handle.readline()
+      # Eat the header line
+      seeds_file_handle.readline()
 
-        csv_reader = csv.reader(seeds_file_handle, delimiter = ',')
+      csv_reader = csv.reader(seeds_file_handle, delimiter = ',')
 
-        logger.info("loading seed file data")
-        for fips, day, number in csv_reader:
-            logger.debug(f"fips: {fips}   day: {day},   number: {number}")
+      logger.info("loading seed file data")
+      for day, fips, agegroup, number in csv_reader:
+        logger.debug(f"day: {day},   fips: {fips},   agegroup: {agegroup},   number: {number}")
 
-            fips_data.setdefault(fips, dict())[int(day)] = int(number)
+        seed_data.setdefault(int(day), dict())
+        seed_data[int(day)].setdefault(fips, dict())
+        seed_data[int(day)][fips].setdefault(agegroup, dict())
+        seed_data[int(day)][fips][agegroup] = int(number)
 
-        logger.debug(f"fips_data = {pformat(fips_data)}")
-
-    logger.info("loading template file data")
-    template_data = json.load(template_file_path.open())
+      logger.debug(f"seed_data = {pformat(seed_data)}")
 
     logger.info(f"adding all the country nodes to the 'set' array")
-    for fip in fips_data.keys():
-        county_node = deepcopy(county_node_template)
-        county_node['id'] = county_node['id'].replace('NNNNN', str(fip))
-        county_node['content']['right']['value'] = county_node['content']['right']['value'].replace('NNNNN', str(fip))
+
+    logger.info(f"adding the trigger for each day")
+    for day in seed_data.keys():
+      day_data = seed_data[day]
+      trigger = deepcopy(day_trigger)
+      trigger['ann:id'] = trigger['ann:id'].replace('DD', str(day))
+      trigger['trigger']['right']['value']['number'] = day
+
+      for fips in day_data.keys():
+        fips_data = day_data[fips]
+        county_node = deepcopy(county_node_set)
+        county_node['id'] = county_node['id'].replace('NNNNN', str(fips))
+        county_node['content']['right']['value'] = county_node['content']['right']['value'].replace('NNNNN', str(fips))
         template_data['sets'].append(county_node)
 
-    logger.info(f"adding the county to agegroup combinations to the 'set' array")
-    for fip in fips_data.keys():
-        for agegroup in age_groups:
-            county_agegroup = deepcopy(county_agegroup_template)
-            county_agegroup['id'] = county_agegroup['id'].replace('NNNNN_A', f"{fip}_{agegroup}")
-            sets_list = county_agegroup['content']['sets']
-            for template_set in sets_list:
-                template_set['set']['idRef'] = template_set['set']['idRef'].replace(
-                        'NNNNN', fip).replace('agegroup_A', f"agegroup_{agegroup}")
-            template_data['sets'].append(county_agegroup)
+        for agegroup in fips_data.keys():
+          intervention = deepcopy(day_county_agegroup_intervention)
+          intervention['id'] = intervention['id'].replace('DD', str(day))
+          intervention['id'] = intervention['id'].replace('NNNNN', fips)
+          intervention['id'] = intervention['id'].replace('A', agegroup)
+          intervention['target']['sets'][0]['set']['idRef'] = intervention['target']['sets'][0]['set']['idRef']. replace('NNNNN', fips)     
+          intervention['target']['sets'][1]['set']['idRef'] = intervention['target']['sets'][1]['set']['idRef']. replace('A', agegroup)     
+          intervention['sampling']['number'] = fips_data[agegroup]
+          intervention['sampling']['sampled']['foreach'][1]['condition']['right']['value']['healthState'] = \
+            intervention['sampling']['sampled']['foreach'][1]['condition']['right']['value']['healthState'].replace('A', agegroup)
+          intervention['sampling']['sampled']['foreach'][1]['operations'][0]['value']['healthState'] = \
+            intervention['sampling']['sampled']['foreach'][1]['operations'][0]['value']['healthState'].replace('A', agegroup)
+          template_data['interventions'].append(intervention)
+          trigger['interventionIds'].append(intervention['id'])
 
-    logger.info(f"adding the initialization numbers, divided between the age groups, for the days")
-    for fip in fips_data.keys():
-        day_nums = sorted(fips_data[fip].items())
-        last_day = day_nums[-1][0]
-        sampling_result = dict()
-        for day, num in day_nums:
-            sampling_result[day] = np.random.multinomial(num,[0.00675988,0.01757569,0.46433406,0.27091976,0.24041061],size=1)
-        for index in range(num_groups):
-            agegroup = age_groups[index]
-            county_agegroup_init = deepcopy(county_agegroup_init_template)
-            county_agegroup_init['target']['set']['idRef'] = county_agegroup_init['target']['set']['idRef'].replace(
-                    'NNNNN_A', f"{fip}_{agegroup}")
+      template_data['triggers'].append(trigger)
 
-            county_agegroup_init['sampling'] = deepcopy(sampling_template)
-            sampling = county_agegroup_init['sampling']
-            for day, num in day_nums:
-                #sampling['number'] = round(num/num_groups)
-                sampling['number'] = int(sampling_result[day][0][index])
-                sampling['sampled']['foreach'][0]['delay'] = day
-                sampling['sampled']['foreach'][0]['operations'][0]['value']['healthState'] = sampling['sampled']['foreach'][0]['operations'][0]['value']['healthState'].replace('AGEGROUP', agegroup )
-                if day == last_day: break
-                sampling['nonsampled']['sampling'] = deepcopy(sampling_template)
-                sampling = sampling['nonsampled']['sampling']
-
-            sampling.pop('nonsampled')
-            template_data['initializations'].append(county_agegroup_init)
-
-    logger.debug(f"template_data = {pformat(template_data['initializations'])}")
+    logger.debug(f"template_data = {pformat(template_data)}")
 
 #    logger.info(f"validating json data")
 #    epihiper_schema_source = "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/initializationSchema.json"
@@ -205,8 +247,7 @@ def main(input):
     if 'output_file' in input:
         outfile_path = Path(input['output_file'])
     else:
-        outfile_path = Path(template_file_path.parent / template_file_path.name.replace(
-            template_file_path.stem, template_file_path.stem + 'filled').replace('template', ''))
+        outfile_path = Path(seeds_file_path.parent / seeds_file_path.name.replace('csv', 'json'))
 
     logger.info(f"writing output to {outfile_path.absolute()}")
     with outfile_path.open('w') as outfile_handle:
@@ -222,11 +263,6 @@ if __name__ == '__main__':
                            type = str,
                            default = None,           # Value to use if it is empty
                            help ='file containing daily counts by county')
-
-    cli_parser.add_argument('template_file',
-                           type = str,
-                           default = None,           # Value to use if it is empty
-                           help ='json file containing expected structure and group breakdown')
 
     cli_parser.add_argument('output_file',
                            type = str,

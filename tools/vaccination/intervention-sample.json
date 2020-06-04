@@ -86,7 +86,10 @@
         "operation": "intersection",
         "sets": [
           {
-            "set": {"idRef": "51059_p"}
+            "set": {"idRef": "county_NNNNN"}
+          },
+          {
+            "set": {"idRef": "agegroup_A"}
           },
           {
             "set": {"idRef": "availableForVaccination"}
