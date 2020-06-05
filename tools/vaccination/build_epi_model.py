@@ -224,8 +224,6 @@ def main(input):
 
       template_data['triggers'].append(trigger)
 
-    logger.debug(f"template_data = {pformat(template_data)}")
-
 #    logger.info(f"validating json data")
 #    epihiper_schema_source = "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/initializationSchema.json"
 #    response = requests.get(epihiper_schema_source)
