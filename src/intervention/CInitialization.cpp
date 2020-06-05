@@ -25,6 +25,7 @@
 #include "sets/CSetContent.h"
 #include "math/CDependencyGraph.h"
 #include "traits/CTrait.h"
+#include "variables/CVariableList.h"
 #include "utilities/CLogger.h"
 
 // static
@@ -70,6 +71,7 @@ void CInitialization::load(const std::string & file)
     }
 
   CSetList::INSTANCE.fromJSON(json_object_get(pRoot, "sets"));
+  CVariableList::INSTANCE.fromJSON(json_object_get(pRoot, "variables"));
 
   json_t * pArray = json_object_get(pRoot, "initializations");
 
