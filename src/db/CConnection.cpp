@@ -70,6 +70,8 @@ void CConnection::init()
 
       catch (const pqxx::pqxx_exception & e)
         {
+          release();
+
           std::string Message = CLogger::sanitize(e.base().what());
 
           if (Message.find("timeout expired") == std::string::npos
