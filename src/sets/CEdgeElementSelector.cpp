@@ -189,6 +189,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
   */
 
   mValid = false; // DONE
+  mStatic = true;
   mPrerequisites.clear();
   json_t * pValue = json_object_get(json, "elementType");
 
@@ -283,6 +284,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
             }
 
           mpCompute = &CEdgeElementSelector::propertyWithin;
+          mStatic &= mEdgeProperty.isReadOnly();
           mValid = true;
           return;
         }
@@ -424,7 +426,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
       if (FieldValueList.isValid())
         {
           mpDBFieldValueList = new CFieldValueList(FieldValueList);
-          mStatic = true;
+          mStatic &= true;
           mValid = true;
           return;
         }
@@ -435,7 +437,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
           && mpSelector->isValid())
         {
           mPrerequisites.insert(mpSelector);
-          mStatic = mpSelector->isStatic();
+          mStatic &= mpSelector->isStatic();
           mValid = true;
           return;
         }
@@ -458,7 +460,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
           && mpSelector->isValid())
         {
           mPrerequisites.insert(mpSelector);
-          mStatic = mpSelector->isStatic();
+          mStatic &= mpSelector->isStatic();
           mValid = true;
           return;
         }
@@ -498,7 +500,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
        */
 
       mEdgeProperty.fromJSON(json_object_get(json, "left"));
-
+      
       if (mEdgeProperty.isValid())
         {
           mpValue = new CValue(json_object_get(json, "right"));
@@ -507,6 +509,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
               && mpValue->isValid())
             {
               mpCompute = &CEdgeElementSelector::propertySelection;
+              mStatic &= mEdgeProperty.isReadOnly();
               mValid = true;
               return;
             }
@@ -582,6 +585,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
           && mpObservable->isValid())
         {
           mPrerequisites.insert(mpObservable);
+          mStatic &= mpObservable->isStatic();
           mValid = true;
           return;
         }
