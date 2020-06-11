@@ -49,7 +49,7 @@ void CChanges::record(const CNode * pNode, const CMetadata & metadata)
 
   if (metadata.getBool("StateChange"))
     {
-      // "tick,pid,exit_state,contact_pid"
+      // "tick,pid,exit_state,contact_pid,[locationId]"
       DefaultOutput << (int) Tick << "," << pNode->id << "," << pNode->getHealthState()->getAnnId() << ",";
 
       if (metadata.contains("ContactNode"))
@@ -59,6 +59,18 @@ void CChanges::record(const CNode * pNode, const CMetadata & metadata)
       else
         {
           DefaultOutput << -1 << std::endl;
+        }
+
+      if (CEdge::HasLocationId)
+        {
+          if (metadata.contains("LocationId"))
+            {
+              DefaultOutput << (size_t) metadata.getInt("LocationId") << std::endl;
+            }
+          else
+            {
+              DefaultOutput << -1 << std::endl;
+            }
         }
     }
 }
@@ -96,7 +108,12 @@ void CChanges::initDefaultOutput()
 
       if (out.good())
         {
-          out << "tick,pid,exit_state,contact_pid" << std::endl;
+          out << "tick,pid,exit_state,contact_pid";
+
+          if (CEdge::HasLocationId)
+            out << ",location_id";
+
+          out << std::endl;
         }
       else
         {

@@ -11,6 +11,7 @@
 // END: License 
 
 #include "network/CNode.h"
+#include "network/CEdge.h"
 #include "network/CNetwork.h"
 #include "diseaseModel/CHealthState.h"
 #include "diseaseModel/CModel.h"
@@ -132,12 +133,22 @@ bool CNode::set(const CTransmission * pTransmission, CValueInterface::pOperator 
 {
   if (pHealthState == pTransmission->getExitState()) return false;
 
-  CLogger::trace() << "CNode [Transmission]: Node ("
-                   << id
-                   << ") healthState = "
-                   << pTransmission->getExitState()->getId()
-                   << ", contact: "
-                   << (size_t) metadata.getInt("ContactNode");
+  {
+    CLogger::trace Trace;
+
+    Trace << "CNode [Transmission]: Node ("
+          << id
+          << ") healthState = "
+          << pTransmission->getExitState()->getId()
+          << ", contact: "
+          << (size_t) metadata.getInt("ContactNode");
+
+    if (CEdge::HasLocationId)
+      {
+        Trace << ", location: "
+          << (size_t) metadata.getInt("LocationId");
+      }
+  }
                    
   setHealthState(pTransmission->getExitState());
 

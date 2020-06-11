@@ -18,6 +18,7 @@
 
 class CTransmission;
 class CNode;
+class CEdge;
 
 class CTransmissionAction : public CAction
 {
@@ -26,7 +27,7 @@ public:
 
   CTransmissionAction(const CTransmissionAction & src) = delete;
   
-  CTransmissionAction(const CTransmission * pTransmission, const CNode * pTarget, const CNode * pContact);
+  CTransmissionAction(const CTransmission * pTransmission, const CNode * pTarget, const CEdge * pEdge);
 
   virtual ~CTransmissionAction();
 
@@ -38,7 +39,7 @@ private:
   const CTransmission * mpTransmission;
   const CNode * mpTarget;
   CValue mStateAtScheduleTime;
-  size_t mContactId;
+  const CEdge * mpEdge;
 };
 
 #endif // SRC_ACTIONS_CTRANSMISSIONACTION_H_

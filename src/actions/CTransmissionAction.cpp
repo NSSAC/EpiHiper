@@ -14,15 +14,16 @@
 #include "actions/COperation.h"
 #include "diseaseModel/CTransmission.h"
 #include "network/CNode.h"
+#include "network/CEdge.h"
 #include "utilities/CMetadata.h"
 #include "utilities/CLogger.h"
 
-CTransmissionAction::CTransmissionAction(const CTransmission * pTransmission, const CNode * pTarget, const CNode * pContact)
+CTransmissionAction::CTransmissionAction(const CTransmission * pTransmission, const CNode * pTarget, const CEdge * pEdge)
   : CAction()
   , mpTransmission(pTransmission)
   , mpTarget(pTarget)
   , mStateAtScheduleTime(pTarget->healthState)
-  , mContactId(pContact->id)
+  , mpEdge(pEdge)
 {}
 
 // virtual
@@ -47,7 +48,14 @@ bool CTransmissionAction::execute() const
       if (CValueInterface(pTarget->healthState) == mStateAtScheduleTime)
         {
           CMetadata Info("StateChange", true);
-          Info.set("ContactNode", (int) mContactId);
+          Info.set("ContactNode", (int) mpEdge->pSource->id);
+
+#ifdef USE_LOCATION_ID
+          if (CEdge::HasLocationId)
+            {
+              Info.set("LocationId", (int) mpEdge->locationId);
+            }
+#endif
 
           success &= COperationInstance< CNode, const CTransmission * >(pTarget, mpTransmission, NULL, &CNode::set, Info).execute();
         }

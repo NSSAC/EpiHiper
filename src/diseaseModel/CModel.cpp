@@ -297,10 +297,11 @@ bool CModel::processTransmissions() const
 
         struct Candidate
         {
-          const CNode * pContact;
+          const CEdge * pEdge;
           const CTransmission * pTransmission;
           double Propensity;
         };
+
         std::vector< Candidate > Candidates;
         double A0 = 0.0;
 
@@ -312,11 +313,10 @@ bool CModel::processTransmissions() const
               {
                 // ρ(P, P', Τi,j,k) = (| contactTime(P, P') ∩ [tn, tn + Δtn] |) × contactWeight(P, P') × σ(P, Χi) × ι(P',Χk) × ω(Τi,j,k)
                 Candidate Candidate;
-                Candidate.pContact = pEdge->pSource;
+                Candidate.pEdge = pEdge;
                 Candidate.pTransmission = pTransmission;
                 Candidate.Propensity = pEdge->duration * pEdge->weight * pNode->susceptibility
-                                       * Candidate.pContact->infectivity * Candidate.pTransmission->getTransmissibility();
-
+                                       * Candidate.pEdge->pSource->infectivity * Candidate.pTransmission->getTransmissibility();
                 if (Candidate.Propensity > 0.0)
                   {
                     A0 += Candidate.Propensity;
@@ -344,7 +344,7 @@ bool CModel::processTransmissions() const
             try
               {
                 const Candidate & Candidate = (itCandidate != endCandidate) ? *itCandidate : *Candidates.rbegin();
-                CActionQueue::addAction(0, new CTransmissionAction(Candidate.pTransmission, pNode, Candidate.pContact));
+                CActionQueue::addAction(0, new CTransmissionAction(Candidate.pTransmission, pNode, Candidate.pEdge));
               }
             catch (...)
               {
