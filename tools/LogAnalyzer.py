@@ -14,11 +14,7 @@
 
 import argparse
 import math
-import pandas as pd
-import random as random
-import datetime as datetime
 from collections import deque
-from operator import itemgetter
 import copy as copy
 from pathlib import Path
 import json
@@ -54,7 +50,7 @@ for file in args.files:
         if line.find('[info]') < 0:
             continue
 
-        print("Line: {}".format(line.strip()))
+        # print("Line: {}".format(line.strip()))
         part = line.split()
         keyword = part[4]
 
@@ -119,7 +115,7 @@ for file in args.files:
             if part[5] == 'Target':
                 targetSetSize = int(part[8].strip('"\'.,'))
 
-                while 'sampling' in ensembleData:
+                while True:
                     if 'currentSampled' in ensembleData:
                         if ensembleData['currentSampled'] == targetSetSize:
                             if not 'sampled' in ensembleData:
@@ -149,8 +145,9 @@ for file in args.files:
                         break
 
                 if not 'targetSetSize' in ensembleData:                   
-                    ensembleData['sampling'] = False
                     ensembleData['targetSetSize'] = 0
+                    if part[9] == 'ignored':
+                        ensembleData['ignored'] = True
 
                 ensembleData['targetSetSize'] += targetSetSize
                 ensembleData['incremented'] = True
@@ -162,7 +159,6 @@ for file in args.files:
         # [2020-06-01 15:39:38.703324] [info] [1:0] CSampling: Sampled set size: '316698', Not sampled set size: '229658'
 
         if keyword == 'CSampling:':
-            ensembleData['sampling'] = True
             ensembleData['currentSampled'] = int(part[8].strip('"\'.,'))
             ensembleData['currentNotSampled'] = int(part[13].strip('"\'.,'))
             continue

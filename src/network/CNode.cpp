@@ -135,7 +135,9 @@ bool CNode::set(const CTransmission * pTransmission, CValueInterface::pOperator 
   CLogger::trace() << "CNode [Transmission]: Node ("
                    << id
                    << ") healthState = "
-                   << pTransmission->getExitState()->getId();
+                   << pTransmission->getExitState()->getId()
+                   << ", contact: "
+                   << (size_t) metadata.getInt("ContactNode");
                    
   setHealthState(pTransmission->getExitState());
 

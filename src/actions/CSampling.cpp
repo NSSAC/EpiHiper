@@ -280,14 +280,15 @@ void CSampling::process(const CSetContent & targets)
   CLogger::info() << "CSampling: Sampled set size: '" << mSampledTargets.size() << "', Not sampled set size: '" << mNotSampledTargets.size() << "'";
 
   if (mpSampled != NULL)
-    {
-      mpSampled->process(mSampledTargets);
-    }
+    mpSampled->process(mSampledTargets);
+  else
+    CLogger::info() << "CActionEnsemble: Target set contains '" << mSampledTargets.size() << "' ignored items.";
+  
 
   if (mpNotSampled != NULL)
-    {
-      mpNotSampled->process(mNotSampledTargets);
-    }
+    mpNotSampled->process(mNotSampledTargets);
+  else
+    CLogger::info() << "CActionEnsemble: Target set contains '" << mNotSampledTargets.size() << "' ignored items.";
 }
 
 int CSampling::broadcastCount()
