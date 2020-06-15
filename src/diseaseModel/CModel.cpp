@@ -19,6 +19,7 @@
 #include "diseaseModel/CHealthState.h"
 #include "diseaseModel/CProgression.h"
 #include "diseaseModel/CTransmission.h"
+#include "diseaseModel/CTransmissionPropensity.h"
 #include "actions/CActionQueue.h"
 #include "actions/CProgressionAction.h"
 #include "actions/CTransmissionAction.h"
@@ -311,12 +312,11 @@ bool CModel::processTransmissions() const
                 && pEdge->pSource->infectivity > 0.0
                 && (pTransmission = pPossibleTransmissions[pEdge->pSource->healthState]) != NULL)
               {
-                // ρ(P, P', Τi,j,k) = (| contactTime(P, P') ∩ [tn, tn + Δtn] |) × contactWeight(P, P') × σ(P, Χi) × ι(P',Χk) × ω(Τi,j,k)
                 Candidate Candidate;
                 Candidate.pEdge = pEdge;
                 Candidate.pTransmission = pTransmission;
-                Candidate.Propensity = pEdge->duration * pEdge->weight * pNode->susceptibility
-                                       * Candidate.pEdge->pSource->infectivity * Candidate.pTransmission->getTransmissibility();
+                Candidate.Propensity = (*CTransmissionPropensity::pPROPENSITY)(pEdge, pTransmission);
+
                 if (Candidate.Propensity > 0.0)
                   {
                     A0 += Candidate.Propensity;

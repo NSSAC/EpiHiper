@@ -113,6 +113,12 @@ const std::string & CSimConfig::getIntervention()
   return CSimConfig::INSTANCE->mIntervention;
 }
 
+// static 
+const std::string & CSimConfig::getPropensityPlugin()
+{
+  return CSimConfig::INSTANCE->mPropensityPlugin;
+}
+  
 // static
 const size_t & CSimConfig::getSeed()
 {
@@ -162,6 +168,7 @@ CSimConfig::CSimConfig(const std::string & configFile)
   , mSummaryOutput()
   , mStatus()
   , mIntervention()
+  , mPropensityPlugin()
   , mSeed(-1)
   , mReplicate(-1)
   , mPartitionEdgeLimit(100000000)
@@ -192,6 +199,13 @@ CSimConfig::CSimConfig(const std::string & configFile)
     }
 
   valid &= !mModelScenario.empty();
+
+  pValue = json_object_get(pRoot, "propensityPlugin");
+
+  if (json_is_string(pValue))
+    {
+      mPropensityPlugin = CDirEntry::resolve(json_string_value(pValue), mRunParameters);
+    }
 
   std::string DefaultDir;
 

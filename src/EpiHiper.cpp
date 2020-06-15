@@ -16,6 +16,7 @@
 #include "utilities/CArgs.h"
 
 #include "diseaseModel/CModel.h"
+#include "diseaseModel/CTransmissionPropensity.h"
 #include "utilities/CSimulation.h"
 #include "network/CNetwork.h"
 #include "traits/CTrait.h"
@@ -81,6 +82,13 @@ int main(int argc, char * argv[])
     }
 
   CStatus::load("epihiper", CArgs::getName(), CSimConfig::getStatus());
+  CTransmissionPropensity::Init();
+
+  if (CLogger::hasErrors())
+    {
+      goto failed;
+    }
+
   CActionQueue::init();
   CRandom::init(CSimConfig::getSeed());
   CTrait::init();
@@ -179,6 +187,7 @@ failed:
   CCommunicate::abort((CCommunicate::ErrorCode) MPI_ERR_UNKNOWN);
 
 success:
+  CTransmissionPropensity::Release();
   CModel::Release();
   CInitialization::release();
   CIntervention::release();

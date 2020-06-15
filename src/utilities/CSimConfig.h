@@ -55,6 +55,7 @@ private:
   std::string mSummaryOutput;
   std::string mStatus;
   std::string mIntervention;
+  std::string mPropensityPlugin;
   size_t mSeed;
   size_t mReplicate;
   size_t mPartitionEdgeLimit;
@@ -86,6 +87,7 @@ public:
   static const std::string & getSummaryOutput();
   static const std::string & getStatus();
   static const std::string & getIntervention();
+  static const std::string & getPropensityPlugin();
   static const size_t & getSeed();
   static const size_t & getReplicate();
   static const size_t & getPartitionEdgeLimit();

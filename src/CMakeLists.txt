@@ -40,10 +40,12 @@ endif()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/EpiHiperConfig.h.in ${CMAKE_CURRENT_SOURCE_DIR}/EpiHiperConfig.h)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 add_library (EpiHiperLib-core OBJECT ${SOURCES_EPIHIPER} ${HEADERS_EPIHIPER})
 add_dependencies(EpiHiperLib-core jansson libpqxx spdlog)
 
-add_library (EpiHiperLib STATIC $<TARGET_OBJECTS:EpiHiperLib-core>)
+add_library (EpiHiperLib SHARED $<TARGET_OBJECTS:EpiHiperLib-core>)
 
 add_executable (EpiHiper EpiHiper.cpp EpiHiperConfig.h)
 add_dependencies(EpiHiper EpiHiperLib GIT_COMMIT)
@@ -53,6 +55,7 @@ target_link_libraries (EpiHiper
 	${PGSQL_LIBRARY} 
 	${CMAKE_BINARY_DIR}/lib/libjansson.a 
 	${CMAKE_BINARY_DIR}/lib/libpqxx.a
+	-ldl
 	-lpthread
 )
 
@@ -64,6 +67,7 @@ target_link_libraries (EpiHiperPartition
 	${PGSQL_LIBRARY} 
 	${CMAKE_BINARY_DIR}/lib/libjansson.a 
 	${CMAKE_BINARY_DIR}/lib/libpqxx.a
+	-ldl
 	-lpthread
 )
 
@@ -75,6 +79,7 @@ target_link_libraries (EpiHiperR0
 	${PGSQL_LIBRARY} 
 	${CMAKE_BINARY_DIR}/lib/libjansson.a 
 	${CMAKE_BINARY_DIR}/lib/libpqxx.a
+	-ldl
 	-lpthread
 )
 
@@ -86,5 +91,8 @@ target_link_libraries (EpiHiperModelAnalyzer
 	${PGSQL_LIBRARY} 
 	${CMAKE_BINARY_DIR}/lib/libjansson.a 
 	${CMAKE_BINARY_DIR}/lib/libpqxx.a
+	-ldl
 	-lpthread
 )
+
+add_subdirectory(propensity)
