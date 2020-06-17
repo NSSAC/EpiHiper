@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -17,7 +17,10 @@
 
 #include <mpi.h>
 
-#define FatalError(err, msg) {CCommunicate::abortMessage((err), (msg), __FILE__, __LINE__);}
+#define FatalError(err, msg) \
+  { \
+    CCommunicate::abortMessage((err), (msg), __FILE__, __LINE__); \
+  }
 
 class COperation;
 
@@ -26,7 +29,8 @@ class CCommunicate
 public:
   typedef void (*Operator)(double &, const double &);
 
-  enum struct ErrorCode {
+  enum struct ErrorCode
+  {
     Success = MPI_SUCCESS,
     // space for MPI_ERR_... see mpi.h
     InvalidArguments = MPI_ERR_LASTCODE + 1,
@@ -41,7 +45,7 @@ public:
   public:
     typedef ErrorCode (*Type)(std::istream & /* is */, int /* sender */);
 
-    virtual ~ReceiveInterface() {};
+    virtual ~ReceiveInterface(){};
 
     virtual ErrorCode operator()(std::istream & /* is */, int /* sender */) = 0;
   };
@@ -61,14 +65,14 @@ public:
     Type mMethod;
   };
 
-  template <class Receiver>
+  template < class Receiver >
   class ClassMemberReceive : public ReceiveInterface
   {
   public:
     ClassMemberReceive() = delete;
 
     ClassMemberReceive(Receiver * pReceiver,
-                       ErrorCode (Receiver::*method)(std::istream &  /* is */, int /* sender */));
+                       ErrorCode (Receiver::*method)(std::istream & /* is */, int /* sender */));
 
     virtual ~ClassMemberReceive();
 
@@ -79,8 +83,8 @@ public:
     /**
      * The pointer to the instance of the caller
      */
-    Receiver * mpReceiver;             // pointer to object
-    ErrorCode (Receiver::*mpMethod)(std::istream &  /* is */, int /* sender */);
+    Receiver * mpReceiver; // pointer to object
+    ErrorCode (Receiver::*mpMethod)(std::istream & /* is */, int /* sender */);
   };
 
   class SequentialProcessInterface
@@ -88,7 +92,7 @@ public:
   public:
     typedef ErrorCode (*Type)();
 
-    virtual ~SequentialProcessInterface() {};
+    virtual ~SequentialProcessInterface(){};
 
     virtual ErrorCode operator()() = 0;
   };
@@ -108,7 +112,7 @@ public:
     Type mMethod;
   };
 
-  template <class Processor>
+  template < class Processor >
   class ClassMemberSequentialProcess : public SequentialProcessInterface
   {
   public:
@@ -126,7 +130,7 @@ public:
     /**
      * The pointer to the instance of the caller
      */
-    Processor * mpProcessor;             // pointer to object
+    Processor * mpProcessor; // pointer to object
     ErrorCode (Processor::*mpMethod)();
   };
 
@@ -136,38 +140,44 @@ public:
   static int MPINextRank;
   static int MPIPreviousRank;
   static int MPIProcesses;
+  static MPI_Comm * MPICommunicator;
+  
+  static void init(int argc, char ** argv);
 
-  static void init(int argc, char **argv);
-
-  static int send(const void *buf,
+  static int send(const void * buf,
                   int count,
-                  MPI_Datatype datatype,
                   int dest,
-                  int tag);
+                  MPI_Comm comm);
 
-  static int receive(void *buf,
+  static int receive(void * buf,
                      int count,
-                     MPI_Datatype datatype,
                      int source,
-                     int tag,
-                     MPI_Status *status);
+                     MPI_Status * status,
+                     MPI_Comm comm);
 
-  static int broadcast(void *buffer,
+  static int broadcast(void * buffer,
                        int count,
-                       MPI_Datatype datatype,
                        int root);
 
-  static int broadcast(const void *buffer,
-                       int count,
-                       ReceiveInterface * pReceive);
+  static int broadcastAll(const void * buffer,
+                          int count,
+                          ReceiveInterface * pReceive);
 
   static int sequential(int firstRank, SequentialProcessInterface * pSequential);
 
   static int master(int centerRank,
-                     const void *buffer,
-                     int countIn,
-                     int countOut,
-                     CCommunicate::ReceiveInterface * pReceive);
+                    const void * buffer,
+                    int countIn,
+                    int countOut,
+                    CCommunicate::ReceiveInterface * pReceive);
+
+  static int roundRobinFixed(const void * buffer,
+                             int count,
+                             ReceiveInterface * pReceive);
+
+  static int roundRobin(const void * buffer,
+                        int count,
+                        ReceiveInterface * pReceive);
 
   static int abortMessage(ErrorCode err, const std::string & msg, const char * file, int line);
 
@@ -192,50 +202,54 @@ public:
 
   static MPI_Win MPIWin;
 
-  private:
+private:
   static int ReceiveSize;
   static char * ReceiveBuffer;
   static size_t MPIWinSize;
-  static double *RMABuffer;
+  static double * RMABuffer;
   static size_t RMAIndex;
 
   static void resizeReceiveBuffer(int size);
 };
 
-template <class Receiver>
+template < class Receiver >
 CCommunicate::ClassMemberReceive< Receiver >::ClassMemberReceive(Receiver * pReceiver,
-                                                                ErrorCode (Receiver::*method)(std::istream & /* is */, int /* sender */)):
-                                                                ReceiveInterface(),
-                                                                mpReceiver(pReceiver),
-                                                                mpMethod(method){}
+                                                                 ErrorCode (Receiver::*method)(std::istream & /* is */, int /* sender */))
+  : ReceiveInterface()
+  , mpReceiver(pReceiver)
+  , mpMethod(method)
+{}
 
 // virtual
-template <class Receiver>
-CCommunicate::ClassMemberReceive< Receiver >::~ClassMemberReceive() {}
+template < class Receiver >
+CCommunicate::ClassMemberReceive< Receiver >::~ClassMemberReceive()
+{}
 
 // override operator "()"
 // virtual
-template <class Receiver>
+template < class Receiver >
 CCommunicate::ErrorCode CCommunicate::ClassMemberReceive< Receiver >::operator()(std::istream & is, int sender)
 {
   // execute member function
   return (*mpReceiver.*mpMethod)(is, sender);
 }
 
-template <class Processor>
+template < class Processor >
 CCommunicate::ClassMemberSequentialProcess< Processor >::ClassMemberSequentialProcess(Processor * pProcessor,
-                                                                                     ErrorCode (Processor::*method)()):
-                                                                                     SequentialProcessInterface(),
-                                                                                     mpProcessor(pProcessor),
-                                                                                     mpMethod(method){}
+                                                                                      ErrorCode (Processor::*method)())
+  : SequentialProcessInterface()
+  , mpProcessor(pProcessor)
+  , mpMethod(method)
+{}
 
 // virtual
-template <class Processor>
-CCommunicate::ClassMemberSequentialProcess< Processor >::~ClassMemberSequentialProcess() {}
+template < class Processor >
+CCommunicate::ClassMemberSequentialProcess< Processor >::~ClassMemberSequentialProcess()
+{}
 
 // override operator "()"
 // virtual
-template <class Processor>
+template < class Processor >
 CCommunicate::ErrorCode CCommunicate::ClassMemberSequentialProcess< Processor >::operator()()
 {
   // execute member function

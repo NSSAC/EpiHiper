@@ -151,6 +151,9 @@ int CCommunicate::MPIPreviousRank(-1);
 // static
 int CCommunicate::MPIProcesses(-1);
 
+// static 
+MPI_Comm * CCommunicate::MPICommunicator(NULL);
+
 // static
 int CCommunicate::ReceiveSize(0);
 

@@ -680,7 +680,7 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
         }
     }
 
-  CCommunicate::broadcast(Partition, parts * 3 + 1, MPI_UINT64_T, 0);
+  CCommunicate::broadcast(Partition, (parts * 3 + 1) * sizeof(MPI_UINT64_T), 0);
 
   size_t * pMine = Partition + 3 * CCommunicate::MPIRank;
   mFirstLocalNode = *pMine++;
@@ -1311,13 +1311,13 @@ int CNetwork::broadcastChanges()
 
   // std::cout << Communicate::Rank << ": ActionQueue::broadcastChanges (Nodes)" << std::endl;
   CCommunicate::ClassMemberReceive< CNetwork > ReceiveNode(CNetwork::INSTANCE, &CNetwork::receiveNodes);
-  CCommunicate::broadcast(Buffer.c_str(), Buffer.length(), &ReceiveNode);
+  CCommunicate::roundRobin(Buffer.c_str(), Buffer.length(), &ReceiveNode);
 
   // Buffer = CChanges::getEdges().str();
 
   // std::cout << Communicate::Rank << ": ActionQueue::broadcastChanges (Edges)" << std::endl;
   // CCommunicate::ClassMemberReceive< CNetwork > ReceiveEdge(CNetwork::INSTANCE, &CNetwork::receiveEdges);
-  // CCommunicate::broadcast(Buffer.c_str(), Buffer.length(), &ReceiveEdge);
+  // CCommunicate::roundRobin(Buffer.c_str(), Buffer.length(), &ReceiveEdge);
 
   CChanges::clear();
 

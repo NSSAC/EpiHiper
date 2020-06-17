@@ -87,7 +87,7 @@ bool CTrigger::processAll()
 
   CCommunicate::barrierRMA();
   CCommunicate::Receive Receive(receive);
-  CCommunicate::broadcast(pGlobalTriggered, INSTANCES.size() * sizeof(bool), &Receive);
+  CCommunicate::roundRobinFixed(pGlobalTriggered, INSTANCES.size() * sizeof(bool), &Receive);
 
   {
     bool * pTriggered = pGlobalTriggered;

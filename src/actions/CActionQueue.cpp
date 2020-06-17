@@ -1,14 +1,14 @@
-// BEGIN: Copyright
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia
-// All rights reserved
-// END: Copyright
+// BEGIN: Copyright 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// All rights reserved 
+// END: Copyright 
 
-// BEGIN: License
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//   http://www.apache.org/licenses/LICENSE-2.0
-// END: License
+// BEGIN: License 
+// Licensed under the Apache License, Version 2.0 (the "License"); 
+// you may not use this file except in compliance with the License. 
+// You may obtain a copy of the License at 
+//   http://www.apache.org/licenses/LICENSE-2.0 
+// END: License 
 
 #include "actions/CActionQueue.h"
 #include "actions/CActionDefinition.h"
@@ -204,12 +204,11 @@ int CActionQueue::broadcastPendingActions()
   os << mRemoteActions.str();
   mRemoteActions.str("");
 
-  std::string Buffer = os.str();
+  const std::string & Buffer = os.str();
 
   CCommunicate::ClassMemberReceive< CActionQueue > Receive(CActionQueue::pINSTANCE, &CActionQueue::receivePendingActions);
 
-  // std::cout << Communicate::Rank << ": ActionQueue::broadcastRemoteActions" << std::endl;
-  CCommunicate::broadcast(Buffer.c_str(), Buffer.length(), &Receive);
+  CCommunicate::roundRobin(Buffer.c_str(), Buffer.length(), &Receive);
 
   return (int) CCommunicate::ErrorCode::Success;
 }

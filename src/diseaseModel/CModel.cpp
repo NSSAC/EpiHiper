@@ -459,7 +459,7 @@ int CModel::UpdateGlobalStateCounts()
     }
 
   CCommunicate::Receive ReceiveCounts(&CModel::ReceiveGlobalStateCounts);
-  CCommunicate::broadcast(LocalStateCounts, Size * sizeof(CHealthState::Counts), &ReceiveCounts);
+  CCommunicate::roundRobinFixed(LocalStateCounts, Size * sizeof(CHealthState::Counts), &ReceiveCounts);
 
   return (int) CCommunicate::ErrorCode::Success;
 }
