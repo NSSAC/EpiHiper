@@ -42,7 +42,7 @@ CSetContent * CSampling::CSampled::copy() const
 }
 
 // virtual
-void CSampling::CSampled::fromJSON(const json_t * json)
+void CSampling::CSampled::fromJSON(const json_t * /* json */)
 {}
 
 CSampling::CSampling()

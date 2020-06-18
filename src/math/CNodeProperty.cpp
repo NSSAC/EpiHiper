@@ -161,7 +161,7 @@ CValueInterface & CNodeProperty::nodeTrait(CNode * pNode)
   return *this;
 }
 
-COperation * CNodeProperty::setId(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
+COperation * CNodeProperty::setId(CNode * pNode, const CValueInterface & /* value */, CValueInterface::pOperator /* pOperator */, const CMetadata & /* info */)
 {
   CLogger::critical() << "Invalid operation 'setId' for node: " << pNode->id;
   return NULL;

@@ -122,22 +122,22 @@ CIntervention * CIntervention::getIntervention(const std::string & id)
 
 CIntervention::CIntervention()
   : CInitialization()
-  , mIsTriggered(false)
   , mId()
+  , mIsTriggered(false)
 {}
 
 CIntervention::CIntervention(const json_t * json)
   : CInitialization()
-  , mIsTriggered(false)
   , mId()
+  , mIsTriggered(false)
 {
   fromJSON(json);
 }
 
 CIntervention::CIntervention(const CIntervention & src)
   : CInitialization(src)
-  , mIsTriggered(src.mIsTriggered)
   , mId(src.mId)
+  , mIsTriggered(src.mIsTriggered)
 {}
 
 // virtual

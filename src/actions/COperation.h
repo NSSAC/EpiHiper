@@ -65,7 +65,7 @@ public:
 
   virtual ~COperationInstance() {};
 
-  virtual bool execute() const
+  virtual bool execute() const override
   {
     bool changed = (mpTarget->*mMethod)(mValue, mpOperator, mMetadata);
 
@@ -77,7 +77,7 @@ public:
     return changed;
   }
 
-  virtual COperation * copy() const
+  virtual COperation * copy() const override
   {
     return new COperationInstance<Target, Value>(*this);
   }

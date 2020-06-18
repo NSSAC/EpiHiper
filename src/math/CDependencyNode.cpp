@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -93,7 +93,7 @@ std::vector< CDependencyNode * > & CDependencyNode::getDependents()
   return mDependents;
 }
 
-bool CDependencyNode::updateDependentState(const CComputableSet & changedComputables,
+bool CDependencyNode::updateDependentState(const CComputableSet & /* changedComputables */,
     bool ignoreCircularDependecies)
 {
   bool success = true;
@@ -172,7 +172,7 @@ bool CDependencyNode::updatePrerequisiteState(const CComputableSet & changedComp
   return success;
 }
 
-bool CDependencyNode::updateCalculatedState(const CComputableSet & changedComputables,
+bool CDependencyNode::updateCalculatedState(const CComputableSet & /* changedComputables */,
     bool ignoreCircularDependecies)
 {
   bool success = true;

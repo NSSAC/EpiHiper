@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -54,7 +54,7 @@ public:
   CComparison(const CComparison & src) = delete;
   virtual ~CComparison();
 
-  virtual bool isTrue() const;
+  virtual bool isTrue() const override;
 
 private:
   void selectComparison(CConditionDefinition::ComparisonType operation);
@@ -74,7 +74,7 @@ public:
   CBooleanValue(const CBooleanValue & src) = delete;
   virtual ~CBooleanValue();
 
-  virtual bool isTrue() const;
+  virtual bool isTrue() const override;
 
 private:
   bool mTrue;
@@ -95,7 +95,7 @@ public:
   CBooleanOperation(const CBooleanOperation & src) = delete;
   virtual ~CBooleanOperation();
 
-  virtual bool isTrue() const;
+  virtual bool isTrue() const override;
 private:
   pOperation mpOperation;
   std::vector< CCondition * > mVector;
@@ -116,7 +116,7 @@ public:
   CContainedIn(const CContainedIn & src) = delete;
   virtual ~CContainedIn();
 
-  virtual bool isTrue() const;
+  virtual bool isTrue() const override;
 
 private:
   pWithin mpWithin;

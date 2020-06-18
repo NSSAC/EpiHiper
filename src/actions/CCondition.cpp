@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -20,7 +20,7 @@
 CCondition::CCondition()
 {}
 
-CCondition::CCondition(const CCondition & src)
+CCondition::CCondition(const CCondition & /* src */)
 {}
 
 // virtual
@@ -113,7 +113,7 @@ bool CComparison::isTrue() const
 void CComparison::selectComparison(CConditionDefinition::ComparisonType operation)
 {
   switch (operation)
-  {
+    {
     case CConditionDefinition::ComparisonType::Equal:
       mpComparison = &operator==;
       break;
@@ -137,12 +137,17 @@ void CComparison::selectComparison(CConditionDefinition::ComparisonType operatio
     case CConditionDefinition::ComparisonType::GreaterOrEqual:
       mpComparison = &operator>=;
       break;
-  }
+
+    case CConditionDefinition::ComparisonType::Within:
+    case CConditionDefinition::ComparisonType::NotWithin:
+      mpComparison = NULL;
+      break;
+    }
 }
 
 CContainedIn::CContainedIn(CConditionDefinition::ComparisonType operation,
-                                                                         const CValueInterface & value,
-                                                                         const CValueList & valueList)
+                           const CValueInterface & value,
+                           const CValueList & valueList)
   : CCondition()
   , mpWithin(NULL)
   , mOwnLeft(true)
@@ -150,7 +155,16 @@ CContainedIn::CContainedIn(CConditionDefinition::ComparisonType operation,
   , mValueList(valueList)
 {
   switch (operation)
-  {
+    {
+    case CConditionDefinition::ComparisonType::Equal:
+    case CConditionDefinition::ComparisonType::NotEqual:
+    case CConditionDefinition::ComparisonType::Less:
+    case CConditionDefinition::ComparisonType::LessOrEqual:
+    case CConditionDefinition::ComparisonType::Greater:
+    case CConditionDefinition::ComparisonType::GreaterOrEqual:
+      mpWithin = NULL;
+      break;
+
     case CConditionDefinition::ComparisonType::Within:
       mpWithin = &within;
       break;
@@ -158,12 +172,12 @@ CContainedIn::CContainedIn(CConditionDefinition::ComparisonType operation,
     case CConditionDefinition::ComparisonType::NotWithin:
       mpWithin = &notWithin;
       break;
-  }
+    }
 }
 
 CContainedIn::CContainedIn(CConditionDefinition::ComparisonType operation,
-                                                                         const CValueInterface * pValue,
-                                                                         const CValueList & valueList)
+                           const CValueInterface * pValue,
+                           const CValueList & valueList)
   : CCondition()
   , mpWithin(NULL)
   , mOwnLeft(false)
@@ -171,7 +185,16 @@ CContainedIn::CContainedIn(CConditionDefinition::ComparisonType operation,
   , mValueList(valueList)
 {
   switch (operation)
-  {
+    {
+    case CConditionDefinition::ComparisonType::Equal:
+    case CConditionDefinition::ComparisonType::NotEqual:
+    case CConditionDefinition::ComparisonType::Less:
+    case CConditionDefinition::ComparisonType::LessOrEqual:
+    case CConditionDefinition::ComparisonType::Greater:
+    case CConditionDefinition::ComparisonType::GreaterOrEqual:
+      mpWithin = NULL;
+      break;
+
     case CConditionDefinition::ComparisonType::Within:
       mpWithin = &within;
       break;
@@ -179,7 +202,7 @@ CContainedIn::CContainedIn(CConditionDefinition::ComparisonType operation,
     case CConditionDefinition::ComparisonType::NotWithin:
       mpWithin = &notWithin;
       break;
-   }
+    }
 }
 
 // virtual
@@ -255,6 +278,11 @@ CBooleanOperation::CBooleanOperation(CConditionDefinition::BooleanOperationType 
 
     case CConditionDefinition::BooleanOperationType::Not:
       mpOperation = &CBooleanOperation::_not;
+      break;
+
+    case CConditionDefinition::BooleanOperationType::Comparison:
+    case CConditionDefinition::BooleanOperationType::Value:
+      mpOperation = NULL;
       break;
   }
 }

@@ -32,7 +32,7 @@ public:
 
   virtual ~CActionDefinition();
 
-  virtual void fromJSON(const json_t * json);
+  virtual void fromJSON(const json_t * json) override;
 
   const bool & isValid() const;
 

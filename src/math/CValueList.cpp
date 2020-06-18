@@ -357,6 +357,10 @@ void CValueList::fromJSON(const json_t * json)
             }
         }
       break;
+
+    case Type::string:
+    case Type::traitData:
+      break;
     }
 
   mValid = true;
@@ -391,6 +395,10 @@ void CValueList::toBinary(std::ostream & os) const
     case Type::traitValue:
       for (; it != itEnd; ++it)
         os.write(reinterpret_cast< const char * >(&it->toTraitValue()), sizeof(CTraitData::value));
+      break;
+
+    case Type::string:
+    case Type::traitData:
       break;
     }
 }
@@ -437,6 +445,10 @@ void CValueList::fromBinary(std::istream & is)
           is.read(reinterpret_cast< char * >(&Value), sizeof(CTraitData::value));
           std::set< CValue >::insert(Value);
         }
+      break;
+      
+    case Type::string:
+    case Type::traitData:
       break;
     }
 }

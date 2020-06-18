@@ -77,7 +77,7 @@ public:
 
   void partition(const int & parts, const bool & save, const std::string & outputDirectory = "");
 
-  virtual void fromJSON(const json_t * json);
+  virtual void fromJSON(const json_t * json) override;
 
   const bool & isValid() const;
 

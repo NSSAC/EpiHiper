@@ -106,7 +106,7 @@ bool CTrigger::processAll()
 }
 
 // static
-CCommunicate::ErrorCode CTrigger::receive(std::istream & is, int sender)
+CCommunicate::ErrorCode CTrigger::receive(std::istream & is, int /* sender */)
 {
   bool Received[INSTANCES.size()];
 
@@ -115,7 +115,7 @@ CCommunicate::ErrorCode CTrigger::receive(std::istream & is, int sender)
   bool * pTriggered = pGlobalTriggered;
   bool * pReceived = Received;
 
-  for (int i = 0; i < INSTANCES.size(); ++i, ++pTriggered, ++pReceived)
+  for (int i = 0; i < (int) INSTANCES.size(); ++i, ++pTriggered, ++pReceived)
     {
       *pTriggered |= *pReceived;
     }

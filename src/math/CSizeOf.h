@@ -43,11 +43,11 @@ public:
 
   virtual ~CSizeOf();
 
-  virtual CValueInterface * copy() const;
+  virtual CValueInterface * copy() const override;
 
   virtual bool computeProtected() override;
 
-  virtual void fromJSON(const json_t * json);
+  virtual void fromJSON(const json_t * json) override;
 
 private:
   static std::vector< CSizeOf * > INSTANCES;

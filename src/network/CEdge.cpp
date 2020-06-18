@@ -53,22 +53,6 @@ CEdge::CEdge()
   , pSource(NULL)
 {}
 
-CEdge::CEdge(const CEdge & src)
-  : targetId(src.targetId)
-  , targetActivity(src.targetActivity)
-  , sourceId(src.sourceId)
-  , sourceActivity(src.sourceActivity)
-  , duration(src.duration)
-#ifdef USE_LOCATION_ID
-  , locationId(src.locationId)
-#endif
-  , edgeTrait(src.edgeTrait)
-  , active(src.active)
-  , weight(src.weight)
-  , pTarget(src.pTarget)
-  , pSource(src.pSource)
-{}
-
 CEdge::~CEdge()
 {}
 

@@ -59,7 +59,7 @@ public:
     virtual ~Receive();
 
     // override operator "()"
-    virtual ErrorCode operator()(std::istream & is, int sender);
+    virtual ErrorCode operator()(std::istream & is, int sender) override;
 
   private:
     Type mMethod;
@@ -77,7 +77,7 @@ public:
     virtual ~ClassMemberReceive();
 
     // override operator "()"
-    virtual ErrorCode operator()(std::istream & is, int sender);
+    virtual ErrorCode operator()(std::istream & is, int sender) override;
 
   private:
     /**
@@ -106,7 +106,7 @@ public:
     virtual ~SequentialProcess();
 
     // override operator "()"
-    virtual ErrorCode operator()();
+    virtual ErrorCode operator()() override;
 
   private:
     Type mMethod;
@@ -124,7 +124,7 @@ public:
     virtual ~ClassMemberSequentialProcess();
 
     // override operator "()"
-    virtual ErrorCode operator()();
+    virtual ErrorCode operator()() override;
 
   private:
     /**
@@ -232,7 +232,7 @@ CCommunicate::ErrorCode CCommunicate::ClassMemberReceive< Receiver >::operator()
 {
   // execute member function
   return (*mpReceiver.*mpMethod)(is, sender);
-}
+} 
 
 template < class Processor >
 CCommunicate::ClassMemberSequentialProcess< Processor >::ClassMemberSequentialProcess(Processor * pProcessor,

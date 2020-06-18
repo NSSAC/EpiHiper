@@ -110,5 +110,11 @@ void CFieldValueList::fromJSON(const json_t * json)
             }
         }
       break;
+
+      case Type::boolean:
+      case Type::traitData:
+      case Type::traitValue:
+      case Type::id:
+        break;
     }
 }

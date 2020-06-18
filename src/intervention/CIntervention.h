@@ -38,7 +38,7 @@ public:
 
   virtual ~CIntervention();
 
-  virtual void fromJSON(const json_t * json);
+  virtual void fromJSON(const json_t * json) override;
 
   void process();
 

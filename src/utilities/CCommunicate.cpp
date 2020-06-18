@@ -64,7 +64,6 @@ void CCommunicate::init(int argc, char ** argv)
   CLogger::setTask(MPIRank, MPIProcesses);
 
   MPICommunicator = new MPI_Comm[MPIProcesses];
-  MPI_Comm * pComm = MPICommunicator;
   int Shift = sizeof(int) * 4;
   MPI_Comm Dummy;
 
@@ -532,7 +531,7 @@ int CCommunicate::barrierRMA()
 // static
 double CCommunicate::getRMA(const int & index)
 {
-  if (index >= MPIWinSize)
+  if (index >= (int) MPIWinSize)
     return std::numeric_limits< double >::quiet_NaN();
 
   double Value;
@@ -548,7 +547,7 @@ double CCommunicate::getRMA(const int & index)
 // static
 double CCommunicate::updateRMA(const int & index, CCommunicate::Operator pOperator, const double & value)
 {
-  if (index >= MPIWinSize)
+  if (index >= (int) MPIWinSize)
     return std::numeric_limits< double >::quiet_NaN();
 
   double Value;

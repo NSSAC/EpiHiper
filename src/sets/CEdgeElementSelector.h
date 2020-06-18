@@ -32,9 +32,9 @@ public:
 
   virtual ~CEdgeElementSelector();
 
-  virtual CSetContent * copy() const;
+  virtual CSetContent * copy() const override;
 
-  virtual void fromJSON(const json_t * json);
+  virtual void fromJSON(const json_t * json) override;
 
   virtual bool computeProtected() override;
 

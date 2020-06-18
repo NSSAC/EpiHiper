@@ -109,7 +109,7 @@ bool CSetReference::resolve()
         }
       else
         {
-          (*it)->mpSet == NULL;
+          (*it)->mpSet = NULL;
           (*it)->mValid = false; // DONE
           CLogger::error() << "Set reference: Unresolved idRef '" << (*it)->mIdRef << "'.";
           success = false;

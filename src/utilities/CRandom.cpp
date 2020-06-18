@@ -19,7 +19,7 @@
 void CRandom::init(size_t seed)
 {
 
-  if (seed == -1)
+  if (seed == std::numeric_limits< size_t >::max())
     {
       CRandom::seed(std::random_device()());
       return;
@@ -27,7 +27,7 @@ void CRandom::init(size_t seed)
 
   const size_t & Replicate = CSimConfig::getReplicate();
 
-  if (Replicate == -1)
+  if (Replicate == std::numeric_limits< size_t >::max())
     {
       CRandom::seed(seed);
       return;

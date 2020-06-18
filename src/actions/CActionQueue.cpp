@@ -213,7 +213,7 @@ int CActionQueue::broadcastPendingActions()
   return (int) CCommunicate::ErrorCode::Success;
 }
 
-CCommunicate::ErrorCode CActionQueue::receivePendingActions(std::istream & is, int sender)
+CCommunicate::ErrorCode CActionQueue::receivePendingActions(std::istream & is, int /* sender */)
 {
   size_t RemotePendingActions;
 

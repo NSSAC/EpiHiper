@@ -76,7 +76,7 @@ void CChanges::record(const CNode * pNode, const CMetadata & metadata)
 }
 
 // static
-void CChanges::record(const CEdge * pEdge, const CMetadata & metadata)
+void CChanges::record(const CEdge * /* pEdge */, const CMetadata & /* metadata */)
 {
   /*
   if (pEdge == NULL)
@@ -87,7 +87,7 @@ void CChanges::record(const CEdge * pEdge, const CMetadata & metadata)
 }
 
 // static
-void CChanges::record(const CVariable * pVariable, const CMetadata & metadata)
+void CChanges::record(const CVariable * /* pVariable */, const CMetadata & /* metadata */)
 {}
 
 // static

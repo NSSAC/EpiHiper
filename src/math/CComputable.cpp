@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -71,4 +71,13 @@ void CComputable::determineIsStatic()
     {
       mStatic = it->second->isStatic();
     }
+}
+
+// virtual 
+std::string CComputable::getComputableId() const
+{
+  std::ostringstream os;
+  os << mComputableId;
+
+  return os.str();
 }

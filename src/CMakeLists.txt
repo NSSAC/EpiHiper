@@ -44,7 +44,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 add_library (EpiHiperLib-core OBJECT ${SOURCES_EPIHIPER} ${HEADERS_EPIHIPER})
 add_dependencies(EpiHiperLib-core jansson libpqxx spdlog)
-
+target_compile_options(EpiHiperLib-core PRIVATE -Wall -Wextra -Wsuggest-override)
 add_library (EpiHiperLib SHARED $<TARGET_OBJECTS:EpiHiperLib-core>)
 
 add_executable (EpiHiper EpiHiper.cpp EpiHiperConfig.h)

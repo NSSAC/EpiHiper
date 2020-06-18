@@ -196,11 +196,16 @@ CValueInterface & CEdgeProperty::sourceActivity(CEdge * pEdge)
   return *this;
 }
 
+#ifdef USE_LOCATION_ID
 CValueInterface & CEdgeProperty::locationId(CEdge * pEdge)
+#else
+CValueInterface & CEdgeProperty::locationId(CEdge * /* pEdge */)
+#endif
 {
 #ifdef USE_LOCATION_ID
   mpValue = &pEdge->locationId;
 #endif
+
   return *this;
 }
 
@@ -228,13 +233,13 @@ CValueInterface & CEdgeProperty::duration(CEdge * pEdge)
   return *this;
 }
 
-COperation * CEdgeProperty::setTargetId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
+COperation * CEdgeProperty::setTargetId(CEdge * pEdge, const CValueInterface & /* value */, CValueInterface::pOperator /* pOperator */, const CMetadata & /* info */)
 {
   CLogger::critical() << "Invalid operation 'setTargetId' for edge: " << pEdge->targetId << ", " << pEdge->sourceId;
   return NULL;
 }
 
-COperation * CEdgeProperty::setSourceId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
+COperation * CEdgeProperty::setSourceId(CEdge * pEdge, const CValueInterface & /* value */, CValueInterface::pOperator /* pOperator */, const CMetadata & /* info */)
 {
   CLogger::critical() << "Invalid operation 'setSourceId' for edge: " << pEdge->targetId << ", " << pEdge->sourceId;
   return NULL;
@@ -250,7 +255,7 @@ COperation * CEdgeProperty::setSourceActivity(CEdge * pEdge, const CValueInterfa
   return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), pOperator, &CEdge::setSourceActivity, info);
 }
 
-COperation * CEdgeProperty::setLocationId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
+COperation * CEdgeProperty::setLocationId(CEdge * pEdge, const CValueInterface & /* value */, CValueInterface::pOperator /* pOperator */, const CMetadata & /* info */)
 {
   CLogger::critical() << "Invalid operation 'setLocationId' for edge: " << pEdge->targetId << ", " << pEdge->sourceId;
   return NULL;
@@ -271,7 +276,7 @@ COperation * CEdgeProperty::setWeight(CEdge * pEdge, const CValueInterface & val
   return new COperationInstance< CEdge, double >(pEdge, value.toNumber(), pOperator, &CEdge::setWeight, info);
 }
 
-COperation * CEdgeProperty::setDuration(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
+COperation * CEdgeProperty::setDuration(CEdge * pEdge, const CValueInterface & /* value */, CValueInterface::pOperator /* pOperator */, const CMetadata & /* info */)
 {
   CLogger::critical() << "Invalid operation 'setDuration' for edge: " << pEdge->targetId << ", " << pEdge->sourceId;
   return NULL;

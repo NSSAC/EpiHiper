@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -15,6 +15,7 @@
 
 #include <map>
 #include <vector>
+#include <string>
 
 #include "math/CComputableSet.h"
 
@@ -39,11 +40,13 @@ public:
 
   bool isStatic() const;
 
+  virtual std::string getComputableId() const;
+
 protected:
   void determineIsStatic();
 
   virtual bool computeProtected() = 0;
-
+  
 private:
   static size_t UniqueId;
 

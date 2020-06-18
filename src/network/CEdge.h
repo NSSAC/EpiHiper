@@ -32,7 +32,6 @@ public:
   static CEdge getDefault();
 
   CEdge();
-  CEdge(const CEdge & src);
   virtual ~CEdge();
 
   void toBinary(std::ostream & os) const;

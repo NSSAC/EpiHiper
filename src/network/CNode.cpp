@@ -42,7 +42,6 @@ CNode CNode::getDefault()
 
 CNode::CNode()
   : id(-1)
-  , pHealthState(NULL)
   , healthState()
   , susceptibilityFactor(1.0)
   , susceptibility(0.0)
@@ -51,11 +50,11 @@ CNode::CNode()
   , nodeTrait()
   , Edges(NULL)
   , EdgesSize(0)
+  , pHealthState(NULL)
 {}
 
 CNode::CNode(const CNode & src)
   : id(src.id)
-  , pHealthState(NULL)
   , healthState()
   , susceptibilityFactor(src.susceptibilityFactor)
   , susceptibility(src.susceptibility)
@@ -64,6 +63,7 @@ CNode::CNode(const CNode & src)
   , nodeTrait(src.nodeTrait)
   , Edges(src.Edges)
   , EdgesSize(src.EdgesSize)
+  , pHealthState(NULL)
 {
   setHealthState(src.pHealthState);
 }
@@ -164,7 +164,7 @@ bool CNode::set(const CTransmission * pTransmission, CValueInterface::pOperator 
   return true;
 }
 
-bool CNode::set(const CProgression * pProgression, CValueInterface::pOperator /* pOperator */, const CMetadata & metadata)
+bool CNode::set(const CProgression * pProgression, CValueInterface::pOperator /* pOperator */, const CMetadata & /* metadata */)
 {
   if (pHealthState == pProgression->getExitState()) return false;
 

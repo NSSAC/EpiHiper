@@ -465,7 +465,7 @@ int CModel::UpdateGlobalStateCounts()
 }
 
 // static
-CCommunicate::ErrorCode CModel::ReceiveGlobalStateCounts(std::istream & is, int sender)
+CCommunicate::ErrorCode CModel::ReceiveGlobalStateCounts(std::istream & is, int /* sender */)
 {
   size_t Size = INSTANCE->mStateCount;
 

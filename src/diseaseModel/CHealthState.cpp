@@ -15,21 +15,6 @@
 #include "diseaseModel/CHealthState.h"
 #include "utilities/CLogger.h"
 
-CHealthState::Counts::Counts()
-  : Current(0)
-  , In(0)
-  , Out(0)
-{}
-
-CHealthState::Counts::Counts(const Counts & src)
-  : Current(src.Current)
-  , In(src.In)
-  , Out(src.Out)
-{}
-
-CHealthState::Counts::~Counts()
-{}
-
 CHealthState::CHealthState()
   : CAnnotation()
   , mId()

@@ -20,24 +20,24 @@ CDistribution::CDistribution()
   : mType(Type::__NONE)
   , mDiscrete()
   , mUniformSet()
-  , mValid(false)
   , mpSample(NULL)
   , mFixed(0.0)
   , mpUniformInt(NULL)
   , mpUniformReal(NULL)
   , mpNormal(NULL)
+  , mValid(false)
 {}
 
 CDistribution::CDistribution(const CDistribution & src)
   : mType(src.mType)
   , mDiscrete(src.mDiscrete)
   , mUniformSet(src.mUniformSet)
-  , mValid(src.mValid)
   , mpSample(src.mpSample)
   , mFixed(0.0)
   , mpUniformInt(src.mpUniformInt != NULL ? new CRandom::uniform_int(*src.mpUniformInt) : NULL)
   , mpUniformReal(src.mpUniformReal != NULL ? new CRandom::uniform_real(*src.mpUniformReal) : NULL)
   , mpNormal(src.mpNormal != NULL ? new CRandom::normal(*src.mpNormal) : NULL)
+  , mValid(src.mValid)
 {}
 
 // virtual
@@ -144,8 +144,9 @@ void CDistribution::fromJSON(const json_t * json)
     {
       mType = Type::fixed;
       mpSample = &CDistribution::fixed;
-      mFixed = std::round(json_real_value(pValue));
-      mValid = (mFixed >= 0);
+      int Fixed = std::round(json_real_value(pValue)); 
+      mValid = (Fixed >= 0);
+      mFixed = Fixed;
 
       if (!mValid)
         {
@@ -196,9 +197,10 @@ void CDistribution::fromJSON(const json_t * json)
 
               if (json_is_real(pReal))
                 {
-                  it->second = std::round(json_real_value(pReal));
+                  int value  = std::round(json_real_value(pReal));
+                  it->second = value;
 
-                  if (it->second < 0)
+                  if (value < 0)
                     {
                       CLogger::error() << "Distribution discrete: Negative value 'value' for item '" << i << "'.";
                       return;
@@ -244,9 +246,10 @@ void CDistribution::fromJSON(const json_t * json)
 
           if (json_is_real(pReal))
             {
-              *it = std::round(json_real_value(pReal));
+              int value = std::round(json_real_value(pReal));
+              *it = value;
 
-              if (*it < 0)
+              if (value < 0)
                 {
                   CLogger::error() << "Distribution uniform: Negative value for item '" << i << "'.";
                   return;
@@ -268,7 +271,7 @@ void CDistribution::fromJSON(const json_t * json)
       mType = Type::uniform;
       mpSample = &CDistribution::uniformDiscrete;
 
-      unsigned int min;
+      int min;
       json_t * pReal = json_object_get(pValue, "min");
 
       if (json_is_real(pReal))
@@ -287,12 +290,13 @@ void CDistribution::fromJSON(const json_t * json)
           return;
         }
 
-      unsigned int max;
+      int max;
       pReal = json_object_get(pValue, "max");
 
       if (json_is_real(pReal))
         {
           max = std::round(json_real_value(pReal));
+
           if (max <= min)
             {
               CLogger::error() << "Distribution uniform: Invalid interval [" << min << ", " << max << "].";

@@ -478,11 +478,9 @@ void CNetwork::convert(std::istream & is, const std::string & outputDirectory)
       size_t * pNodes = pPartition + 1;
       size_t * pEdges = pPartition + 2;
 
-      size_t Node(-1);
-      size_t LastNode(-1);
-      size_t CurrentNode(-1);
-      size_t PartitionEdgeCount(0);
-      size_t LastNodeEdgeCount(0);
+      size_t Node = std::numeric_limits< size_t >::max();
+      size_t CurrentNode = std::numeric_limits< size_t >::max();
+      size_t PartitionEdgeCount = 0;
 
       size_t PartitionIndex(1);
 
@@ -502,16 +500,13 @@ void CNetwork::convert(std::istream & is, const std::string & outputDirectory)
 
           if (CurrentNode != Node)
             {
-              if (CurrentNode > Node && CurrentNode != -1)
+              if (CurrentNode > Node && CurrentNode != std::numeric_limits< size_t >::max())
                 {
                   CLogger::error("Network target nodes are not sorted.");
                   return;
                 }
 
               ++*pNodes;
-
-              LastNode = CurrentNode;
-              LastNodeEdgeCount = PartitionEdgeCount;
 
               CurrentNode = Node;
             }
@@ -567,11 +562,10 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
 
       size_t DesiredPerComputeNode = mTotalEdgesSize / parts + 1;
 
-      size_t Node(-1);
-      size_t LastNode(-1);
-      size_t CurrentNode(-1);
-      size_t PartitionEdgeCount(0);
-      size_t LastNodeEdgeCount(0);
+      size_t Node = std::numeric_limits< size_t >::max();
+      size_t CurrentNode = std::numeric_limits< size_t >::max();
+      size_t PartitionEdgeCount = 0;
+      size_t LastNodeEdgeCount = 0;
 
       size_t PartitionIndex(1);
 
@@ -591,7 +585,7 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
 
           if (CurrentNode != Node)
             {
-              if (CurrentNode > Node && CurrentNode != -1)
+              if (CurrentNode > Node && CurrentNode != std::numeric_limits< size_t >::max())
                 {
                   CLogger::error("Network target nodes are not sorted.");
                   return;
@@ -647,7 +641,6 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
 
               ++*pNodes;
 
-              LastNode = CurrentNode;
               LastNodeEdgeCount = PartitionEdgeCount;
 
               CurrentNode = Node;
@@ -1089,7 +1082,7 @@ CNode * CNetwork::lookupNode(const size_t & id, const bool localOnly) const
 
   CNode * pLeft = mLocalNodes;
   CNode * pRight = mLocalNodes + mLocalNodesSize - 1;
-  CNode * pCurrent = pCurrent = pLeft + (pRight - pLeft) / 2;
+  CNode * pCurrent = pLeft + (pRight - pLeft) / 2;
 
   while (pLeft <= pRight)
     {
@@ -1180,7 +1173,7 @@ bool CNetwork::loadEdge(CEdge * pEdge, std::istream & is) const
           return false;
         }
 
-      if (is.tellg() - p >= LineSize)
+      if (is.tellg() - p >= (int) LineSize)
         {
           CLogger::error("Edge line size exceeded.");
           return false;
@@ -1324,7 +1317,7 @@ int CNetwork::broadcastChanges()
   return (int) CCommunicate::ErrorCode::Success;
 }
 
-CCommunicate::ErrorCode CNetwork::receiveNodes(std::istream & is, int sender)
+CCommunicate::ErrorCode CNetwork::receiveNodes(std::istream & is, int /* sender */)
 {
   CNode Node;
 
@@ -1353,7 +1346,7 @@ CCommunicate::ErrorCode CNetwork::receiveNodes(std::istream & is, int sender)
   return CCommunicate::ErrorCode::Success;
 }
 
-CCommunicate::ErrorCode CNetwork::receiveEdges(std::istream & is, int sender)
+CCommunicate::ErrorCode CNetwork::receiveEdges(std::istream & is, int /* sender */)
 {
   CEdge Edge;
 

@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -634,6 +634,5 @@ void CDependencyGraph::exportDOTFormat(std::ostream & os, const std::string & na
 // static
 std::string CDependencyGraph::getDOTNodeId(const CComputable * pComputable) const
 {
-  // TODO CRITICAL Implement me!
-  return "";
+  return pComputable->getComputableId();
 }

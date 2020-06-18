@@ -34,37 +34,37 @@ public:
 
   virtual ~CSetReference();
 
-  virtual CSetContent * copy() const;
+  virtual CSetContent * copy() const override;
 
-  virtual void fromJSON(const json_t * json);
+  virtual void fromJSON(const json_t * json) override;
 
   virtual bool computeProtected() override;
 
-  virtual bool contains(CNode * pNode) const;
+  virtual bool contains(CNode * pNode) const override;
 
-  virtual bool contains(CEdge * pEdge) const;
+  virtual bool contains(CEdge * pEdge) const override;
 
-  virtual bool contains(const CValueInterface & value) const;
+  virtual bool contains(const CValueInterface & value) const override;
 
-  virtual std::vector< CEdge * >::const_iterator beginEdges() const;
+  virtual std::vector< CEdge * >::const_iterator beginEdges() const override;
 
-  virtual std::vector< CEdge * >::const_iterator endEdges() const;
+  virtual std::vector< CEdge * >::const_iterator endEdges() const override;
 
-  virtual std::vector< CNode * >::const_iterator beginNodes() const;
+  virtual std::vector< CNode * >::const_iterator beginNodes() const override;
 
-  virtual std::vector< CNode * >::const_iterator endNodes() const;
+  virtual std::vector< CNode * >::const_iterator endNodes() const override;
 
-  virtual const std::vector< CEdge * > & getEdges() const;
+  virtual const std::vector< CEdge * > & getEdges() const override;
 
-  virtual const std::vector< CNode * > & getNodes() const;
+  virtual const std::vector< CNode * > & getNodes() const override;
 
-  virtual const std::map< CValueList::Type, CValueList > & getDBFieldValues() const;
+  virtual const std::map< CValueList::Type, CValueList > & getDBFieldValues() const override;
 
-  virtual std::vector< CEdge * > & getEdges();
+  virtual std::vector< CEdge * > & getEdges() override;
 
-  virtual std::vector< CNode * > & getNodes();
+  virtual std::vector< CNode * > & getNodes() override;
 
-  virtual std::map< CValueList::Type, CValueList > & getDBFieldValues();
+  virtual std::map< CValueList::Type, CValueList > & getDBFieldValues() override;
 
 private:
   std::string mIdRef;

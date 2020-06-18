@@ -49,7 +49,7 @@ CSimulation::~CSimulation()
 
 // check all required components are ready
 bool CSimulation::validate() {
-  valid = (startTick <= startTick);
+  valid = (startTick <= endTick);
   
   return valid;
 }

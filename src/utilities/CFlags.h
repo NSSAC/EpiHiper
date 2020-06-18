@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -76,6 +76,19 @@ public:
    * Destructor
    */
   ~CFlags() {}
+
+  /**
+   * Assignment operator
+   * @param const CFlags & rhs
+   * @return CFlags & *this
+   */
+  CFlags & operator=(const CFlags & rhs)
+  {
+    if (this != &rhs)
+      this->bitset::operator=(rhs);
+
+    return *this;
+  }
 
   /**
    * Cast to bitset

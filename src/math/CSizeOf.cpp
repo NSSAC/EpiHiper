@@ -88,7 +88,7 @@ int CSizeOf::broadcastSize()
   return (int) CCommunicate::ErrorCode::Success;
 }
 
-CCommunicate::ErrorCode CSizeOf::receiveSize(std::istream & is, int sender)
+CCommunicate::ErrorCode CSizeOf::receiveSize(std::istream & is, int /* sender */)
 {
   size_t RemoteSize;
 

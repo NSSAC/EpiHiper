@@ -72,6 +72,11 @@ size_t toFieldValueList(const CField & field, const pqxx::result & result, CFiel
     case CFieldValueList::Type::number:
       return toNumberFieldValueList(result, list);
       break;
+
+    case CFieldValueList::Type::boolean:
+    case CFieldValueList::Type::traitData:
+    case CFieldValueList::Type::traitValue:
+      break;
     }
 
   return 0;
@@ -251,6 +256,11 @@ bool CQuery::in(const std::string & table,
         case CFieldValueList::Type::number:
           Query << it->toNumber();
           break;
+
+        case CFieldValueList::Type::boolean:
+        case CFieldValueList::Type::traitData:
+        case CFieldValueList::Type::traitValue:
+          break;
         }
     }
 
@@ -348,6 +358,11 @@ bool CQuery::where(const std::string & table,
 
     case CFieldValueList::Type::number:
       Query << constraint.toNumber();
+      break;
+
+    case CFieldValueList::Type::boolean:
+    case CFieldValueList::Type::traitData:
+    case CFieldValueList::Type::traitValue:
       break;
     }
 

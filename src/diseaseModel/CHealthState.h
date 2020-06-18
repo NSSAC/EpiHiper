@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -27,10 +27,6 @@ public:
     size_t Current;
     size_t In;
     size_t Out;
-
-    Counts();
-    Counts(const Counts & src);
-    ~Counts();
   };
 
   CHealthState();
@@ -39,7 +35,7 @@ public:
 
   virtual ~CHealthState();
 
-  virtual void fromJSON(const json_t * json);
+  virtual void fromJSON(const json_t * json) override;
 
   const std::string & getId() const;
 
