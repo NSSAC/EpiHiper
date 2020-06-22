@@ -55,6 +55,9 @@ std::set< const CEdge * > CChanges::Edges;
 // static
 std::stringstream CChanges::DefaultOutput;
 
+// static 
+std::map< size_t, std::set< const CNode * > > CChanges::RankToNodesRequested;
+
 // static
 size_t CChanges::Tick = -1;
 

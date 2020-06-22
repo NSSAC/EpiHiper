@@ -33,6 +33,13 @@ CValue::CValue(const double & number)
   assignValue(&number);
 }
 
+CValue::CValue(const int & integer)
+  : CValueInterface(Type::integer, createValue(Type::integer))
+  , mValid(true)
+{
+  assignValue(&integer);
+}
+
 CValue::CValue(const CTraitData::value & traitValue)
   : CValueInterface(Type::traitValue, createValue(Type::traitValue))
   , mValid(true)
@@ -217,6 +224,10 @@ void CValue::toBinary(std::ostream & os) const
       os.write(reinterpret_cast< const char * >(mpValue), sizeof(double));
       break;
 
+    case Type::integer:
+      os.write(reinterpret_cast< const char * >(mpValue), sizeof(int));
+      break;
+
     case Type::traitData:
       os.write(reinterpret_cast< const char * >(mpValue), sizeof(CTraitData::base));
       break;
@@ -255,6 +266,10 @@ void CValue::fromBinary(std::istream & is)
 
     case Type::number:
       is.read(reinterpret_cast< char * >(mpValue), sizeof(double));
+      break;
+
+    case Type::integer:
+      is.read(reinterpret_cast< char * >(mpValue), sizeof(int));
       break;
 
     case Type::traitData:
@@ -296,6 +311,10 @@ void * CValue::createValue(const CValue::Type & type)
       return new double(std::numeric_limits< double >::quiet_NaN());
       break;
 
+    case Type::integer:
+      return new int(0);
+      break;
+
     case Type::traitData:
       return new CTraitData::base();
       break;
@@ -326,6 +345,10 @@ void CValue::assignValue(const void * pValue)
 
     case Type::number:
       *static_cast< double * >(mpValue) = *static_cast< const double * >(pValue);
+      break;
+
+    case Type::integer:
+      *static_cast< int * >(mpValue) = *static_cast< const int * >(pValue);
       break;
 
     case Type::traitData:
@@ -361,6 +384,10 @@ void CValue::destroyValue()
       delete static_cast< double * >(mpValue);
       break;
 
+    case Type::integer:
+      delete static_cast< int * >(mpValue);
+      break;
+
     case Type::traitData:
       delete static_cast< CTraitData::base * >(mpValue);
       break;
@@ -377,4 +404,6 @@ void CValue::destroyValue()
       delete static_cast< size_t * >(mpValue);
       break;
     }
+
+  mpValue = NULL;
 }

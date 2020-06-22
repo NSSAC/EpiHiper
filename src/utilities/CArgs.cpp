@@ -43,7 +43,8 @@ bool CArgs::parseArgs(int argc, char * argv[])
   const option long_opts[] =
     {
       {"config", required_argument, nullptr, 'c'},
-      {nullptr, no_argument, nullptr, 0}};
+      {nullptr, no_argument, nullptr, 0}
+    };
 
   while (true)
     {

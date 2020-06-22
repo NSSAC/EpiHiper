@@ -299,6 +299,21 @@ void CValueList::fromJSON(const json_t * json)
         }
       break;
 
+    case Type::integer:
+      for (size_t i = 0, imax = json_array_size(pArray); i < imax; ++i)
+        {
+          pValue = json_array_get(pArray, i);
+
+          if (json_is_integer(pValue))
+            std::set< CValue >::insert((int) json_integer_value(pValue));
+          else
+            {
+              CLogger::error() << "Value list (integer): Invalid value for item '" << i << "'.";
+              return;
+            }
+        }
+      break;
+
     case Type::id:
       for (size_t i = 0, imax = json_array_size(pArray); i < imax; ++i)
         {
@@ -387,6 +402,11 @@ void CValueList::toBinary(std::ostream & os) const
         os.write(reinterpret_cast< const char * >(&it->toNumber()), sizeof(double));
       break;
 
+    case Type::integer:
+      for (; it != itEnd; ++it)
+        os.write(reinterpret_cast< const char * >(&it->toInteger()), sizeof(int));
+      break;
+
     case Type::id:
       for (; it != itEnd; ++it)
         os.write(reinterpret_cast< const char * >(&it->toId()), sizeof(size_t));
@@ -425,6 +445,15 @@ void CValueList::fromBinary(std::istream & is)
         {
           double Value;
           is.read(reinterpret_cast< char * >(&Value), sizeof(double));
+          std::set< CValue >::insert(Value);
+        }
+      break;
+
+    case Type::integer:
+      for (size_t i = 0; i < Size; ++i)
+        {
+          int Value;
+          is.read(reinterpret_cast< char * >(&Value), sizeof(int));
           std::set< CValue >::insert(Value);
         }
       break;

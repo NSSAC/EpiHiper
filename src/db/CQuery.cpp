@@ -57,6 +57,18 @@ size_t toNumberFieldValueList(const pqxx::result & result, CFieldValueList & lis
   return list.size() - OldSize;
 }
 
+size_t toIntegerFieldValueList(const pqxx::result & result, CFieldValueList & list)
+{
+  int Default(0);
+  size_t OldSize = list.size();
+
+  for (const pqxx::row & Row : result)
+    for (const pqxx::field & Field : Row)
+      list.append(CFieldValue(Field.as(Default)));
+
+  return list.size() - OldSize;
+}
+
 size_t toFieldValueList(const CField & field, const pqxx::result & result, CFieldValueList & list)
 {
   switch (field.getType())
@@ -71,6 +83,10 @@ size_t toFieldValueList(const CField & field, const pqxx::result & result, CFiel
 
     case CFieldValueList::Type::number:
       return toNumberFieldValueList(result, list);
+      break;
+
+    case CFieldValueList::Type::integer:
+      return toIntegerFieldValueList(result, list);
       break;
 
     case CFieldValueList::Type::boolean:
@@ -257,6 +273,10 @@ bool CQuery::in(const std::string & table,
           Query << it->toNumber();
           break;
 
+        case CFieldValueList::Type::integer:
+          Query << it->toInteger();
+          break;
+
         case CFieldValueList::Type::boolean:
         case CFieldValueList::Type::traitData:
         case CFieldValueList::Type::traitValue:
@@ -358,6 +378,10 @@ bool CQuery::where(const std::string & table,
 
     case CFieldValueList::Type::number:
       Query << constraint.toNumber();
+      break;
+
+    case CFieldValueList::Type::integer:
+      Query << constraint.toInteger();
       break;
 
     case CFieldValueList::Type::boolean:

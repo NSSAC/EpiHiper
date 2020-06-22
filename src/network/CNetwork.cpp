@@ -1048,6 +1048,11 @@ CEdge * CNetwork::endEdge()
   return mEdges + mEdgesSize;
 }
 
+const std::map< size_t, CNode > & CNetwork::getRemoteNodes() const
+{
+  return mRemoteNodes;
+}
+
 std::map< size_t, CNode >::const_iterator CNetwork::beginRemoteNodes() const
 {
   return mRemoteNodes.begin();

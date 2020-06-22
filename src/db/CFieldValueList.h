@@ -31,7 +31,7 @@ public:
 
   CFieldValueList(const CFieldValueList & src);
 
-  CFieldValueList(const json_t * json);
+  CFieldValueList(const json_t * json, const Type & hint);
 
   virtual ~CFieldValueList();
 

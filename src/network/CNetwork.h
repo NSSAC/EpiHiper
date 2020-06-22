@@ -93,6 +93,8 @@ public:
 
   CEdge * endEdge();
 
+  const std::map< size_t, CNode > & getRemoteNodes() const;
+  
   std::map< size_t, CNode >::const_iterator beginRemoteNodes() const;
   
   std::map< size_t, CNode >::const_iterator endRemoteNodes() const;

@@ -25,6 +25,7 @@
 #include "diseaseModel/CHealthState.h"
 #include "network/CEdge.h"
 #include "network/CNode.h"
+#include "network/CNetwork.h"
 #include "utilities/CMetadata.h"
 
 // static
@@ -152,6 +153,56 @@ CCommunicate::ErrorCode CChanges::writeDefaultOutputData()
 }
 
 // static
+CCommunicate::ErrorCode CChanges::determineNodesRequested()
+{
+  const std::map< size_t, CNode > & RemoteNodes = CNetwork::INSTANCE->getRemoteNodes();
+  std::map< size_t, CNode >::const_iterator it = RemoteNodes.begin();
+  std::map< size_t, CNode >::const_iterator end = RemoteNodes.end();
+
+  size_t * pBuffer = RemoteNodes.size() > 0 ? new size_t[RemoteNodes.size()] : NULL;
+  size_t * pId = pBuffer;
+
+  for (; it != end; ++it, ++pId)
+    *pId = it->first;
+
+  CCommunicate::Receive Receive(&CChanges::receiveNodesRequested);
+  CCommunicate::roundRobin(pBuffer, RemoteNodes.size() * sizeof(size_t), &Receive);
+
+  if (pBuffer != NULL)
+    delete[] pBuffer;
+
+  return CCommunicate::ErrorCode::Success;
+}
+
+// static
+CCommunicate::ErrorCode CChanges::receiveNodesRequested(std::istream & is, int sender)
+{
+  std::set< const CNode * > & Requested = RankToNodesRequested[sender];
+  Requested.clear();
+  size_t id;
+
+  while (true)
+    {
+      is.read(reinterpret_cast< char * >(&id), sizeof(size_t));
+
+      if (is.fail())
+        break;
+
+      CNode * pNode = CNetwork::INSTANCE->lookupNode(id, true);
+
+      if (pNode != NULL)
+        Requested.insert(pNode);
+    }
+
+  CLogger::debug() << "CChanges::receiveNodesRequested: rank "
+                   << sender << " requested " << Requested.size() << " of "
+                   << CNetwork::INSTANCE->getLocalNodeCount() << " ("
+                   << 100.0 * Requested.size() / CNetwork::INSTANCE->getLocalNodeCount() << ")";
+
+  return CCommunicate::ErrorCode::Success;
+}
+
+// static
 size_t CChanges::size()
 {
   return Nodes.size() + Edges.size();
@@ -171,6 +222,38 @@ const std::ostringstream & CChanges::getNodes()
     {
       (*it)->toBinary(os);
     }
+
+  return os;
+}
+
+// static 
+const std::ostringstream & CChanges::getNodes(const size_t & Rank)
+{
+  static std::ostringstream os;
+  os.str("");
+
+  std::set< const CNode * >::const_iterator it = Nodes.begin();
+  std::set< const CNode * >::const_iterator end = Nodes.end();
+
+  const std::set< const CNode * > & Requested = RankToNodesRequested[Rank];
+  std::set< const CNode * >::const_iterator itRequested = Requested.begin();
+  std::set< const CNode * >::const_iterator endRequested = Requested.end();
+
+  while (it != end && itRequested != endRequested)
+    if (*it < *itRequested)
+      {
+        ++it;
+      }
+    else if (*it > *itRequested)
+      {
+        ++itRequested;
+      }
+    else
+      {
+        (*it)->toBinary(os);
+        ++it;
+        ++itRequested;
+      }
 
   return os;
 }

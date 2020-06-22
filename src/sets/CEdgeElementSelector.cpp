@@ -415,13 +415,15 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
           return;
         }
 
-      if (!Table.getField(mDBField).isValid())
+      const CField & Field = Table.getField(mDBField);
+
+      if (!Field.isValid())
         {
-          CLogger::error("Edge selector: Invalid or missing value for 'mDBField'.");
+          CLogger::error("Node selector: Invalid or missing value for 'mDBField'.");
           return;
         }
 
-      CFieldValueList FieldValueList(json_object_get(json, "right"));
+      CFieldValueList FieldValueList(json_object_get(json, "right"), Field.getType());
 
       if (FieldValueList.isValid())
         {
@@ -570,11 +572,14 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
           return;
         }
 
-      if (!Table.getField(mDBField).isValid())
+      const CField & Field = Table.getField(mDBField);
+
+      if (!Field.isValid())
         {
           CLogger::error("Edge selector: Invalid or missing value for 'mDBField'.");
           return;
         }
+
 
       CConnection::setRequired(true);
       mpCompute = &CEdgeElementSelector::withDBFieldSelection;
@@ -590,7 +595,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
           return;
         }
 
-      CFieldValue FieldValue(json_object_get(json, "right"));
+      CFieldValue FieldValue(json_object_get(json, "right"), Field.getType());
 
       if (FieldValue.isValid())
         {

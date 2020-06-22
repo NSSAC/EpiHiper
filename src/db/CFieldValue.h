@@ -31,9 +31,11 @@ public:
 
   CFieldValue(const double & number);
 
+  CFieldValue(const int & integer);
+
   CFieldValue(const std::string & str);
 
-  CFieldValue(const json_t * json);
+  CFieldValue(const json_t * json, const Type & hint);
 
   virtual ~CFieldValue();
 

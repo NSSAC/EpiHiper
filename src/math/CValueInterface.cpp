@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -73,6 +73,11 @@ const double & CValueInterface::toNumber() const
   return * static_cast< double * >(mpValue);
 }
 
+const int & CValueInterface::toInteger() const
+{
+  return * static_cast< int * >(mpValue);
+}
+
 const size_t & CValueInterface::toId() const
 {
   return * static_cast< size_t * >(mpValue);
@@ -112,6 +117,10 @@ void CValueInterface::toBinary(std::ostream & os) const
       os.write(reinterpret_cast<const char *>(mpValue), sizeof(double));
       break;
 
+    case Type::integer:
+      os.write(reinterpret_cast<const char *>(mpValue), sizeof(int));
+      break;
+
     case Type::id:
       os.write(reinterpret_cast<const char *>(mpValue), sizeof(size_t));
       break;
@@ -147,6 +156,10 @@ void CValueInterface::fromBinary(std::istream & is)
 
     case Type::number:
       is.read(reinterpret_cast<char *>(&mpValue), sizeof(double));
+      break;
+
+    case Type::integer:
+      is.read(reinterpret_cast<char *>(&mpValue), sizeof(int));
       break;
 
     case Type::id:
@@ -187,6 +200,10 @@ CValueInterface & CValueInterface::operator=(const CValueInterface & rhs)
 
         case Type::number:
           *static_cast< double * >(mpValue) = *static_cast< const double * >(rhs.mpValue);
+          break;
+
+        case CValueInterface::Type::integer:
+          *static_cast< int * >(mpValue) = *static_cast< const int * >(rhs.mpValue);
           break;
 
         case Type::traitData:
@@ -277,6 +294,10 @@ bool operator<(const CValueInterface & lhs, const CValueInterface & rhs)
       return * static_cast< const double * >(lhs.mpValue) < * static_cast< const double * >(rhs.mpValue);
       break;
 
+    case CValueInterface::Type::integer:
+      return * static_cast< const int * >(lhs.mpValue) < * static_cast< const int * >(rhs.mpValue);
+      break;
+
     case CValueInterface::Type::id:
       return * static_cast< const size_t * >(lhs.mpValue) < * static_cast< const size_t * >(rhs.mpValue);
       break;
@@ -310,6 +331,10 @@ bool operator<=(const CValueInterface & lhs, const CValueInterface & rhs)
 
     case CValueInterface::Type::number:
       return * static_cast< const double * >(lhs.mpValue) <= * static_cast< const double * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::integer:
+      return * static_cast< const int * >(lhs.mpValue) <= * static_cast< const int * >(rhs.mpValue);
       break;
 
     case CValueInterface::Type::id:
@@ -371,6 +396,10 @@ bool operator==(const CValueInterface & lhs, const CValueInterface & rhs)
       return * static_cast< const double * >(lhs.mpValue) == * static_cast< const double * >(rhs.mpValue);
       break;
 
+    case CValueInterface::Type::integer:
+      return * static_cast< const int * >(lhs.mpValue) == * static_cast< const int * >(rhs.mpValue);
+      break;
+
     case CValueInterface::Type::id:
       return * static_cast< const size_t * >(lhs.mpValue) == * static_cast< const size_t * >(rhs.mpValue);
       break;
@@ -427,6 +456,10 @@ std::ostream & operator << (std::ostream & os, const CValueInterface & p)
 
     case CValueInterface::Type::number:
       os << * static_cast< const double * >(p.mpValue);
+      break;
+
+    case CValueInterface::Type::integer:
+      os << * static_cast< const int * >(p.mpValue);
       break;
 
     case CValueInterface::Type::id:

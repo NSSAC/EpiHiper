@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -44,6 +44,7 @@ public:
   {
     boolean,
     number,
+    integer,
     traitData,
     traitValue,
     string,
@@ -60,6 +61,8 @@ public:
 
   CValueInterface(double & number);
 
+  CValueInterface(int & integer);
+
   CValueInterface(size_t & id);
 
   CValueInterface(CTraitData::base & traitData);
@@ -75,6 +78,8 @@ public:
   const bool & toBoolean() const;
 
   const double & toNumber() const;
+
+  const int & toInteger() const;
 
   const size_t & toId() const;
 

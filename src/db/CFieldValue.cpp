@@ -23,13 +23,19 @@ CFieldValue::CFieldValue(const double & number)
   : CValue(number)
 {}
 
+CFieldValue::CFieldValue(const int & integer)
+  : CValue(integer)
+{}
+
 CFieldValue::CFieldValue(const std::string & str)
   : CValue(str)
 {}
 
-CFieldValue::CFieldValue(const json_t * json)
+CFieldValue::CFieldValue(const json_t * json, const Type & hint)
   : CValue(false)
 {
+  destroyValue();
+  mType = hint;
   fromJSON(json);
 }
 
@@ -51,8 +57,15 @@ void CFieldValue::fromJSON(const json_t * json)
   if (json_is_real(pValue))
     {
       destroyValue();
-      mType = Type::number;
-      mpValue = new double(json_real_value(pValue));
+
+      if (mType == Type::integer)
+        mpValue = new int(json_integer_value(pValue));  
+      else
+      {
+        mType = Type::number;
+        mpValue = new double(json_real_value(pValue));
+      }
+      
       mValid = true;
       return;
     }

@@ -24,8 +24,8 @@ CFieldValueList::CFieldValueList(const CFieldValueList & src)
   : CValueList(src)
 {}
 
-CFieldValueList::CFieldValueList(const json_t * json)
-  : CValueList()
+CFieldValueList::CFieldValueList(const json_t * json, const Type & hint)
+  : CValueList(hint)
 {
   fromJSON(json);
 }
@@ -63,7 +63,8 @@ void CFieldValueList::fromJSON(const json_t * json)
 
   json_t * pValue = json_array_get(pArray, 0);
 
-  if (json_is_real(pValue))
+  if (json_is_real(pValue)
+      && mType != Type::integer)
     {
       mType = Type::number;
     }
@@ -81,6 +82,21 @@ void CFieldValueList::fromJSON(const json_t * json)
 
   switch (mType)
     {
+    case Type::integer:
+      for (size_t i = 0, imax = json_array_size(pArray); i < imax && mValid; ++i)
+        {
+          pValue = json_array_get(pArray, i);
+
+          if (json_is_integer(pValue))
+            std::set< CValue >::insert(CFieldValue((int) json_integer_value(pValue)));
+          else
+            {
+              CLogger::error() << "Field value list: Invalid type for value '" << i << "'.";
+              mValid = false; // DONE
+            }
+        }
+      break;
+
     case Type::number:
       for (size_t i = 0, imax = json_array_size(pArray); i < imax && mValid; ++i)
         {

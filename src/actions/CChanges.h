@@ -22,6 +22,8 @@
 
 #include <sstream>
 #include <set>
+#include <map>
+
 #include "utilities/CCommunicate.h"
 
 class CNode;
@@ -40,11 +42,14 @@ public:
   static size_t size();
 
   static const std::ostringstream &  getNodes();
+  static const std::ostringstream &  getNodes(const size_t & Rank);
   static const std::ostringstream &  getEdges();
 
   static void initDefaultOutput();
   static void writeDefaultOutput();
   static CCommunicate::ErrorCode writeDefaultOutputData();
+  static CCommunicate::ErrorCode determineNodesRequested();
+  static CCommunicate::ErrorCode receiveNodesRequested(std::istream & is, int sender);
   static void setCurrentTick(size_t tick);
   static void incrementTick();
 
@@ -55,6 +60,7 @@ private:
   static std::set< const CNode * > Nodes;
   static std::set< const CEdge * > Edges;
   static std::stringstream DefaultOutput;
+  static std::map< size_t, std::set< const CNode * > > RankToNodesRequested;
 
   static size_t Tick;
 };

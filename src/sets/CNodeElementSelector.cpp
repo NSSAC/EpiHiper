@@ -17,6 +17,7 @@
 #include "sets/CNodeElementSelector.h"
 #include "math/CObservable.h"
 #include "db/CConnection.h"
+#include "db/CField.h"
 #include "db/CFieldValue.h"
 #include "db/CFieldValueList.h"
 #include "db/CQuery.h"
@@ -541,13 +542,15 @@ void CNodeElementSelector::fromJSON(const json_t * json)
           return;
         }
 
-      if (!Table.getField(mDBField).isValid())
+      const CField & Field = Table.getField(mDBField);
+
+      if (!Field.isValid())
         {
           CLogger::error("Node selector: Invalid or missing value for 'mDBField'.");
           return;
         }
 
-      CFieldValueList FieldValueList(json_object_get(json, "right"));
+      CFieldValueList FieldValueList(json_object_get(json, "right"), Field.getType());
 
       if (FieldValueList.isValid())
         {
@@ -672,7 +675,9 @@ void CNodeElementSelector::fromJSON(const json_t * json)
           return;
         }
 
-      if (!Table.getField(mDBField).isValid())
+      const CField & Field = Table.getField(mDBField);
+
+      if (!Field.isValid())
         {
           CLogger::error("Node selector: Invalid or missing value for 'mDBField'.");
           return;
@@ -691,7 +696,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
           return;
         }
 
-      CFieldValue FieldValue(json_object_get(json, "right"));
+      CFieldValue FieldValue(json_object_get(json, "right"), Field.getType());
 
       if (FieldValue.isValid())
         {

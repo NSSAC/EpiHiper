@@ -26,6 +26,8 @@ public:
 
   CValue(const double & number);
 
+  CValue(const int & integer);
+
   CValue(const CTraitData::value & traitValue);
 
   CValue(const std::string & str);

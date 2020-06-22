@@ -77,7 +77,7 @@ void CField::fromJSON(const json_t * json)
             }
           else if (strcmp(json_string_value(pValue), "integer") == 0)
             {
-              mType = CValue::Type::id;
+              mType = CValue::Type::integer;
             }
           else
             {
