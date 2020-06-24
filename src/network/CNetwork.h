@@ -131,6 +131,7 @@ private:
   bool mValid;
   size_t mTotalPendingActions;
   json_t * mpJson;
+  CEdge ** mpOutgoingEdges;
 };
 
 #endif /* SRC_NETWORK_CNETWORK_H_ */

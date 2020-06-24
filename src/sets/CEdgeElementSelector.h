@@ -42,7 +42,8 @@ private:
   bool all();
   bool propertySelection();
   bool propertyWithin();
-  bool withNodeIn();
+  bool withTargetNodeIn();
+  bool withSourceNodeIn();
   bool inDBTable();
   bool withDBFieldSelection();
   bool withDBFieldWithin();
@@ -59,7 +60,6 @@ private:
   CFieldValueList * mpDBFieldValueList;
   CValueInterface::pComparison mpComparison;
   std::string mSQLComparison;
-  CEdgeProperty::pGetNode mpGetNode;
   bool (CEdgeElementSelector::*mpCompute)();
 };
 

@@ -36,6 +36,8 @@ CNode CNode::getDefault()
   Default.nodeTrait = CTrait::NodeTrait->getDefault();
   Default.Edges = NULL;
   Default.EdgesSize = 0;
+  Default.pOutgoingEdges = NULL;
+  Default.OutgoingEdgesSize = 0;
 
   return Default;
 }
@@ -50,6 +52,8 @@ CNode::CNode()
   , nodeTrait()
   , Edges(NULL)
   , EdgesSize(0)
+  , pOutgoingEdges(NULL)
+  , OutgoingEdgesSize(0)
   , pHealthState(NULL)
 {}
 
@@ -63,6 +67,8 @@ CNode::CNode(const CNode & src)
   , nodeTrait(src.nodeTrait)
   , Edges(src.Edges)
   , EdgesSize(src.EdgesSize)
+  , pOutgoingEdges(src.pOutgoingEdges)
+  , OutgoingEdgesSize(src.OutgoingEdgesSize)
   , pHealthState(NULL)
 {
   setHealthState(src.pHealthState);

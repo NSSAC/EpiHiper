@@ -80,6 +80,7 @@ CNetwork::CNetwork(const std::string & networkFile)
   , mValid(false)
   , mTotalPendingActions(0)
   , mpJson(NULL)
+  , mpOutgoingEdges(NULL)
 {
   if (mFile.empty())
     {
@@ -105,6 +106,12 @@ CNetwork::~CNetwork()
     {
       delete[] mEdges;
       mEdges = NULL;
+    }
+
+  if (mpOutgoingEdges != NULL)
+    {
+      delete[] mpOutgoingEdges;
+      mpOutgoingEdges = NULL;
     }
 
   if (mpJson != NULL)
@@ -764,6 +771,8 @@ void CNetwork::load()
   }
 
   mEdges = new CEdge[mEdgesSize];
+  mpOutgoingEdges = new CEdge*[mEdgesSize];
+
   CLogger::info("Network: Allocation completed");
    
   is.open(File.str().c_str());
@@ -851,18 +860,42 @@ void CNetwork::load()
 
   if (mValid)
     {
-      for (pEdge = mEdges; pEdge != pEdgeEnd; ++pEdge)
-        if (pEdge->pSource == NULL)
-          {
-            pEdge->pSource = lookupNode(pEdge->sourceId, false);
+      std::map< CNode *, std::set< CEdge * > > OutgoingEdges;
 
-            if (pEdge->pSource == NULL)
-              {
-                CLogger::error() << "Network file: '" << mFile << "' Source not found "
-                                 << pEdge << ", " << pEdge->targetId << ", " << pEdge->sourceId << std::endl;
-                mValid = false; // DONE
-              }
-          }
+      for (pEdge = mEdges; pEdge != pEdgeEnd; ++pEdge)
+        {
+          if (pEdge->pSource == NULL)
+            {
+              pEdge->pSource = lookupNode(pEdge->sourceId, false);
+
+              if (pEdge->pSource == NULL)
+                {
+                  CLogger::error() << "Network file: '" << mFile << "' Source not found "
+                                  << pEdge << ", " << pEdge->targetId << ", " << pEdge->sourceId << std::endl;
+                  mValid = false; // DONE
+                }
+            }
+
+          OutgoingEdges[pEdge->pSource].insert(pEdge);
+        }
+
+      CEdge ** ppEdge = mpOutgoingEdges;
+      std::map< CNode *, std::set< CEdge * > >::const_iterator itNode = OutgoingEdges.begin();
+      std::map< CNode *, std::set< CEdge * > >::const_iterator endNode = OutgoingEdges.end();
+
+      for (; itNode != endNode; ++itNode)
+        {
+          itNode->first->pOutgoingEdges = ppEdge;
+          itNode->first->OutgoingEdgesSize = itNode->second.size();
+
+          std::set< CEdge * >::const_iterator itEdge = itNode->second.begin();
+          std::set< CEdge * >::const_iterator endEdge = itNode->second.end();
+
+          for (; itEdge != endEdge; ++itEdge, ++ppEdge)
+            {
+              *ppEdge = *itEdge;
+            }
+        }
     }
 }
 

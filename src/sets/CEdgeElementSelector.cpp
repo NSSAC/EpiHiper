@@ -38,7 +38,6 @@ CEdgeElementSelector::CEdgeElementSelector()
   , mpDBFieldValue(NULL)
   , mpDBFieldValueList(NULL)
   , mpComparison(NULL)
-  , mpGetNode(NULL)
   , mpCompute(NULL)
 {}
 
@@ -54,7 +53,6 @@ CEdgeElementSelector::CEdgeElementSelector(const CEdgeElementSelector & src)
   , mpDBFieldValue(src.mpDBFieldValue != NULL ? new CFieldValue(*src.mpDBFieldValue) : NULL)
   , mpDBFieldValueList(src.mpDBFieldValueList != NULL ? new CFieldValueList(*src.mpDBFieldValueList) : NULL)
   , mpComparison(src.mpComparison)
-  , mpGetNode(src.mpGetNode)
   , mpCompute(src.mpCompute)
 {}
 
@@ -70,7 +68,6 @@ CEdgeElementSelector::CEdgeElementSelector(const json_t * json)
   , mpDBFieldValue(NULL)
   , mpDBFieldValueList(NULL)
   , mpComparison(NULL)
-  , mpGetNode(NULL)
   , mpCompute(NULL)
 {
   fromJSON(json);
@@ -300,13 +297,11 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
         }
       else if (strcmp(json_string_value(pValue), "withTargetNodeIn") == 0)
         {
-          mpGetNode = &CEdgeProperty::targetNode;
-          mpCompute = &CEdgeElementSelector::withNodeIn;
+          mpCompute = &CEdgeElementSelector::withTargetNodeIn;
         }
       else if (strcmp(json_string_value(pValue), "withSourceNodeIn") == 0)
         {
-          mpGetNode = &CEdgeProperty::sourceNode;
-          mpCompute = &CEdgeElementSelector::withNodeIn;
+          mpCompute = &CEdgeElementSelector::withSourceNodeIn;
         }
     }
   else
@@ -454,7 +449,8 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
       return;
     }
 
-  if (mpGetNode != NULL)
+  if (mpCompute == &CEdgeElementSelector::withTargetNodeIn
+      || mpCompute == &CEdgeElementSelector::withSourceNodeIn)
     {
       mpSelector = CSetContent::create(json_object_get(json, "selector"));
 
@@ -673,19 +669,60 @@ bool CEdgeElementSelector::propertyWithin()
   return true;
 }
 
-bool CEdgeElementSelector::withNodeIn()
+bool CEdgeElementSelector::withTargetNodeIn()
 {
   std::vector< CEdge * > & Edges = getEdges();
   Edges.clear();
 
-  CEdge * pEdge = CNetwork::INSTANCE->beginEdge();
-  CEdge * pEdgeEnd = CNetwork::INSTANCE->endEdge();
+  const std::vector< CNode * > & Nodes = mpSelector->getNodes();
 
-  for (; pEdge != pEdgeEnd; ++pEdge)
-    if (mpSelector->contains((*mpGetNode)(pEdge)))
-      Edges.push_back(pEdge);
+  if (!Nodes.empty())
+    {
+      std::vector< CNode * >::const_iterator itNode = Nodes.begin();
+      std::vector< CNode * >::const_iterator endNode = Nodes.end();
 
-  CLogger::debug() << "CEdgeElementSelector: withNodeIn returned '" << Edges.size() << "' edges.";
+      for (; itNode != endNode; ++itNode)
+        {
+          CEdge * pEdge = (*itNode)->Edges;
+          CEdge * pEdgeEnd = pEdge + (*itNode)->EdgesSize;
+
+          for (;pEdge != pEdgeEnd; ++pEdge)
+            Edges.push_back(pEdge);
+        }
+
+      // Sorting is not necessarry since the nodes are sorted
+      // std::sort(Edges.begin(), Edges.end());
+    }
+
+  CLogger::debug() << "CEdgeElementSelector: withTargetNodeIn returned '" << Edges.size() << "' edges.";
+  return true;
+}
+
+bool CEdgeElementSelector::withSourceNodeIn()
+{
+  std::vector< CEdge * > & Edges = getEdges();
+  Edges.clear();
+
+  const std::vector< CNode * > & Nodes = mpSelector->getNodes();
+
+  if (!Nodes.empty())
+    {
+      std::vector< CNode * >::const_iterator itNode = Nodes.begin();
+      std::vector< CNode * >::const_iterator endNode = Nodes.end();
+
+      for (; itNode != endNode; ++itNode)
+        {
+          CEdge ** pEdge = (*itNode)->pOutgoingEdges;
+          CEdge ** pEdgeEnd = pEdge + (*itNode)->OutgoingEdgesSize;
+
+          for (;pEdge != pEdgeEnd; ++pEdge)
+            Edges.push_back(*pEdge);
+        }
+
+      std::sort(Edges.begin(), Edges.end());
+    }
+
+  CLogger::debug() << "CEdgeElementSelector: withSourceNodeIn returned '" << Edges.size() << "' edges.";
   return true;
 }
 
