@@ -27,7 +27,11 @@ cd cache.rivanna
 # EpiHiper
 [ -e EpiHiper ] || \
     scp rivanna1.hpc.virginia.edu:/project/biocomplexity/nssac/EpiHiper/build/src/EpiHiper .
-    
+
+# Intel Runtime Libraries
+[ -e l_comp_lib_2018.5.274_comp.cpp_redist.tgz ] || \
+    wget https://software.intel.com/sites/default/files/managed/b0/e9/l_comp_lib_2018.5.274_comp.cpp_redist.tgz
+
 # Intel MPI
 [ -e l_mpi_2018.5.288.tgz ] || \
     wget http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/15614/l_mpi_2018.5.288.tgz
@@ -36,15 +40,6 @@ cd cache.rivanna
 [ -e IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz ] || \
     wget https://downloadmirror.intel.com/28866/eng/IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz
     
-# Open MPI
-[ -e openmpi-2.1.5.tar.bz2 ] || \
-    wget https://download.open-mpi.org/release/open-mpi/v2.1/openmpi-2.1.5.tar.bz2
-
-# CMake
-[ -e cmake-3.15.4.tar.gz ] || \
-    wget https://github.com/Kitware/CMake/releases/download/v3.15.4/cmake-3.15.4.tar.gz
-    
-
 cd ..
 
 sudo "${SINGULARITY}" build $IMAGE $DEF | tee rivanna.log

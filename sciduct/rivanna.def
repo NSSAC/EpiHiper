@@ -15,6 +15,7 @@ From: centos:7.6.1810
 
 %files
     config.json /sciduct
+    cache.rivanna/l_comp_lib_2018.5.274_comp.cpp_redist.tgz /src
     cache.rivanna/l_mpi_2018.5.288.tgz /src
     cache.rivanna/IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz /src
     cache.rivanna/EpiHiper /epihiper/bin
@@ -75,7 +76,13 @@ From: centos:7.6.1810
 
     cd /src
 
-    # Install IntelOPA
+    # Install Intel Runtime Libraries
+    tar -xf l_comp_lib_2018.5.274_comp.cpp_redist.tgz
+    cd l_comp_lib_2018.5.274_comp.cpp_redist
+    ./install.sh -e -i /opt/intel
+    cd ..
+
+    # Install Intel MPI
     tar -xf l_mpi_2018.5.288.tgz
     yum -y install l_mpi_2018.5.288/rpm/*
 
@@ -99,7 +106,7 @@ From: centos:7.6.1810
     ln -s /usr/lib/node_modules/@shoops/epi-hiper-validator/bin/epiHiper* /epihiper/bin
 
 %environment
-    LD_LIBRARY_PATH=/epihiper/lib
+    LD_LIBRARY_PATH=/epihiper/lib:/opt/intel/compilers_and_libraries_2018.5.274/linux/compiler/lib/intel64_lin
     export LD_LIBRARY_PATH
 
 %apprun sciduct
