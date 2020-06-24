@@ -300,89 +300,127 @@ int CCommunicate::master(int masterRank,
   return (int) Result;
 }
 
+// static 
+int CCommunicate::RoundRobinRound;
+
+// static 
+int CCommunicate::RoundRobinEven;
+
+
+void CCommunicate::initRoundRobin()
+{
+  RoundRobinRound = 0;
+  RoundRobinEven = true;
+}
+
+// static 
+CCommunicate::Schedule CCommunicate::nextRoundRobin(int & other)
+{
+  Schedule result = Schedule::proceed; 
+  bool Odd = (MPIProcesses % 2 == 1);
+  int Rounds = Odd ? MPIProcesses: MPIProcesses - 1;
+  other = -1;
+
+  if (RoundRobinRound == Rounds)
+    return Schedule::finished;
+
+  if (MPIRank == Rounds)
+    {
+      if (Odd)
+        result = Schedule::skip;
+
+      if (RoundRobinEven)
+        other = RoundRobinRound / 2;
+      else
+        other = (Rounds + RoundRobinRound) / 2;
+
+      RoundRobinEven = !RoundRobinEven;
+    }
+  else
+    {
+      other = RoundRobinRound - MPIRank;
+
+      if (other < 0)
+        other += Rounds;
+
+      if (other == MPIRank)
+        other = Rounds;
+
+      if (Odd && other == Rounds)
+        result = Schedule::skip;
+    }
+
+  ++RoundRobinRound;
+
+  return result;
+}
+
 // static
 int CCommunicate::roundRobinFixed(const void * buffer,
-                             int count,
-                             CCommunicate::ReceiveInterface * pReceive)
+                                  int count,
+                                  CCommunicate::ReceiveInterface * pReceive)
 {
   ErrorCode Result = ErrorCode::Success;
   Status status;
 
-  bool Odd = (MPIProcesses % 2 == 1);
-  int Rounds = Odd ? MPIProcesses + 1: MPIProcesses - 1;
-  bool Even = true;
+  int other = -1;
 
-  for (int r = 0; r < Rounds; ++r)
+  initRoundRobin();
+
+  while (true)
     {
-      int other = -1; 
-      
-      if (MPIRank == Rounds)
+      switch (nextRoundRobin(other))
         {
-          if (Odd)
-            continue;
+        case Schedule::finished:
+          return (int) Result;
+          break;
 
-          if (Even)
-            other = r/2;
+        case Schedule::skip:
+          continue;
+          break;
+
+        case Schedule::proceed:
+          CLogger::debug() << "CCommunicate::roundRobinFixed: self: " << MPIRank << ", other: " << other;
+
+          if (other < MPIRank)
+            {
+              // send
+              if (count > 0)
+                {
+                  send(buffer, count, 0, MPICommunicator[other]);
+                }
+
+              // receive
+              if (count > 0)
+                {
+                  resizeReceiveBuffer(count);
+                  receive(ReceiveBuffer, count, 0, &status, MPICommunicator[other]);
+
+                  CStreamBuffer Buffer(ReceiveBuffer, count);
+                  std::istream is(&Buffer);
+
+                  Result = (*pReceive)(is, other);
+                }
+            }
           else
-            other = (Rounds + r)/2;
-
-          Even = !Even;                    
-        }
-      else
-        {
-          other = r - MPIRank;
-
-          if (other < 0)
-            other += Rounds;
-
-          if (other == MPIRank)
-            other = Rounds;
-
-          if (Odd && other == Rounds)
-            continue;
-        }
-      
-
-      CLogger::debug() << "CCommunicate::roundRobinFixed: self: " << MPIRank << ", other: " << other;
-
-      if (other < MPIRank)
-        {
-          // send
-          if (count > 0)
             {
-              send(buffer, count, 0, MPICommunicator[other]);
-            }
+              // receive
+              if (count > 0)
+                {
+                  resizeReceiveBuffer(count);
+                  receive(ReceiveBuffer, count, 1, &status, MPICommunicator[other]);
 
-          // receive
-          if (count > 0)
-            {
-              resizeReceiveBuffer(count);
-              receive(ReceiveBuffer, count, 0, &status, MPICommunicator[other]);
+                  CStreamBuffer Buffer(ReceiveBuffer, count);
+                  std::istream is(&Buffer);
 
-              CStreamBuffer Buffer(ReceiveBuffer, count);
-              std::istream is(&Buffer);
+                  Result = (*pReceive)(is, other);
+                }
 
-              Result = (*pReceive)(is, other);
-            }
-        }
-      else
-        {
-          // receive
-          if (count > 0)
-            {
-              resizeReceiveBuffer(count);
-              receive(ReceiveBuffer, count, 1, &status, MPICommunicator[other]);
-
-              CStreamBuffer Buffer(ReceiveBuffer, count);
-              std::istream is(&Buffer);
-
-              Result = (*pReceive)(is, other);
-            }
-
-          // send
-          if (count > 0)
-            {
-              send(buffer, count, 1, MPICommunicator[other]);
+              // send
+              if (count > 0)
+                {
+                  send(buffer, count, 1, MPICommunicator[other]);
+                }
             }
         }
     }
@@ -398,92 +436,164 @@ int CCommunicate::roundRobin(const void * buffer,
   ErrorCode Result = ErrorCode::Success;
   Status status;
 
-  bool Odd = (MPIProcesses % 2 == 1);
-  int Rounds = Odd ? MPIProcesses + 1: MPIProcesses - 1;
   int Count;
-  bool Even = true;
+  int other = -1;
 
-  for (int r = 0; r < Rounds; ++r)
+  initRoundRobin();
+
+  while (true)
     {
-      int other = -1; 
-      
-      if (MPIRank == Rounds)
+      switch (nextRoundRobin(other))
         {
-          if (Odd)
-            continue;
+        case Schedule::finished:
+          return (int) Result;
+          break;
 
-          if (Even)
-            other = r/2;
+        case Schedule::skip:
+          continue;
+          break;
+
+        case Schedule::proceed:
+          CLogger::debug() << "CCommunicate::roundRobin: self: " << MPIRank << ", other: " << other;
+
+          if (other < MPIRank)
+            {
+              // send
+              Count = count;
+              send(&Count, sizeof(int), 0, MPICommunicator[other]);
+
+              if (Count > 0)
+                {
+                  send(buffer, Count, 0, MPICommunicator[other]);
+                }
+
+              // receive
+              receive(&Count, sizeof(int), 0, &status, MPICommunicator[other]);
+
+              if (Count > 0)
+                {
+                  resizeReceiveBuffer(Count);
+                  receive(ReceiveBuffer, Count, 0, &status, MPICommunicator[other]);
+
+                  CStreamBuffer Buffer(ReceiveBuffer, Count);
+                  std::istream is(&Buffer);
+
+                  Result = (*pReceive)(is, other);
+                }
+            }
           else
-            other = (Rounds + r)/2;
-
-          Even = !Even;                    
-        }
-      else
-        {
-          other = r - MPIRank;
-
-          if (other < 0)
-            other += Rounds;
-
-          if (other == MPIRank)
-            other = Rounds;
-
-          if (Odd && other == Rounds)
-            continue;
-        }
-      
-
-      CLogger::debug() << "CCommunicate::roundRobin: self: " << MPIRank << ", other: " << other;
-
-      if (other < MPIRank)
-        {
-          // send
-          Count = count;
-          send(&Count, sizeof(int), 0, MPICommunicator[other]);
-
-          if (Count > 0)
             {
-              send(buffer, Count, 0, MPICommunicator[other]);
-            }
+              // receive
+              receive(&Count, sizeof(int), 1, &status, MPICommunicator[other]);
 
-          // receive
-          receive(&Count, sizeof(int), 0, &status, MPICommunicator[other]);
+              if (Count > 0)
+                {
+                  resizeReceiveBuffer(Count);
+                  receive(ReceiveBuffer, Count, 1, &status, MPICommunicator[other]);
 
-          if (Count > 0)
-            {
-              resizeReceiveBuffer(Count);
-              receive(ReceiveBuffer, Count, 0, &status, MPICommunicator[other]);
+                  CStreamBuffer Buffer(ReceiveBuffer, Count);
+                  std::istream is(&Buffer);
 
-              CStreamBuffer Buffer(ReceiveBuffer, Count);
-              std::istream is(&Buffer);
+                  Result = (*pReceive)(is, other);
+                }
 
-              Result = (*pReceive)(is, other);
+              // send
+              Count = count;
+              send(&Count, sizeof(int), 1, MPICommunicator[other]);
+
+              if (Count > 0)
+                {
+                  send(buffer, Count, 1, MPICommunicator[other]);
+                }
             }
         }
-      else
+    }
+
+  return (int) Result;
+}
+
+// static
+int CCommunicate::roundRobin(SendInterface * pSend,
+                             ReceiveInterface * pReceive)
+{
+  ErrorCode Result = ErrorCode::Success;
+  Status status;
+
+  int Count;
+  int other = -1;
+
+  initRoundRobin();
+
+  while (true)
+    {
+      switch (nextRoundRobin(other))
         {
-          // receive
-          receive(&Count, sizeof(int), 1, &status, MPICommunicator[other]);
+        case Schedule::finished:
+          return (int) Result;
+          break;
 
-          if (Count > 0)
+        case Schedule::skip:
+          continue;
+          break;
+
+        case Schedule::proceed:
+          CLogger::debug() << "CCommunicate::roundRobin: self: " << MPIRank << ", other: " << other;
+
+          if (other < MPIRank)
             {
-              resizeReceiveBuffer(Count);
-              receive(ReceiveBuffer, Count, 1, &status, MPICommunicator[other]);
+              // send
+              std::ostringstream os;
+              Result = (*pSend)(os, other);
 
-              CStreamBuffer Buffer(ReceiveBuffer, Count);
-              std::istream is(&Buffer);
+              Count = os.str().size();
+              send(&Count, sizeof(int), 0, MPICommunicator[other]);
 
-              Result = (*pReceive)(is, other);
+              if (Count > 0)
+                {
+                  send(os.str().c_str(), Count, 0, MPICommunicator[other]);
+                }
+
+              // receive
+              receive(&Count, sizeof(int), 0, &status, MPICommunicator[other]);
+
+              if (Count > 0)
+                {
+                  resizeReceiveBuffer(Count);
+                  receive(ReceiveBuffer, Count, 0, &status, MPICommunicator[other]);
+
+                  CStreamBuffer Buffer(ReceiveBuffer, Count);
+                  std::istream is(&Buffer);
+
+                  Result = (*pReceive)(is, other);
+                }
             }
-
-          // send
-          Count = count;
-          send(&Count, sizeof(int), 1, MPICommunicator[other]);
-
-          if (Count > 0)
+          else
             {
-              send(buffer, Count, 1, MPICommunicator[other]);
+              // receive
+              receive(&Count, sizeof(int), 1, &status, MPICommunicator[other]);
+
+              if (Count > 0)
+                {
+                  resizeReceiveBuffer(Count);
+                  receive(ReceiveBuffer, Count, 1, &status, MPICommunicator[other]);
+
+                  CStreamBuffer Buffer(ReceiveBuffer, Count);
+                  std::istream is(&Buffer);
+
+                  Result = (*pReceive)(is, other);
+                }
+
+              // send
+              std::ostringstream os;
+              Result = (*pSend)(os, other);
+
+              Count = os.str().size();
+              send(&Count, sizeof(int), 1, MPICommunicator[other]);
+
+              if (Count > 0)
+                {
+                  send(os.str().c_str(), Count, 1, MPICommunicator[other]);
+                }
             }
         }
     }
@@ -614,6 +724,23 @@ CCommunicate::ErrorCode CCommunicate::Receive::operator()(std::istream & is, int
 {
   // execute member function
   return (*mMethod)(is, sender);
+}
+
+CCommunicate::Send::Send(CCommunicate::Send::Type method)
+  : CCommunicate::SendInterface()
+  , mMethod(method)
+{}
+
+// virtual
+CCommunicate::Send::~Send()
+{}
+
+// override operator "()"
+// virtual 
+CCommunicate::ErrorCode CCommunicate::Send::operator()(std::ostream & os, int receiver)
+{
+  // execute member function
+  return (*mMethod)(os, receiver);
 }
 
 CCommunicate::SequentialProcess::SequentialProcess(CCommunicate::SequentialProcess::Type method)

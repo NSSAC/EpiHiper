@@ -174,6 +174,35 @@ CCommunicate::ErrorCode CChanges::determineNodesRequested()
   return CCommunicate::ErrorCode::Success;
 }
 
+// static 
+CCommunicate::ErrorCode CChanges::sendNodesRequested(std::ostream & os, int receiver)
+{
+  std::set< const CNode * >::const_iterator it = Nodes.begin();
+  std::set< const CNode * >::const_iterator end = Nodes.end();
+
+  const std::set< const CNode * > & Requested = RankToNodesRequested[receiver];
+  std::set< const CNode * >::const_iterator itRequested = Requested.begin();
+  std::set< const CNode * >::const_iterator endRequested = Requested.end();
+
+  while (it != end && itRequested != endRequested)
+    if (*it < *itRequested)
+      {
+        ++it;
+      }
+    else if (*it > *itRequested)
+      {
+        ++itRequested;
+      }
+    else
+      {
+        (*it)->toBinary(os);
+        ++it;
+        ++itRequested;
+      }
+
+  return CCommunicate::ErrorCode::Success;
+}
+
 // static
 CCommunicate::ErrorCode CChanges::receiveNodesRequested(std::istream & is, int sender)
 {
@@ -222,38 +251,6 @@ const std::ostringstream & CChanges::getNodes()
     {
       (*it)->toBinary(os);
     }
-
-  return os;
-}
-
-// static 
-const std::ostringstream & CChanges::getNodes(const size_t & Rank)
-{
-  static std::ostringstream os;
-  os.str("");
-
-  std::set< const CNode * >::const_iterator it = Nodes.begin();
-  std::set< const CNode * >::const_iterator end = Nodes.end();
-
-  const std::set< const CNode * > & Requested = RankToNodesRequested[Rank];
-  std::set< const CNode * >::const_iterator itRequested = Requested.begin();
-  std::set< const CNode * >::const_iterator endRequested = Requested.end();
-
-  while (it != end && itRequested != endRequested)
-    if (*it < *itRequested)
-      {
-        ++it;
-      }
-    else if (*it > *itRequested)
-      {
-        ++itRequested;
-      }
-    else
-      {
-        (*it)->toBinary(os);
-        ++it;
-        ++itRequested;
-      }
 
   return os;
 }

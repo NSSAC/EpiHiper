@@ -1308,8 +1308,9 @@ int CNetwork::broadcastChanges()
   std::string Buffer = CChanges::getNodes().str();
 
   // std::cout << Communicate::Rank << ": ActionQueue::broadcastChanges (Nodes)" << std::endl;
-  CCommunicate::ClassMemberReceive< CNetwork > ReceiveNode(CNetwork::INSTANCE, &CNetwork::receiveNodes);
-  CCommunicate::roundRobin(Buffer.c_str(), Buffer.length(), &ReceiveNode);
+  CCommunicate::Send SendNodes(&CChanges::sendNodesRequested);
+  CCommunicate::ClassMemberReceive< CNetwork > ReceiveNodes(CNetwork::INSTANCE, &CNetwork::receiveNodes);
+  CCommunicate::roundRobin(&SendNodes, &ReceiveNodes);
 
   // Buffer = CChanges::getEdges().str();
 

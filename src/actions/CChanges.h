@@ -42,12 +42,12 @@ public:
   static size_t size();
 
   static const std::ostringstream &  getNodes();
-  static const std::ostringstream &  getNodes(const size_t & Rank);
   static const std::ostringstream &  getEdges();
 
   static void initDefaultOutput();
   static void writeDefaultOutput();
   static CCommunicate::ErrorCode writeDefaultOutputData();
+  static CCommunicate::ErrorCode sendNodesRequested(std::ostream & os, int sender);
   static CCommunicate::ErrorCode determineNodesRequested();
   static CCommunicate::ErrorCode receiveNodesRequested(std::istream & is, int sender);
   static void setCurrentTick(size_t tick);

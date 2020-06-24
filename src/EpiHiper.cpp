@@ -28,6 +28,7 @@
 #include "utilities/CSimConfig.h"
 #include "utilities/CStatus.h"
 #include "actions/CActionQueue.h"
+#include "actions/CChanges.h"
 #include "intervention/CInitialization.h"
 #include "intervention/CIntervention.h"
 #include "variables/CVariableList.h"
@@ -166,6 +167,7 @@ int main(int argc, char * argv[])
       goto failed;
     }
 
+  CChanges::determineNodesRequested();
   CCommunicate::memUsage(-2);
 
   {

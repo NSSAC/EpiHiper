@@ -59,13 +59,13 @@ void CFieldValue::fromJSON(const json_t * json)
       destroyValue();
 
       if (mType == Type::integer)
-        mpValue = new int(json_integer_value(pValue));  
+        mpValue = new int(json_integer_value(pValue));
       else
-      {
-        mType = Type::number;
-        mpValue = new double(json_real_value(pValue));
-      }
-      
+        {
+          mType = Type::number;
+          mpValue = new double(json_real_value(pValue));
+        }
+
       mValid = true;
       return;
     }

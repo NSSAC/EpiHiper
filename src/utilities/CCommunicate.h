@@ -87,6 +87,53 @@ public:
     ErrorCode (Receiver::*mpMethod)(std::istream & /* is */, int /* sender */);
   };
 
+  class SendInterface
+  {
+  public:
+    typedef ErrorCode (*Type)(std::ostream & /* os */, int /* receiver */);
+
+    virtual ~SendInterface(){};
+
+    virtual ErrorCode operator()(std::ostream & /* os */, int /* receiver */) = 0;
+  };
+
+  class Send : public SendInterface
+  {
+  public:
+    Send() = delete;
+    Send(Type method);
+
+    virtual ~Send();
+
+    // override operator "()"
+    virtual ErrorCode operator()(std::ostream & os, int receiver) override;
+
+  private:
+    Type mMethod;
+  };
+
+  template < class Sender >
+  class ClassMemberSend : public SendInterface
+  {
+  public:
+    ClassMemberSend() = delete;
+
+    ClassMemberSend(Sender * pSender,
+                    ErrorCode (Sender::*method)(std::ostream & /* os */, int /* receiver */));
+
+    virtual ~ClassMemberSend();
+
+    // override operator "()"
+    virtual ErrorCode operator()(std::istream & os, int receiver) override;
+
+  private:
+    /**
+     * The pointer to the instance of the caller
+     */
+    Sender * mpSender; // pointer to object
+    ErrorCode (Sender::*mpMethod)(std::ostream & /* os */, int /* receiver */);
+  };
+
   class SequentialProcessInterface
   {
   public:
@@ -179,6 +226,9 @@ public:
                         int count,
                         ReceiveInterface * pReceive);
 
+  static int roundRobin(SendInterface * pSend,
+                        ReceiveInterface * pReceive);
+
   static int abortMessage(ErrorCode err, const std::string & msg, const char * file, int line);
 
   static int abort(ErrorCode errorcode);
@@ -210,6 +260,20 @@ private:
   static size_t RMAIndex;
 
   static void resizeReceiveBuffer(int size);
+
+ // static
+  enum struct Schedule
+  {
+    proceed,
+    finished,
+    skip
+  };
+
+  static int RoundRobinRound;
+  static int RoundRobinEven;
+
+  static void initRoundRobin();
+  static Schedule nextRoundRobin(int & other);
 };
 
 template < class Receiver >
