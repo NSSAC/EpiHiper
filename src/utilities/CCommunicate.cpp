@@ -632,8 +632,13 @@ int CCommunicate::barrierRMA()
 {
   int result = (int) ErrorCode::Success;
 
+
   if (MPIWinSize > 0)
-    result = MPI_Win_fence(0, MPIWin);
+    {
+      CLogger::debug() << "CCommunicate::barrierRMA: before";
+      result = MPI_Win_fence(0, MPIWin);
+      CLogger::debug() << "CCommunicate::barrierRMA: after";
+    }
 
   return result; 
 }
