@@ -16,6 +16,7 @@
 #include <iostream>
 
 #include <mpi.h>
+#include <omp.h>
 
 #define FatalError(err, msg) \
   { \
@@ -188,6 +189,8 @@ public:
   static int MPIPreviousRank;
   static int MPIProcesses;
   static MPI_Comm * MPICommunicator;
+
+  static int OMPMaxProcesses;
   
   static void init(int argc, char ** argv);
 

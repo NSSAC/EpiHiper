@@ -21,8 +21,8 @@ set(CMAKE_CXX_STANDARD 11)
 find_package (MPI REQUIRED)
 include_directories(BEFORE ${MPI_INCLUDE_PATH})
 
-# find_package (OSHMEM REQUIRED)
-# include_directories(BEFORE ${OSHMEM_INCLUDE_PATH})
+find_package (OpenMP REQUIRED)
+include_directories(BEFORE ${OpenMP_INCLUDE_PATH})
 
 find_package (PGSQL REQUIRED)
 include_directories(BEFORE ${PGSQL_INCLUDE_DIR})
@@ -52,8 +52,8 @@ message(STATUS "-----------------------------------------------------------
    MPI LDFLAGS        = ${MPI_LINKER_FLAGS}
    MPI include        = ${MPI_INCLUDE_PATH}
 
-   OSHMEM Libs        = ${OSHMEM_LIBRARIES}
-   OSHMEM include     = ${OSHMEM_INCLUDE_DIR}
+   OpenMP CXX Flags   = ${OpenMP_CXX_FLAGS}
+   OpenMP Libs        = ${OpenMP_C_LIB_NAMES}
    
    PostgreSQL Libs    = ${PGSQL_LIBRARY}
    PostgreSQL include = ${PGSQL_INCLUDE_DIR}

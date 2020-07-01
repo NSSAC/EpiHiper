@@ -54,6 +54,8 @@ void CCommunicate::resizeReceiveBuffer(int size)
 // static
 void CCommunicate::init(int argc, char ** argv)
 {
+  OMPMaxProcesses = omp_get_max_threads();
+
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &MPIRank);
   MPI_Comm_size(MPI_COMM_WORLD, &MPIProcesses);
@@ -61,12 +63,14 @@ void CCommunicate::init(int argc, char ** argv)
   MPINextRank = (MPIProcesses + MPIRank + 1) % MPIProcesses;
   MPIPreviousRank = (MPIProcesses + MPIRank - 1) % MPIProcesses;
 
+
   CLogger::setTask(MPIRank, MPIProcesses);
 
   MPICommunicator = new MPI_Comm[MPIProcesses];
   int Shift = sizeof(int) * 4;
   MPI_Comm Dummy;
 
+  // Initialize pairwise communicators for round robin tournament messaging
   for (int i = 0; i < MPIProcesses; ++i)
     for (int j = i + 1; j < MPIProcesses; ++j)
       {

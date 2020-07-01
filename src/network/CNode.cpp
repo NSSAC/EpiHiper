@@ -262,7 +262,7 @@ bool CNode::setNodeTrait(CTraitData::value value, CValueInterface::pOperator pOp
 
 void CNode::setHealthState(const CHealthState * pNewHealthState)
 {
-  if (CNetwork::INSTANCE->isRemoteNode(this))
+  if (CNetwork::Context.Active().isRemoteNode(this))
     {
       pHealthState = pNewHealthState;
       healthState = CModel::StateToType(pHealthState);

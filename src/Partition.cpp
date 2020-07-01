@@ -175,7 +175,8 @@ int main(int argc, char * argv[])
     }
 
   CTrait::init();
-  CNetwork All(ContactNetwork);
+  CNetwork All;
+  All.loadJsonPreamble(ContactNetwork);
   All.partition(Parts, true, OutputDirectory);
 
   if (CLogger::hasErrors())

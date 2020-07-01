@@ -197,6 +197,7 @@ CActionQueue::~CActionQueue()
 
 int CActionQueue::broadcastPendingActions()
 {
+  // TODO CRITICAL handle actions which are for local OMP processes.
   std::ostringstream os;
 
   mTotalPendingActions = pendingActions();
@@ -246,7 +247,7 @@ CCommunicate::ErrorCode CActionQueue::receivePendingActions(std::istream & is, i
             if (is.fail())
               break;
 
-            CNode * pNode = CNetwork::INSTANCE->lookupNode(NodeId, true);
+            CNode * pNode = CNetwork::Context.Active().lookupNode(NodeId, true);
 
             if (pNode != NULL
                 && pActionDefinition != NULL)
@@ -269,7 +270,7 @@ CCommunicate::ErrorCode CActionQueue::receivePendingActions(std::istream & is, i
             if (is.fail())
               break;
 
-            CEdge * pEdge = CNetwork::INSTANCE->lookupEdge(TargetId, SourceId);
+            CEdge * pEdge = CNetwork::Context.Active().lookupEdge(TargetId, SourceId);
 
             if (pEdge != NULL
                 && pActionDefinition != NULL)

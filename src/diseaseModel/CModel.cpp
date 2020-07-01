@@ -282,12 +282,12 @@ bool CModel::processTransmissions() const
 
   CRandom::uniform_real Uniform01(0.0, 1.0);
 
-  CNode * pNode = CNetwork::INSTANCE->beginNode();
-  CNode * pNodeEnd = CNetwork::INSTANCE->endNode();
+  CNode * pNode = CNetwork::Context.Active().beginNode();
+  CNode * pNodeEnd = CNetwork::Context.Active().endNode();
 
   CTransmission ** pPossibleTransmissions = NULL;
   
-  for (pNode = CNetwork::INSTANCE->beginNode(); pNode != pNodeEnd; ++pNode)
+  for (pNode = CNetwork::Context.Active().beginNode(); pNode != pNodeEnd; ++pNode)
     if (pNode->susceptibility > 0.0
         && (pPossibleTransmissions = mPossibleTransmissions[pNode->healthState].Transmissions) != NULL)
       {

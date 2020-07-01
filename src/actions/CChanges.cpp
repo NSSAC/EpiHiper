@@ -155,7 +155,7 @@ CCommunicate::ErrorCode CChanges::writeDefaultOutputData()
 // static
 CCommunicate::ErrorCode CChanges::determineNodesRequested()
 {
-  const std::map< size_t, CNode > & RemoteNodes = CNetwork::INSTANCE->getRemoteNodes();
+  const std::map< size_t, CNode > & RemoteNodes = CNetwork::Context.Active().getRemoteNodes();
   std::map< size_t, CNode >::const_iterator it = RemoteNodes.begin();
   std::map< size_t, CNode >::const_iterator end = RemoteNodes.end();
 
@@ -217,7 +217,7 @@ CCommunicate::ErrorCode CChanges::receiveNodesRequested(std::istream & is, int s
       if (is.fail())
         break;
 
-      CNode * pNode = CNetwork::INSTANCE->lookupNode(id, true);
+      CNode * pNode = CNetwork::Context.Active().lookupNode(id, true);
 
       if (pNode != NULL)
         Requested.insert(pNode);
@@ -225,8 +225,8 @@ CCommunicate::ErrorCode CChanges::receiveNodesRequested(std::istream & is, int s
 
   CLogger::debug() << "CChanges::receiveNodesRequested: rank "
                    << sender << " requested " << Requested.size() << " of "
-                   << CNetwork::INSTANCE->getLocalNodeCount() << " ("
-                   << 100.0 * Requested.size() / CNetwork::INSTANCE->getLocalNodeCount() << ")";
+                   << CNetwork::Context.Active().getLocalNodeCount() << " ("
+                   << 100.0 * Requested.size() / CNetwork::Context.Active().getLocalNodeCount() << ")";
 
   return CCommunicate::ErrorCode::Success;
 }

@@ -78,7 +78,7 @@ bool CSimulation::run()
   CChanges::writeDefaultOutput();
   CModel::UpdateGlobalStateCounts();
   CModel::WriteGlobalStateCounts();
-  CNetwork::INSTANCE->broadcastChanges();
+  CNetwork::Context.Active().broadcastChanges();
 
   CStatus::update("running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
 
@@ -104,7 +104,7 @@ bool CSimulation::run()
       CChanges::writeDefaultOutput();
       CModel::UpdateGlobalStateCounts();
       CModel::WriteGlobalStateCounts();
-      CNetwork::INSTANCE->broadcastChanges();
+      CNetwork::Context.Active().broadcastChanges();
 
       CStatus::update("running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
     }

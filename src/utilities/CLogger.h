@@ -15,8 +15,20 @@
 
 #include <sstream>
 #include <stack>
+#include <omp.h>
+
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/sink.h>
+#include "utilities/CContext.h"
+
+struct LoggerData
+{
+  std::shared_ptr< spdlog::logger > pLogger;
+  std::shared_ptr< spdlog::sinks::sink > pConsole;
+  std::shared_ptr< spdlog::sinks::sink > pFile;
+  std::string task;
+  std::stack< spdlog::level::level_enum > levels;
+};
 
 class CLogger
 {
@@ -34,8 +46,17 @@ private:
     static void flush(const std::string & msg);
   };
 
-public:
+public : 
   typedef spdlog::level::level_enum LogLevel;
+
+  struct LoggerData
+  {
+    std::shared_ptr< spdlog::logger > pLogger;
+    std::shared_ptr< spdlog::sinks::sink > pConsole;
+    std::shared_ptr< spdlog::sinks::sink > pFile;
+    std::string task;
+    std::stack< spdlog::level::level_enum > levels;
+  };
 
   static void init();
 
@@ -51,7 +72,7 @@ public:
 
   static void setLogDir(const std::string dir);
   
-  static const std::string sanitize(std::string dirty);
+  static std::string sanitize(std::string dirty);
 
   static bool hasErrors();
 
@@ -64,20 +85,18 @@ public:
   typedef CStream< spdlog::level::off > off;
 
 private:
+  static void initData(LoggerData & loggerData);
+  static void releaseData(LoggerData & loggerData);
   static void setLevel();
-  static std::stack< LogLevel > levels;
-  static std::string task;
   static bool haveErrors;
-  static std::shared_ptr< spdlog::logger > pLogger;
-  static std::shared_ptr< spdlog::sinks::sink > pConsole;
-  static std::shared_ptr< spdlog::sinks::sink > pFile;
+  static CContext< LoggerData > Context;
 };
 
 template < int level >
 CLogger::CStream< level >::CStream()
   : std::ostringstream()
 {
-  if (levels.top() > level)
+  if (Context.Active().levels.top() > level)
     setstate(std::ios_base::badbit);
 }
 
@@ -85,7 +104,7 @@ template < int level >
 CLogger::CStream< level >::CStream(const std::string & msg)
   : std::ostringstream()
 {
-  if (levels.top() <= level)
+  if (Context.Active().levels.top() <= level)
     flush(msg);
 
   setstate(std::ios_base::badbit);
@@ -113,27 +132,31 @@ void CLogger::CStream< level >::flush()
 template < int level >
 void CLogger::CStream< level >::flush(const std::string & msg)
 {
+  LoggerData & Active = Context.Active();
+
   switch (static_cast< LogLevel >(level))
     {
     case spdlog::level::trace:
-      spdlog::trace(task + msg);
+      Active.pLogger->trace(Active.task + " " + msg);
       break;
     case spdlog::level::debug:
-      spdlog::debug(task + msg);
+      Active.pLogger->debug(Active.task + " " + msg);
       break;
     case spdlog::level::info:
-      spdlog::info(task + msg);
+      Active.pLogger->info(Active.task + " " + msg);
       break;
     case spdlog::level::warn:
-      spdlog::warn(task + msg);
+      Active.pLogger->warn(Active.task + " " + msg);
       break;
     case spdlog::level::err:
-      haveErrors = true;
-      spdlog::error(task + msg);
+#pragma omp atomic
+      haveErrors |= true;
+      Active.pLogger->error(Active.task + " " + msg);
       break;
     case spdlog::level::critical:
-      haveErrors = true;
-      spdlog::critical(task + msg);
+#pragma omp atomic
+      haveErrors |= true;
+      Active.pLogger->critical(Active.task + " " + msg);
       break;
     case spdlog::level::off:
       break;

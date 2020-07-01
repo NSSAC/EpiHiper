@@ -111,8 +111,8 @@ void CQuery::init()
     {
       std::ostringstream Query;
 
-      CNode * pBegin = CNetwork::INSTANCE->beginNode();
-      CNode * pEnd = CNetwork::INSTANCE->endNode() - 1;
+      CNode * pBegin = CNetwork::Context.Active().beginNode();
+      CNode * pEnd = CNetwork::Context.Active().endNode() - 1;
       Query << "pid BETWEEN " << pBegin->id << " AND " << pEnd->id;
 
       LocalConstraint = Query.str();

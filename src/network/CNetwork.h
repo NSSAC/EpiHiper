@@ -18,6 +18,7 @@
 
 #include "utilities/CAnnotation.h"
 #include "utilities/CCommunicate.h"
+#include "utilities/CContext.h"
 
 struct json_t;
 class CNode;
@@ -27,11 +28,6 @@ class CTrait;
 class CNetwork: public CAnnotation
 {
 private:
-  /**
-   * Default constructor
-   */
-  CNetwork() = delete;
-
   bool loadEdge(CEdge * pEdge, std::istream & is) const;
   void writeEdge(CEdge * pEdge, std::ostream & os) const;
   void partition(std::istream & is, const int & parts, const bool & save, const std::string & outputDirectory);
@@ -56,23 +52,26 @@ private:
 
 
 public:
-  static CNetwork * INSTANCE;
+  static CContext< CNetwork > Context;
 
   static void init();
   static void release();
 
   /**
-   * Copy construnctor
+   * Default construnctor
    * @param const std::string & networkFile
    */
-  CNetwork(const std::string & networkFile);
+  CNetwork();
 
   /**
    * Destructor
    */
   virtual ~CNetwork();
 
+  void loadJsonPreamble(const std::string & networkFile);
+
   void load();
+
   void write(const std::string & file, bool binary);
 
   void partition(const int & parts, const bool & save, const std::string & outputDirectory = "");
@@ -119,7 +118,7 @@ private:
   size_t mFirstLocalNode;
   size_t mBeyondLocalNode;
   size_t mLocalNodesSize;
-  std::map< size_t, CNode > mRemoteNodes;
+  std::map< size_t, CNode > *mpRemoteNodes;
   CEdge * mEdges;
   size_t mEdgesSize;
   size_t mTotalNodesSize;

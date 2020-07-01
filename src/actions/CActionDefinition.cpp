@@ -245,7 +245,7 @@ void CActionDefinition::process(const CEdge * pEdge) const
   if (pEdge == NULL)
     return;
 
-  if (CNetwork::INSTANCE->isRemoteNode(pEdge->pTarget))
+  if (CNetwork::Context.Active().isRemoteNode(pEdge->pTarget))
     {
       CLogger::trace() << "CActionDefinition: Add remote action for edge `" << pEdge->targetId << "," << pEdge->sourceId << "'.";
       CActionQueue::addRemoteAction(mIndex, pEdge);
@@ -268,7 +268,7 @@ void CActionDefinition::process(const CNode * pNode) const
   if (pNode == NULL)
     return;
 
-  if (CNetwork::INSTANCE->isRemoteNode(pNode))
+  if (CNetwork::Context.Active().isRemoteNode(pNode))
     {
       CLogger::trace() << "CActionDefinition: Add remote action for node `" << pNode->id << "'.";
       CActionQueue::addRemoteAction(mIndex, pNode);

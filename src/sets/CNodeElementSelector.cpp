@@ -726,8 +726,8 @@ bool CNodeElementSelector::all()
 
   if (Nodes.empty())
     {
-      Nodes.resize(CNetwork::INSTANCE->getLocalNodeCount());
-      CNode * pNode = CNetwork::INSTANCE->beginNode();
+      Nodes.resize(CNetwork::Context.Active().getLocalNodeCount());
+      CNode * pNode = CNetwork::Context.Active().beginNode();
       std::vector< CNode * >::iterator it = Nodes.begin();
       std::vector< CNode * >::iterator end = Nodes.end();
 
@@ -744,8 +744,8 @@ bool CNodeElementSelector::propertySelection()
   std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
 
-  CNode * pNode = CNetwork::INSTANCE->beginNode();
-  CNode * pNodeEnd = CNetwork::INSTANCE->endNode();
+  CNode * pNode = CNetwork::Context.Active().beginNode();
+  CNode * pNodeEnd = CNetwork::Context.Active().endNode();
 
   for (; pNode != pNodeEnd; ++pNode)
     if (mpComparison(mNodeProperty.propertyOf(pNode), *mpValue))
@@ -754,8 +754,8 @@ bool CNodeElementSelector::propertySelection()
   if (!mLocalScope)
     {
       CLogger::debug("CNodeElementSelector: Processing remote nodes");
-      std::map< size_t, CNode >::const_iterator it = CNetwork::INSTANCE->beginRemoteNodes();
-      std::map< size_t, CNode >::const_iterator end = CNetwork::INSTANCE->endRemoteNodes();
+      std::map< size_t, CNode >::const_iterator it = CNetwork::Context.Active().beginRemoteNodes();
+      std::map< size_t, CNode >::const_iterator end = CNetwork::Context.Active().endRemoteNodes();
       bool sort = false;
 
       for (; it != end; ++it)
@@ -778,8 +778,8 @@ bool CNodeElementSelector::propertyWithin()
   std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
 
-  CNode * pNode = CNetwork::INSTANCE->beginNode();
-  CNode * pNodeEnd = CNetwork::INSTANCE->endNode();
+  CNode * pNode = CNetwork::Context.Active().beginNode();
+  CNode * pNodeEnd = CNetwork::Context.Active().endNode();
 
   for (; pNode != pNodeEnd; ++pNode)
     if (mpValueList->contains(mNodeProperty.propertyOf(pNode)))
@@ -789,8 +789,8 @@ bool CNodeElementSelector::propertyWithin()
     {
       CLogger::debug("CNodeElementSelector: Processing remote nodes");
 
-      std::map< size_t, CNode >::const_iterator it = CNetwork::INSTANCE->beginRemoteNodes();
-      std::map< size_t, CNode >::const_iterator end = CNetwork::INSTANCE->endRemoteNodes();
+      std::map< size_t, CNode >::const_iterator it = CNetwork::Context.Active().beginRemoteNodes();
+      std::map< size_t, CNode >::const_iterator end = CNetwork::Context.Active().endRemoteNodes();
       bool sort = false;
 
       for (; it != end; ++it)
@@ -844,7 +844,7 @@ bool CNodeElementSelector::inDBTable()
 
   for (; it != end; ++it)
     {
-      if ((pNode = CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope)) != NULL)
+      if ((pNode = CNetwork::Context.Active().lookupNode(it->toId(), mLocalScope)) != NULL)
         Nodes.push_back(pNode);
     }
 
@@ -874,7 +874,7 @@ bool CNodeElementSelector::withDBFieldSelection()
 
   for (; it != end; ++it)
     {
-      if ((pNode = CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope)) != NULL)
+      if ((pNode = CNetwork::Context.Active().lookupNode(it->toId(), mLocalScope)) != NULL)
         Nodes.push_back(pNode);
     }
 
@@ -911,7 +911,7 @@ bool CNodeElementSelector::withDBFieldWithin()
 
   for (; it != end; ++it)
     {
-      if ((pNode = CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope)) != NULL)
+      if ((pNode = CNetwork::Context.Active().lookupNode(it->toId(), mLocalScope)) != NULL)
         Nodes.push_back(pNode);
     }
 
@@ -948,7 +948,7 @@ bool CNodeElementSelector::withDBFieldNotWithin()
 
   for (; it != end; ++it)
     {
-      if ((pNode = CNetwork::INSTANCE->lookupNode(it->toId(), mLocalScope)) != NULL)
+      if ((pNode = CNetwork::Context.Active().lookupNode(it->toId(), mLocalScope)) != NULL)
         Nodes.push_back(pNode);
     }
 

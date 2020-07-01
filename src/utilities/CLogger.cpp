@@ -19,36 +19,52 @@
 #include "utilities/CSimConfig.h"
 
 // static 
-std::stack< CLogger::LogLevel > CLogger::levels;
-
-// static
-std::string CLogger::task;
-
-// static 
 bool CLogger::haveErrors = false;
 
 // static 
-std::shared_ptr< spdlog::logger >  CLogger::pLogger = std::shared_ptr< spdlog::logger >(); 
-
-// static 
-std::shared_ptr< spdlog::sinks::sink > CLogger::pConsole = std::shared_ptr< spdlog::sinks::sink >();
-
-// static 
-std::shared_ptr< spdlog::sinks::sink > CLogger::pFile = std::shared_ptr< spdlog::sinks::sink >();
+CContext< CLogger::LoggerData > CLogger::Context = CContext< CLogger::LoggerData >();
 
 // static
 void CLogger::init()
 {
-  // Set global log level to info
-  pConsole = std::make_shared< spdlog::sinks::stdout_sink_st >();
-  pConsole->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%^%l%$] %v");
-  setLevel(spdlog::level::warn);
+  Context.init();
 
-  pLogger = std::make_shared< spdlog::logger >("Multi Sink", pConsole);
-  pLogger->set_level(spdlog::level::trace);
-  
-  spdlog::set_default_logger(pLogger);
+  initData(Context.Master());
+
+  LoggerData * pIt = Context.beginThread();
+  LoggerData * pEnd = Context.endThread();
+
+  for (; pIt != pEnd; ++pIt)
+    if (Context.isThread(pIt))
+      initData(*pIt);
+
+  spdlog::set_default_logger(Context.Master().pLogger);
   spdlog::flush_every(std::chrono::seconds(5));
+}
+
+// static 
+void CLogger::initData(LoggerData & loggerData)
+{
+  loggerData.task = "";
+  loggerData.levels = std::stack< LogLevel >();
+  loggerData.levels.push(spdlog::level::warn);
+
+  loggerData.pConsole = std::make_shared< spdlog::sinks::stdout_sink_st >();
+  loggerData.pConsole->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%^%l%$] %v");
+  loggerData.pConsole->set_level(loggerData.levels.top());
+
+  loggerData.pLogger = std::make_shared< spdlog::logger >("Multi Sink", loggerData.pConsole);
+  loggerData.pLogger->set_level(loggerData.levels.top());
+
+  loggerData.pFile = NULL;
+}
+
+// static 
+void CLogger::releaseData(LoggerData & loggerData)
+{
+  loggerData.pConsole = NULL;
+  loggerData.pLogger = NULL;
+  loggerData.pFile = NULL;
 }
 
 // static
@@ -60,20 +76,21 @@ void CLogger::release()
 // static 
 void CLogger::setLevel(LogLevel level)
 {
-  levels = std::stack< LogLevel >();
+  Context.Active().levels = std::stack< LogLevel >();
   pushLevel(level);
 }
 
 // static 
 void CLogger::pushLevel(LogLevel level)
 {
-  levels.push(level);
+  Context.Active().levels.push(level);
   setLevel();
 }
 
 // static 
 void CLogger::popLevel()
 {
+  std::stack< spdlog::level::level_enum > & levels = Context.Active().levels;
   levels.pop();
 
   if (levels.empty())
@@ -85,25 +102,59 @@ void CLogger::popLevel()
 // static 
 void CLogger::setLevel()
 {
-  if (pConsole)
-    pConsole->set_level(std::max(levels.top(), spdlog::level::warn));
+  LoggerData & Active = Context.Active();
 
-  if (pFile)
-    pFile->set_level(levels.top());
+  Active.pLogger->set_level(Active.levels.top());
+  Active.pConsole->set_level(std::max(Active.levels.top(), spdlog::level::warn));
+
+  if (Active.pFile != NULL)
+    Active.pFile->set_level(Active.levels.top());
+
+  if (Context.isMaster(&Active))
+    {
+      LoggerData * pIt = Context.beginThread();
+      LoggerData * pEnd = Context.endThread();
+
+      for (; pIt != pEnd; ++pIt)
+        if (Context.isThread(pIt))
+          {
+            pIt->pLogger->set_level(pIt->levels.top());
+            pIt->pConsole->set_level(std::max(pIt->levels.top(), spdlog::level::warn));
+
+            if (pIt->pFile != NULL)
+              pIt->pFile->set_level(pIt->levels.top());
+          }
+    }
 }
 
 // static 
 void CLogger::setLogDir(const std::string dir)
 {
-  if (levels.top() >= spdlog::level::warn)
+  LoggerData & Active = Context.Active();
+
+  if (Context.isThread(&Active))
+    {
+      CLogger::error() << "CLogger::setLogDir: This function may only be called from master.";
+      return;
+    }
+
+  if (Active.levels.top() >= spdlog::level::warn)
     return;
     
-  if (task.empty())
-    task = "[1:0] ";
+  Active.pFile = std::make_shared< spdlog::sinks::basic_file_sink_st >(dir + "." + Active.task + ".log", true);
+  Active.pFile->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%^%l%$] %v");
+  Active.pLogger->sinks().push_back(Active.pFile);
 
-  pFile = std::make_shared< spdlog::sinks::basic_file_sink_st >(dir + "." + task.substr(0, task.length() - 1) + ".log", true);
-  pFile->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%^%l%$] %v");
-  pLogger->sinks().push_back(pFile);
+  LoggerData * pIt = Context.beginThread();
+  LoggerData * pEnd = Context.endThread();
+
+  for (; pIt != pEnd; ++pIt)
+    if (Context.isThread(pIt))
+      {
+        pIt->pFile = std::make_shared< spdlog::sinks::basic_file_sink_st >(dir + "." + pIt->task + ".log", true);
+        pIt->pFile->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%^%l%$] %v");
+        pIt->pLogger->sinks().push_back(pIt->pFile);
+      }
 
   setLevel();
 }
@@ -111,11 +162,32 @@ void CLogger::setLogDir(const std::string dir)
 // static 
 void CLogger::setTask(int rank, int processes)
 {
+  LoggerData & Active = Context.Active();
+
+  if (Context.isThread(&Active))
+    {
+      CLogger::error() << "CLogger::setTask: This function may only be called from master.";
+      return;
+    }
+
   int width = log10(processes) + 1;
 
   std::ostringstream os;
-  os << "[" << processes << ":" << std::setfill('0') << std::setw(width) << rank << "] ";
-  task = os.str();
+  os << "[" << processes << ":" << std::setfill('0') << std::setw(width) << rank << "]";
+
+  Active.task = os.str();
+
+  width = log10(Context.size()) + 1;
+  LoggerData * pIt = Context.beginThread();
+  LoggerData * pEnd = Context.endThread();
+
+  for (; pIt != pEnd; ++pIt)
+    if (Context.isThread(pIt))
+      {
+        std::ostringstream os;
+        os << Active.task << "[" << Context.size() << ":" << std::setfill('0') << std::setw(width) << Context.index(pIt) << "]";
+        pIt->task = os.str();
+      }
 }
 
 // static 
@@ -125,7 +197,7 @@ bool CLogger::hasErrors()
 }
 
 // static 
-const std::string CLogger::sanitize(std::string dirty)
+std::string CLogger::sanitize(std::string dirty)
 {
   std::replace(dirty.begin(), dirty.end(), '\n', ' ');
   std::replace(dirty.begin(), dirty.end(), '\t', ' ');
