@@ -16,6 +16,7 @@
 #include <string>
 
 #include "utilities/CAnnotation.h"
+#include "utilities/CContext.h"
 
 struct json_t;
 
@@ -45,21 +46,25 @@ public:
 
   const bool & isValid() const;
 
-  const Counts & getLocalCounts() const;
+  const CContext< Counts > & getLocalCounts() const;
+
+  CContext< Counts > & getLocalCounts();
 
   const Counts & getGlobalCounts() const;
 
   inline void increment() const {
-    ++mLocalCounts.Current;
-    ++mLocalCounts.In;
+    Counts & Active = mLocalCounts.Active();
+    ++Active.Current;
+    ++Active.In;
   };
 
-  void decrement() const {
-    --mLocalCounts.Current;
-    ++mLocalCounts.Out;
+  inline void decrement() const {
+    Counts & Active = mLocalCounts.Active();
+    --Active.Current;
+    ++Active.Out;
   };
 
-  void resetCounts();
+  void setGlobalCounts(const Counts & counts);
 
   void incrementGlobalCount(const Counts & i);
 
@@ -68,7 +73,7 @@ private:
   double mSusceptibility;
   double mInfectivity;
   bool mValid;
-  mutable Counts mLocalCounts;
+  mutable CContext< Counts > mLocalCounts;
   Counts mGlobalCounts;
 };
 

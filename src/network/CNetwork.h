@@ -56,7 +56,9 @@ public:
 
   static void init();
   static void release();
-
+  static int index(const CNode * pNode);
+  static int index(const size_t & id);
+  
   /**
    * Default construnctor
    * @param const std::string & networkFile
@@ -100,6 +102,8 @@ public:
   
   bool isRemoteNode(const CNode * pNode) const;
 
+  bool isRemoteNode(const size_t & id) const;
+
   int broadcastChanges();
 
   CCommunicate::ErrorCode receiveNodes(std::istream & is, int sender);
@@ -130,7 +134,6 @@ private:
   bool mValid;
   size_t mTotalPendingActions;
   json_t * mpJson;
-  CEdge ** mpOutgoingEdges;
 };
 
 #endif /* SRC_NETWORK_CNETWORK_H_ */

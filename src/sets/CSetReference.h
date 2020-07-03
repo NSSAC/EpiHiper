@@ -58,13 +58,15 @@ public:
 
   virtual const std::vector< CNode * > & getNodes() const override;
 
-  virtual const std::map< CValueList::Type, CValueList > & getDBFieldValues() const override;
+  virtual const CDBFieldValues & getDBFieldValues() const override;
+
+  virtual const CContext< SetContent > & getContext() const override;
 
   virtual std::vector< CEdge * > & getEdges() override;
 
   virtual std::vector< CNode * > & getNodes() override;
 
-  virtual std::map< CValueList::Type, CValueList > & getDBFieldValues() override;
+  virtual CDBFieldValues & getDBFieldValues() override;
 
 private:
   std::string mIdRef;

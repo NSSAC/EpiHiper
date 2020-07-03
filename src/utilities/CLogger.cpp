@@ -76,27 +76,66 @@ void CLogger::release()
 // static 
 void CLogger::setLevel(LogLevel level)
 {
-  Context.Active().levels = std::stack< LogLevel >();
+  LoggerData & Active = Context.Active();
+  Active.levels = std::stack< LogLevel >();
+
+  if (Context.isMaster(&Active))
+    {
+      LoggerData * pIt = Context.beginThread();
+      LoggerData * pEnd = Context.endThread();
+
+      for (; pIt != pEnd; ++pIt)
+        if (Context.isThread(pIt))
+          pIt->levels = std::stack< LogLevel >();
+    }
+
   pushLevel(level);
 }
 
 // static 
 void CLogger::pushLevel(LogLevel level)
 {
-  Context.Active().levels.push(level);
+  LoggerData & Active = Context.Active();
+  Active.levels.push(level);
+
+  if (Context.isMaster(&Active))
+    {
+      LoggerData * pIt = Context.beginThread();
+      LoggerData * pEnd = Context.endThread();
+
+      for (; pIt != pEnd; ++pIt)
+        if (Context.isThread(pIt))
+          pIt->levels.push(level);
+    }
+
   setLevel();
 }
 
 // static 
 void CLogger::popLevel()
 {
-  std::stack< spdlog::level::level_enum > & levels = Context.Active().levels;
-  levels.pop();
+  LoggerData & Active = Context.Active();
+  Active.levels.pop();
 
-  if (levels.empty())
-    pushLevel(CSimConfig::getLogLevel());
-  else
-    setLevel();
+  if (Active.levels.empty())
+    Active.levels.push(CSimConfig::getLogLevel());
+
+  if (Context.isMaster(&Active))
+    {
+      LoggerData * pIt = Context.beginThread();
+      LoggerData * pEnd = Context.endThread();
+
+      for (; pIt != pEnd; ++pIt)
+        if (Context.isThread(pIt))
+          {
+            pIt->levels.pop();
+
+            if (pIt->levels.empty())
+              pIt->levels.push(CSimConfig::getLogLevel());
+          }
+    }
+
+  setLevel();
 }
 
 // static 
@@ -143,6 +182,7 @@ void CLogger::setLogDir(const std::string dir)
     
   Active.pFile = std::make_shared< spdlog::sinks::basic_file_sink_st >(dir + "." + Active.task + ".log", true);
   Active.pFile->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%^%l%$] %v");
+  Active.pFile->set_level(Active.levels.top());
   Active.pLogger->sinks().push_back(Active.pFile);
 
   LoggerData * pIt = Context.beginThread();
@@ -153,6 +193,7 @@ void CLogger::setLogDir(const std::string dir)
       {
         pIt->pFile = std::make_shared< spdlog::sinks::basic_file_sink_st >(dir + "." + pIt->task + ".log", true);
         pIt->pFile->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%^%l%$] %v");
+        pIt->pFile->set_level(pIt->levels.top());
         pIt->pLogger->sinks().push_back(pIt->pFile);
       }
 

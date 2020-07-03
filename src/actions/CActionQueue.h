@@ -16,6 +16,7 @@
 #include <sstream>
 
 #include "utilities/CCommunicate.h"
+#include "utilities/CContext.h"
 #include "actions/CCurrentActions.h"
 #include "math/CTick.h"
 
@@ -24,11 +25,9 @@ class CEdge;
 
 class CActionQueue: public std::map< int, CCurrentActions * >
 {
-  typedef std::map< int, CCurrentActions * > base;
+  typedef std::map< int, CCurrentActions * > map;
 
   public:
-    virtual ~CActionQueue();
-
     static void init();
 
     static void release();
@@ -51,16 +50,22 @@ class CActionQueue: public std::map< int, CCurrentActions * >
 
 
   private:
-    CActionQueue();
+    struct sActionQueue
+      {
+        map actionQueue;
+        map locallyAdded;
+      };
 
-    int broadcastPendingActions();
+    static int broadcastPendingActions();
 
-    CCommunicate::ErrorCode receivePendingActions(std::istream & is, int sender);
+    static CCommunicate::ErrorCode receivePendingActions(std::istream & is, int sender);
 
-    static CActionQueue * pINSTANCE;
-    CTick mCurrenTick;
-    size_t mTotalPendingActions;
-    std::stringstream mRemoteActions;
+    static CContext< sActionQueue > Context;
+    static CTick CurrenTick;
+    static size_t TotalPendingActions;
+    static std::stringstream RemoteActions;
+
+    static void addAction(map & queue, size_t deltaTick, CAction * pAction);
 };
 
 #endif /* SRC_ACTIONS_CACTIONQUEUE_H_ */

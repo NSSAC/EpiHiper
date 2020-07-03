@@ -22,6 +22,8 @@
 
 #include <string>
 
+#include "utilities/CContext.h"
+
 class CValue;
 class CValueList;
 class CFieldValueList;
@@ -58,7 +60,7 @@ public:
                    const std::string & cmp);
 
 private:
-  static std::string LocalConstraint;
+  static CContext< std::string > LocalConstraint;
   static size_t Limit;
   static void init();
   static std::string limit(size_t & offset);

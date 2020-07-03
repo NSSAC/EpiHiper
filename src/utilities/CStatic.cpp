@@ -38,22 +38,31 @@
 #include "variables/CVariableList.h"
 
 // static
+CComputableSet CTrigger::RequiredTargets;
+
+// static
+CComputableSet CComputable::Instances;
+
+// static
 std::vector< CActionDefinition * > CActionDefinition::INSTANCES;
 
 // static
 CComputableSet CConditionDefinition::RequiredComputables;
 
-// static
-CActionQueue * CActionQueue::pINSTANCE(NULL);
+// static 
+CContext< CActionQueue::sActionQueue > CActionQueue::Context = CContext< CActionQueue::sActionQueue >();
 
 // static
-std::set< const CNode * > CChanges::Nodes;
+CTick CActionQueue::CurrenTick = CTick();
 
-// static
-std::set< const CEdge * > CChanges::Edges;
+// static 
+size_t CActionQueue::TotalPendingActions = 0;
 
-// static
-std::stringstream CChanges::DefaultOutput;
+// static 
+std::stringstream CActionQueue::RemoteActions = std::stringstream();
+
+// static 
+CContext< CChanges::Changes > CChanges::Context = CContext< CChanges::Changes >();
 
 // static 
 std::map< size_t, std::set< const CNode * > > CChanges::RankToNodesRequested;
@@ -87,12 +96,6 @@ std::vector< CTrigger * > CTrigger::INSTANCES;
 
 // static
 bool * CTrigger::pGlobalTriggered(NULL);
-
-// static
-CComputableSet CTrigger::RequiredTargets;
-
-// static
-CComputableSet CComputable::Instances;
 
 // static
 CDependencyGraph CDependencyGraph::INSTANCE;

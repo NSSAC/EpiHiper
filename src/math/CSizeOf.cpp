@@ -78,13 +78,18 @@ bool CSizeOf::computeProtected()
 
 int CSizeOf::broadcastSize()
 {
-  size_t LocalSize = mpSetContent->size();
-  *static_cast< double * >(mpValue) = LocalSize;
+#pragma omp single
+  {
+    size_t LocalSize = mpSetContent->totalSize();
+    *static_cast< double * >(mpValue) = LocalSize;
 
-  CCommunicate::ClassMemberReceive< CSizeOf > Receive(this, &CSizeOf::receiveSize);
-  CCommunicate::roundRobinFixed(&LocalSize, sizeof(size_t), &Receive);
+    CCommunicate::ClassMemberReceive< CSizeOf > Receive(this, &CSizeOf::receiveSize);
+    CCommunicate::roundRobinFixed(&LocalSize, sizeof(size_t), &Receive);
 
-  CLogger::debug() << "CSizeOf: Returned '" << *static_cast< double * >(mpValue) << "'.";
+    CLogger::debug() << "CSizeOf: Returned '" << *static_cast< double * >(mpValue) << "'.";
+  }
+
+#pragma omp barrier
   return (int) CCommunicate::ErrorCode::Success;
 }
 

@@ -104,7 +104,14 @@ bool CObservable::computeProtected()
 {
   if (mValid
       && mpCompute != NULL)
-    return (this->*mpCompute)();
+    {
+      bool success = true;
+#pragma omp single      
+      success = (this->*mpCompute)();
+
+#pragma omp barrier
+      return success;
+    }
 
   return false;
 }

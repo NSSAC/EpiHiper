@@ -66,42 +66,48 @@ void CTrigger::release()
 // static
 bool CTrigger::processAll()
 {
-  RequiredTargets.clear();
+  CComputable::Sequence UpdateSequence;
 
-  if (pGlobalTriggered == NULL)
+#pragma omp single
+  {
+    RequiredTargets.clear();
+    
+    if (pGlobalTriggered == NULL)
+      {
+        pGlobalTriggered = new bool[INSTANCES.size()];
+      }
+
     {
-      pGlobalTriggered = new bool[INSTANCES.size()];
+      bool * pTriggered = pGlobalTriggered;
+      std::vector< CTrigger * >::const_iterator it = INSTANCES.begin();
+      std::vector< CTrigger * >::const_iterator end = INSTANCES.end();
+
+      for (; it != end; ++it, ++pTriggered)
+        {
+          (*it)->process();
+          *pTriggered = (*it)->mIsLocalTrue;
+        }
     }
 
-  {
-    bool * pTriggered = pGlobalTriggered;
-    std::vector< CTrigger * >::const_iterator it = INSTANCES.begin();
-    std::vector< CTrigger * >::const_iterator end = INSTANCES.end();
+    CCommunicate::barrierRMA();
+    CCommunicate::Receive Receive(receive);
+    CCommunicate::roundRobinFixed(pGlobalTriggered, INSTANCES.size() * sizeof(bool), &Receive);
 
-    for (; it != end; ++it, ++pTriggered)
-      {
-        (*it)->process();
-        *pTriggered = (*it)->mIsLocalTrue;
-      }
+    {
+      bool * pTriggered = pGlobalTriggered;
+      std::vector< CTrigger * >::iterator it = INSTANCES.begin();
+      std::vector< CTrigger * >::iterator end = INSTANCES.end();
+
+      for (; it != end; ++it, ++pTriggered)
+        {
+          (*it)->trigger(*pTriggered);
+        }
+    }
+
+    CDependencyGraph::getUpdateSequence(UpdateSequence, RequiredTargets);
   }
 
-  CCommunicate::barrierRMA();
-  CCommunicate::Receive Receive(receive);
-  CCommunicate::roundRobinFixed(pGlobalTriggered, INSTANCES.size() * sizeof(bool), &Receive);
-
-  {
-    bool * pTriggered = pGlobalTriggered;
-    std::vector< CTrigger * >::iterator it = INSTANCES.begin();
-    std::vector< CTrigger * >::iterator end = INSTANCES.end();
-
-    for (; it != end; ++it, ++pTriggered)
-      {
-        (*it)->trigger(*pTriggered);
-      }
-  }
-
-  CComputable::Sequence UpdateSequence;
-  CDependencyGraph::getUpdateSequence(UpdateSequence, RequiredTargets);
+#pragma omp barrier
   return CDependencyGraph::applyUpdateSequence(UpdateSequence);
 }
 

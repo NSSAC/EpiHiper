@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "utilities/CSimulation.h"
+#include "utilities/CLogger.h"
 #include "actions/CActionQueue.h"
 #include "actions/CChanges.h"
 #include "diseaseModel/CModel.h"
@@ -56,58 +57,95 @@ bool CSimulation::validate() {
 
 bool CSimulation::run()
 {
-  CActionQueue::setCurrentTick(startTick - 1);
-  CChanges::setCurrentTick(startTick - 1);
-  CChanges::initDefaultOutput();
-  CModel::InitGlobalStateCountOutput();
+  bool success = true;
 
-  CDependencyGraph::buildGraph();
-      
-  if (!CDependencyGraph::applyUpdateSequence())
-    return false;
+  CLogger::warn() << "CSimulation::run: threads:" << omp_get_num_threads();
 
-  if (!CInitialization::processAll())
-    return false;
+#pragma omp parallel default(shared)
+  {
+  CLogger::warn() << "CSimulation::run: threads:" << omp_get_num_threads();
 
-  CCommunicate::memUsage(CActionQueue::getCurrentTick());
-
-  CActionQueue::processCurrentActions();
-  CActionQueue::incrementTick();
-  CChanges::incrementTick();
-
-  CChanges::writeDefaultOutput();
-  CModel::UpdateGlobalStateCounts();
-  CModel::WriteGlobalStateCounts();
-  CNetwork::Context.Active().broadcastChanges();
-
-  CStatus::update("running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
-
-  while (CActionQueue::getCurrentTick() < endTick)
+#pragma omp single 
     {
-      CVariableList::INSTANCE.resetAll();
-      
-      if (!CDependencyGraph::applyUpdateSequence())
-        return false;
+      CActionQueue::setCurrentTick(startTick - 1);
+      CChanges::setCurrentTick(startTick - 1);
+      CChanges::initDefaultOutput();
+      CModel::InitGlobalStateCountOutput();
+      CDependencyGraph::buildGraph();
+    }
 
-      CModel::ProcessTransmissions();
-      
-      if (!CTrigger::processAll())
-        return false;
+#pragma omp barrier
 
-      CIntervention::processAll();
-      CCommunicate::memUsage(CActionQueue::getCurrentTick());
-      CActionQueue::processCurrentActions();
+    if (!CDependencyGraph::applyUpdateSequence())
+      {
+#pragma omp atomic
+        success &= false;
+      }
 
+#pragma omp barrier
+    if (!CInitialization::processAll())
+      {
+#pragma omp atomic
+        success &= false;
+      }
+
+#pragma omp single
+    CCommunicate::memUsage(CActionQueue::getCurrentTick());
+
+    CActionQueue::processCurrentActions();
+
+#pragma omp single
+    {
       CActionQueue::incrementTick();
       CChanges::incrementTick();
 
       CChanges::writeDefaultOutput();
       CModel::UpdateGlobalStateCounts();
       CModel::WriteGlobalStateCounts();
-      CNetwork::Context.Active().broadcastChanges();
+      CNetwork::Context.Master().broadcastChanges();
 
       CStatus::update("running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
     }
 
-  return true;
+#pragma omp barrier
+
+    while (CActionQueue::getCurrentTick() < endTick && success)
+      {
+CLogger::warn() << "CSimulation::run: Tick:" << CActionQueue::getCurrentTick();
+
+        CVariableList::INSTANCE.resetAll();
+
+        if (!CDependencyGraph::applyUpdateSequence())
+#pragma omp atomic
+          success &= false;
+
+        CModel::ProcessTransmissions();
+
+        if (!CTrigger::processAll())
+          success &= false;
+
+#pragma omp barrier
+        CIntervention::processAll();
+
+#pragma omp single
+        CCommunicate::memUsage(CActionQueue::getCurrentTick());
+
+        CActionQueue::processCurrentActions();
+
+#pragma omp single
+        {
+          CActionQueue::incrementTick();
+          CChanges::incrementTick();
+
+          CChanges::writeDefaultOutput();
+          CModel::UpdateGlobalStateCounts();
+          CModel::WriteGlobalStateCounts();
+          CNetwork::Context.Master().broadcastChanges();
+
+          CStatus::update("running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
+        }
+      }
+  }
+
+  return success;
 }

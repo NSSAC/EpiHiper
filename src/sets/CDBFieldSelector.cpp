@@ -175,7 +175,7 @@ void CDBFieldSelector::fromJSON(const json_t * json)
 // virtual
 bool CDBFieldSelector::computeProtected()
 {
-  std::map< CValueList::Type, CValueList > & DBFieldValues = getDBFieldValues();
+  CDBFieldValues & DBFieldValues = getDBFieldValues();
   DBFieldValues.clear();
 
   CFieldValueList FieldValueList;

@@ -898,8 +898,8 @@ bool CNodeElementSelector::withDBFieldWithin()
   else
     {
       CField Field = CSchema::INSTANCE.getTable(mDBTable).getField(mDBField);
-      const std::map< CValueList::Type, CValueList > & ValueListMap = mpSelector->getDBFieldValues();
-      std::map< CValueList::Type, CValueList >::const_iterator found = ValueListMap.find(Field.getType());
+      const CDBFieldValues & ValueListMap = mpSelector->getDBFieldValues();
+      CDBFieldValues::const_iterator found = ValueListMap.find(Field.getType());
 
       if (found != ValueListMap.end())
         success = CQuery::in(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, found->second);
@@ -935,8 +935,8 @@ bool CNodeElementSelector::withDBFieldNotWithin()
   else
     {
       CField Field = CSchema::INSTANCE.getTable(mDBTable).getField(mDBField);
-      const std::map< CValueList::Type, CValueList > & ValueListMap = mpSelector->getDBFieldValues();
-      std::map< CValueList::Type, CValueList >::const_iterator found = ValueListMap.find(Field.getType());
+      const CDBFieldValues & ValueListMap = mpSelector->getDBFieldValues();
+      CDBFieldValues::const_iterator found = ValueListMap.find(Field.getType());
 
       if (found != ValueListMap.end())
         success = CQuery::notIn(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, found->second);

@@ -111,16 +111,21 @@ bool CInitialization::processAll()
 {
   std::vector< CInitialization * >::iterator it = INSTANCES.begin();
   std::vector< CInitialization * >::iterator end = INSTANCES.end();
-
-  CComputableSet RequiredTargets;
-
-  for (; it != end; ++it)
-    {
-      RequiredTargets.insert((*it)->getTarget());
-    }
-
   CComputable::Sequence InitializationSequence;
-  CDependencyGraph::getUpdateSequence(InitializationSequence, RequiredTargets);
+
+  {
+    CLogger::warn() << "CInitialization::processAll: single";
+    CComputableSet RequiredTargets;
+
+    for (; it != end; ++it)
+      {
+        RequiredTargets.insert((*it)->getTarget());
+      }
+
+#pragma omp critical
+    CDependencyGraph::getUpdateSequence(InitializationSequence, RequiredTargets);
+  }
+
   bool success = CDependencyGraph::applyUpdateSequence(InitializationSequence);
 
   for (it = INSTANCES.begin(); it != end && success; ++it)

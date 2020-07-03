@@ -216,23 +216,26 @@ void CVariable::reset(const bool & force)
 
 bool CVariable::setValue(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
-  CLogger::trace() << "CVariable [ActionDefinition:"
-                  << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
-                  << "]: Variable ("
-                  << mId
-                  << ") value "
-                  << CValueInterface::operatorToString(pOperator)
-                  << " "
-                  << value;
+#pragma omp critical
+  {
+    CLogger::trace() << "CVariable [ActionDefinition:"
+                     << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
+                     << "]: Variable ("
+                     << mId
+                     << ") value "
+                     << CValueInterface::operatorToString(pOperator)
+                     << " "
+                     << value;
 
-  if (mType == Type::global)
-    {
-      *mpLocalValue = CCommunicate::updateRMA(mIndex, pOperator, value);
-    }
-  else
-    {
-      (*pOperator)(*mpLocalValue, value);
-    }
+    if (mType == Type::global)
+      {
+        *mpLocalValue = CCommunicate::updateRMA(mIndex, pOperator, value);
+      }
+    else
+      {
+        (*pOperator)(*mpLocalValue, value);
+      }
+  }
 
   return true;
 }

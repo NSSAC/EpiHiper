@@ -16,6 +16,7 @@
 #include "math/CDependencyGraph.h"
 #include "actions/CActionQueue.h"
 #include "actions/CConditionDefinition.h"
+#include "utilities/CLogger.h"
 
 // Uncomment this line below to get debug print out.
 // #define DEBUG_OUTPUT 1
@@ -66,6 +67,8 @@ bool CDependencyGraph::applyUpdateSequence()
 // static
 bool CDependencyGraph::applyUpdateSequence(CComputable::Sequence & updateSequence)
 {
+  CLogger::warn() << "CDependencyGraph::applyUpdateSequence: " << updateSequence.size();
+
   bool success = true;
   CComputable::Sequence::iterator it = updateSequence.begin();
   CComputable::Sequence::iterator end = updateSequence.end();
@@ -73,6 +76,8 @@ bool CDependencyGraph::applyUpdateSequence(CComputable::Sequence & updateSequenc
   for (; it != end && success; ++it)
     success &= (*it)->compute();
 
+#pragma omp barrier
+  CLogger::warn() << "CDependencyGraph::applyUpdateSequence: barrier ";
   return success;
 }
 
@@ -85,7 +90,6 @@ bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
 
   return INSTANCE.getUpdateSequence(updateSequence, Changed, requestedComputables, UpToDate);
 }
-
 
 CDependencyGraph::CDependencyGraph()
   : mComputables2Nodes()

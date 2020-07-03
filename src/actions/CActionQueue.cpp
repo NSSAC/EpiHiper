@@ -12,7 +12,8 @@
 
 #include "actions/CActionQueue.h"
 #include "actions/CActionDefinition.h"
-
+#include "actions/CNodeAction.h"
+#include "actions/CEdgeAction.h"
 #include "network/CNetwork.h"
 #include "network/CNode.h"
 #include "network/CEdge.h"
@@ -21,50 +22,45 @@
 // static
 void CActionQueue::init()
 {
-  if (pINSTANCE == NULL)
-    {
-      pINSTANCE = new CActionQueue();
-    }
+  Context.init();
 }
 
 // static
 void CActionQueue::release()
 {
-  if (pINSTANCE != NULL)
-    {
-      delete pINSTANCE;
-      pINSTANCE = NULL;
-    }
+  Context.release();
 }
 
 // static
 void CActionQueue::addAction(size_t deltaTick, CAction * pAction)
 {
-  if (pINSTANCE != NULL)
+  try
     {
-      try
-        {
-          base::iterator found = pINSTANCE->find(pINSTANCE->mCurrenTick + deltaTick);
-
-          if (found == pINSTANCE->end())
-            {
-              found = pINSTANCE->insert(std::make_pair(pINSTANCE->mCurrenTick + deltaTick, new CCurrentActions())).first;
-            }
-
-          found->second->addAction(pAction);
-        }
-      catch (...)
-        {
-          CLogger::error("CActionQueue: Failed to add action.");
-        }
+      addAction(Context.Active().actionQueue, deltaTick, pAction);
     }
+  catch (...)
+    {
+      CLogger::error("CActionQueue: Failed to add action.");
+    }
+}
+
+// static 
+void CActionQueue::addAction(CActionQueue::map & queue, size_t deltaTick, CAction * pAction)
+{
+  map::iterator found = queue.find(CurrenTick + deltaTick);
+
+  if (found == queue.end())
+    {
+      found = queue.insert(std::make_pair(CurrenTick + deltaTick, new CCurrentActions())).first;
+    }
+
+  found->second->addAction(pAction);
 }
 
 // static
 bool CActionQueue::processCurrentActions()
 {
-  if (pINSTANCE == NULL)
-    return false;
+  sActionQueue & ActionQueue = Context.Active();
 
   bool success = true;
 
@@ -72,9 +68,9 @@ bool CActionQueue::processCurrentActions()
   do
     {
       CCurrentActions * pActions = NULL;
-      base::iterator found = pINSTANCE->find(pINSTANCE->mCurrenTick);
+      map::iterator found = ActionQueue.actionQueue.find(CurrenTick);
 
-      if (found != pINSTANCE->end())
+      if (found != ActionQueue.actionQueue.end())
         {
           pActions = found->second;
         }
@@ -83,7 +79,7 @@ bool CActionQueue::processCurrentActions()
           pActions = new CCurrentActions();
         }
 
-      pINSTANCE->erase(pINSTANCE->mCurrenTick);
+      ActionQueue.actionQueue.erase(CurrenTick);
 
       CCurrentActions::iterator it = pActions->begin();
       CCurrentActions::iterator end = pActions->end();
@@ -95,12 +91,12 @@ bool CActionQueue::processCurrentActions()
 
       // MPI Broadcast scheduled remote actions and whether local actions are pending
       CCommunicate::barrierRMA();
-      pINSTANCE->broadcastPendingActions();
+      broadcastPendingActions();
 
       // If no local actions are pending anywhere and no remote actions where broadcasted, i.e.,
       // if (Total actions size == 0) break;
     }
-  while (pINSTANCE->mTotalPendingActions > 0);
+  while (TotalPendingActions > 0);
 
   return success;
 }
@@ -108,109 +104,168 @@ bool CActionQueue::processCurrentActions()
 // static
 size_t CActionQueue::pendingActions()
 {
-  if (pINSTANCE != NULL)
+  map & ActionQueue = Context.Active().actionQueue;
+  map::iterator found = ActionQueue.find(CurrenTick);
+
+  if (found == ActionQueue.end())
     {
-      base::iterator found = pINSTANCE->find(pINSTANCE->mCurrenTick);
-
-      if (found == pINSTANCE->end())
-        {
-          return 0;
-        }
-
-      return found->second->size();
+      return 0;
     }
 
-  return 0;
+  return found->second->size();
 }
 
 // static
 const CTick & CActionQueue::getCurrentTick()
 {
-  if (pINSTANCE != NULL)
-    return pINSTANCE->mCurrenTick;
-
-  static CTick Zero(0);
-
-  return Zero;
+  return CurrenTick;
 }
 
 // static
 void CActionQueue::setCurrentTick(const int & currentTick)
 {
-  if (pINSTANCE != NULL)
-    pINSTANCE->mCurrenTick = currentTick;
+#pragma omp single
+  CurrenTick = currentTick;
 }
 
 // static
 void CActionQueue::incrementTick()
 {
-  if (pINSTANCE != NULL)
-    ++pINSTANCE->mCurrenTick;
+#pragma omp single
+  ++CurrenTick;
 }
 
 // static
-void CActionQueue::addRemoteAction(const size_t & index, const CNode * pNode)
+void CActionQueue::addRemoteAction(const size_t & actionId, const CNode * pNode)
 {
-  if (pINSTANCE != NULL)
+  int index = CNetwork::index(pNode);
+
+  if (index < 0)
     {
       try
         {
-          pINSTANCE->mRemoteActions.write(reinterpret_cast< const char * >(&index), sizeof(size_t));
-          pINSTANCE->mRemoteActions << 'N';
-          pINSTANCE->mRemoteActions.write(reinterpret_cast< const char * >(&pNode->id), sizeof(size_t));
+#pragma omp critical
+          {
+            RemoteActions.write(reinterpret_cast< const char * >(&actionId), sizeof(size_t));
+            RemoteActions << 'N';
+            RemoteActions.write(reinterpret_cast< const char * >(&pNode->id), sizeof(size_t));
+          }
         }
       catch (...)
         {
           CLogger::error() << "CActionQueue: Add remote action failed for action '" << index << "' node '" << pNode->id << "'.";
         }
     }
+  else
+    {
+      CActionDefinition * pActionDefinition = CActionDefinition::GetActionDefinition(actionId);
+      size_t deltaTick = pActionDefinition->getDelay();
+      CAction * pAction = new CNodeAction(pActionDefinition, pNode);
+
+      try
+        {
+#pragma omp critical
+          addAction((Context.beginThread() + index)->locallyAdded, deltaTick, pAction);
+        }
+      catch (...)
+        {
+          CLogger::error("CActionQueue: Failed to add action.");
+        }
+    }
 }
 
 // static
-void CActionQueue::addRemoteAction(const size_t & index, const CEdge * pEdge)
+void CActionQueue::addRemoteAction(const size_t & actionId, const CEdge * pEdge)
 {
-  if (pINSTANCE != NULL)
+  int index = CNetwork::index(pEdge->pTarget);
+
+  if (index < 0)
     {
       try
         {
-          pINSTANCE->mRemoteActions.write(reinterpret_cast< const char * >(&index), sizeof(size_t));
-          pINSTANCE->mRemoteActions << 'E';
-          pINSTANCE->mRemoteActions.write(reinterpret_cast< const char * >(&pEdge->targetId), sizeof(size_t));
-          pINSTANCE->mRemoteActions.write(reinterpret_cast< const char * >(&pEdge->sourceId), sizeof(size_t));
+#pragma omp critical
+          {
+            RemoteActions.write(reinterpret_cast< const char * >(&actionId), sizeof(size_t));
+            RemoteActions << 'E';
+            RemoteActions.write(reinterpret_cast< const char * >(&pEdge->targetId), sizeof(size_t));
+            RemoteActions.write(reinterpret_cast< const char * >(&pEdge->sourceId), sizeof(size_t));
+          }
         }
       catch (...)
         {
           CLogger::error() << "CActionQueue: Add remote action failed for action '" << index << "' edge '" << pEdge->targetId << "', '" << pEdge->sourceId << "'.";
         }
     }
+  else
+    {
+      CActionDefinition * pActionDefinition = CActionDefinition::GetActionDefinition(actionId);
+      size_t deltaTick = pActionDefinition->getDelay();
+      CAction * pAction = new CEdgeAction(pActionDefinition, pEdge);
+
+      try
+        {
+#pragma omp critical
+          addAction((Context.beginThread() + index)->locallyAdded, deltaTick, pAction);
+        }
+      catch (...)
+        {
+          CLogger::error("CActionQueue: Failed to add action.");
+        }
+    }
 }
 
-CActionQueue::CActionQueue()
-  : base()
-  , mCurrenTick(-1)
-  , mTotalPendingActions(0)
-{}
-
-// virtual
-CActionQueue::~CActionQueue()
-{}
-
+// static
 int CActionQueue::broadcastPendingActions()
 {
-  // TODO CRITICAL handle actions which are for local OMP processes.
-  std::ostringstream os;
+  sActionQueue & ActionQueue = Context.Active();
+  map::const_iterator it = ActionQueue.locallyAdded.begin();
+  map::const_iterator end = ActionQueue.locallyAdded.end();
 
-  mTotalPendingActions = pendingActions();
-  os.write(reinterpret_cast< const char * >(&mTotalPendingActions), sizeof(size_t));
-  os << mRemoteActions.str();
-  mRemoteActions.str("");
+  for (; it != end; ++it)
+    {
+      CCurrentActions::iterator itAction = it->second->begin(false);
+      CCurrentActions::iterator endAction = end->second->end(false);
 
-  const std::string & Buffer = os.str();
+      for (; itAction != endAction; itAction.next())
+        {
+          addAction(it->first - CurrenTick, const_cast< CAction * >(*itAction));
+        }
 
-  CCommunicate::ClassMemberReceive< CActionQueue > Receive(CActionQueue::pINSTANCE, &CActionQueue::receivePendingActions);
+      it->second->clear();
+    }
 
-  CCommunicate::roundRobin(Buffer.c_str(), Buffer.length(), &Receive);
+  ActionQueue.locallyAdded.clear();
 
+#pragma omp barrier
+
+#pragma omp single
+  {
+    sActionQueue * pIt = Context.beginThread();
+    sActionQueue * pEnd = Context.endThread();
+
+    TotalPendingActions = 0;
+    for (; pIt != pEnd; ++pIt)
+      {
+        map & ActionQueue = pIt->actionQueue;
+        map::iterator found = ActionQueue.find(CurrenTick);
+
+        if (found != ActionQueue.end())
+          TotalPendingActions += found->second->size();
+      }
+    
+    std::ostringstream os;
+
+    TotalPendingActions = pendingActions();
+    os.write(reinterpret_cast< const char * >(&TotalPendingActions), sizeof(size_t));
+    os << RemoteActions.str();
+    RemoteActions.str("");
+
+    const std::string & Buffer = os.str();
+
+    CCommunicate::Receive Receive(&CActionQueue::receivePendingActions);
+
+    CCommunicate::roundRobin(Buffer.c_str(), Buffer.length(), &Receive);
+  }
   return (int) CCommunicate::ErrorCode::Success;
 }
 
@@ -219,7 +274,7 @@ CCommunicate::ErrorCode CActionQueue::receivePendingActions(std::istream & is, i
   size_t RemotePendingActions;
 
   is.read(reinterpret_cast< char * >(&RemotePendingActions), sizeof(size_t));
-  mTotalPendingActions += RemotePendingActions;
+  TotalPendingActions += RemotePendingActions;
 
   // Check whether we received actions from remote;
   while (true)
@@ -238,44 +293,69 @@ CCommunicate::ErrorCode CActionQueue::receivePendingActions(std::istream & is, i
       if (is.fail())
         break;
 
+      size_t NodeId;
+      is.read(reinterpret_cast< char * >(&NodeId), sizeof(size_t));
+
+      if (is.fail())
+        break;
+
+      int Index = CNetwork::index(NodeId);
+
+      CNode * pNode = NULL;
+
+      if (Index >= 0)
+        pNode = (CNetwork::Context.beginThread() + Index)->lookupNode(NodeId, true);
+
       switch (TargetType)
         {
         case 'N':
           {
-            size_t NodeId;
-            is.read(reinterpret_cast< char * >(&NodeId), sizeof(size_t));
-            if (is.fail())
-              break;
-
-            CNode * pNode = CNetwork::Context.Active().lookupNode(NodeId, true);
-
             if (pNode != NULL
                 && pActionDefinition != NULL)
               {
-                pActionDefinition->process(pNode);
-                ++mTotalPendingActions;
+                size_t deltaTick = pActionDefinition->getDelay();
+                CAction * pAction = new CNodeAction(pActionDefinition, pNode);
+
+                try
+                  {
+                    addAction((Context.beginThread() + Index)->actionQueue, deltaTick, pAction);
+                  }
+                catch (...)
+                  {
+                    CLogger::error("CActionQueue: Failed to add action.");
+                  }
+
+                ++TotalPendingActions;
               }
           }
+
           break;
 
         case 'E':
           {
-            size_t TargetId;
-            is.read(reinterpret_cast< char * >(&TargetId), sizeof(size_t));
-            if (is.fail())
-              break;
-
             size_t SourceId;
             is.read(reinterpret_cast< char * >(&SourceId), sizeof(size_t));
             if (is.fail())
               break;
 
-            CEdge * pEdge = CNetwork::Context.Active().lookupEdge(TargetId, SourceId);
+            CEdge * pEdge = (CNetwork::Context.beginThread() + Index)->lookupEdge(NodeId, SourceId);
 
             if (pEdge != NULL
                 && pActionDefinition != NULL)
               {
-                pActionDefinition->process(pEdge);
+                size_t deltaTick = pActionDefinition->getDelay();
+                CAction * pAction = new CEdgeAction(pActionDefinition, pEdge);
+
+                try
+                  {
+                    addAction((Context.beginThread() + Index)->actionQueue, deltaTick, pAction);
+                  }
+                catch (...)
+                  {
+                    CLogger::error("CActionQueue: Failed to add action.");
+                  }
+
+                ++TotalPendingActions;
               }
           }
           break;

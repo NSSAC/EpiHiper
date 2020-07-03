@@ -159,7 +159,7 @@ bool CSetOperation::computeUnion()
 {
   std::vector< CNode * > & Nodes = getNodes();
   std::vector< CEdge * > & Edges = getEdges();
-  std::map< CValueList::Type, CValueList > & DBFieldValues = getDBFieldValues();
+  CDBFieldValues & DBFieldValues = getDBFieldValues();
 
   Edges.clear();
   Nodes.clear();
@@ -198,8 +198,8 @@ bool CSetOperation::computeUnion()
           std::set_union((*it)->beginNodes(), (*it)->endNodes(), pInNodes->begin(), pInNodes->end(), std::back_inserter(*pOutNodes));
           std::swap(pInNodes, pOutNodes);
 
-          std::map< CValueList::Type, CValueList >::const_iterator itDB = (*it)->getDBFieldValues().begin();
-          std::map< CValueList::Type, CValueList >::const_iterator endDB = (*it)->getDBFieldValues().end();
+          CDBFieldValues::const_iterator itDB = (*it)->getDBFieldValues().begin();
+          CDBFieldValues::const_iterator endDB = (*it)->getDBFieldValues().end();
 
           for (; itDB != endDB; ++itDB)
             DBFieldValues[itDB->first].insert(itDB->second.begin(), itDB->second.end());
@@ -237,7 +237,7 @@ bool CSetOperation::computeIntersection()
 {
   std::vector< CNode * > N1, N2, *pNin, *pNout;
   std::vector< CEdge * > E1, E2, *pEin, *pEout;
-  std::map< CValueList::Type, CValueList > DB1, DB2, *pDBin, *pDBout;
+  CDBFieldValues DB1, DB2, *pDBin, *pDBout;
 
   pNin = &N1;
   pNout = &N2;
@@ -270,12 +270,12 @@ bool CSetOperation::computeIntersection()
           std::set_intersection(pEin->begin(), pEin->end(), (*it)->beginEdges(), (*it)->endEdges(), std::inserter(*pEout, pEout->begin()));
           std::set_intersection(pNin->begin(), pNin->end(), (*it)->beginNodes(), (*it)->endNodes(), std::inserter(*pNout, pNout->begin()));
 
-          std::map< CValueList::Type, CValueList >::const_iterator itDB = (*it)->getDBFieldValues().begin();
-          std::map< CValueList::Type, CValueList >::const_iterator endDB = (*it)->getDBFieldValues().end();
+          CDBFieldValues::const_iterator itDB = (*it)->getDBFieldValues().begin();
+          CDBFieldValues::const_iterator endDB = (*it)->getDBFieldValues().end();
 
           for (; itDB != endDB; ++itDB)
             {
-              std::map< CValueList::Type, CValueList >::iterator found = pDBin->find(itDB->first);
+              CDBFieldValues::iterator found = pDBin->find(itDB->first);
 
               if (found != pDBin->end())
                 {

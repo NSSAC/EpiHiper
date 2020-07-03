@@ -445,21 +445,39 @@ const std::vector< CTransmission > & CModel::GetTransmissions()
 // static
 int CModel::UpdateGlobalStateCounts()
 {
-  size_t Size = INSTANCE->mStateCount;
-  CHealthState::Counts LocalStateCounts[Size];
+  {
+    size_t Size = INSTANCE->mStateCount;
+    CHealthState::Counts LocalStateCounts[Size];
 
-  CHealthState * pState = INSTANCE->mStates;
-  CHealthState * pStateEnd = pState + Size;
-  CHealthState::Counts * pLocalCount = LocalStateCounts;
+    CHealthState * pState = INSTANCE->mStates;
+    CHealthState * pStateEnd = pState + Size;
+    CHealthState::Counts * pLocalCount = LocalStateCounts;
 
-  for (; pState != pStateEnd; ++pState, ++pLocalCount)
-    {
-      *pLocalCount = pState->getLocalCounts();
-      pState->resetCounts();
-    }
+    for (; pState != pStateEnd; ++pState, ++pLocalCount)
+      {
+        CContext< CHealthState::Counts > & StateCounts = pState->getLocalCounts();
+        pLocalCount->Current = 0;
+        pLocalCount->In = 0;
+        pLocalCount->Out = 0;
+        CHealthState::Counts * pIt = StateCounts.beginThread();
+        CHealthState::Counts * pEnd = StateCounts.endThread();
 
-  CCommunicate::Receive ReceiveCounts(&CModel::ReceiveGlobalStateCounts);
-  CCommunicate::roundRobinFixed(LocalStateCounts, Size * sizeof(CHealthState::Counts), &ReceiveCounts);
+        for (; pIt != pEnd; ++pIt)
+          if (StateCounts.isThread(pIt))
+            {
+              pLocalCount->Current += pIt->Current;
+              pLocalCount->In += pIt->In;
+              pIt->In = 0;
+              pLocalCount->Out += pIt->Out;
+              pIt->Out = 0;
+            }
+
+        pState->setGlobalCounts(*pLocalCount);
+      }
+
+    CCommunicate::Receive ReceiveCounts(&CModel::ReceiveGlobalStateCounts);
+    CCommunicate::roundRobinFixed(LocalStateCounts, Size * sizeof(CHealthState::Counts), &ReceiveCounts);
+  }
 
   return (int) CCommunicate::ErrorCode::Success;
 }

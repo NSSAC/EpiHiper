@@ -15,12 +15,28 @@
 
 #include "math/CValueList.h"
 #include "math/CComputable.h"
+#include "utilities/CContext.h"
 
 class CNode;
 class CEdge;
 
 class CSetContent: public CComputable
 {
+public:
+  class CDBFieldValues : public std::map< CValueList::Type, CValueList >
+  {
+  public:
+    size_t size() const;
+  };
+
+protected:
+ struct SetContent
+  {
+    std::vector< CNode * > nodes;
+    std::vector< CEdge * > edges;
+    CDBFieldValues dBFieldValues;
+  };
+
 public:
   static CSetContent * create(const json_t * json);
   // static CSetContent * copy(const CSetContent * pSetContent);
@@ -60,13 +76,15 @@ public:
 
   virtual const std::vector< CNode * > & getNodes() const;
 
-  virtual const std::map< CValueList::Type, CValueList > & getDBFieldValues() const;
+  virtual const CDBFieldValues & getDBFieldValues() const;
 
   virtual std::vector< CEdge * > & getEdges();
 
   virtual std::vector< CNode * > & getNodes();
 
-  virtual std::map< CValueList::Type, CValueList > & getDBFieldValues();
+  virtual CDBFieldValues & getDBFieldValues();
+
+  virtual const CContext< SetContent > & getContext() const;
 
   void sampleMax(const size_t & max, CSetContent & sampled, CSetContent & NotSampled) const;
 
@@ -74,10 +92,10 @@ public:
 
   size_t size() const;
 
+  size_t totalSize() const;
+
 private:
-  std::vector< CNode * > mNodes;
-  std::vector< CEdge * > mEdges;
-  std::map< CValueList::Type, CValueList > mDBFieldValues;
+  CContext< SetContent > mContext;
 
 protected:
   bool mValid;

@@ -54,10 +54,12 @@ CSampling::CSampling()
   , mpTargets(NULL)
   , mSampledTargets()
   , mNotSampledTargets()
-  , mLocalLimit(0)
+  , mLocalLimit()
   , mpCommunicateBuffer(NULL)
   , mValid(false)
-{}
+{
+  mLocalLimit.init();
+}
 
 CSampling::CSampling(const CSampling & src)
   : mType(src.mType)
@@ -82,16 +84,19 @@ CSampling::CSampling(const json_t * json)
   , mpTargets(NULL)
   , mSampledTargets()
   , mNotSampledTargets()
-  , mLocalLimit(0)
+  , mLocalLimit()
   , mpCommunicateBuffer(NULL)
   , mValid(false)
 {
+  mLocalLimit.init();
   fromJSON(json);
 }
 
 // virtual
 CSampling::~CSampling()
 {
+  mLocalLimit.release();
+
   if (mpSampled != NULL)
     delete mpSampled;
   if (mpNotSampled != NULL)
@@ -269,8 +274,11 @@ void CSampling::process(const CSetContent & targets)
 
   if (mType == Type::relativeGroup || mType == Type::absolute)
     {
+#pragma omp single
       broadcastCount();
-      mpTargets->sampleMax(mLocalLimit, mSampledTargets, mNotSampledTargets);
+
+#pragma omp barrier
+      mpTargets->sampleMax(mLocalLimit.Active(), mSampledTargets, mNotSampledTargets);
     }
   else
     {
@@ -293,16 +301,57 @@ void CSampling::process(const CSetContent & targets)
 
 int CSampling::broadcastCount()
 {
-  if (mpCommunicateBuffer == NULL)
-    mpCommunicateBuffer = new size_t[CCommunicate::MPIProcesses];
+#pragma omp single
+  {
+    if (mpCommunicateBuffer == NULL)
+      mpCommunicateBuffer = new size_t[CCommunicate::MPIProcesses];
 
-  *mpCommunicateBuffer = mpTargets->size();
+    *mpCommunicateBuffer = mpTargets->totalSize();
 
-  CCommunicate::ClassMemberReceive< CSampling > Receive(this, &CSampling::receiveCount);
-  CCommunicate::master(0, mpCommunicateBuffer, sizeof(size_t), CCommunicate::MPIProcesses * sizeof(size_t), &Receive);
+    CCommunicate::ClassMemberReceive< CSampling > Receive(this, &CSampling::receiveCount);
+    CCommunicate::master(0, mpCommunicateBuffer, sizeof(size_t), CCommunicate::MPIProcesses * sizeof(size_t), &Receive);
 
-  mLocalLimit = *(mpCommunicateBuffer + CCommunicate::MPIRank);
+    mLocalLimit.Master() = *(mpCommunicateBuffer + CCommunicate::MPIRank);
 
+    // We now determine the numbers for all threads
+    double Requested = mpTargets->totalSize();
+    double Available = mCount;
+    double Allowed = 0.0;
+
+    if (mType == Type::relativeGroup)
+      {
+        Available = std::round(Requested * mPercentage / 100.0);
+      }
+
+    if (Available < Requested)
+      {
+        // We need to limit the individual counts;
+        size_t * pRemote = mLocalLimit.beginThread();
+        size_t * pRemoteEnd = mLocalLimit.endThread();
+
+        for (; pRemote != pRemoteEnd; ++pRemote)
+          if (Available > 0.5)
+            {
+              Allowed = std::round(((double) *pRemote) * Available / Requested);
+              Requested -= *pRemote;
+              *pRemote = Allowed;
+              Available -= *pRemote;
+
+              if (Available < -0.5)
+                {
+                  *pRemote += 1;
+                  Requested += 1;
+                  Available += 1;
+                }
+            }
+          else
+            {
+              *pRemote = 0;
+            }
+      }
+  }
+
+#pragma omp barrier
   return (int) CCommunicate::ErrorCode::Success;
 }
 

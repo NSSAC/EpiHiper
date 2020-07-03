@@ -25,19 +25,30 @@
 #include "utilities/CRandom.h"
 #include "utilities/CLogger.h"
 
+size_t CSetContent::CDBFieldValues::size() const
+{
+  size_t Size = 0;
+
+  std::map< CValueList::Type, CValueList >::const_iterator itMap = begin();
+  std::map< CValueList::Type, CValueList >::const_iterator endMap = end();
+  
+  for (; itMap != endMap; ++itMap)
+    Size += itMap->second.size();
+
+  return Size;
+}
+
 CSetContent::CSetContent()
   : CComputable()
-  , mNodes()
-  , mEdges()
-  , mDBFieldValues()
+  , mContext()
   , mValid(true)
-{}
+{
+  mContext.init();
+}
 
 CSetContent::CSetContent(const CSetContent & src)
   : CComputable(src)
-  , mNodes(src.mNodes)
-  , mEdges(src.mEdges)
-  , mDBFieldValues(src.mDBFieldValues)
+  , mContext(src.mContext)
   , mValid(src.mValid)
 {}
 
@@ -145,9 +156,10 @@ bool CSetContent::contains(CEdge * pEdge) const
 
 bool CSetContent::contains(const CValueInterface & value) const
 {
-  std::map< CValueList::Type, CValueList >::const_iterator found = mDBFieldValues.find(value.getType());
+  const SetContent & Active = mContext.Active();
+  CDBFieldValues::const_iterator found = Active.dBFieldValues.find(value.getType());
 
-  if (found != mDBFieldValues.end())
+  if (found != Active.dBFieldValues.end())
     return found->second.contains(value);
 
   return false;
@@ -155,69 +167,74 @@ bool CSetContent::contains(const CValueInterface & value) const
 
 std::vector< CEdge * >::const_iterator CSetContent::beginEdges() const
 {
-  return mEdges.begin();
+  return mContext.Active().edges.begin();
 }
 
 std::vector< CEdge * >::const_iterator CSetContent::endEdges() const
 {
-  return mEdges.end();
+  return mContext.Active().edges.end();
 }
 
 std::vector< CNode * >::const_iterator CSetContent::beginNodes() const
 {
-  return mNodes.begin();
+  return mContext.Active().nodes.begin();
 }
 
 std::vector< CNode * >::const_iterator CSetContent::endNodes() const
 {
-  return mNodes.end();
+  return mContext.Active().nodes.end();
 }
 
 // virtual
 const std::vector< CEdge * > & CSetContent::getEdges() const
 {
-  return mEdges;
+  return mContext.Active().edges;
 }
 
 // virtual
 const std::vector< CNode * > & CSetContent::getNodes() const
 {
-  return mNodes;
+  return mContext.Active().nodes;
 }
 
-const std::map< CValueList::Type, CValueList > & CSetContent::getDBFieldValues() const
+const CSetContent::CDBFieldValues & CSetContent::getDBFieldValues() const
 {
-  return mDBFieldValues;
+  return mContext.Active().dBFieldValues;
 }
 
 // virtual
 std::vector< CEdge * > & CSetContent::getEdges()
 {
-  return mEdges;
+  return mContext.Active().edges;
 }
 
 // virtual
 std::vector< CNode * > & CSetContent::getNodes()
 {
-  return mNodes;
+  return mContext.Active().nodes;
 }
 
-std::map< CValueList::Type, CValueList > & CSetContent::getDBFieldValues()
+CSetContent::CDBFieldValues & CSetContent::getDBFieldValues()
 {
-  return mDBFieldValues;
+  return mContext.Active().dBFieldValues;
 }
 
 void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetContent & notSampled) const
 {
+  SetContent & Sampled = sampled.mContext.Active();
+  SetContent & NotSampled = notSampled.mContext.Active();
+
   const std::vector< CNode * > & Nodes = getNodes();
   const std::vector< CEdge * > & Edges = getEdges();
-  sampled.mEdges.clear();
-  sampled.mNodes.clear();
-  sampled.mDBFieldValues.clear();
 
-  notSampled.mEdges.clear();
-  notSampled.mNodes.clear();
-  notSampled.mDBFieldValues.clear();
+
+  Sampled.edges.clear();
+  Sampled.nodes.clear();
+  Sampled.dBFieldValues.clear();
+
+  NotSampled.edges.clear();
+  NotSampled.nodes.clear();
+  NotSampled.dBFieldValues.clear();
 
   CRandom::uniform_real Percent(0.0, 1.0);
 
@@ -236,11 +253,11 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
               || (Requested > 0.5
                   && Percent(CRandom::G) < Requested / Available))
             {
-              sampled.mNodes.push_back(*it);
+              Sampled.nodes.push_back(*it);
               Requested -= 1.0;
             }
           else
-            notSampled.mNodes.push_back(*it);
+            NotSampled.nodes.push_back(*it);
 
           Available -= 1.0;
         }
@@ -259,11 +276,11 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
               || (Requested > 0.5
                   && Percent(CRandom::G) < Requested / Available))
             {
-              sampled.mEdges.push_back(*it);
+              Sampled.edges.push_back(*it);
               Requested -= 1.0;
             }
           else
-            notSampled.mEdges.push_back(*it);
+            NotSampled.edges.push_back(*it);
 
           Available -= 1.0;
         }
@@ -272,13 +289,16 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
 
 void CSetContent::samplePercent(const double & percent, CSetContent & sampled, CSetContent & notSampled) const
 {
-  sampled.mEdges.clear();
-  sampled.mNodes.clear();
-  sampled.mDBFieldValues.clear();
+  SetContent & Sampled = sampled.mContext.Active();
+  SetContent & NotSampled = notSampled.mContext.Active();
+  
+  Sampled.edges.clear();
+  Sampled.nodes.clear();
+  Sampled.dBFieldValues.clear();
 
-  notSampled.mEdges.clear();
-  notSampled.mNodes.clear();
-  notSampled.mDBFieldValues.clear();
+  NotSampled.edges.clear();
+  NotSampled.nodes.clear();
+  NotSampled.dBFieldValues.clear();
 
   CRandom::uniform_real Percent(0.0, 100.0);
 
@@ -290,9 +310,9 @@ void CSetContent::samplePercent(const double & percent, CSetContent & sampled, C
 
       for (; it != end; ++it)
         if (Percent(CRandom::G) < percent)
-          sampled.mNodes.push_back(*it);
+          Sampled.nodes.push_back(*it);
         else
-          notSampled.mNodes.push_back(*it);
+          NotSampled.nodes.push_back(*it);
     }
   else if (size() == getEdges().size())
     {
@@ -301,13 +321,33 @@ void CSetContent::samplePercent(const double & percent, CSetContent & sampled, C
 
       for (; it != end; ++it)
         if (Percent(CRandom::G) < percent)
-          sampled.mEdges.push_back(*it);
+          Sampled.edges.push_back(*it);
         else
-          notSampled.mEdges.push_back(*it);
+          NotSampled.edges.push_back(*it);
     }
 }
 
 size_t CSetContent::size() const
 {
   return getEdges().size() + getNodes().size() + getDBFieldValues().size();
+}
+
+size_t CSetContent::totalSize() const
+{
+  const CContext< SetContent > & Context = getContext();
+
+  size_t TotalSize = 0;
+  const SetContent * pIt = Context.beginThread();
+  const SetContent * pEnd = Context.endThread();
+
+  for (; pIt != pEnd; ++pIt)
+    TotalSize += pIt->edges.size() + pIt->nodes.size() + pIt->dBFieldValues.size();
+
+  return TotalSize;
+}
+
+// virtual 
+const CContext< CSetContent::SetContent > & CSetContent::getContext() const
+{
+  return mContext;
 }

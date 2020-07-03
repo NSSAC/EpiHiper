@@ -208,7 +208,7 @@ const std::vector< CNode * > & CSetReference::getNodes() const
   return CSetContent::getNodes();
 }
 
-const std::map< CValueList::Type, CValueList > & CSetReference::getDBFieldValues() const
+const CSetContent::CDBFieldValues & CSetReference::getDBFieldValues() const
 {
   if (mValid)
     return mpSet->getDBFieldValues();
@@ -234,10 +234,20 @@ std::vector< CNode * > & CSetReference::getNodes()
   return CSetContent::getNodes();
 }
 
-std::map< CValueList::Type, CValueList > & CSetReference::getDBFieldValues()
+CSetContent::CDBFieldValues & CSetReference::getDBFieldValues()
 {
   if (mValid)
     return mpSet->getDBFieldValues();
 
   return CSetContent::getDBFieldValues();
 }
+
+// virtual 
+const CContext< CSetContent::SetContent > & CSetReference::getContext() const
+{
+  if (mValid)
+    return mpSet->getContext();
+
+  return CSetContent::getContext();
+}
+

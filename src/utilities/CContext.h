@@ -19,12 +19,15 @@ template < class Data > class CContext
 {
 public:
   CContext(); 
+  CContext(const CContext & src);
   ~CContext(); 
 
   void init();
   void release();
   Data & Master();
   Data & Active();
+  const Data & Master() const;
+  const Data & Active() const;
   Data * beginThread();
   Data * endThread();
   const Data * beginThread() const;
@@ -46,6 +49,26 @@ template < class Data > CContext< Data >::CContext()
   , Size(0)
 {}
 
+template < class Data > CContext< Data >::CContext(const CContext & src)
+  : MasterData(NULL)
+  , ThreadData(NULL)
+  , Size(0)
+{
+  init();
+
+  *MasterData = *src.MasterData;
+
+
+  Data * pIt = ThreadData;
+  Data * pEnd = ThreadData + Size;
+  const Data * pSrc = src.ThreadData;
+
+  for (; pIt != pEnd; ++pIt, ++pSrc)
+    if (isThread(pIt))
+      *pIt = *pSrc;
+}
+
+
 template < class Data > CContext< Data >::~CContext()
 {
   release();
@@ -53,6 +76,9 @@ template < class Data > CContext< Data >::~CContext()
 
 template < class Data > void CContext< Data >::init()
 {
+  if (Size != 0)
+    return;
+    
   MasterData = new Data();
   Size = omp_get_max_threads();
 
@@ -92,6 +118,27 @@ template < class Data > Data & CContext< Data >::Master()
 }
 
 template < class Data > Data & CContext< Data >::Active()
+{
+  switch (omp_get_num_threads())
+    {
+      case 1:
+        return *MasterData;
+        break;
+
+      default:
+        return ThreadData[omp_get_thread_num()];
+        break;
+    }
+
+  return *MasterData;
+}
+
+template < class Data > const Data & CContext< Data >::Master() const
+{
+  return *MasterData;
+}
+
+template < class Data > const Data & CContext< Data >::Active() const
 {
   switch (omp_get_num_threads())
     {

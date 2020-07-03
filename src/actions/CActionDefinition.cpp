@@ -391,6 +391,12 @@ bool CActionDefinition::execute(CNode * pNode) const
   return success;
 }
 
+const size_t & CActionDefinition::getDelay() const
+{
+  return mDelay;
+}
+  
+
 double CActionDefinition::getPriority() const
 {
   return mPriority;
