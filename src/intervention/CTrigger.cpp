@@ -66,7 +66,7 @@ void CTrigger::release()
 // static
 bool CTrigger::processAll()
 {
-  CComputable::Sequence UpdateSequence;
+  static CComputable::Sequence UpdateSequence;
 
 #pragma omp single
   {
@@ -89,7 +89,6 @@ bool CTrigger::processAll()
         }
     }
 
-    CCommunicate::barrierRMA();
     CCommunicate::Receive Receive(receive);
     CCommunicate::roundRobinFixed(pGlobalTriggered, INSTANCES.size() * sizeof(bool), &Receive);
 
@@ -107,7 +106,6 @@ bool CTrigger::processAll()
     CDependencyGraph::getUpdateSequence(UpdateSequence, RequiredTargets);
   }
 
-#pragma omp barrier
   return CDependencyGraph::applyUpdateSequence(UpdateSequence);
 }
 

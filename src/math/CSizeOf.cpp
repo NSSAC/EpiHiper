@@ -78,6 +78,8 @@ bool CSizeOf::computeProtected()
 
 int CSizeOf::broadcastSize()
 {
+#pragma omp barrier
+
 #pragma omp single
   {
     size_t LocalSize = mpSetContent->totalSize();
@@ -89,7 +91,6 @@ int CSizeOf::broadcastSize()
     CLogger::debug() << "CSizeOf: Returned '" << *static_cast< double * >(mpValue) << "'.";
   }
 
-#pragma omp barrier
   return (int) CCommunicate::ErrorCode::Success;
 }
 

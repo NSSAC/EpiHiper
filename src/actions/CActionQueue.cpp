@@ -89,8 +89,10 @@ bool CActionQueue::processCurrentActions()
 
       delete pActions;
 
-      // MPI Broadcast scheduled remote actions and whether local actions are pending
       CCommunicate::barrierRMA();
+
+      // MPI Broadcast scheduled remote actions and check whether local actions are pending
+#pragma omp single
       broadcastPendingActions();
 
       // If no local actions are pending anywhere and no remote actions where broadcasted, i.e.,
@@ -236,36 +238,31 @@ int CActionQueue::broadcastPendingActions()
 
   ActionQueue.locallyAdded.clear();
 
-#pragma omp barrier
+  sActionQueue * pIt = Context.beginThread();
+  sActionQueue * pEnd = Context.endThread();
 
-#pragma omp single
-  {
-    sActionQueue * pIt = Context.beginThread();
-    sActionQueue * pEnd = Context.endThread();
+  TotalPendingActions = 0;
+  for (; pIt != pEnd; ++pIt)
+    {
+      map & ActionQueue = pIt->actionQueue;
+      map::iterator found = ActionQueue.find(CurrenTick);
 
-    TotalPendingActions = 0;
-    for (; pIt != pEnd; ++pIt)
-      {
-        map & ActionQueue = pIt->actionQueue;
-        map::iterator found = ActionQueue.find(CurrenTick);
+      if (found != ActionQueue.end())
+        TotalPendingActions += found->second->size();
+    }
 
-        if (found != ActionQueue.end())
-          TotalPendingActions += found->second->size();
-      }
-    
-    std::ostringstream os;
+  std::ostringstream os;
 
-    TotalPendingActions = pendingActions();
-    os.write(reinterpret_cast< const char * >(&TotalPendingActions), sizeof(size_t));
-    os << RemoteActions.str();
-    RemoteActions.str("");
+  TotalPendingActions = pendingActions();
+  os.write(reinterpret_cast< const char * >(&TotalPendingActions), sizeof(size_t));
+  os << RemoteActions.str();
+  RemoteActions.str("");
 
-    const std::string & Buffer = os.str();
+  const std::string & Buffer = os.str();
 
-    CCommunicate::Receive Receive(&CActionQueue::receivePendingActions);
+  CCommunicate::Receive Receive(&CActionQueue::receivePendingActions);
+  CCommunicate::roundRobin(Buffer.c_str(), Buffer.length(), &Receive);
 
-    CCommunicate::roundRobin(Buffer.c_str(), Buffer.length(), &Receive);
-  }
   return (int) CCommunicate::ErrorCode::Success;
 }
 

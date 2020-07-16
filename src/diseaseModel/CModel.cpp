@@ -580,7 +580,7 @@ void CModel::WriteGlobalStateCounts()
           for (; it != end; ++it)
             if (it->getType() == CVariable::Type::global)
               {
-                it->process();
+                it->getValue();
                 out << "," << it->toNumber();
               }
 

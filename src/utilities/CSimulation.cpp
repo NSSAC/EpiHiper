@@ -45,13 +45,14 @@ CSimulation::CSimulation()
   endTick = CSimConfig::getEndTick();
 }
 
-CSimulation::~CSimulation() 
+CSimulation::~CSimulation()
 {}
 
 // check all required components are ready
-bool CSimulation::validate() {
+bool CSimulation::validate()
+{
   valid = (startTick <= endTick);
-  
+
   return valid;
 }
 
@@ -59,43 +60,66 @@ bool CSimulation::run()
 {
   bool success = true;
 
-  CLogger::warn() << "CSimulation::run: threads:" << omp_get_num_threads();
+  CActionQueue::setCurrentTick(startTick - 1);
+  CChanges::setCurrentTick(startTick - 1);
+  CChanges::initDefaultOutput();
+  CModel::InitGlobalStateCountOutput();
+  CDependencyGraph::buildGraph();
 
-#pragma omp parallel default(shared)
+#pragma omp parallel
   {
-  CLogger::warn() << "CSimulation::run: threads:" << omp_get_num_threads();
-
-#pragma omp single 
-    {
-      CActionQueue::setCurrentTick(startTick - 1);
-      CChanges::setCurrentTick(startTick - 1);
-      CChanges::initDefaultOutput();
-      CModel::InitGlobalStateCountOutput();
-      CDependencyGraph::buildGraph();
-    }
-
-#pragma omp barrier
-
     if (!CDependencyGraph::applyUpdateSequence())
-      {
 #pragma omp atomic
-        success &= false;
-      }
+      success &= false;
 
-#pragma omp barrier
     if (!CInitialization::processAll())
-      {
 #pragma omp atomic
-        success &= false;
-      }
+      success &= false;
 
-#pragma omp single
     CCommunicate::memUsage(CActionQueue::getCurrentTick());
 
-    CActionQueue::processCurrentActions();
+    if (!CActionQueue::processCurrentActions())
+#pragma omp atomic
+      success &= false;
+  }
 
-#pragma omp single
+  CActionQueue::incrementTick();
+  CChanges::incrementTick();
+
+  CChanges::writeDefaultOutput();
+  CModel::UpdateGlobalStateCounts();
+  CModel::WriteGlobalStateCounts();
+  CNetwork::Context.Master().broadcastChanges();
+
+  CStatus::update("running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
+
+  while (CActionQueue::getCurrentTick() < endTick && success)
     {
+#pragma omp parallel
+      {
+        CVariableList::INSTANCE.resetAll();
+
+        if (!CDependencyGraph::applyUpdateSequence())
+#pragma omp atomic
+          success &= false;
+
+        CModel::ProcessTransmissions();
+
+        if (!CTrigger::processAll())
+#pragma omp atomic
+          success &= false;
+
+        if (!CIntervention::processAll())
+#pragma omp atomic
+          success &= false;
+
+        CCommunicate::memUsage(CActionQueue::getCurrentTick());
+
+        if (!CActionQueue::processCurrentActions())
+#pragma omp atomic
+          success &= false;
+      }
+
       CActionQueue::incrementTick();
       CChanges::incrementTick();
 
@@ -106,46 +130,6 @@ bool CSimulation::run()
 
       CStatus::update("running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
     }
-
-#pragma omp barrier
-
-    while (CActionQueue::getCurrentTick() < endTick && success)
-      {
-CLogger::warn() << "CSimulation::run: Tick:" << CActionQueue::getCurrentTick();
-
-        CVariableList::INSTANCE.resetAll();
-
-        if (!CDependencyGraph::applyUpdateSequence())
-#pragma omp atomic
-          success &= false;
-
-        CModel::ProcessTransmissions();
-
-        if (!CTrigger::processAll())
-          success &= false;
-
-#pragma omp barrier
-        CIntervention::processAll();
-
-#pragma omp single
-        CCommunicate::memUsage(CActionQueue::getCurrentTick());
-
-        CActionQueue::processCurrentActions();
-
-#pragma omp single
-        {
-          CActionQueue::incrementTick();
-          CChanges::incrementTick();
-
-          CChanges::writeDefaultOutput();
-          CModel::UpdateGlobalStateCounts();
-          CModel::WriteGlobalStateCounts();
-          CNetwork::Context.Master().broadcastChanges();
-
-          CStatus::update("running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
-        }
-      }
-  }
 
   return success;
 }

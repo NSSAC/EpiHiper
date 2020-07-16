@@ -274,10 +274,13 @@ void CSampling::process(const CSetContent & targets)
 
   if (mType == Type::relativeGroup || mType == Type::absolute)
     {
+      mLocalLimit.Active() = mpTargets->size();
+
+      // This barrier is required since we have to have all threads determine the number of samples they require 
+#pragma omp barrier
 #pragma omp single
       broadcastCount();
 
-#pragma omp barrier
       mpTargets->sampleMax(mLocalLimit.Active(), mSampledTargets, mNotSampledTargets);
     }
   else
@@ -301,57 +304,56 @@ void CSampling::process(const CSetContent & targets)
 
 int CSampling::broadcastCount()
 {
-#pragma omp single
-  {
-    if (mpCommunicateBuffer == NULL)
-      mpCommunicateBuffer = new size_t[CCommunicate::MPIProcesses];
+  if (mpCommunicateBuffer == NULL)
+    mpCommunicateBuffer = new size_t[CCommunicate::MPIProcesses];
 
-    *mpCommunicateBuffer = mpTargets->totalSize();
+  *mpCommunicateBuffer = mpTargets->totalSize();
 
-    CCommunicate::ClassMemberReceive< CSampling > Receive(this, &CSampling::receiveCount);
-    CCommunicate::master(0, mpCommunicateBuffer, sizeof(size_t), CCommunicate::MPIProcesses * sizeof(size_t), &Receive);
+  CCommunicate::ClassMemberReceive< CSampling > Receive(this, &CSampling::receiveCount);
+  CCommunicate::master(0, mpCommunicateBuffer, sizeof(size_t), CCommunicate::MPIProcesses * sizeof(size_t), &Receive);
 
-    mLocalLimit.Master() = *(mpCommunicateBuffer + CCommunicate::MPIRank);
+  mLocalLimit.Master() = *(mpCommunicateBuffer + CCommunicate::MPIRank);
 
-    // We now determine the numbers for all threads
-    double Requested = mpTargets->totalSize();
-    double Available = mCount;
-    double Allowed = 0.0;
+  if (mLocalLimit.size() >1)
+    {
+      // We now determine the numbers for all threads
+      double Requested = mpTargets->totalSize();
+      double Available = mLocalLimit.Master();
+      double Allowed = 0.0;
 
-    if (mType == Type::relativeGroup)
-      {
-        Available = std::round(Requested * mPercentage / 100.0);
-      }
+      if (mType == Type::relativeGroup)
+        {
+          Available = std::round(Requested * mPercentage / 100.0);
+        }
 
-    if (Available < Requested)
-      {
-        // We need to limit the individual counts;
-        size_t * pRemote = mLocalLimit.beginThread();
-        size_t * pRemoteEnd = mLocalLimit.endThread();
+      if (Available < Requested)
+        {
+          // We need to limit the individual counts;
+          size_t * pRemote = mLocalLimit.beginThread();
+          size_t * pRemoteEnd = mLocalLimit.endThread();
 
-        for (; pRemote != pRemoteEnd; ++pRemote)
-          if (Available > 0.5)
-            {
-              Allowed = std::round(((double) *pRemote) * Available / Requested);
-              Requested -= *pRemote;
-              *pRemote = Allowed;
-              Available -= *pRemote;
+          for (; pRemote != pRemoteEnd; ++pRemote)
+            if (Available > 0.5)
+              {
+                Allowed = std::round(((double) *pRemote) * Available / Requested);
+                Requested -= *pRemote;
+                *pRemote = Allowed;
+                Available -= *pRemote;
 
-              if (Available < -0.5)
-                {
-                  *pRemote += 1;
-                  Requested += 1;
-                  Available += 1;
-                }
-            }
-          else
-            {
-              *pRemote = 0;
-            }
-      }
-  }
-
-#pragma omp barrier
+                if (Available < -0.5)
+                  {
+                    *pRemote += 1;
+                    Requested += 1;
+                    Available += 1;
+                  }
+              }
+            else
+              {
+                *pRemote = 0;
+              }
+        }
+    }
+    
   return (int) CCommunicate::ErrorCode::Success;
 }
 
@@ -365,7 +367,7 @@ CCommunicate::ErrorCode CSampling::receiveCount(std::istream & is, int sender)
     else
       {
         // This will always be last call for the central rank, i.e., we now have all sizes.
-        mpCommunicateBuffer[CCommunicate::MPIRank] = mpTargets->size();
+        mpCommunicateBuffer[CCommunicate::MPIRank] = mpTargets->totalSize();
 
         // We now determine the numbers for all process
         double Requested = 0.0;

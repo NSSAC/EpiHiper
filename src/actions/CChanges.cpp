@@ -45,7 +45,6 @@ void CChanges::init()
 // static 
 void CChanges::release()
 {
-  Context.release();
   delete Context.Master().pDefaultOutput;
 
   Changes * pIt = Context.beginThread();
@@ -54,6 +53,8 @@ void CChanges::release()
   for (; pIt != pEnd; ++pIt)
     if (Context.isThread(pIt))
       delete pIt->pDefaultOutput;
+
+  Context.release();
 }
 
 // static

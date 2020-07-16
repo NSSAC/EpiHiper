@@ -773,98 +773,97 @@ void CNetwork::load()
       return;
     }
 
-  
   CNetwork * pEnd = Context.endThread();
 
-#pragma omp parallel for
-  for (CNetwork * pIt = Context.beginThread(); pIt != pEnd; ++pIt)
-    {
-      int PartIndex = (CCommunicate::MPIRank) * CCommunicate::OMPMaxProcesses + Context.index(pIt);
+#pragma omp parallel
+  {
+    CNetwork * pIt = &Context.Active();
+    int PartIndex = (CCommunicate::MPIRank) *CCommunicate::OMPMaxProcesses + Context.index(pIt);
 
-      std::ostringstream File;
-      File << mFile << "." << PartIndex;
-      pIt->mValid = mValid;
+    std::ostringstream File;
+    File << mFile << "." << PartIndex;
+    pIt->mValid = mValid;
 
-      if (pIt->mLocalNodesSize == 0
-          && CDirEntry::isFile(File.str()))
-        {
-          pIt->mFile = File.str();
+    if (pIt->mLocalNodesSize == 0
+        && CDirEntry::isFile(File.str()))
+      {
+        pIt->mFile = File.str();
 
-          json_t * pJson = CSimConfig::loadJsonPreamble(pIt->mFile, 0);
-          json_t * pPartition = json_object_get(pJson, "partition");
-          json_t * pValue = json_object_get(pPartition, "numberOfNodes");
+        json_t * pJson = CSimConfig::loadJsonPreamble(pIt->mFile, 0);
+        json_t * pPartition = json_object_get(pJson, "partition");
+        json_t * pValue = json_object_get(pPartition, "numberOfNodes");
 
-          if (json_is_integer(pValue))
-            {
-              pIt->mLocalNodesSize = json_integer_value(pValue);
-            }
-          else 
-            {
-              pIt->mValid = false;
-            }
+        if (json_is_integer(pValue))
+          {
+            pIt->mLocalNodesSize = json_integer_value(pValue);
+          }
+        else
+          {
+            pIt->mValid = false;
+          }
 
-          pValue = json_object_get(pPartition, "firstLocalNode");
+        pValue = json_object_get(pPartition, "firstLocalNode");
 
-          if (json_is_integer(pValue))
-            {
-              pIt->mFirstLocalNode = json_integer_value(pValue);
-            }
-          else 
-            {
-              pIt->mValid = false;
-            }
+        if (json_is_integer(pValue))
+          {
+            pIt->mFirstLocalNode = json_integer_value(pValue);
+          }
+        else
+          {
+            pIt->mValid = false;
+          }
 
-          pValue = json_object_get(pPartition, "beyondLocalNode");
+        pValue = json_object_get(pPartition, "beyondLocalNode");
 
-          if (json_is_integer(pValue))
-            {
-              pIt->mBeyondLocalNode = json_integer_value(pValue);
-            }
-          else 
-            {
-              pIt->mValid = false;
-            }
+        if (json_is_integer(pValue))
+          {
+            pIt->mBeyondLocalNode = json_integer_value(pValue);
+          }
+        else
+          {
+            pIt->mValid = false;
+          }
 
-          pValue = json_object_get(pPartition, "numberOfEdges");
+        pValue = json_object_get(pPartition, "numberOfEdges");
 
-          if (json_is_integer(pValue))
-            {
-              pIt->mEdgesSize = json_integer_value(pValue);
-            }
-          else 
-            {
-              pIt->mValid = false;
-            }
+        if (json_is_integer(pValue))
+          {
+            pIt->mEdgesSize = json_integer_value(pValue);
+          }
+        else
+          {
+            pIt->mValid = false;
+          }
 
-          pValue = json_object_get(pJson, "encoding");
+        pValue = json_object_get(pJson, "encoding");
 
-          if (json_is_string(pValue))
-            {
-              std::string Encoding = json_string_value(pValue);
-              pIt->mIsBinary = (Encoding != "text");
-            }
-          else 
-            {
-              pIt->mValid = false;
-            }
+        if (json_is_string(pValue))
+          {
+            std::string Encoding = json_string_value(pValue);
+            pIt->mIsBinary = (Encoding != "text");
+          }
+        else
+          {
+            pIt->mValid = false;
+          }
 
-          json_decref(pJson);
-        }
-      else
-        {
-          pIt->mFile = mFile;
-        }
+        json_decref(pJson);
+      }
+    else
+      {
+        pIt->mFile = mFile;
+      }
 
-      if (Context.isThread(pIt))
+    if (Context.isThread(pIt))
 #pragma omp critical
-        {
-          mFirstLocalNode = std::min(mFirstLocalNode, pIt->mFirstLocalNode);
-          mLocalNodesSize += pIt->mLocalNodesSize;
-          mBeyondLocalNode = std::max(mBeyondLocalNode, pIt->mBeyondLocalNode);
-          mEdgesSize += pIt->mEdgesSize;
-          mValid &= pIt->mValid;
-        }
-    }
+      {
+        mFirstLocalNode = std::min(mFirstLocalNode, pIt->mFirstLocalNode);
+        mLocalNodesSize += pIt->mLocalNodesSize;
+        mBeyondLocalNode = std::max(mBeyondLocalNode, pIt->mBeyondLocalNode);
+        mEdgesSize += pIt->mEdgesSize;
+        mValid &= pIt->mValid;
+      }
+  }
 
   // std::cout << Communicate::Rank << ": " << mFirstLocalNode << ", " << mBeyondLocalNode << ", " << mLocalNodesSize << ", " << mEdgesSize << std::endl;
   {
@@ -887,7 +886,6 @@ void CNetwork::load()
   CNode * pNode = mLocalNodes;
   CEdge * pEdge = mEdges;
 
-#pragma omp single
   for (CNetwork * pIt = Context.beginThread(); pIt != pEnd; ++pIt)
     if (Context.isThread(pIt))
       {
@@ -904,192 +902,204 @@ void CNetwork::load()
         pIt->mpJson = json_incref(mpJson);
       }
 
-#pragma omp barrier
+#pragma omp parallel
+  {
+    CNetwork * pIt = &Context.Active();
+    std::ostringstream File;
+    std::ifstream is;
 
-#pragma omp parallel for
-  for (CNetwork * pIt = Context.beginThread(); pIt != pEnd; ++pIt)
-    {
-      std::ostringstream File;
-      
-      std::ifstream is;
+    is.open(pIt->mFile.c_str());
 
-      is.open(pIt->mFile.c_str());
+    if (is.fail())
+      {
+        CLogger::error("Network file: '" + pIt->mFile + "' cannot be opened.");
+        pIt->mValid = false; // DONE
+      }
 
-      if (is.fail())
-        {
-          CLogger::error("Network file: '" + pIt->mFile + "' cannot be opened.");
-          pIt->mValid = false; // DONE
+    std::string Line;
+
+    // Skip JSON Header
+    std::getline(is, Line);
+    // Skip Column Header
+    std::getline(is, Line);
+
+    CNode * pNode = pIt->mLocalNodes;
+    CNode * pNodeEnd = pNode + pIt->mLocalNodesSize;
+    CNode DefaultNode = CNode::getDefault();
+    *pNode = DefaultNode;
+
+    // TODO CRITICAL This is broken since the edges are not sorted by source node Id
+    // sort the edges by source node id per node before adding them to data.
+    CEdge * pEdge = pIt->mEdges;
+    CEdge * pEdgeEnd = pEdge + pIt->mEdgesSize;
+    CEdge DefaultEdge = CEdge::getDefault();
+
+    bool FirstTime = true;
+
+    while (is.good() && pNode < pNodeEnd && pEdge < pEdgeEnd)
+      {
+        *pEdge = DefaultEdge;
+
+        if (!pIt->loadEdge(pEdge, is))
+          {
+            CLogger::error() << "Network file: '" << mFile << "' invalid edge (" << pEdge - mEdges << ").";
+
+            pIt->mValid = false; // DONE
+            break;
+          }
+
+        if (pEdge->targetId < pIt->mFirstLocalNode)
           continue;
-        }
 
-      std::string Line;
+        if (FirstTime)
+          {
+            pNode->id = pEdge->targetId;
+            pNode->Edges = pEdge;
+            pIt->mFirstLocalNode = pNode->id;
 
-      // Skip JSON Header
-      std::getline(is, Line);
-      // Skip Column Header
-      std::getline(is, Line);
+            FirstTime = false;
+          }
 
-      CNode * pNode = pIt->mLocalNodes;
-      CNode * pNodeEnd = pNode + pIt->mLocalNodesSize;
-      CNode DefaultNode = CNode::getDefault();
-      *pNode = DefaultNode;
+        if (pNode->id != pEdge->targetId)
+          {
+            pNode->EdgesSize = pEdge - pNode->Edges;
 
-      // TODO CRITICAL This is broken since the edges are not sorted by source node Id
-      // sort the edges by source node id per node before adding them to data. 
-      CEdge * pEdge = pIt->mEdges;
-      CEdge * pEdgeEnd = pEdge + pIt->mEdgesSize;
-      CEdge DefaultEdge = CEdge::getDefault();
+            ++pNode;
 
-      bool FirstTime = true;
+            if (pNode < pNodeEnd)
+              {
+                *pNode = DefaultNode;
+                pNode->id = pEdge->targetId;
+                pNode->Edges = pEdge;
+              }
+          }
 
-      while (is.good() && pNode < pNodeEnd && pEdge < pEdgeEnd)
-        {
-          *pEdge = DefaultEdge;
+        pEdge->pTarget = pNode;
 
-          if (!pIt->loadEdge(pEdge, is))
-            {
-              CLogger::error() << "Network file: '" << mFile << "' invalid edge (" << pEdge - mEdges << ").";
-
-              pIt->mValid = false; // DONE
-              break;
-            }
-
-          if (pEdge->targetId < pIt->mFirstLocalNode)
-            continue;
-
-          if (FirstTime)
-            {
-              pNode->id = pEdge->targetId;
-              pNode->Edges = pEdge;
-              pIt->mFirstLocalNode = pNode->id;
-
-              FirstTime = false;
-            }
-
-          if (pNode->id != pEdge->targetId)
-            {
-              pNode->EdgesSize = pEdge - pNode->Edges;
-
-              ++pNode;
-
-              if (pNode < pNodeEnd)
-                {
-                  *pNode = DefaultNode;
-                  pNode->id = pEdge->targetId;
-                  pNode->Edges = pEdge;
-                }
-            }
-
-          pEdge->pTarget = pNode;
-
-          if (pEdge->sourceId < mFirstLocalNode || mBeyondLocalNode <= pEdge->sourceId)
-            {
-              CNode Remote = DefaultNode;
-              Remote.id = (pEdge->sourceId);
+        if (pEdge->sourceId < mFirstLocalNode || mBeyondLocalNode <= pEdge->sourceId)
+          {
+            CNode Remote = DefaultNode;
+            Remote.id = (pEdge->sourceId);
 
 #pragma omp critical
-              pEdge->pSource = &mpRemoteNodes->insert(std::make_pair(pEdge->sourceId, Remote)).first->second;
-            }
+            pEdge->pSource = &mpRemoteNodes->insert(std::make_pair(pEdge->sourceId, Remote)).first->second;
+          }
 
-          ++pEdge;
-        }
+        ++pEdge;
+      }
 
-      if (pIt->mValid)
-        {
-          pNode->EdgesSize = pEdge - pNode->Edges;
-          assert (pIt->mBeyondLocalNode > pNode->id);
-        }
+    if (pIt->mValid)
+      {
+        pNode->EdgesSize = pEdge - pNode->Edges;
+        assert(pIt->mBeyondLocalNode > pNode->id);
+      }
 
 #pragma omp atomic
-      mValid &= pIt->mValid;
-      is.close();
-    }
+    mValid &= pIt->mValid;
+    is.close();
+  }
 
-#pragma omp barrier
   if (!mValid)
     return;
 
-std::map< CNode *, std::vector< CEdge * > > AllOutgoingEdges[CCommunicate::OMPMaxProcesses];
+  CContext< std::map< CNode *, std::vector< CEdge * > > > AllOutgoingEdges;
+  AllOutgoingEdges.init();
 
-#pragma omp parallel for
-  for (CNetwork * pIt = Context.beginThread(); pIt != pEnd; ++pIt)
-    {
-      std::map< CNode *, std::vector< CEdge * > > & OutgoingEdges = AllOutgoingEdges[Context.index(pIt)];
-      CEdge * pEdge = pIt->mEdges;
-      CEdge * pEdgeEnd = pEdge + pIt->mEdgesSize;
+#pragma omp parallel
+  {
+    CNetwork * pIt = &Context.Active();
+    std::map< CNode *, std::vector< CEdge * > > & OutgoingEdges = AllOutgoingEdges.Active();
+    CEdge * pEdge = pIt->beginEdge();
+    CEdge * pEdgeEnd = pIt->endEdge();
 
-      for (; pEdge != pEdgeEnd; ++pEdge)
-        {
-          if (pEdge->pSource == NULL)
-            {
-              pEdge->pSource = pIt->lookupNode(pEdge->sourceId, false);
+    for (; pEdge != pEdgeEnd; ++pEdge)
+      {
+        if (pEdge->pSource == NULL)
+          {
+            pEdge->pSource = pIt->lookupNode(pEdge->sourceId, false);
 
-              if (pEdge->pSource == NULL)
-                {
-                  CLogger::error() << "Network file: '" << pIt->mFile << "' Source not found "
-                                   << pEdge << ", " << pEdge->targetId << ", " << pEdge->sourceId << std::endl;
-                  mValid = false; // DONE
-                }
-            }
+            if (pEdge->pSource == NULL)
+              {
+                CLogger::error() << "Network file: '" << pIt->mFile << "' Source not found "
+                                 << pEdge << ", " << pEdge->targetId << ", " << pEdge->sourceId << std::endl;
+                mValid = false; // DONE
+              }
+          }
 
+        if (Context.Master().isRemoteNode(pEdge->pSource))
+#pragma omp critical
+          AllOutgoingEdges.Master()[pEdge->pSource].push_back(pEdge);
+        else
           OutgoingEdges[pEdge->pSource].push_back(pEdge);
-        }
-    }
+      }
+  }
 
-#pragma omp barrier
+#pragma omp parallel
+  {
+    CNetwork * pIt = &Context.Active();
 
-#pragma omp parallel for
-  for (CNetwork * pIt = Context.beginThread(); pIt != pEnd; ++pIt)
-    {
-      std::map< CNode *, std::vector< CEdge * > > OutgoingEdges;
+    std::map< CNode *, std::vector< CEdge * > > * pOutGoingEdges = AllOutgoingEdges.beginThread();
+    std::map< CNode *, std::vector< CEdge * > > * pOutGoingEdgesEnd = AllOutgoingEdges.endThread();
+    std::map< CNode *, std::vector< CEdge * > > OutgoingEdges;
 
-      for (int i = 0; i < CCommunicate::OMPMaxProcesses; ++i)
-        {
-          CNode * pNode = pIt->mLocalNodes;
-          CNode * pNodeEnd = pIt->mLocalNodes + pIt->mLocalNodesSize ;
+    for (; pOutGoingEdges != pOutGoingEdgesEnd; ++pOutGoingEdges)
+      {
+        CNode * pNode = pIt->beginNode();
+        CNode * pNodeEnd = pIt->endNode();
 
-          std::map< CNode *, std::vector< CEdge * > >::const_iterator it = AllOutgoingEdges[Context.index(pIt)].lower_bound(pNode);
-          std::map< CNode *, std::vector< CEdge * > >::const_iterator end = AllOutgoingEdges[Context.index(pIt)].end();
+        std::map< CNode *, std::vector< CEdge * > >::const_iterator it = pOutGoingEdges->lower_bound(pNode);
+        std::map< CNode *, std::vector< CEdge * > >::const_iterator end = pOutGoingEdges->end();
 
-          for (; pNode != pNodeEnd && it != end; ++pNode)
-            {
-              if (pNode < it->first)
-                continue;
-
-              std::vector< CEdge * > & Edges = OutgoingEdges[pNode];
-              Edges.insert(Edges.end(), it->second.begin(), it->second.end());
-              ++it;
-            }
-        }
-
-      CNode * pNode = pIt->mLocalNodes;
-      CNode * pNodeEnd = pIt->mLocalNodes + pIt->mLocalNodesSize;
-
-      std::map< CNode *, std::vector< CEdge * > >::iterator it = OutgoingEdges.begin();
-      std::map< CNode *, std::vector< CEdge * > >::iterator end = OutgoingEdges.end();
-
-      for (; pNode != pNodeEnd && it != end; ++pNode)
-        {
-          if (pNode < it->first)
-            {
-              pNode->OutgoingEdgesSize = 0;
-              pNode->pOutgoingEdges = NULL;
+        for (; pNode != pNodeEnd && it != end; ++pNode)
+          {
+            if (pNode < it->first)
               continue;
-            }
 
-            pNode->OutgoingEdgesSize = it->second.size();
-            pNode->pOutgoingEdges = new CEdge *[pNode->OutgoingEdgesSize];
+            std::vector< CEdge * > & Edges = OutgoingEdges[pNode];
+            Edges.insert(Edges.end(), it->second.begin(), it->second.end());
+            ++it;
+          }
+      }
 
-            std::sort(it->second.begin(), it->second.end());
+    std::map< CNode *, std::vector< CEdge * > >::const_iterator it = OutgoingEdges.begin();
+    std::map< CNode *, std::vector< CEdge * > >::const_iterator end = OutgoingEdges.end();
 
-            std::vector< CEdge * >::const_iterator itEdge = it->second.begin();
-            std::vector< CEdge * >::const_iterator endEdge = it->second.end();
-            CEdge ** ppEdge = pNode->pOutgoingEdges;
+    for (; it != end; ++it)
+      {
+        it->first->OutgoingEdgesSize = it->second.size();
+        it->first->pOutgoingEdges = new CEdge *[it->first->OutgoingEdgesSize];
 
-            for (; itEdge != endEdge; ++itEdge, ++ppEdge)
-              *ppEdge = *itEdge;
+        std::vector< CEdge * >::const_iterator itEdge = it->second.begin();
+        std::vector< CEdge * >::const_iterator endEdge = it->second.end();
+        CEdge ** ppEdge = it->first->pOutgoingEdges;
+
+        for (; itEdge != endEdge; ++itEdge, ++ppEdge)
+          *ppEdge = *itEdge;
+      }
+  }
+
+#pragma omp parallel
+  {
+#pragma omp single
+    {
+      std::map< CNode *, std::vector< CEdge * > >::const_iterator it = AllOutgoingEdges.Master().begin();
+      std::map< CNode *, std::vector< CEdge * > >::const_iterator end = AllOutgoingEdges.Master().end();
+
+      for (; it != end; ++it)
+#pragma omp task
+        {
+          it->first->OutgoingEdgesSize = it->second.size();
+          it->first->pOutgoingEdges = new CEdge *[it->first->OutgoingEdgesSize];
+
+          std::vector< CEdge * >::const_iterator itEdge = it->second.begin();
+          std::vector< CEdge * >::const_iterator endEdge = it->second.end();
+          CEdge ** ppEdge = it->first->pOutgoingEdges;
+
+          for (; itEdge != endEdge; ++itEdge, ++ppEdge)
+            *ppEdge = *itEdge;
         }
     }
+  }
 }
 
 void CNetwork::write(const std::string & file, bool binary)

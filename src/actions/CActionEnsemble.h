@@ -35,7 +35,7 @@ public:
 
   const bool & isValid() const;
 
-  void process(const CSetContent & targets);
+  bool process(const CSetContent & targets);
 
 private:
   std::vector< CActionDefinition * > mOnce;

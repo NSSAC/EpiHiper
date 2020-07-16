@@ -736,8 +736,8 @@ bool CEdgeElementSelector::inDBTable()
   CFieldValueList FieldValueList;
   success = CQuery::all(mDBTable, "lid", FieldValueList, false);
 
-  CEdge * pEdge = CNetwork::Data.Active().beginEdge();
-  CEdge * pEdgeEnd = CNetwork::Data.Active().endEdge();
+  CEdge * pEdge = CNetwork::Context.Active().beginEdge();
+  CEdge * pEdgeEnd = CNetwork::Context.Active().endEdge();
 
   for (; pEdge != pEdgeEnd; ++pEdge)
     if (FieldValueList.contains(pEdge->locationId))
@@ -763,8 +763,8 @@ bool CEdgeElementSelector::withDBFieldSelection()
   else
     success = CQuery::where(mDBTable, "lid", FieldValueList, false, mDBField, *mpDBFieldValue, mSQLComparison);
 
-  CEdge * pEdge = CNetwork::Data.Active().beginEdge();
-  CEdge * pEdgeEnd = CNetwork::Data.Active().endEdge();
+  CEdge * pEdge = CNetwork::Context.Active().beginEdge();
+  CEdge * pEdgeEnd = CNetwork::Context.Active().endEdge();
 
   for (; pEdge != pEdgeEnd; ++pEdge)
     if (FieldValueList.contains(pEdge->locationId))
@@ -798,8 +798,8 @@ bool CEdgeElementSelector::withDBFieldWithin()
         success = CQuery::in(mDBTable, "lid", FieldValueList, false, mDBField, found->second);
     }
 
-  CEdge * pEdge = CNetwork::Data.Active().beginEdge();
-  CEdge * pEdgeEnd = CNetwork::Data.Active().endEdge();
+  CEdge * pEdge = CNetwork::Context.Active().beginEdge();
+  CEdge * pEdgeEnd = CNetwork::Context.Active().endEdge();
 
   for (; pEdge != pEdgeEnd; ++pEdge)
     if (FieldValueList.contains(pEdge->locationId))
@@ -832,8 +832,8 @@ bool CEdgeElementSelector::withDBFieldNotWithin()
         success = CQuery::notIn(mDBTable, "lid", FieldValueList, false, mDBField, found->second);
     }
 
-  CEdge * pEdge = CNetwork::Data.Active().beginEdge();
-  CEdge * pEdgeEnd = CNetwork::Data.Active().endEdge();
+  CEdge * pEdge = CNetwork::Context.Active().beginEdge();
+  CEdge * pEdgeEnd = CNetwork::Context.Active().endEdge();
 
   for (; pEdge != pEdgeEnd; ++pEdge)
     if (FieldValueList.contains(pEdge->locationId))

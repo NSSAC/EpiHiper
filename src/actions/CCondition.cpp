@@ -98,12 +98,12 @@ bool CComparison::isTrue() const
 {
   if (dynamic_cast< const CVariable * >(mpLeft))
     {
-      const_cast< CVariable * >(static_cast< const CVariable * >(mpLeft))->process();
+      const_cast< CVariable * >(static_cast< const CVariable * >(mpLeft))->getValue();
     }
 
   if (dynamic_cast< const CVariable * >(mpRight))
     {
-      const_cast< CVariable * >(static_cast< const CVariable * >(mpRight))->process();
+      const_cast< CVariable * >(static_cast< const CVariable * >(mpRight))->getValue();
     }
 
 

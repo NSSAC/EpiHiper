@@ -132,35 +132,48 @@ void CLogger::CStream< level >::flush()
 template < int level >
 void CLogger::CStream< level >::flush(const std::string & msg)
 {
-  LoggerData & Active = Context.Active();
+  LoggerData * pIt = NULL;
+  LoggerData * pEnd = NULL;
 
-  switch (static_cast< LogLevel >(level))
+  if (omp_get_num_threads() != 1)
     {
-    case spdlog::level::trace:
-      Active.pLogger->trace(Active.task + " " + msg);
-      break;
-    case spdlog::level::debug:
-      Active.pLogger->debug(Active.task + " " + msg);
-      break;
-    case spdlog::level::info:
-      Active.pLogger->info(Active.task + " " + msg);
-      break;
-    case spdlog::level::warn:
-      Active.pLogger->warn(Active.task + " " + msg);
-      break;
-    case spdlog::level::err:
-#pragma omp atomic
-      haveErrors |= true;
-      Active.pLogger->error(Active.task + " " + msg);
-      break;
-    case spdlog::level::critical:
-#pragma omp atomic
-      haveErrors |= true;
-      Active.pLogger->critical(Active.task + " " + msg);
-      break;
-    case spdlog::level::off:
-      break;
+      pIt = &Context.Active();
+      pEnd = pIt + 1;
     }
+  else
+    {
+      pIt = Context.beginThread();
+      pEnd = Context.endThread();
+    }
+
+  for (; pIt != pEnd; ++pIt)
+    switch (static_cast< LogLevel >(level))
+      {
+      case spdlog::level::trace:
+        pIt->pLogger->trace(pIt->task + " " + msg);
+        break;
+      case spdlog::level::debug:
+        pIt->pLogger->debug(pIt->task + " " + msg);
+        break;
+      case spdlog::level::info:
+        pIt->pLogger->info(pIt->task + " " + msg);
+        break;
+      case spdlog::level::warn:
+        pIt->pLogger->warn(pIt->task + " " + msg);
+        break;
+      case spdlog::level::err:
+  #pragma omp atomic
+        haveErrors |= true;
+        pIt->pLogger->error(pIt->task + " " + msg);
+        break;
+      case spdlog::level::critical:
+  #pragma omp atomic
+        haveErrors |= true;
+        pIt->pLogger->critical(pIt->task + " " + msg);
+        break;
+      case spdlog::level::off:
+        break;
+      }
 }
 
 #endif // UTILITIES_CLOGGER_H

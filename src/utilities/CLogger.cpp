@@ -38,7 +38,7 @@ void CLogger::init()
     if (Context.isThread(pIt))
       initData(*pIt);
 
-  spdlog::set_default_logger(Context.Master().pLogger);
+  spdlog::set_default_logger(Context.beginThread()->pLogger);
   spdlog::flush_every(std::chrono::seconds(5));
 }
 
@@ -79,7 +79,7 @@ void CLogger::setLevel(LogLevel level)
   LoggerData & Active = Context.Active();
   Active.levels = std::stack< LogLevel >();
 
-  if (Context.isMaster(&Active))
+  if (Context.isMaster(&Context.Active()))
     {
       LoggerData * pIt = Context.beginThread();
       LoggerData * pEnd = Context.endThread();
@@ -179,24 +179,29 @@ void CLogger::setLogDir(const std::string dir)
 
   if (Active.levels.top() >= spdlog::level::warn)
     return;
-    
-  Active.pFile = std::make_shared< spdlog::sinks::basic_file_sink_st >(dir + "." + Active.task + ".log", true);
-  Active.pFile->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%^%l%$] %v");
-  Active.pFile->set_level(Active.levels.top());
-  Active.pLogger->sinks().push_back(Active.pFile);
+  
+  if (Context.size() == 1)
+    {
+      Active.pFile = std::make_shared< spdlog::sinks::basic_file_sink_st >(dir + "." + Active.task + ".log", true);
+      Active.pFile->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%^%l%$] %v");
+      Active.pFile->set_level(Active.levels.top());
+      Active.pLogger->sinks().push_back(Active.pFile);
+    }
+  else
+    {
+      LoggerData * pIt = Context.beginThread();
+      LoggerData * pEnd = Context.endThread();
 
-  LoggerData * pIt = Context.beginThread();
-  LoggerData * pEnd = Context.endThread();
-
-  for (; pIt != pEnd; ++pIt)
-    if (Context.isThread(pIt))
-      {
-        pIt->pFile = std::make_shared< spdlog::sinks::basic_file_sink_st >(dir + "." + pIt->task + ".log", true);
-        pIt->pFile->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%^%l%$] %v");
-        pIt->pFile->set_level(pIt->levels.top());
-        pIt->pLogger->sinks().push_back(pIt->pFile);
-      }
-
+      for (; pIt != pEnd; ++pIt)
+        if (Context.isThread(pIt))
+          {
+            pIt->pFile = std::make_shared< spdlog::sinks::basic_file_sink_st >(dir + "." + pIt->task + ".log", true);
+            pIt->pFile->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%^%l%$] %v");
+            pIt->pFile->set_level(pIt->levels.top());
+            pIt->pLogger->sinks().push_back(pIt->pFile);
+          }
+    }
+  
   setLevel();
 }
 
@@ -216,19 +221,25 @@ void CLogger::setTask(int rank, int processes)
   std::ostringstream os;
   os << "[" << processes << ":" << std::setfill('0') << std::setw(width) << rank << "]";
 
-  Active.task = os.str();
+  if (Context.size() == 1)
+    {
+      Active.task = os.str();
+    }
+  else
+    {
+      std::string Task = os.str();
+      width = log10(Context.size()) + 1;
+      LoggerData * pIt = Context.beginThread();
+      LoggerData * pEnd = Context.endThread();
 
-  width = log10(Context.size()) + 1;
-  LoggerData * pIt = Context.beginThread();
-  LoggerData * pEnd = Context.endThread();
-
-  for (; pIt != pEnd; ++pIt)
-    if (Context.isThread(pIt))
-      {
-        std::ostringstream os;
-        os << Active.task << "[" << Context.size() << ":" << std::setfill('0') << std::setw(width) << Context.index(pIt) << "]";
-        pIt->task = os.str();
-      }
+      for (; pIt != pEnd; ++pIt)
+        if (Context.isThread(pIt))
+          {
+            std::ostringstream os;
+            os << Task << "[" << Context.size() << ":" << std::setfill('0') << std::setw(width) << Context.index(pIt) << "]";
+            pIt->task = os.str();
+          }
+    }
 }
 
 // static 

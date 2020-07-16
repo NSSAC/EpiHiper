@@ -26,7 +26,7 @@ public:
 
   static void release();
 
-  static void processAll();
+  static bool processAll();
 
   static CIntervention * getIntervention(const std::string & id);
 
@@ -40,13 +40,13 @@ public:
 
   virtual void fromJSON(const json_t * json) override;
 
-  void process();
+  bool process();
 
   void trigger();
 
 private:
   std::string mId;
-  bool mIsTriggered;
+  size_t mIsTriggered;
 };
 
 #endif /* SRC_INTERVENTION_CINTERVENTION_H_ */

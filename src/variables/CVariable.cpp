@@ -164,15 +164,6 @@ void CVariable::fromJSON(const json_t * json)
   mValid = true;
 }
 
-// virtual
-void CVariable::process()
-{
-  if (mType == Type::global)
-    {
-      *mpLocalValue = CCommunicate::getRMA(mIndex);
-    }
-}
-
 void CVariable::toBinary(std::ostream & os) const
 {
   os.write(reinterpret_cast< const char * >(&mInitialValue), sizeof(double));
@@ -204,6 +195,7 @@ void CVariable::reset(const bool & force)
        && CActionQueue::getCurrentTick() % mResetValue == 0)
       || force)
     {
+#pragma omp atomic write
       *mpLocalValue = mInitialValue;
 
       if (CCommunicate::MPIRank == 0
@@ -214,28 +206,37 @@ void CVariable::reset(const bool & force)
     }
 }
 
+void CVariable::getValue()
+{
+  if (mType == Type::global)
+    {
+      double Value = CCommunicate::getRMA(mIndex);
+
+#pragma omp atomic write
+      *mpLocalValue = Value;
+    }
+}
+
 bool CVariable::setValue(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
-#pragma omp critical
-  {
-    CLogger::trace() << "CVariable [ActionDefinition:"
-                     << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
-                     << "]: Variable ("
-                     << mId
-                     << ") value "
-                     << CValueInterface::operatorToString(pOperator)
-                     << " "
-                     << value;
+  CLogger::trace() << "CVariable [ActionDefinition:"
+                   << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
+                   << "]: Variable ("
+                   << mId
+                   << ") value "
+                   << CValueInterface::operatorToString(pOperator)
+                   << " "
+                   << value;
 
-    if (mType == Type::global)
-      {
-        *mpLocalValue = CCommunicate::updateRMA(mIndex, pOperator, value);
-      }
-    else
-      {
-        (*pOperator)(*mpLocalValue, value);
-      }
-  }
+  double Value;
+
+  if (mType == Type::global)
+    Value = CCommunicate::updateRMA(mIndex, pOperator, value);
+  else
+    (*pOperator)(Value, value);
+
+#pragma omp atomic write
+  *mpLocalValue = Value;
 
   return true;
 }

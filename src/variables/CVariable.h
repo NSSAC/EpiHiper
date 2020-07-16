@@ -41,8 +41,6 @@ public:
 
   virtual void fromJSON(const json_t * json) override;
 
-  virtual void process();
-
   void toBinary(std::ostream & os) const;
 
   void fromBinary(std::istream & is);
@@ -54,6 +52,8 @@ public:
   const Type & getType() const;
   
   void reset(const bool & force = false);
+
+  void getValue();
 
   bool setValue(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
 

@@ -640,7 +640,10 @@ int CCommunicate::barrierRMA()
   if (MPIWinSize > 0)
     {
       CLogger::debug() << "CCommunicate::barrierRMA: before";
+
+#pragma omp single
       result = MPI_Win_fence(0, MPIWin);
+
       CLogger::debug() << "CCommunicate::barrierRMA: after";
     }
 
@@ -655,10 +658,13 @@ double CCommunicate::getRMA(const int & index)
 
   double Value;
 
-  MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, MPIWin);
-  MPI_Get(&Value, 1, MPI_DOUBLE, 0, (int) index, 1, MPI_DOUBLE, MPIWin);
-  MPI_Win_flush(0, MPIWin);
-  MPI_Win_unlock(0, MPIWin);
+#pragma omp critical
+  {
+    MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, MPIWin);
+    MPI_Get(&Value, 1, MPI_DOUBLE, 0, (int) index, 1, MPI_DOUBLE, MPIWin);
+    MPI_Win_flush(0, MPIWin);
+    MPI_Win_unlock(0, MPIWin);
+  }
 
   return Value;
 }
@@ -671,16 +677,19 @@ double CCommunicate::updateRMA(const int & index, CCommunicate::Operator pOperat
 
   double Value;
 
-  MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, MPIWin);
-  MPI_Get(&Value, 1, MPI_DOUBLE, 0, (int) index, 1, MPI_DOUBLE, MPIWin);
-  MPI_Win_flush(0, MPIWin);
+#pragma omp critical
+  {
+    MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, MPIWin);
+    MPI_Get(&Value, 1, MPI_DOUBLE, 0, (int) index, 1, MPI_DOUBLE, MPIWin);
+    MPI_Win_flush(0, MPIWin);
 
-  (*pOperator)(Value, value);
+    (*pOperator)(Value, value);
 
-  MPI_Put(&Value, 1, MPI_DOUBLE, 0, (int) index, 1, MPI_DOUBLE, MPIWin);
-  MPI_Win_flush(0, MPIWin);
-  MPI_Win_unlock(0, MPIWin);
-
+    MPI_Put(&Value, 1, MPI_DOUBLE, 0, (int) index, 1, MPI_DOUBLE, MPIWin);
+    MPI_Win_flush(0, MPIWin);
+    MPI_Win_unlock(0, MPIWin);
+  }
+  
   return Value;
 }
 

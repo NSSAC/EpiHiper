@@ -111,10 +111,10 @@ bool CInitialization::processAll()
 {
   std::vector< CInitialization * >::iterator it = INSTANCES.begin();
   std::vector< CInitialization * >::iterator end = INSTANCES.end();
-  CComputable::Sequence InitializationSequence;
+  static CComputable::Sequence InitializationSequence;
 
+#pragma omp single
   {
-    CLogger::warn() << "CInitialization::processAll: single";
     CComputableSet RequiredTargets;
 
     for (; it != end; ++it)
@@ -122,7 +122,6 @@ bool CInitialization::processAll()
         RequiredTargets.insert((*it)->getTarget());
       }
 
-#pragma omp critical
     CDependencyGraph::getUpdateSequence(InitializationSequence, RequiredTargets);
   }
 
@@ -212,9 +211,9 @@ void CInitialization::fromJSON(const json_t * json)
             mActionEnsemble.isValid());
 }
 
-void CInitialization::process()
+bool CInitialization::process()
 {
-  mActionEnsemble.process(*mpTarget);
+  return mActionEnsemble.process(*mpTarget);
 }
 
 CSetContent * CInitialization::getTarget()

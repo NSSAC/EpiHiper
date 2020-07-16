@@ -96,15 +96,19 @@ void CIntervention::release()
 }
 
 // static
-void CIntervention::processAll()
+bool CIntervention::processAll()
 {
+  bool success = true;
+
   std::map< std::string, CIntervention * >::iterator it = INSTANCES.begin();
   std::map< std::string, CIntervention * >::iterator end = INSTANCES.end();
 
   for (; it != end; ++it)
     {
-      it->second->process();
+      success &= it->second->process();
     }
+
+  return success;
 }
 
 // static
@@ -228,21 +232,30 @@ void CIntervention::fromJSON(const json_t * json)
   mValid = false; // DONE
 }
 
-void CIntervention::process()
+bool CIntervention::process()
 {
-  if (!mIsTriggered)
-    return;
+  bool success = true;
+  size_t IsTriggered = 0;
 
-  CLogger::info() << "CIntervention: Process '" << mId << "'."; 
+# pragma omp atomic read
+  IsTriggered = mIsTriggered;
 
-  CInitialization::process();
+  if (IsTriggered > 0)
+    {
+      CLogger::info() << "CIntervention: Process '" << mId << "'."; 
 
-  mIsTriggered = false;
+      success &= CInitialization::process();
+
+#pragma omp critical
+      --mIsTriggered;
+    }
+
+  return success;
 }
 
 void CIntervention::trigger()
 {
   CLogger::info() << "CIntervention: Intervention '" << mId << "' has been triggered."; 
 
-  mIsTriggered = true;
+  mIsTriggered = CCommunicate::OMPMaxProcesses;
 }
