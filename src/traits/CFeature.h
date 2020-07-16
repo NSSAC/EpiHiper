@@ -47,7 +47,7 @@ public:
 
 	CFeature & operator=(const CFeature & rhs);
 
-  virtual void fromJSON(const json_t * json) override;
+  virtual void fromJSON(const json_t * json);
 
   void augment(const json_t * json);
 
