@@ -1,0 +1,1 @@
+This tool takes as input an intervention (JSON) file, and a time series (CSV) file which has two columns (day,count). For each line of the CSV file, it insert a trigger (timed by the day) and a correspond intervention (randomly select from `S_a` state nodes and set them to `E_a`) to the JSON object loaded from the JSON file, and dump to a new intervention file.
