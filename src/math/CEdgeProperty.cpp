@@ -199,7 +199,7 @@ CValue CEdgeProperty::locationId(CEdge * pEdge)
   return CValue(pEdge->locationId);
 }
 #else
-CValueInterface & CEdgeProperty::locationId(CEdge * /* pEdge */)
+CValue CEdgeProperty::locationId(CEdge * /* pEdge */)
 {
   return CValue((size_t) -1);
 }

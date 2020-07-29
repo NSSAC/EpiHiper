@@ -34,11 +34,13 @@ CTransmissionAction::CTransmissionAction(const CTransmission * pTransmission, co
           << ", contact: "
           << mpEdge->pSource->id;
 
+#ifdef USE_LOATION_ID
   if (CEdge::HasLocationId)
     {
       Trace << ", location: "
             << mpEdge->locationId;
     }
+#endif
 }
 
 // virtual

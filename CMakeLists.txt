@@ -18,6 +18,18 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 include(GNUInstallDirs)
 set(CMAKE_CXX_STANDARD 11)
 
+option(ENABLE_LOCATION_ID "Enable the Location Id field in the network" OFF)
+
+if (ENABLE_LOCATION_ID)
+  set(USE_LOCATION_ID 1)
+endif(ENABLE_LOCATION_ID)
+
+option(ENABLE_OMP "Enable the OpenMP support" ON)
+
+if (ENABLE_OMP)
+  set(USE_OMP 1)
+endif(ENABLE_OMP)
+
 find_package (MPI REQUIRED)
 include_directories(BEFORE ${MPI_INCLUDE_PATH})
 
@@ -28,12 +40,6 @@ find_package (PGSQL REQUIRED)
 include_directories(BEFORE ${PGSQL_INCLUDE_DIR})
 
 include_directories(BEFORE ${PROJECT_BINARY_DIR}/include)
-
-option(ENABLE_LOCATION_ID "Enable the Location Id field in the network" OFF)
-
-if (ENABLE_LOCATION_ID)
-  set(USE_LOCATION_ID 1)
-endif(ENABLE_LOCATION_ID)
 
 add_subdirectory(dependencies)
 add_subdirectory(src)

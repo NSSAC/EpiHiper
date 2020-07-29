@@ -17,3 +17,4 @@
 #include "git-commit.h"
 
 #cmakedefine USE_LOCATION_ID
+#cmakedefine USE_OMP
