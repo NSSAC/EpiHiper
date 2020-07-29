@@ -13,6 +13,7 @@
 #include "actions/CProgressionAction.h"
 #include "actions/COperation.h"
 #include "diseaseModel/CProgression.h"
+#include "diseaseModel/CHealthState.h"
 #include "network/CNode.h"
 #include "utilities/CMetadata.h"
 #include "utilities/CLogger.h"
@@ -22,7 +23,12 @@ CProgressionAction::CProgressionAction(const CProgression * pProgression, CNode 
   , mpProgression(pProgression)
   , mpTarget(pTarget)
   , mStateAtScheduleTime(pTarget->healthState)
-{}
+{
+  CLogger::trace() << "CProgressionAction: Add action Node "
+                   << mpTarget->id
+                   << " healthState = "
+                   << mpProgression->getExitState()->getId();
+}
 
 // virtual
 CProgressionAction::~CProgressionAction()

@@ -54,7 +54,7 @@ void CCommunicate::resizeReceiveBuffer(int size)
 // static
 void CCommunicate::init(int argc, char ** argv)
 {
-  OMPMaxProcesses = omp_get_max_threads();
+  ThreadIndex.init();
 
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &MPIRank);
@@ -111,6 +111,31 @@ void CCommunicate::init(int argc, char ** argv)
           }
       }
 }
+
+// static 
+int CCommunicate::LocalThreadIndex()
+{
+  return ThreadIndex.localIndex(&ThreadIndex.Active());
+}
+
+// static 
+int CCommunicate::GlobalThreadIndex()
+{
+  return ThreadIndex.globalIndex(&ThreadIndex.Active());
+}
+
+// static 
+int CCommunicate::LocalProcesses()
+{
+  return ThreadIndex.size();
+}
+
+// static 
+int CCommunicate::TotalProcesses()
+{
+  return MPIProcesses * LocalProcesses();
+}
+ 
 
 // static
 int CCommunicate::abortMessage(ErrorCode err, const std::string & msg, const char * file, int line)

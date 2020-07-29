@@ -76,6 +76,8 @@ public :
 
   static bool hasErrors();
 
+  static void setSingle(bool single);
+
   typedef CStream< spdlog::level::trace > trace;
   typedef CStream< spdlog::level::debug > debug;
   typedef CStream< spdlog::level::info > info;
@@ -89,6 +91,7 @@ private:
   static void releaseData(LoggerData & loggerData);
   static void setLevel();
   static bool haveErrors;
+  static int single;
   static CContext< LoggerData > Context;
 };
 
@@ -135,15 +138,17 @@ void CLogger::CStream< level >::flush(const std::string & msg)
   LoggerData * pIt = NULL;
   LoggerData * pEnd = NULL;
 
-  if (omp_get_num_threads() != 1)
-    {
-      pIt = &Context.Active();
-      pEnd = pIt + 1;
-    }
-  else
+  if ((single != -1
+       && Context.localIndex(&Context.Active()) == single)
+      || omp_get_num_threads() == 1)
     {
       pIt = Context.beginThread();
       pEnd = Context.endThread();
+    }
+  else
+    {
+      pIt = &Context.Active();
+      pEnd = pIt + 1;
     }
 
   for (; pIt != pEnd; ++pIt)

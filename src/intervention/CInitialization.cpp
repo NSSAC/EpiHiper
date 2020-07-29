@@ -115,6 +115,7 @@ bool CInitialization::processAll()
 
 #pragma omp single
   {
+    CLogger::setSingle(true);
     CComputableSet RequiredTargets;
 
     for (; it != end; ++it)
@@ -123,6 +124,7 @@ bool CInitialization::processAll()
       }
 
     CDependencyGraph::getUpdateSequence(InitializationSequence, RequiredTargets);
+    CLogger::setSingle(false);
   }
 
   bool success = CDependencyGraph::applyUpdateSequence(InitializationSequence);

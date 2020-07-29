@@ -14,6 +14,7 @@
 
 #include "actions/CCurrentActions.h"
 #include "utilities/CRandom.h"
+#include "utilities/CLogger.h"
 
 CCurrentActions::iterator::iterator(const CCurrentActions::base & actions, bool begin, bool shuffle)
   : mpBase(begin ? &actions : NULL)
@@ -76,7 +77,7 @@ CCurrentActions::iterator & CCurrentActions::iterator::next()
     }
 
   mShuffled.resize(mIt->second.size());
-  std::vector< CAction const * >::iterator itShuffled= mShuffled.begin();
+  std::vector< CAction const * >::iterator itShuffled = mShuffled.begin();
   std::vector< CAction * >::const_iterator it = mIt->second.begin();
   std::vector< CAction * >::const_iterator end = mIt->second.end();
 
@@ -86,8 +87,8 @@ CCurrentActions::iterator & CCurrentActions::iterator::next()
     }
 
   if (mShuffle)
-    std::shuffle(mShuffled.begin(), mShuffled.end(), CRandom::G);
-
+    std::shuffle(mShuffled.begin(), mShuffled.end(), CRandom::G.Active());
+  
   mItShuffled = mShuffled.begin();
   mpAction = *mItShuffled;
 

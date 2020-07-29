@@ -675,6 +675,8 @@ bool CEdgeElementSelector::withTargetNodeIn()
   Edges.clear();
 
   const std::vector< CNode * > & Nodes = mpSelector->getNodes();
+  CLogger::debug() << "CEdgeElementSelector: withTargetNodeIn nodes " << Nodes.size();
+  const CNetwork & Active = CNetwork::Context.Active();
 
   if (!Nodes.empty())
     {
@@ -683,6 +685,10 @@ bool CEdgeElementSelector::withTargetNodeIn()
 
       for (; itNode != endNode; ++itNode)
         {
+          // We do not have edge information for remote nodes in an MPI environment and thus and must always ignore it.
+          if (Active.isRemoteNode(*itNode))
+            continue;
+
           CEdge * pEdge = (*itNode)->Edges;
           CEdge * pEdgeEnd = pEdge + (*itNode)->EdgesSize;
 
@@ -694,7 +700,7 @@ bool CEdgeElementSelector::withTargetNodeIn()
       // std::sort(Edges.begin(), Edges.end());
     }
 
-  CLogger::debug() << "CEdgeElementSelector: withTargetNodeIn returned '" << Edges.size() << "' edges.";
+  CLogger::debug() << "CEdgeElementSelector: withTargetNodeIn returned " << Edges.size() << " edges.";
   return true;
 }
 
@@ -704,6 +710,7 @@ bool CEdgeElementSelector::withSourceNodeIn()
   Edges.clear();
 
   const std::vector< CNode * > & Nodes = mpSelector->getNodes();
+  CLogger::debug() << "CEdgeElementSelector: withSourceNodeIn nodes " << Nodes.size();
 
   if (!Nodes.empty())
     {
@@ -712,8 +719,11 @@ bool CEdgeElementSelector::withSourceNodeIn()
 
       for (; itNode != endNode; ++itNode)
         {
-          CEdge ** pEdge = (*itNode)->pOutgoingEdges;
-          CEdge ** pEdgeEnd = pEdge + (*itNode)->OutgoingEdgesSize;
+          CNode::sOutgoingEdges & OutgoingEdges = (*itNode)->OutgoingEdges.Active();
+          CEdge ** pEdge = OutgoingEdges.pEdges;
+          CEdge ** pEdgeEnd = pEdge + OutgoingEdges.Size;
+
+          CLogger::debug() << "CEdgeElementSelector::withSourceNodeIn: node " << (*itNode)->id << " edges " << OutgoingEdges.Size;
 
           for (;pEdge != pEdgeEnd; ++pEdge)
             Edges.push_back(*pEdge);
@@ -722,7 +732,7 @@ bool CEdgeElementSelector::withSourceNodeIn()
       std::sort(Edges.begin(), Edges.end());
     }
 
-  CLogger::debug() << "CEdgeElementSelector: withSourceNodeIn returned '" << Edges.size() << "' edges.";
+  CLogger::debug() << "CEdgeElementSelector: withSourceNodeIn returned " << Edges.size() << " edges.";
   return true;
 }
 
@@ -743,7 +753,7 @@ bool CEdgeElementSelector::inDBTable()
     if (FieldValueList.contains(pEdge->locationId))
       Edges.push_back(pEdge);
 
-  CLogger::debug() << "CEdgeElementSelector: inDBTable returned '" << Edges.size() << "' edges.";
+  CLogger::debug() << "CEdgeElementSelector: inDBTable returned " << Edges.size() << " edges.";
 #endif
 
   return success;

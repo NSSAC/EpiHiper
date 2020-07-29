@@ -11,6 +11,8 @@
 // END: License 
 
 #include <omp.h>
+#include <mpi.h>
+#include <cstring>
 
 #ifndef UTILITIES_CCONTEXT_H
 #define UTILITIES_CCONTEXT_H
@@ -21,6 +23,8 @@ public:
   CContext(); 
   CContext(const CContext & src);
   ~CContext(); 
+  CContext & operator = (const CContext & rhs);
+  bool operator == (const CContext & rhs) const;
 
   void init();
   void release();
@@ -34,10 +38,11 @@ public:
   const Data * endThread() const;
   bool isMaster(const Data * data) const;
   bool isThread(const Data * data) const;
-  int index(const Data * data) const;
+  int localIndex(const Data * data) const;
+  int globalIndex(const Data * data) const;
   const size_t & size() const;
 
-private:
+protected:
   Data * MasterData;
   Data * ThreadData;
   size_t Size;
@@ -58,7 +63,6 @@ template < class Data > CContext< Data >::CContext(const CContext & src)
 
   *MasterData = *src.MasterData;
 
-
   Data * pIt = ThreadData;
   Data * pEnd = ThreadData + Size;
   const Data * pSrc = src.ThreadData;
@@ -68,10 +72,49 @@ template < class Data > CContext< Data >::CContext(const CContext & src)
       *pIt = *pSrc;
 }
 
-
 template < class Data > CContext< Data >::~CContext()
 {
   release();
+}
+
+template < class Data > CContext< Data > & CContext< Data >::operator = (const CContext< Data > & rhs)
+{
+  if (this != &rhs)
+    {
+      init();
+
+      *MasterData = *rhs.MasterData;
+
+      Data * pIt = ThreadData;
+      Data * pEnd = ThreadData + Size;
+      const Data * pRhs = rhs.ThreadData;
+
+      for (; pIt != pEnd; ++pIt, ++pRhs)
+        if (isThread(pIt))
+          *pIt = *pRhs;
+    }
+
+  return *this;
+}
+
+template < class Data > bool CContext< Data >::operator == (const CContext< Data > & rhs) const
+{
+  if (Size != rhs.Size)
+   return false;
+
+  if (memcmp(MasterData, rhs.MasterData, sizeof(Data)))
+    return false;
+
+  const Data * pIt = ThreadData;
+  const Data * pEnd = ThreadData + Size;
+  const Data * pRhs = rhs.ThreadData;
+
+  for (; pIt != pEnd; ++pIt, ++pRhs)
+    if (isThread(pIt) 
+        && memcmp(pIt, pRhs, sizeof(Data)))
+      return false;
+
+  return true;
 }
 
 template < class Data > void CContext< Data >::init()
@@ -184,12 +227,26 @@ template < class Data > bool CContext< Data >::isThread(const Data * data) const
   return MasterData != data;
 }
 
-template < class Data > int CContext< Data >::index(const Data * data) const
+template < class Data > int CContext< Data >::localIndex(const Data * data) const
 {
   if (ThreadData <= data && data < ThreadData + Size)
     return data - ThreadData;
 
   return -1;
+}
+
+template < class Data > int CContext< Data >::globalIndex(const Data * data) const
+{
+  int GlobalIndex = isMaster(data) ? 0 : localIndex(data);
+
+  if (GlobalIndex != -1)
+    {
+      int MPIRank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &MPIRank);
+      GlobalIndex += MPIRank * Size;
+    }
+
+  return GlobalIndex;
 }
 
 template < class Data > const size_t & CContext< Data >::size() const

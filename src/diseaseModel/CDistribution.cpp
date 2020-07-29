@@ -382,7 +382,7 @@ unsigned int CDistribution::fixed() const
 
 unsigned int CDistribution::discrete() const
 {
-  double A = mpUniformReal->operator()(CRandom::G);
+  double A = mpUniformReal->operator()(CRandom::G.Active());
 
   std::vector< std::pair< double, unsigned int > >::const_iterator it = mDiscrete.begin();
   std::vector< std::pair< double, unsigned int > >::const_iterator end = mDiscrete.end();
@@ -400,15 +400,15 @@ unsigned int CDistribution::discrete() const
 
 unsigned int CDistribution::uniformSet() const
 {
-  return mUniformSet[mpUniformInt->operator()(CRandom::G)];
+  return mUniformSet[mpUniformInt->operator()(CRandom::G.Active())];
 }
 
 unsigned int CDistribution::uniformDiscrete() const
 {
-  return mpUniformInt->operator()(CRandom::G);
+  return mpUniformInt->operator()(CRandom::G.Active());
 }
 
 unsigned int CDistribution::normal() const
 {
-  return std::round(std::max(0.0, mpNormal->operator()(CRandom::G)));
+  return std::round(std::max(0.0, mpNormal->operator()(CRandom::G.Active())));
 }

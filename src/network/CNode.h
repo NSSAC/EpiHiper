@@ -36,6 +36,12 @@ class CEdge;
 class CNode
 {
 public:
+  struct sOutgoingEdges
+  {
+    CEdge ** pEdges;
+    size_t Size;
+  };
+
   static CNode getDefault();
 
   CNode();
@@ -67,8 +73,7 @@ public:
   CTraitData::base nodeTrait;
   CEdge * Edges;
   size_t EdgesSize;
-  CEdge ** pOutgoingEdges;
-  size_t OutgoingEdgesSize;
+  CContext< sOutgoingEdges > OutgoingEdges;
 
 private:
   const CHealthState * pHealthState;

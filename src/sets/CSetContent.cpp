@@ -156,7 +156,7 @@ bool CSetContent::contains(CEdge * pEdge) const
 
 bool CSetContent::contains(const CValueInterface & value) const
 {
-  const SetContent & Active = mContext.Active();
+  const SetContent & Active = getContext().Active();
   CDBFieldValues::const_iterator found = Active.dBFieldValues.find(value.getType());
 
   if (found != Active.dBFieldValues.end())
@@ -167,62 +167,62 @@ bool CSetContent::contains(const CValueInterface & value) const
 
 std::vector< CEdge * >::const_iterator CSetContent::beginEdges() const
 {
-  return mContext.Active().edges.begin();
+  return getContext().Active().edges.begin();
 }
 
 std::vector< CEdge * >::const_iterator CSetContent::endEdges() const
 {
-  return mContext.Active().edges.end();
+  return getContext().Active().edges.end();
 }
 
 std::vector< CNode * >::const_iterator CSetContent::beginNodes() const
 {
-  return mContext.Active().nodes.begin();
+  return getContext().Active().nodes.begin();
 }
 
 std::vector< CNode * >::const_iterator CSetContent::endNodes() const
 {
-  return mContext.Active().nodes.end();
+  return getContext().Active().nodes.end();
 }
 
 // virtual
 const std::vector< CEdge * > & CSetContent::getEdges() const
 {
-  return mContext.Active().edges;
+  return getContext().Active().edges;
 }
 
 // virtual
 const std::vector< CNode * > & CSetContent::getNodes() const
 {
-  return mContext.Active().nodes;
+  return getContext().Active().nodes;
 }
 
 const CSetContent::CDBFieldValues & CSetContent::getDBFieldValues() const
 {
-  return mContext.Active().dBFieldValues;
+  return getContext().Active().dBFieldValues;
 }
 
 // virtual
 std::vector< CEdge * > & CSetContent::getEdges()
 {
-  return mContext.Active().edges;
+  return getContext().Active().edges;
 }
 
 // virtual
 std::vector< CNode * > & CSetContent::getNodes()
 {
-  return mContext.Active().nodes;
+  return getContext().Active().nodes;
 }
 
 CSetContent::CDBFieldValues & CSetContent::getDBFieldValues()
 {
-  return mContext.Active().dBFieldValues;
+  return getContext().Active().dBFieldValues;
 }
 
 void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetContent & notSampled) const
 {
-  SetContent & Sampled = sampled.mContext.Active();
-  SetContent & NotSampled = notSampled.mContext.Active();
+  SetContent & Sampled = sampled.getContext().Active();
+  SetContent & NotSampled = notSampled.getContext().Active();
 
   const std::vector< CNode * > & Nodes = getNodes();
   const std::vector< CEdge * > & Edges = getEdges();
@@ -251,7 +251,7 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
         {
           if (Available <= Requested
               || (Requested > 0.5
-                  && Percent(CRandom::G) < Requested / Available))
+                  && Percent(CRandom::G.Active()) < Requested / Available))
             {
               Sampled.nodes.push_back(*it);
               Requested -= 1.0;
@@ -274,7 +274,7 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
         {
           if (Available <= Requested
               || (Requested > 0.5
-                  && Percent(CRandom::G) < Requested / Available))
+                  && Percent(CRandom::G.Active()) < Requested / Available))
             {
               Sampled.edges.push_back(*it);
               Requested -= 1.0;
@@ -289,8 +289,8 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
 
 void CSetContent::samplePercent(const double & percent, CSetContent & sampled, CSetContent & notSampled) const
 {
-  SetContent & Sampled = sampled.mContext.Active();
-  SetContent & NotSampled = notSampled.mContext.Active();
+  SetContent & Sampled = sampled.getContext().Active();
+  SetContent & NotSampled = notSampled.getContext().Active();
   
   Sampled.edges.clear();
   Sampled.nodes.clear();
@@ -309,7 +309,7 @@ void CSetContent::samplePercent(const double & percent, CSetContent & sampled, C
       std::vector< CNode * >::const_iterator end = getNodes().end();
 
       for (; it != end; ++it)
-        if (Percent(CRandom::G) < percent)
+        if (Percent(CRandom::G.Active()) < percent)
           Sampled.nodes.push_back(*it);
         else
           NotSampled.nodes.push_back(*it);
@@ -320,7 +320,7 @@ void CSetContent::samplePercent(const double & percent, CSetContent & sampled, C
       std::vector< CEdge * >::const_iterator end = getEdges().end();
 
       for (; it != end; ++it)
-        if (Percent(CRandom::G) < percent)
+        if (Percent(CRandom::G.Active()) < percent)
           Sampled.edges.push_back(*it);
         else
           NotSampled.edges.push_back(*it);
@@ -346,8 +346,21 @@ size_t CSetContent::totalSize() const
   return TotalSize;
 }
 
-// virtual 
-const CContext< CSetContent::SetContent > & CSetContent::getContext() const
+CContext< size_t > CSetContent::sizes() const
 {
-  return mContext;
+  CContext< size_t > Sizes;
+  Sizes.init();
+
+  Sizes.Master() = totalSize();
+
+  const CContext< SetContent > & Context = getContext();
+
+  const SetContent * pIt = Context.beginThread();
+  const SetContent * pEnd = Context.endThread();
+  size_t * pSize = Sizes.beginThread();
+
+  for (; pIt != pEnd; ++pIt, ++pSize)
+    *pSize =  pIt->edges.size() + pIt->nodes.size() + pIt->dBFieldValues.size();
+
+  return Sizes;
 }

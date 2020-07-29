@@ -751,25 +751,28 @@ bool CNodeElementSelector::propertySelection()
     if (mpComparison(mNodeProperty.propertyOf(pNode), *mpValue))
       Nodes.push_back(pNode);
 
+  CLogger::debug() << "CNodeElementSelector: propertySelection returned '" << Nodes.size() << "' nodes.";
+
   if (!mLocalScope)
     {
       CLogger::debug("CNodeElementSelector: Processing remote nodes");
-      std::map< size_t, CNode >::const_iterator it = CNetwork::Context.Active().beginRemoteNodes();
-      std::map< size_t, CNode >::const_iterator end = CNetwork::Context.Active().endRemoteNodes();
+      std::map< size_t, CNode * >::const_iterator it = CNetwork::Context.Active().beginRemoteNodes();
+      std::map< size_t, CNode * >::const_iterator end = CNetwork::Context.Active().endRemoteNodes();
       bool sort = false;
 
       for (; it != end; ++it)
-        if (mpComparison(mNodeProperty.propertyOf(&it->second), *mpValue))
+        if (mpComparison(mNodeProperty.propertyOf(it->second), *mpValue))
           {
-            Nodes.push_back(const_cast< CNode * >(&it->second));
+            Nodes.push_back(const_cast< CNode * >(it->second));
             sort = true;
           }
 
       if (sort)
         std::sort(Nodes.begin(), Nodes.end());
+
+      CLogger::debug() << "CNodeElementSelector: propertySelection returned '" << Nodes.size() << "' nodes.";
     }
 
-  CLogger::debug() << "CNodeElementSelector: propertySelection returned '" << Nodes.size() << "' nodes.";
   return true;
 }
 
@@ -785,27 +788,30 @@ bool CNodeElementSelector::propertyWithin()
     if (mpValueList->contains(mNodeProperty.propertyOf(pNode)))
       Nodes.push_back(pNode);
 
+  CLogger::debug() << "CNodeElementSelector: propertyWithin returned '" << Nodes.size() << "' nodes.";
+
   if (!mLocalScope)
     {
       CLogger::debug("CNodeElementSelector: Processing remote nodes");
 
-      std::map< size_t, CNode >::const_iterator it = CNetwork::Context.Active().beginRemoteNodes();
-      std::map< size_t, CNode >::const_iterator end = CNetwork::Context.Active().endRemoteNodes();
+      std::map< size_t, CNode * >::const_iterator it = CNetwork::Context.Active().beginRemoteNodes();
+      std::map< size_t, CNode * >::const_iterator end = CNetwork::Context.Active().endRemoteNodes();
       bool sort = false;
 
       for (; it != end; ++it)
-        if (mpValueList->contains(mNodeProperty.propertyOf(&it->second)))
+        if (mpValueList->contains(mNodeProperty.propertyOf(it->second)))
           {
-            Nodes.push_back(const_cast< CNode * >(&it->second));
+            Nodes.push_back(const_cast< CNode * >(it->second));
             sort = true;
           }
 
       if (sort)
         std::sort(Nodes.begin(), Nodes.end());
-    }
 
-  CLogger::debug() << "CNodeElementSelector: propertyWithin returned '" << Nodes.size() << "' nodes.";
+      CLogger::debug() << "CNodeElementSelector: propertyWithin returned '" << Nodes.size() << "' nodes.";
+    }
   return true;
+
 }
 
 bool CNodeElementSelector::withIncomingEdge()

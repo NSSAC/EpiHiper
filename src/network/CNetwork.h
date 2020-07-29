@@ -94,11 +94,11 @@ public:
 
   CEdge * endEdge();
 
-  const std::map< size_t, CNode > & getRemoteNodes() const;
+  const std::map< size_t, CNode * > & getRemoteNodes() const;
   
-  std::map< size_t, CNode >::const_iterator beginRemoteNodes() const;
+  std::map< size_t, CNode * >::const_iterator beginRemoteNodes() const;
   
-  std::map< size_t, CNode >::const_iterator endRemoteNodes() const;
+  std::map< size_t, CNode * >::const_iterator endRemoteNodes() const;
   
   bool isRemoteNode(const CNode * pNode) const;
 
@@ -117,12 +117,17 @@ public:
   bool haveValidPartition(const int & parts);
 
 private:
+  void initExternalEdges();
+  void initOutgoingEdges();
+  
   std::string mFile;
   CNode * mLocalNodes;
   size_t mFirstLocalNode;
   size_t mBeyondLocalNode;
   size_t mLocalNodesSize;
-  std::map< size_t, CNode > *mpRemoteNodes;
+  CNode * mExternalNodes;
+  size_t mExternalNodesSize;
+  std::map< size_t, CNode *> mRemoteNodes;
   CEdge * mEdges;
   size_t mEdgesSize;
   size_t mTotalNodesSize;

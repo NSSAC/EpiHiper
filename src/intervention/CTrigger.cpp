@@ -70,6 +70,7 @@ bool CTrigger::processAll()
 
 #pragma omp single
   {
+    CLogger::setSingle(true);
     RequiredTargets.clear();
     
     if (pGlobalTriggered == NULL)
@@ -104,6 +105,7 @@ bool CTrigger::processAll()
     }
 
     CDependencyGraph::getUpdateSequence(UpdateSequence, RequiredTargets);
+    CLogger::setSingle(false);
   }
 
   return CDependencyGraph::applyUpdateSequence(UpdateSequence);

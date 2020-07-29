@@ -257,5 +257,5 @@ void CIntervention::trigger()
 {
   CLogger::info() << "CIntervention: Intervention '" << mId << "' has been triggered."; 
 
-  mIsTriggered = CCommunicate::OMPMaxProcesses;
+  mIsTriggered = CCommunicate::LocalProcesses();
 }

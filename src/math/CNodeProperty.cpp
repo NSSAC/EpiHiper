@@ -14,6 +14,7 @@
 #include <jansson.h>
 
 #include "math/CNodeProperty.h"
+#include "math/CValue.h"
 #include "network/CNode.h"
 #include "network/CEdge.h"
 #include "diseaseModel/CModel.h"
@@ -115,7 +116,7 @@ const bool & CNodeProperty::isValid() const
   return mValid;
 }
 
-CValueInterface & CNodeProperty::propertyOf(const CNode * pNode)
+CValue CNodeProperty::propertyOf(const CNode * pNode)
 {
   return (this->*mpPropertyOf)(const_cast< CNode * >(pNode));
 }
@@ -131,34 +132,29 @@ std::pair< CEdge *, CEdge * > CNodeProperty::edges(CNode * pNode)
   return std::make_pair(pNode->Edges, pNode->Edges + pNode->EdgesSize);
 }
 
-CValueInterface & CNodeProperty::id(CNode * pNode)
+CValue CNodeProperty::id(CNode * pNode)
 {
-  mpValue = &pNode->id;
-  return *this;
+  return CValue(pNode->id);
 }
 
-CValueInterface & CNodeProperty::susceptibilityFactor(CNode * pNode)
+CValue CNodeProperty::susceptibilityFactor(CNode * pNode)
 {
-  mpValue = &pNode->susceptibilityFactor;
-  return *this;
+  return CValue(pNode->susceptibilityFactor);
 }
 
-CValueInterface & CNodeProperty::infectivityFactor(CNode * pNode)
+CValue CNodeProperty::infectivityFactor(CNode * pNode)
 {
-  mpValue = &pNode->infectivityFactor;
-  return *this;
+  return CValue(pNode->infectivityFactor);
 }
 
-CValueInterface & CNodeProperty::healthState(CNode * pNode)
+CValue CNodeProperty::healthState(CNode * pNode)
 {
-  mpValue = &pNode->healthState;
-  return *this;
+  return CValue(pNode->healthState);
 }
 
-CValueInterface & CNodeProperty::nodeTrait(CNode * pNode)
+CValue CNodeProperty::nodeTrait(CNode * pNode)
 {
-  mpValue = &pNode->nodeTrait;
-  return *this;
+  return CValue(pNode->nodeTrait);
 }
 
 COperation * CNodeProperty::setId(CNode * pNode, const CValueInterface & /* value */, CValueInterface::pOperator /* pOperator */, const CMetadata & /* info */)

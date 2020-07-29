@@ -231,12 +231,12 @@ void CActionDefinition::process() const
 {
   try
     {
-      CLogger::trace() << "CActionDefinition: Add node and edge independent action.";
+      CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] node and edge independent action.";
       CActionQueue::addAction(mDelay, new CVariableAction(this));
     }
   catch (...)
     {
-      CLogger::error() << "CActionDefinition:: Failed to create node and edge independent action.";
+      CLogger::error() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Failed to create node and edge independent action.";
     }
 }
 
@@ -247,19 +247,19 @@ void CActionDefinition::process(const CEdge * pEdge) const
 
   if (CNetwork::Context.Active().isRemoteNode(pEdge->pTarget))
     {
-      CLogger::trace() << "CActionDefinition: Add remote action for edge `" << pEdge->targetId << "," << pEdge->sourceId << "'.";
+      CLogger::warn() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Add remote action for edge '" << pEdge->targetId << "," << pEdge->sourceId << "'.";
       CActionQueue::addRemoteAction(mIndex, pEdge);
       return;
     }
 
   try
     {
-      CLogger::trace() << "CActionDefinition: Add action for edge `" << pEdge->targetId << "," << pEdge->sourceId << "'.";
+      CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Add action for edge '" << pEdge->targetId << "," << pEdge->sourceId << "'.";
       CActionQueue::addAction(mDelay, new CEdgeAction(this, pEdge));
     }
   catch (...)
     {
-      CLogger::error() << "CActionDefinition: Failed to create action for edge `" << pEdge->targetId << "," << pEdge->sourceId << "'.";
+      CLogger::error() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Failed to create action for edge '" << pEdge->targetId << "," << pEdge->sourceId << "'.";
     }
 }
 
@@ -270,19 +270,19 @@ void CActionDefinition::process(const CNode * pNode) const
 
   if (CNetwork::Context.Active().isRemoteNode(pNode))
     {
-      CLogger::trace() << "CActionDefinition: Add remote action for node `" << pNode->id << "'.";
+      CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Add remote action for node '" << pNode->id << "'.";
       CActionQueue::addRemoteAction(mIndex, pNode);
       return;
     }
 
   try
     {
-      CLogger::trace() << "CActionDefinition: Add action for node `" << pNode->id << "'.";
+      CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Add action for node '" << pNode->id << "'.";
       CActionQueue::addAction(mDelay, new CNodeAction(this, pNode));
     }
   catch (const std::exception & e)
     {
-      CLogger::error() << "CActionDefinition: Failed to create action for node `" << pNode->id << "'.";
+      CLogger::error() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Failed to create action for node '" << pNode->id << "'.";
     }
 }
 
@@ -311,7 +311,7 @@ bool CActionDefinition::execute() const
     }
   catch (const std::exception & e)
     {
-      CLogger::error() << "CActionDefinition: Failed to execute action.";
+      CLogger::error() << "CActionDefinition::execute: [ActionDefinition:" << mIndex << "] Failed to execute action.";
       success = false;
     }
 
@@ -346,7 +346,7 @@ bool CActionDefinition::execute(CEdge * pEdge) const
     }
   catch (const std::exception & e)
     {
-      CLogger::error() << "CActionDefinition: Failed to execute action for edge `" << pEdge->targetId << "," << pEdge->sourceId << "'.";
+      CLogger::error() << "CActionDefinition::execute: [ActionDefinition:" << mIndex << "] Failed to execute action for edge '" << pEdge->targetId << "," << pEdge->sourceId << "'.";
       success = false;
     }
 
@@ -381,7 +381,7 @@ bool CActionDefinition::execute(CNode * pNode) const
     }
   catch (const std::exception & e)
     {
-      CLogger::error() << "CActionDefinition: Failed to execute action for node `" << pNode->id << "'.";
+      CLogger::error() << "CActionDefinition::execute: [ActionDefinition:" << mIndex << "] Failed to execute action for node '" << pNode->id << "'.";
       success = false;
     }
 

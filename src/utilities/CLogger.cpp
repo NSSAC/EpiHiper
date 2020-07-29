@@ -22,6 +22,9 @@
 bool CLogger::haveErrors = false;
 
 // static 
+int CLogger::single = -1;
+
+// static 
 CContext< CLogger::LoggerData > CLogger::Context = CContext< CLogger::LoggerData >();
 
 // static
@@ -236,10 +239,19 @@ void CLogger::setTask(int rank, int processes)
         if (Context.isThread(pIt))
           {
             std::ostringstream os;
-            os << Task << "[" << Context.size() << ":" << std::setfill('0') << std::setw(width) << Context.index(pIt) << "]";
+            os << Task << "[" << Context.size() << ":" << std::setfill('0') << std::setw(width) << Context.localIndex(pIt) << "]";
             pIt->task = os.str();
           }
     }
+}
+
+// static 
+void CLogger::setSingle(bool s)
+{
+  int index = s ? Context.localIndex(&Context.Active()) : -1;
+
+#pragma omp atomic write
+  single = index;
 }
 
 // static 

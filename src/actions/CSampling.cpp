@@ -279,7 +279,11 @@ void CSampling::process(const CSetContent & targets)
       // This barrier is required since we have to have all threads determine the number of samples they require 
 #pragma omp barrier
 #pragma omp single
-      broadcastCount();
+      {
+        CLogger::setSingle(true);
+        broadcastCount();
+        CLogger::setSingle(false);
+      }
 
       mpTargets->sampleMax(mLocalLimit.Active(), mSampledTargets, mNotSampledTargets);
     }
@@ -305,55 +309,39 @@ void CSampling::process(const CSetContent & targets)
 int CSampling::broadcastCount()
 {
   if (mpCommunicateBuffer == NULL)
-    mpCommunicateBuffer = new size_t[CCommunicate::MPIProcesses];
+    mpCommunicateBuffer = new size_t[CCommunicate::TotalProcesses()];
 
-  *mpCommunicateBuffer = mpTargets->totalSize();
+  mLocalLimit = mpTargets->sizes();
+  size_t * pIt = mLocalLimit.beginThread();
+  size_t * pEnd = mLocalLimit.endThread();
+  size_t * pSize = mpCommunicateBuffer;
 
-  CCommunicate::ClassMemberReceive< CSampling > Receive(this, &CSampling::receiveCount);
-  CCommunicate::master(0, mpCommunicateBuffer, sizeof(size_t), CCommunicate::MPIProcesses * sizeof(size_t), &Receive);
+  for (; pIt != pEnd; ++pIt, ++pSize)
+    *pSize = *pIt;
 
-  mLocalLimit.Master() = *(mpCommunicateBuffer + CCommunicate::MPIRank);
-
-  if (mLocalLimit.size() >1)
+  if (CCommunicate::MPIProcesses > 1)
     {
-      // We now determine the numbers for all threads
-      double Requested = mpTargets->totalSize();
-      double Available = mLocalLimit.Master();
-      double Allowed = 0.0;
-
-      if (mType == Type::relativeGroup)
-        {
-          Available = std::round(Requested * mPercentage / 100.0);
-        }
-
-      if (Available < Requested)
-        {
-          // We need to limit the individual counts;
-          size_t * pRemote = mLocalLimit.beginThread();
-          size_t * pRemoteEnd = mLocalLimit.endThread();
-
-          for (; pRemote != pRemoteEnd; ++pRemote)
-            if (Available > 0.5)
-              {
-                Allowed = std::round(((double) *pRemote) * Available / Requested);
-                Requested -= *pRemote;
-                *pRemote = Allowed;
-                Available -= *pRemote;
-
-                if (Available < -0.5)
-                  {
-                    *pRemote += 1;
-                    Requested += 1;
-                    Available += 1;
-                  }
-              }
-            else
-              {
-                *pRemote = 0;
-              }
-        }
+      CCommunicate::ClassMemberReceive< CSampling > Receive(this, &CSampling::receiveCount);
+      CCommunicate::master(0, mpCommunicateBuffer, CCommunicate::LocalProcesses() * sizeof(size_t), CCommunicate::TotalProcesses() * sizeof(size_t), &Receive);
     }
-    
+  else
+    {
+      determineThreadLimits();
+    }
+
+  mLocalLimit.Master() = 0;  
+
+  pIt = mLocalLimit.beginThread();
+  pSize = mpCommunicateBuffer + CCommunicate::MPIRank * CCommunicate::LocalProcesses();
+
+  for (; pIt != pEnd; ++pIt, ++pSize)
+    {
+      *pIt = *pSize;
+
+      if (mLocalLimit.isThread(pIt))
+        mLocalLimit.Master() += *pIt;
+    }
+
   return (int) CCommunicate::ErrorCode::Success;
 }
 
@@ -362,58 +350,23 @@ CCommunicate::ErrorCode CSampling::receiveCount(std::istream & is, int sender)
   if (CCommunicate::MPIRank == 0)
     if (sender != CCommunicate::MPIRank)
       {
-        is.read(reinterpret_cast< char * >(mpCommunicateBuffer + sender), sizeof(size_t));
+        is.read(reinterpret_cast< char * >(mpCommunicateBuffer + sender * CCommunicate::LocalProcesses()), CCommunicate::LocalProcesses() * sizeof(size_t));
       }
     else
       {
         // This will always be last call for the central rank, i.e., we now have all sizes.
-        mpCommunicateBuffer[CCommunicate::MPIRank] = mpTargets->totalSize();
+        size_t * pIt = mLocalLimit.beginThread();
+        size_t * pEnd = mLocalLimit.endThread();
+        size_t * pSize = mpCommunicateBuffer + CCommunicate::MPIRank * CCommunicate::LocalProcesses();
 
-        // We now determine the numbers for all process
-        double Requested = 0.0;
-        double Available = mCount;
-        double Allowed = 0.0;
+        for (; pIt != pEnd; ++pIt, ++pSize)
+          *pSize = *pIt;
 
-        size_t * pRemote = mpCommunicateBuffer;
-        size_t * pRemoteEnd = mpCommunicateBuffer + CCommunicate::MPIProcesses;
-
-        for (; pRemote != pRemoteEnd; ++pRemote)
-          {
-            Requested += *pRemote;
-          }
-
-        if (mType == Type::relativeGroup)
-          {
-            Available = std::round(Requested * mPercentage / 100.0);
-          }
-
-        if (Available < Requested)
-          {
-            // We need to limit the individual counts;
-            for (pRemote = mpCommunicateBuffer; pRemote != pRemoteEnd; ++pRemote)
-              if (Available > 0.5)
-                {
-                  Allowed = std::round(((double) *pRemote) * Available / Requested);
-                  Requested -= *pRemote;
-                  *pRemote = Allowed;
-                  Available -= *pRemote;
-
-                  if (Available < -0.5)
-                    {
-                      *pRemote += 1;
-                      Requested += 1;
-                      Available += 1;
-                    }
-                }
-              else
-                {
-                  *pRemote = 0;
-                }
-          }
+        determineThreadLimits();
       }
   else
     {
-      is.read(reinterpret_cast< char * >(mpCommunicateBuffer), CCommunicate::MPIProcesses * sizeof(size_t));
+      is.read(reinterpret_cast< char * >(mpCommunicateBuffer), CCommunicate::TotalProcesses() * sizeof(size_t));
     }
 
   return CCommunicate::ErrorCode::Success;
@@ -428,4 +381,49 @@ bool CSampling::isEmpty() const
 {
   return mpSampled == NULL
          && mpNotSampled == NULL;
+}
+
+void CSampling::determineThreadLimits()
+{
+  // We now determine the numbers for all process
+  double Requested = 0.0;
+  double Available = mCount;
+  double Allowed = 0.0;
+
+  size_t * pRemote = mpCommunicateBuffer;
+  size_t * pRemoteEnd = mpCommunicateBuffer + CCommunicate::TotalProcesses();
+
+  for (; pRemote != pRemoteEnd; ++pRemote)
+    {
+      Requested += *pRemote;
+    }
+
+  if (mType == Type::relativeGroup)
+    {
+      Available = std::round(Requested * mPercentage / 100.0);
+    }
+
+  if (Available < Requested)
+    {
+      // We need to limit the individual counts;
+      for (pRemote = mpCommunicateBuffer; pRemote != pRemoteEnd; ++pRemote)
+        if (Available > 0.5)
+          {
+            Allowed = std::round(((double) *pRemote) * Available / Requested);
+            *pRemote = Allowed;
+            Requested -= *pRemote;
+            Available -= *pRemote;
+
+            if (Available < -0.5)
+              {
+                *pRemote += 1;
+                Requested += 1;
+                Available += 1;
+              }
+          }
+        else
+          {
+            *pRemote = 0;
+          }
+    }
 }

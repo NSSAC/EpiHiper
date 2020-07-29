@@ -40,6 +40,13 @@ CValue::CValue(const int & integer)
   assignValue(&integer);
 }
 
+CValue::CValue(const CTraitData::base & traitData)
+  : CValueInterface(Type::traitData, createValue(Type::traitData))
+  , mValid(true)
+{
+  assignValue(&traitData);
+}
+
 CValue::CValue(const CTraitData::value & traitValue)
   : CValueInterface(Type::traitValue, createValue(Type::traitValue))
   , mValid(true)

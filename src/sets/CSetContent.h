@@ -29,7 +29,6 @@ public:
     size_t size() const;
   };
 
-protected:
  struct SetContent
   {
     std::vector< CNode * > nodes;
@@ -58,33 +57,41 @@ public:
 
   const bool & isValid() const;
 
-  virtual bool contains(CNode * pNode) const;
+  bool contains(CNode * pNode) const;
 
-  virtual bool contains(CEdge * pEdge) const;
+  bool contains(CEdge * pEdge) const;
 
-  virtual bool contains(const CValueInterface & value) const;
+  bool contains(const CValueInterface & value) const;
 
-  virtual std::vector< CEdge * >::const_iterator beginEdges() const;
+  std::vector< CEdge * >::const_iterator beginEdges() const;
 
-  virtual std::vector< CEdge * >::const_iterator endEdges() const;
+  std::vector< CEdge * >::const_iterator endEdges() const;
 
-  virtual std::vector< CNode * >::const_iterator beginNodes() const;
+  std::vector< CNode * >::const_iterator beginNodes() const;
 
-  virtual std::vector< CNode * >::const_iterator endNodes() const;
+  std::vector< CNode * >::const_iterator endNodes() const;
 
-  virtual const std::vector< CEdge * > & getEdges() const;
+  const std::vector< CEdge * > & getEdges() const;
 
-  virtual const std::vector< CNode * > & getNodes() const;
+  const std::vector< CNode * > & getNodes() const;
 
-  virtual const CDBFieldValues & getDBFieldValues() const;
+  const CDBFieldValues & getDBFieldValues() const;
 
-  virtual std::vector< CEdge * > & getEdges();
+  std::vector< CEdge * > & getEdges();
 
-  virtual std::vector< CNode * > & getNodes();
+  std::vector< CNode * > & getNodes();
 
-  virtual CDBFieldValues & getDBFieldValues();
+  CDBFieldValues & getDBFieldValues();
 
-  virtual const CContext< SetContent > & getContext() const;
+  inline virtual const CContext< SetContent > & getContext() const
+  {
+    return mContext;
+  }
+
+  inline virtual CContext< SetContent > & getContext()
+  {
+    return mContext;
+  }
 
   void sampleMax(const size_t & max, CSetContent & sampled, CSetContent & NotSampled) const;
 
@@ -93,6 +100,8 @@ public:
   size_t size() const;
 
   size_t totalSize() const;
+
+  CContext< size_t > sizes() const;
 
 private:
   CContext< SetContent > mContext;

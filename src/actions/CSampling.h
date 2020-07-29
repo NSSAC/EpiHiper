@@ -65,6 +65,8 @@ private:
 
   CCommunicate::ErrorCode receiveCount(std::istream & is, int sender);
 
+  void determineThreadLimits();
+
   Type mType;
   double mPercentage;
   size_t mCount;

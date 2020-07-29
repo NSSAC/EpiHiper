@@ -92,7 +92,6 @@ bool CActionQueue::processCurrentActions()
       CCommunicate::barrierRMA();
 
       // MPI Broadcast scheduled remote actions and check whether local actions are pending
-#pragma omp single
       broadcastPendingActions();
 
       // If no local actions are pending anywhere and no remote actions where broadcasted, i.e.,
@@ -238,31 +237,32 @@ int CActionQueue::broadcastPendingActions()
 
   ActionQueue.locallyAdded.clear();
 
-  sActionQueue * pIt = Context.beginThread();
-  sActionQueue * pEnd = Context.endThread();
-
+#pragma omp single
   TotalPendingActions = 0;
-  for (; pIt != pEnd; ++pIt)
-    {
-      map & ActionQueue = pIt->actionQueue;
-      map::iterator found = ActionQueue.find(CurrenTick);
 
-      if (found != ActionQueue.end())
-        TotalPendingActions += found->second->size();
-    }
+  size_t PendingActions = pendingActions();
 
-  std::ostringstream os;
+#pragma omp atomic
+  TotalPendingActions += PendingActions;
 
-  TotalPendingActions = pendingActions();
-  os.write(reinterpret_cast< const char * >(&TotalPendingActions), sizeof(size_t));
-  os << RemoteActions.str();
-  RemoteActions.str("");
+#pragma omp barrier
+#pragma omp single
+  {
+    CLogger::setSingle(true);
 
-  const std::string & Buffer = os.str();
+    std::ostringstream os;
+    os.write(reinterpret_cast< const char * >(&TotalPendingActions), sizeof(size_t));
+    os << RemoteActions.str();
+    RemoteActions.str("");
 
-  CCommunicate::Receive Receive(&CActionQueue::receivePendingActions);
-  CCommunicate::roundRobin(Buffer.c_str(), Buffer.length(), &Receive);
+    const std::string & Buffer = os.str();
 
+    CCommunicate::Receive Receive(&CActionQueue::receivePendingActions);
+    CCommunicate::roundRobin(Buffer.c_str(), Buffer.length(), &Receive);
+
+    CLogger::setSingle(false);
+  }
+  
   return (int) CCommunicate::ErrorCode::Success;
 }
 

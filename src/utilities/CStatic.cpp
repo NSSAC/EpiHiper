@@ -161,7 +161,7 @@ int CCommunicate::MPIProcesses(-1);
 MPI_Comm * CCommunicate::MPICommunicator(NULL);
 
 // static 
-int CCommunicate::OMPMaxProcesses(-1);
+CContext< size_t > CCommunicate::ThreadIndex = CContext< size_t >();
 
 // static
 int CCommunicate::ReceiveSize(0);
@@ -182,7 +182,7 @@ size_t CCommunicate::MPIWinSize(0);
 double * CCommunicate::RMABuffer(NULL);
 
 // static
-CRandom::generator_t CRandom::G;
+CRandom::CContext CRandom::G;
 
 // static
 CSimConfig * CSimConfig::INSTANCE(NULL);

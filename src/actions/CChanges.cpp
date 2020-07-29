@@ -196,9 +196,9 @@ CCommunicate::ErrorCode CChanges::writeDefaultOutputData()
 // static
 CCommunicate::ErrorCode CChanges::determineNodesRequested()
 {
-  const std::map< size_t, CNode > & RemoteNodes = CNetwork::Context.Active().getRemoteNodes();
-  std::map< size_t, CNode >::const_iterator it = RemoteNodes.begin();
-  std::map< size_t, CNode >::const_iterator end = RemoteNodes.end();
+  const std::map< size_t, CNode * > & RemoteNodes = CNetwork::Context.Active().getRemoteNodes();
+  std::map< size_t, CNode * >::const_iterator it = RemoteNodes.begin();
+  std::map< size_t, CNode * >::const_iterator end = RemoteNodes.end();
 
   size_t * pBuffer = RemoteNodes.size() > 0 ? new size_t[RemoteNodes.size()] : NULL;
   size_t * pId = pBuffer;
@@ -220,6 +220,7 @@ CCommunicate::ErrorCode CChanges::sendNodesRequested(std::ostream & os, int rece
 {
   Changes * pIt = Context.beginThread();
   Changes * pEnd = Context.endThread();
+  size_t i = 0;
 
   for (; pIt != pEnd; ++pIt)
     {
@@ -244,8 +245,11 @@ CCommunicate::ErrorCode CChanges::sendNodesRequested(std::ostream & os, int rece
             (*it)->toBinary(os);
             ++it;
             ++itRequested;
+            ++i;
           }
     }
+
+  CLogger::debug() << "CChanges::sendNodesRequested: Sending " << i << " nodes to: " << receiver;
 
   return CCommunicate::ErrorCode::Success;
 }

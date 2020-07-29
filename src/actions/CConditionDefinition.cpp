@@ -176,7 +176,7 @@ final:
 CValueInterface * CConditionDefinition::ValueInstance::value(const CNode * pNode) const
 {
   if (pNodeProperty != NULL)
-    return &pNodeProperty->propertyOf(pNode);
+    return pNodeProperty->propertyOf(pNode).copy();
 
   return value();
 }
@@ -184,7 +184,7 @@ CValueInterface * CConditionDefinition::ValueInstance::value(const CNode * pNode
 CValueInterface * CConditionDefinition::ValueInstance::value(const CEdge * pEdge) const
 {
   if (pEdgeProperty != NULL)
-    return &pEdgeProperty->propertyOf(pEdge);
+    return pEdgeProperty->propertyOf(pEdge).copy();
 
   return value();
 }
@@ -206,6 +206,12 @@ CValueInterface * CConditionDefinition::ValueInstance::value() const
   // pValueList is only available for Within and NotWithin which does not use this path
 
   return NULL;
+}
+
+bool CConditionDefinition::ValueInstance::inherit() const 
+{
+  return pNodeProperty != NULL
+         || pEdgeProperty != NULL;
 }
 
 CConditionDefinition::CConditionDefinition()
@@ -707,12 +713,12 @@ CCondition * CConditionDefinition::createCondition() const
 
             if (pLeft != NULL
                 && pRight != NULL)
-              return new CComparison(mComparison, pLeft, pRight);
+              return new CComparison(mComparison, pLeft, mLeft.inherit(), pRight, mRight.inherit());
           }
         else if (mRight.pValueList != NULL
                  && pLeft != NULL)
           {
-            return new CContainedIn(mComparison, pLeft, *mRight.pValueList);
+            return new CContainedIn(mComparison, pLeft, mLeft.inherit(), *mRight.pValueList);
           }
       }
       break;
@@ -757,12 +763,12 @@ CCondition * CConditionDefinition::createCondition(const CNode * pNode) const
 
             if (pLeft != NULL
                 && pRight != NULL)
-              return new CComparison(mComparison, pLeft, pRight);
+              return new CComparison(mComparison, pLeft, mLeft.inherit(), pRight, mRight.inherit());
           }
         else if (mRight.pValueList != NULL
                  && pLeft != NULL)
           {
-            return new CContainedIn(mComparison, pLeft, *mRight.pValueList);
+            return new CContainedIn(mComparison, pLeft, mLeft.inherit(), *mRight.pValueList);
           }
       }
       break;
@@ -807,12 +813,12 @@ CCondition * CConditionDefinition::createCondition(const CEdge * pEdge) const
 
             if (pLeft != NULL
                 && pRight != NULL)
-              return new CComparison(mComparison, pLeft, pRight);
+              return new CComparison(mComparison, pLeft, mLeft.inherit(), pRight, mRight.inherit());
           }
         else if (mRight.pValueList != NULL
                  && pLeft != NULL)
           {
-            return new CContainedIn(mComparison, pLeft, *mRight.pValueList);
+            return new CContainedIn(mComparison, pLeft, mLeft.inherit(), *mRight.pValueList);
           }
       }
       break;

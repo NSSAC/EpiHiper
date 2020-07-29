@@ -326,9 +326,9 @@ bool CModel::processTransmissions() const
           }
 
         if (A0 > 0
-            && -log(Uniform01(CRandom::G)) < A0 * mTransmissability / 86400)
+            && -log(Uniform01(CRandom::G.Active())) < A0 * mTransmissability / 86400)
           {
-            double alpha = Uniform01(CRandom::G) * A0;
+            double alpha = Uniform01(CRandom::G.Active()) * A0;
 
             std::vector< Candidate >::const_iterator itCandidate = Candidates.begin();
             std::vector< Candidate >::const_iterator endCandidate = Candidates.end();
@@ -365,7 +365,6 @@ void CModel::StateChanged(CNode * pNode)
 void CModel::stateChanged(CNode * pNode) const
 {
   // std::cout << pNode->id << ": " << pNode->Edges << ", " << pNode->Edges + pNode->EdgesSize << ", " << pNode->EdgesSize << std::endl;
-
   const CProgression * pProgression = nextProgression(pNode->healthState);
 
   if (pProgression != NULL)
@@ -393,7 +392,8 @@ const CProgression * CModel::nextProgression(const CModel::state_t & state) cons
 
   if (Progressions.A0 > 0.0)
     {
-      double alpha = CRandom::uniform_real(0.0, Progressions.A0)(CRandom::G);
+      double alpha = CRandom::uniform_real(0.0, Progressions.A0)(CRandom::G.Active());
+
       std::vector< const CProgression * >::const_iterator it = Progressions.Progressions.begin();
       std::vector< const CProgression * >::const_iterator end = Progressions.Progressions.end();
 
@@ -445,39 +445,36 @@ const std::vector< CTransmission > & CModel::GetTransmissions()
 // static
 int CModel::UpdateGlobalStateCounts()
 {
-  {
-    size_t Size = INSTANCE->mStateCount;
-    CHealthState::Counts LocalStateCounts[Size];
+  size_t Size = INSTANCE->mStateCount;
+  CHealthState::Counts LocalStateCounts[Size];
 
-    CHealthState * pState = INSTANCE->mStates;
-    CHealthState * pStateEnd = pState + Size;
-    CHealthState::Counts * pLocalCount = LocalStateCounts;
+  CHealthState * pState = INSTANCE->mStates;
+  CHealthState * pStateEnd = pState + Size;
+  CHealthState::Counts * pLocalCount = LocalStateCounts;
 
-    for (; pState != pStateEnd; ++pState, ++pLocalCount)
-      {
-        CContext< CHealthState::Counts > & StateCounts = pState->getLocalCounts();
-        pLocalCount->Current = 0;
-        pLocalCount->In = 0;
-        pLocalCount->Out = 0;
-        CHealthState::Counts * pIt = StateCounts.beginThread();
-        CHealthState::Counts * pEnd = StateCounts.endThread();
+  for (; pState != pStateEnd; ++pState, ++pLocalCount)
+    {
+      CContext< CHealthState::Counts > & StateCounts = pState->getLocalCounts();
+      pLocalCount->Current = 0;
+      pLocalCount->In = 0;
+      pLocalCount->Out = 0;
+      CHealthState::Counts * pIt = StateCounts.beginThread();
+      CHealthState::Counts * pEnd = StateCounts.endThread();
 
-        for (; pIt != pEnd; ++pIt)
-          if (StateCounts.isThread(pIt))
-            {
-              pLocalCount->Current += pIt->Current;
-              pLocalCount->In += pIt->In;
-              pIt->In = 0;
-              pLocalCount->Out += pIt->Out;
-              pIt->Out = 0;
-            }
+      for (; pIt != pEnd; ++pIt)
+        {
+          pLocalCount->Current += pIt->Current;
+          pLocalCount->In += pIt->In;
+          pIt->In = 0;
+          pLocalCount->Out += pIt->Out;
+          pIt->Out = 0;
+        }
 
-        pState->setGlobalCounts(*pLocalCount);
-      }
+      pState->setGlobalCounts(*pLocalCount);
+    }
 
-    CCommunicate::Receive ReceiveCounts(&CModel::ReceiveGlobalStateCounts);
-    CCommunicate::roundRobinFixed(LocalStateCounts, Size * sizeof(CHealthState::Counts), &ReceiveCounts);
-  }
+  CCommunicate::Receive ReceiveCounts(&CModel::ReceiveGlobalStateCounts);
+  CCommunicate::roundRobinFixed(LocalStateCounts, Size * sizeof(CHealthState::Counts), &ReceiveCounts);
 
   return (int) CCommunicate::ErrorCode::Success;
 }
