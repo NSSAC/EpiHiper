@@ -34,14 +34,14 @@ public:
   {
   public:
     iterator() = delete;
-    iterator(const base & actions, bool begin);
+    iterator(const base & actions, bool begin, bool shuffle);
 
     iterator(const iterator & src);
     ~iterator();
 
     iterator & next();
     const CAction * operator->() const;
-
+    const CAction * operator*();
     bool operator!=(const iterator & rhs) const;
 
   private:
@@ -50,6 +50,7 @@ public:
     std::vector< CAction const * > mShuffled;
     std::vector< CAction const * >::iterator mItShuffled;
     CAction const * mpAction;
+    bool mShuffle;
   };
 
   CCurrentActions();
@@ -60,8 +61,10 @@ public:
 
   size_t size() const;
 
-  iterator begin();
-  iterator end();
+  iterator begin(bool shuffle = true);
+  iterator end(bool shuffle = true);
+
+  void clear();
 
 private:
 };

@@ -48,31 +48,21 @@ public:
 
   virtual bool computeProtected() override;
 
-  virtual bool contains(CNode * pNode) const override;
+  inline virtual const CContext< SetContent > & getContext() const override
+  {
+    if (mValid)
+      return mpSetContent->getContext();
 
-  virtual bool contains(CEdge * pEdge) const override;
+    return CSetContent::getContext();
+  }
 
-  virtual bool contains(const CValueInterface & value) const override;
+  inline virtual CContext< SetContent > & getContext() override
+  {
+    if (mValid)
+      return mpSetContent->getContext();
 
-  virtual std::vector< CEdge * >::const_iterator beginEdges() const override;
-
-  virtual std::vector< CEdge * >::const_iterator endEdges() const override;
-
-  virtual std::vector< CNode * >::const_iterator beginNodes() const override;
-
-  virtual std::vector< CNode * >::const_iterator endNodes() const override;
-
-  virtual const std::vector< CEdge * > & getEdges() const override;
-
-  virtual const std::vector< CNode * > & getNodes() const override;
-
-  virtual const std::map< CValueList::Type, CValueList > & getDBFieldValues() const override;
-
-  virtual std::vector< CEdge * > & getEdges() override;
-
-  virtual std::vector< CNode * > & getNodes() override;
-
-  virtual std::map< CValueList::Type, CValueList > & getDBFieldValues() override;
+    return CSetContent::getContext();
+  }
 
 private:
   std::string mId;

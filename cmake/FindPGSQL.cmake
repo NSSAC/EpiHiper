@@ -1,5 +1,5 @@
 # BEGIN: Copyright 
-# Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+# Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
 # All rights reserved 
 # END: Copyright 
 
@@ -90,6 +90,8 @@ This module will set the following variables in your project:
 #    installed PGSQL, e.g. <Your Path>.
 #
 # ----------------------------------------------------------------------------
+
+include(FindPackageHandleStandardArgs)
 
 set(PGSQL_INCLUDE_PATH_DESCRIPTION "top-level directory containing the PGSQL include directories. E.g /usr/local/include/PostgreSQL/8.4 or C:/Program Files/PostgreSQL/8.4/include")
 set(PGSQL_INCLUDE_DIR_MESSAGE "Set the PGSQL_INCLUDE_DIR cmake cache entry to the ${PGSQL_INCLUDE_PATH_DESCRIPTION}")

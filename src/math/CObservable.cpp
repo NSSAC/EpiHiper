@@ -104,7 +104,14 @@ bool CObservable::computeProtected()
 {
   if (mValid
       && mpCompute != NULL)
-    return (this->*mpCompute)();
+    {
+      bool success = true;
+
+#pragma omp single      
+      success = (this->*mpCompute)();
+
+      return success;
+    }
 
   return false;
 }
@@ -127,7 +134,7 @@ bool CObservable::computeTime()
 
 bool CObservable::computeTotalPopulation()
 {
-  double TotalPopulation = CNetwork::INSTANCE->getGlobalNodeCount();
+  double TotalPopulation = CNetwork::Context.Active().getGlobalNodeCount();
   assignValue(&TotalPopulation);
 
   return true;
@@ -153,7 +160,7 @@ bool CObservable::computeHealthStateRelative()
 
   if (pHealthState != NULL)
     {
-      double Relative = ((double) pHealthState->getGlobalCounts().Current) / CNetwork::INSTANCE->getGlobalNodeCount();
+      double Relative = ((double) pHealthState->getGlobalCounts().Current) / CNetwork::Context.Active().getGlobalNodeCount();
       assignValue(&Relative);
 
       return true;

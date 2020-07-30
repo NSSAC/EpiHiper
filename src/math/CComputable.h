@@ -18,6 +18,7 @@
 #include <string>
 
 #include "math/CComputableSet.h"
+#include "utilities/CContext.h"
 
 class CComputable
 {
@@ -54,7 +55,7 @@ private:
 
 protected:
   bool mStatic;
-  bool mComputedOnce;
+  CContext< bool > mComputedOnce;
   CComputableSet mPrerequisites;
 };
 

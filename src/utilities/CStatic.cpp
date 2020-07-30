@@ -38,22 +38,31 @@
 #include "variables/CVariableList.h"
 
 // static
+CComputableSet CTrigger::RequiredTargets;
+
+// static
+CComputableSet CComputable::Instances;
+
+// static
 std::vector< CActionDefinition * > CActionDefinition::INSTANCES;
 
 // static
 CComputableSet CConditionDefinition::RequiredComputables;
 
-// static
-CActionQueue * CActionQueue::pINSTANCE(NULL);
+// static 
+CContext< CActionQueue::sActionQueue > CActionQueue::Context = CContext< CActionQueue::sActionQueue >();
 
 // static
-std::set< const CNode * > CChanges::Nodes;
+CTick CActionQueue::CurrenTick = CTick();
 
-// static
-std::set< const CEdge * > CChanges::Edges;
+// static 
+size_t CActionQueue::TotalPendingActions = 0;
 
-// static
-std::stringstream CChanges::DefaultOutput;
+// static 
+std::stringstream CActionQueue::RemoteActions = std::stringstream();
+
+// static 
+CContext< CChanges::Changes > CChanges::Context = CContext< CChanges::Changes >();
 
 // static 
 std::map< size_t, std::set< const CNode * > > CChanges::RankToNodesRequested;
@@ -89,12 +98,6 @@ std::vector< CTrigger * > CTrigger::INSTANCES;
 bool * CTrigger::pGlobalTriggered(NULL);
 
 // static
-CComputableSet CTrigger::RequiredTargets;
-
-// static
-CComputableSet CComputable::Instances;
-
-// static
 CDependencyGraph CDependencyGraph::INSTANCE;
 
 // static
@@ -122,7 +125,7 @@ bool CEdge::HasActiveField(false);
 bool CEdge::HasWeightField(false);
 
 // static
-CNetwork * CNetwork::INSTANCE(NULL);
+CContext< CNetwork > CNetwork::Context = CContext< CNetwork >();
 
 // static
 CSetList CSetList::INSTANCE;
@@ -157,6 +160,9 @@ int CCommunicate::MPIProcesses(-1);
 // static 
 MPI_Comm * CCommunicate::MPICommunicator(NULL);
 
+// static 
+CContext< size_t > CCommunicate::ThreadIndex = CContext< size_t >();
+
 // static
 int CCommunicate::ReceiveSize(0);
 
@@ -176,7 +182,7 @@ size_t CCommunicate::MPIWinSize(0);
 double * CCommunicate::RMABuffer(NULL);
 
 // static
-CRandom::generator_t CRandom::G;
+CRandom::CContext CRandom::G;
 
 // static
 CSimConfig * CSimConfig::INSTANCE(NULL);

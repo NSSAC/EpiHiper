@@ -13,6 +13,7 @@
 #include "actions/CTransmissionAction.h"
 #include "actions/COperation.h"
 #include "diseaseModel/CTransmission.h"
+#include "diseaseModel/CHealthState.h"
 #include "network/CNode.h"
 #include "network/CEdge.h"
 #include "utilities/CMetadata.h"
@@ -24,7 +25,23 @@ CTransmissionAction::CTransmissionAction(const CTransmission * pTransmission, co
   , mpTarget(pTarget)
   , mStateAtScheduleTime(pTarget->healthState)
   , mpEdge(pEdge)
-{}
+{
+  CLogger::trace Trace;
+  Trace << "CTransmissionAction: Add node "
+          << mpTarget->id
+          << " healthState = "
+          << mpTransmission->getExitState()->getId()
+          << ", contact: "
+          << mpEdge->pSource->id;
+
+#ifdef USE_LOATION_ID
+  if (CEdge::HasLocationId)
+    {
+      Trace << ", location: "
+            << mpEdge->locationId;
+    }
+#endif
+}
 
 // virtual
 CTransmissionAction::~CTransmissionAction()

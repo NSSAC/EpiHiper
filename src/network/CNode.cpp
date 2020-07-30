@@ -26,18 +26,11 @@ CNode CNode::getDefault()
 {
   CNode Default;
 
-  Default.id = -1;
   Default.pHealthState = &CModel::GetInitialState();
   Default.healthState = CModel::StateToType(Default.pHealthState);
-  Default.susceptibilityFactor = 1.0;
   Default.susceptibility = Default.pHealthState->getSusceptibility();
-  Default.infectivityFactor = 1.0;
   Default.infectivity = Default.pHealthState->getInfectivity();
   Default.nodeTrait = CTrait::NodeTrait->getDefault();
-  Default.Edges = NULL;
-  Default.EdgesSize = 0;
-  Default.pOutgoingEdges = NULL;
-  Default.OutgoingEdgesSize = 0;
 
   return Default;
 }
@@ -52,10 +45,24 @@ CNode::CNode()
   , nodeTrait()
   , Edges(NULL)
   , EdgesSize(0)
-  , pOutgoingEdges(NULL)
-  , OutgoingEdgesSize(0)
+  , OutgoingEdges()
   , pHealthState(NULL)
-{}
+{
+  OutgoingEdges.init();
+  
+  OutgoingEdges.Master().pEdges = NULL;
+  OutgoingEdges.Master().Size = 0;
+
+  sOutgoingEdges * pIt = OutgoingEdges.beginThread();
+  sOutgoingEdges * pEnd = OutgoingEdges.endThread();
+
+  for (; pIt != pEnd; ++pIt)
+    if (OutgoingEdges.isThread(pIt))
+      {
+        pIt->pEdges = NULL;
+        pIt->Size = 0;
+      }
+}
 
 CNode::CNode(const CNode & src)
   : id(src.id)
@@ -67,15 +74,44 @@ CNode::CNode(const CNode & src)
   , nodeTrait(src.nodeTrait)
   , Edges(src.Edges)
   , EdgesSize(src.EdgesSize)
-  , pOutgoingEdges(src.pOutgoingEdges)
-  , OutgoingEdgesSize(src.OutgoingEdgesSize)
+  , OutgoingEdges()
   , pHealthState(NULL)
 {
+  OutgoingEdges.init();
+  
+  OutgoingEdges.Master().pEdges = NULL;
+  OutgoingEdges.Master().Size = 0;
+
+  sOutgoingEdges * pIt = OutgoingEdges.beginThread();
+  sOutgoingEdges * pEnd = OutgoingEdges.endThread();
+
+  for (; pIt != pEnd; ++pIt)
+    if (OutgoingEdges.isThread(pIt))
+      {
+        pIt->pEdges = NULL;
+        pIt->Size = 0;
+      }
+
+  assert(OutgoingEdges == src.OutgoingEdges);
+ 
   setHealthState(src.pHealthState);
 }
 
 CNode::~CNode()
-{}
+{
+  if (OutgoingEdges.Master().pEdges != NULL)
+    {
+      delete [] OutgoingEdges.Master().pEdges;
+    }
+
+  sOutgoingEdges * pIt = OutgoingEdges.beginThread();
+  sOutgoingEdges * pEnd = OutgoingEdges.endThread();
+
+  for (; pIt != pEnd; ++pIt)
+    if (OutgoingEdges.isThread(pIt)  
+        && pIt->pEdges != NULL)
+      delete [] pIt->pEdges;
+}
 
 CNode & CNode::operator = (const CNode & rhs)
 {
@@ -90,6 +126,8 @@ CNode & CNode::operator = (const CNode & rhs)
       nodeTrait = rhs.nodeTrait;
       Edges = rhs.Edges;
       EdgesSize = rhs.EdgesSize;
+
+      assert(OutgoingEdges == rhs.OutgoingEdges);
     }
 
   return *this;
@@ -262,7 +300,7 @@ bool CNode::setNodeTrait(CTraitData::value value, CValueInterface::pOperator pOp
 
 void CNode::setHealthState(const CHealthState * pNewHealthState)
 {
-  if (CNetwork::INSTANCE->isRemoteNode(this))
+  if (CNetwork::Context.Active().isRemoteNode(this))
     {
       pHealthState = pNewHealthState;
       healthState = CModel::StateToType(pHealthState);

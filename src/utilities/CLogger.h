@@ -15,8 +15,19 @@
 
 #include <sstream>
 #include <stack>
+
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/sink.h>
+#include "utilities/CContext.h"
+
+struct LoggerData
+{
+  std::shared_ptr< spdlog::logger > pLogger;
+  std::shared_ptr< spdlog::sinks::sink > pConsole;
+  std::shared_ptr< spdlog::sinks::sink > pFile;
+  std::string task;
+  std::stack< spdlog::level::level_enum > levels;
+};
 
 class CLogger
 {
@@ -34,8 +45,17 @@ private:
     static void flush(const std::string & msg);
   };
 
-public:
+public : 
   typedef spdlog::level::level_enum LogLevel;
+
+  struct LoggerData
+  {
+    std::shared_ptr< spdlog::logger > pLogger;
+    std::shared_ptr< spdlog::sinks::sink > pConsole;
+    std::shared_ptr< spdlog::sinks::sink > pFile;
+    std::string task;
+    std::stack< spdlog::level::level_enum > levels;
+  };
 
   static void init();
 
@@ -51,9 +71,11 @@ public:
 
   static void setLogDir(const std::string dir);
   
-  static const std::string sanitize(std::string dirty);
+  static std::string sanitize(std::string dirty);
 
   static bool hasErrors();
+
+  static void setSingle(bool single);
 
   typedef CStream< spdlog::level::trace > trace;
   typedef CStream< spdlog::level::debug > debug;
@@ -64,20 +86,19 @@ public:
   typedef CStream< spdlog::level::off > off;
 
 private:
+  static void initData(LoggerData & loggerData);
+  static void releaseData(LoggerData & loggerData);
   static void setLevel();
-  static std::stack< LogLevel > levels;
-  static std::string task;
   static bool haveErrors;
-  static std::shared_ptr< spdlog::logger > pLogger;
-  static std::shared_ptr< spdlog::sinks::sink > pConsole;
-  static std::shared_ptr< spdlog::sinks::sink > pFile;
+  static int single;
+  static CContext< LoggerData > Context;
 };
 
 template < int level >
 CLogger::CStream< level >::CStream()
   : std::ostringstream()
 {
-  if (levels.top() > level)
+  if (Context.Active().levels.top() > level)
     setstate(std::ios_base::badbit);
 }
 
@@ -85,7 +106,7 @@ template < int level >
 CLogger::CStream< level >::CStream(const std::string & msg)
   : std::ostringstream()
 {
-  if (levels.top() <= level)
+  if (Context.Active().levels.top() <= level)
     flush(msg);
 
   setstate(std::ios_base::badbit);
@@ -113,31 +134,50 @@ void CLogger::CStream< level >::flush()
 template < int level >
 void CLogger::CStream< level >::flush(const std::string & msg)
 {
-  switch (static_cast< LogLevel >(level))
+  LoggerData * pIt = NULL;
+  LoggerData * pEnd = NULL;
+
+  if ((single != -1
+       && Context.localIndex(&Context.Active()) == single)
+      || omp_get_num_threads() == 1)
     {
-    case spdlog::level::trace:
-      spdlog::trace(task + msg);
-      break;
-    case spdlog::level::debug:
-      spdlog::debug(task + msg);
-      break;
-    case spdlog::level::info:
-      spdlog::info(task + msg);
-      break;
-    case spdlog::level::warn:
-      spdlog::warn(task + msg);
-      break;
-    case spdlog::level::err:
-      haveErrors = true;
-      spdlog::error(task + msg);
-      break;
-    case spdlog::level::critical:
-      haveErrors = true;
-      spdlog::critical(task + msg);
-      break;
-    case spdlog::level::off:
-      break;
+      pIt = Context.beginThread();
+      pEnd = Context.endThread();
     }
+  else
+    {
+      pIt = &Context.Active();
+      pEnd = pIt + 1;
+    }
+
+  for (; pIt != pEnd; ++pIt)
+    switch (static_cast< LogLevel >(level))
+      {
+      case spdlog::level::trace:
+        pIt->pLogger->trace(pIt->task + " " + msg);
+        break;
+      case spdlog::level::debug:
+        pIt->pLogger->debug(pIt->task + " " + msg);
+        break;
+      case spdlog::level::info:
+        pIt->pLogger->info(pIt->task + " " + msg);
+        break;
+      case spdlog::level::warn:
+        pIt->pLogger->warn(pIt->task + " " + msg);
+        break;
+      case spdlog::level::err:
+  #pragma omp atomic
+        haveErrors |= true;
+        pIt->pLogger->error(pIt->task + " " + msg);
+        break;
+      case spdlog::level::critical:
+  #pragma omp atomic
+        haveErrors |= true;
+        pIt->pLogger->critical(pIt->task + " " + msg);
+        break;
+      case spdlog::level::off:
+        break;
+      }
 }
 
 #endif // UTILITIES_CLOGGER_H

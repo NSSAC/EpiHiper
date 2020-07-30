@@ -14,6 +14,7 @@
 #include <jansson.h>
 
 #include "math/CEdgeProperty.h"
+#include "math/CValue.h"
 #include "network/CEdge.h"
 #include "traits/CTrait.h"
 #include "actions/COperation.h"
@@ -152,7 +153,7 @@ CNode * CEdgeProperty::sourceNode(CEdge * pEdge)
   return pEdge->pSource;
 }
 
-CValueInterface & CEdgeProperty::propertyOf(const CEdge * pEdge)
+CValue CEdgeProperty::propertyOf(const CEdge * pEdge)
 {
   return (this->*mpPropertyOf)(const_cast< CEdge * >(pEdge));
 }
@@ -172,65 +173,56 @@ bool CEdgeProperty::isReadOnly() const
          || mpPropertyOf == &CEdgeProperty::duration;
 }
 
-CValueInterface & CEdgeProperty::targetId(CEdge * pEdge)
+CValue CEdgeProperty::targetId(CEdge * pEdge)
 {
-  mpValue = &pEdge->targetId;
-  return *this;
+  return CValue(pEdge->targetId);
 }
   
-CValueInterface & CEdgeProperty::sourceId(CEdge * pEdge)
+CValue CEdgeProperty::sourceId(CEdge * pEdge)
 {
-  mpValue = &pEdge->sourceId;
-  return *this;
+  return CValue(pEdge->sourceId);
 }
 
-CValueInterface & CEdgeProperty::targetActivity(CEdge * pEdge)
+CValue CEdgeProperty::targetActivity(CEdge * pEdge)
 {
-  mpValue = &pEdge->targetActivity;
-  return *this;
+  return CValue(pEdge->targetActivity);
 }
 
-CValueInterface & CEdgeProperty::sourceActivity(CEdge * pEdge)
+CValue CEdgeProperty::sourceActivity(CEdge * pEdge)
 {
-  mpValue = &pEdge->sourceActivity;
-  return *this;
+  return CValue(pEdge->sourceActivity);
 }
 
 #ifdef USE_LOCATION_ID
-CValueInterface & CEdgeProperty::locationId(CEdge * pEdge)
+CValue CEdgeProperty::locationId(CEdge * pEdge)
+{
+  return CValue(pEdge->locationId);
+}
 #else
-CValueInterface & CEdgeProperty::locationId(CEdge * /* pEdge */)
-#endif
+CValue CEdgeProperty::locationId(CEdge * /* pEdge */)
 {
-#ifdef USE_LOCATION_ID
-  mpValue = &pEdge->locationId;
-#endif
+  return CValue((size_t) -1);
+}
+#endif // USE_LOCATION_ID
 
-  return *this;
+CValue CEdgeProperty::edgeTrait(CEdge * pEdge)
+{
+  return CValue(pEdge->edgeTrait);
 }
 
-CValueInterface & CEdgeProperty::edgeTrait(CEdge * pEdge)
+CValue CEdgeProperty::active(CEdge * pEdge)
 {
-  mpValue = &pEdge->edgeTrait;
-  return *this;
+  return CValue(pEdge->active);
 }
 
-CValueInterface & CEdgeProperty::active(CEdge * pEdge)
+CValue CEdgeProperty::weight(CEdge * pEdge)
 {
-  mpValue = &pEdge->active;
-  return *this;
+  return CValue(pEdge->weight);
 }
 
-CValueInterface & CEdgeProperty::weight(CEdge * pEdge)
+CValue CEdgeProperty::duration(CEdge * pEdge)
 {
-  mpValue = &pEdge->weight;
-  return *this;
-}
-
-CValueInterface & CEdgeProperty::duration(CEdge * pEdge)
-{
-  mpValue = &pEdge->duration;
-  return *this;
+  return CValue(pEdge->duration);
 }
 
 COperation * CEdgeProperty::setTargetId(CEdge * pEdge, const CValueInterface & /* value */, CValueInterface::pOperator /* pOperator */, const CMetadata & /* info */)

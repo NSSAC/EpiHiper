@@ -42,45 +42,12 @@ bool CBooleanValue::isTrue() const
   return mTrue;
 }
 
-CComparison::CComparison(CConditionDefinition::ComparisonType operation, CValueInterface const & left, CValueInterface const & right)
+CComparison::CComparison(CConditionDefinition::ComparisonType operation, CValueInterface const * pLeft, bool inheritLeft, CValueInterface const * pRight, bool inheritRight)
   : CCondition()
   , mpComparison(NULL)
-  , mOwnLeft(true)
-  , mpLeft(left.copy())
-  , mOwnRight(true)
-  , mpRight(right.copy())
-{
-  selectComparison(operation);
-}
-
-CComparison::CComparison(CConditionDefinition::ComparisonType operation, CValueInterface const & left, CValueInterface const * pRight)
-  : CCondition()
-  , mpComparison(NULL)
-  , mOwnLeft(true)
-  , mpLeft(left.copy())
-  , mOwnRight(false)
-  , mpRight(pRight)
-{
-  selectComparison(operation);
-}
-
-CComparison::CComparison(CConditionDefinition::ComparisonType operation, CValueInterface const * pLeft, CValueInterface const & right)
-  : CCondition()
-  , mpComparison(NULL)
-  , mOwnLeft(false)
+  , mOwnLeft(inheritLeft)
   , mpLeft(pLeft)
-  , mOwnRight(true)
-  , mpRight(right.copy())
-{
-  selectComparison(operation);
-}
-
-CComparison::CComparison(CConditionDefinition::ComparisonType operation, CValueInterface const * pLeft, CValueInterface const * pRight)
-  : CCondition()
-  , mpComparison(NULL)
-  , mOwnLeft(false)
-  , mpLeft(pLeft)
-  , mOwnRight(false)
+  , mOwnRight(inheritRight)
   , mpRight(pRight)
 {
   selectComparison(operation);
@@ -98,12 +65,12 @@ bool CComparison::isTrue() const
 {
   if (dynamic_cast< const CVariable * >(mpLeft))
     {
-      const_cast< CVariable * >(static_cast< const CVariable * >(mpLeft))->process();
+      const_cast< CVariable * >(static_cast< const CVariable * >(mpLeft))->getValue();
     }
 
   if (dynamic_cast< const CVariable * >(mpRight))
     {
-      const_cast< CVariable * >(static_cast< const CVariable * >(mpRight))->process();
+      const_cast< CVariable * >(static_cast< const CVariable * >(mpRight))->getValue();
     }
 
 
@@ -146,41 +113,12 @@ void CComparison::selectComparison(CConditionDefinition::ComparisonType operatio
 }
 
 CContainedIn::CContainedIn(CConditionDefinition::ComparisonType operation,
-                           const CValueInterface & value,
-                           const CValueList & valueList)
-  : CCondition()
-  , mpWithin(NULL)
-  , mOwnLeft(true)
-  , mpLeft(value.copy())
-  , mValueList(valueList)
-{
-  switch (operation)
-    {
-    case CConditionDefinition::ComparisonType::Equal:
-    case CConditionDefinition::ComparisonType::NotEqual:
-    case CConditionDefinition::ComparisonType::Less:
-    case CConditionDefinition::ComparisonType::LessOrEqual:
-    case CConditionDefinition::ComparisonType::Greater:
-    case CConditionDefinition::ComparisonType::GreaterOrEqual:
-      mpWithin = NULL;
-      break;
-
-    case CConditionDefinition::ComparisonType::Within:
-      mpWithin = &within;
-      break;
-
-    case CConditionDefinition::ComparisonType::NotWithin:
-      mpWithin = &notWithin;
-      break;
-    }
-}
-
-CContainedIn::CContainedIn(CConditionDefinition::ComparisonType operation,
                            const CValueInterface * pValue,
+                           bool inheritLeft,
                            const CValueList & valueList)
   : CCondition()
   , mpWithin(NULL)
-  , mOwnLeft(false)
+  , mOwnLeft(inheritLeft)
   , mpLeft(pValue)
   , mValueList(valueList)
 {

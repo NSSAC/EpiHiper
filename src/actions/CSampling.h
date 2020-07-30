@@ -14,6 +14,7 @@
 #define SRC_ACTIONS_CSAMPLING_H_
 
 #include "utilities/CCommunicate.h"
+#include "utilities/CContext.h"
 #include "sets/CSetContent.h"
 
 struct json_t;
@@ -64,6 +65,8 @@ private:
 
   CCommunicate::ErrorCode receiveCount(std::istream & is, int sender);
 
+  void determineThreadLimits();
+
   Type mType;
   double mPercentage;
   size_t mCount;
@@ -72,7 +75,7 @@ private:
   CSetContent const * mpTargets;
   CSampled mSampledTargets;
   CSampled mNotSampledTargets;
-  size_t mLocalLimit;
+  CContext< size_t > mLocalLimit;
   size_t * mpCommunicateBuffer;
 
   bool mValid;

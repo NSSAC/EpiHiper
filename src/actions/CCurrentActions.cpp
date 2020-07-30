@@ -14,13 +14,15 @@
 
 #include "actions/CCurrentActions.h"
 #include "utilities/CRandom.h"
+#include "utilities/CLogger.h"
 
-CCurrentActions::iterator::iterator(const CCurrentActions::base & actions, bool begin)
+CCurrentActions::iterator::iterator(const CCurrentActions::base & actions, bool begin, bool shuffle)
   : mpBase(begin ? &actions : NULL)
   , mIt()
   , mShuffled()
   , mItShuffled(mShuffled.begin())
   , mpAction(NULL)
+  , mShuffle(shuffle)
 {
   next();
 }
@@ -31,6 +33,7 @@ CCurrentActions::iterator::iterator(const iterator & src)
   , mShuffled(src.mShuffled)
   , mItShuffled(mShuffled.begin() + (src.mItShuffled - src.mShuffled.begin()))
   , mpAction(src.mpAction)
+  , mShuffle(src.mShuffle)
 {}
 
 CCurrentActions::iterator::~iterator()
@@ -74,7 +77,7 @@ CCurrentActions::iterator & CCurrentActions::iterator::next()
     }
 
   mShuffled.resize(mIt->second.size());
-  std::vector< CAction const * >::iterator itShuffled= mShuffled.begin();
+  std::vector< CAction const * >::iterator itShuffled = mShuffled.begin();
   std::vector< CAction * >::const_iterator it = mIt->second.begin();
   std::vector< CAction * >::const_iterator end = mIt->second.end();
 
@@ -83,7 +86,9 @@ CCurrentActions::iterator & CCurrentActions::iterator::next()
       *itShuffled = &(**it);
     }
 
-  std::shuffle(mShuffled.begin(), mShuffled.end(), CRandom::G);
+  if (mShuffle)
+    std::shuffle(mShuffled.begin(), mShuffled.end(), CRandom::G.Active());
+  
   mItShuffled = mShuffled.begin();
   mpAction = *mItShuffled;
 
@@ -91,6 +96,11 @@ CCurrentActions::iterator & CCurrentActions::iterator::next()
 }
 
 const CAction * CCurrentActions::iterator::operator->() const
+{
+  return mpAction;
+}
+
+const CAction * CCurrentActions::iterator::operator*()
 {
   return mpAction;
 }
@@ -131,12 +141,18 @@ size_t CCurrentActions::size() const
   return base::size();
 }
 
-CCurrentActions::iterator CCurrentActions::begin()
+CCurrentActions::iterator CCurrentActions::begin(bool shuffle)
 {
-  return iterator(*this, true);
+  return iterator(*this, true, shuffle);
 }
 
-CCurrentActions::iterator CCurrentActions::end()
+CCurrentActions::iterator CCurrentActions::end(bool shuffle)
 {
-  return iterator(*this, false);
+  return iterator(*this, false, shuffle);
 }
+
+void CCurrentActions::clear()
+{
+  base::clear();
+}
+

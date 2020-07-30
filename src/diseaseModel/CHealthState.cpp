@@ -23,7 +23,25 @@ CHealthState::CHealthState()
   , mValid(false)
   , mLocalCounts()
   , mGlobalCounts()
-{}
+{
+  mLocalCounts.init();
+
+  Counts & Master = mLocalCounts.Master();
+  Master.Current = 0;
+  Master.Out = 0;
+  Master.In = 0;
+
+  Counts * pIt = mLocalCounts.beginThread();
+  Counts * pEnd = mLocalCounts.endThread();
+
+  for (; pIt != pEnd; ++pIt)
+    if (mLocalCounts.isThread(pIt))
+      {
+        pIt->Current = 0;
+        pIt->Out = 0;
+        pIt->In = 0;
+      }
+}
 
 CHealthState::CHealthState(const CHealthState & src)
   : CAnnotation(src)
@@ -37,7 +55,9 @@ CHealthState::CHealthState(const CHealthState & src)
 
 // virtual
 CHealthState::~CHealthState()
-{}
+{
+  mLocalCounts.release();
+}
 
 void CHealthState::fromJSON(const json_t * json)
 {
@@ -110,7 +130,12 @@ const bool & CHealthState::isValid() const
   return mValid;
 }
 
-const CHealthState::Counts & CHealthState::getLocalCounts() const
+const CContext< CHealthState::Counts > & CHealthState::getLocalCounts() const
+{
+  return mLocalCounts;
+}
+
+CContext< CHealthState::Counts > & CHealthState::getLocalCounts()
 {
   return mLocalCounts;
 }
@@ -120,12 +145,9 @@ const CHealthState::Counts & CHealthState::getGlobalCounts() const
   return mGlobalCounts;
 }
 
-void CHealthState::resetCounts()
+void CHealthState::setGlobalCounts(const Counts & counts)
 {
-  mGlobalCounts = mLocalCounts;
-
-  mLocalCounts.In = 0;
-  mLocalCounts.Out = 0;
+  mGlobalCounts = counts;
 }
 
 void CHealthState::incrementGlobalCount(const CHealthState::Counts & i)

@@ -28,6 +28,8 @@ public:
 
   CValue(const int & integer);
 
+  CValue(const CTraitData::base & traitData);
+
   CValue(const CTraitData::value & traitValue);
 
   CValue(const std::string & str);

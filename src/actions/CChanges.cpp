@@ -28,6 +28,35 @@
 #include "network/CNetwork.h"
 #include "utilities/CMetadata.h"
 
+// static 
+void CChanges::init()
+{
+  Context.init();
+  Context.Master().pDefaultOutput = new std::stringstream;
+
+  Changes * pIt = Context.beginThread();
+  Changes * pEnd = Context.endThread();
+
+  for (; pIt != pEnd; ++pIt)
+    if (Context.isThread(pIt))
+      pIt->pDefaultOutput = new std::stringstream;
+}
+
+// static 
+void CChanges::release()
+{
+  delete Context.Master().pDefaultOutput;
+
+  Changes * pIt = Context.beginThread();
+  Changes * pEnd = Context.endThread();
+
+  for (; pIt != pEnd; ++pIt)
+    if (Context.isThread(pIt))
+      delete pIt->pDefaultOutput;
+
+  Context.release();
+}
+
 // static
 void CChanges::setCurrentTick(size_t tick)
 {
@@ -40,37 +69,51 @@ void CChanges::incrementTick()
   ++Tick;
 }
 
+// static 
+void CChanges::clear()
+{
+  Changes * pIt = Context.beginThread();
+  Changes * pEnd = Context.endThread();
+
+  for (; pIt != pEnd; ++pIt)
+    {
+      pIt->Nodes.clear();
+      pIt->Edges.clear();
+    }
+}
+
 // static
 void CChanges::record(const CNode * pNode, const CMetadata & metadata)
 {
   if (pNode == NULL)
     return;
 
-  Nodes.insert(pNode);
+  Changes & Active = Context.Active();
+  Active.Nodes.insert(pNode);
 
   if (metadata.getBool("StateChange"))
     {
       // "tick,pid,exit_state,contact_pid,[locationId]"
-      DefaultOutput << (int) Tick << "," << pNode->id << "," << pNode->getHealthState()->getAnnId() << ",";
+      (*Active.pDefaultOutput) << (int) Tick << "," << pNode->id << "," << pNode->getHealthState()->getAnnId() << ",";
 
       if (metadata.contains("ContactNode"))
         {
-          DefaultOutput << (size_t) metadata.getInt("ContactNode") << std::endl;
+          (*Active.pDefaultOutput) << (size_t) metadata.getInt("ContactNode") << std::endl;
         }
       else
         {
-          DefaultOutput << -1 << std::endl;
+          (*Active.pDefaultOutput) << -1 << std::endl;
         }
 
       if (CEdge::HasLocationId)
         {
           if (metadata.contains("LocationId"))
             {
-              DefaultOutput << (size_t) metadata.getInt("LocationId") << std::endl;
+              (*Active.pDefaultOutput) << (size_t) metadata.getInt("LocationId") << std::endl;
             }
           else
             {
-              DefaultOutput << -1 << std::endl;
+              (*Active.pDefaultOutput) << -1 << std::endl;
             }
         }
     }
@@ -90,13 +133,6 @@ void CChanges::record(const CEdge * /* pEdge */, const CMetadata & /* metadata *
 // static
 void CChanges::record(const CVariable * /* pVariable */, const CMetadata & /* metadata */)
 {}
-
-// static
-void CChanges::clear()
-{
-  Nodes.clear();
-  Edges.clear();
-}
 
 // static
 void CChanges::initDefaultOutput()
@@ -131,8 +167,6 @@ void CChanges::writeDefaultOutput()
 {
   CCommunicate::SequentialProcess WriteData(&CChanges::writeDefaultOutputData);
   CCommunicate::sequential(0, &WriteData);
-
-  DefaultOutput.str("");
 }
 
 // static
@@ -144,7 +178,14 @@ CCommunicate::ErrorCode CChanges::writeDefaultOutputData()
 
   if (out.good())
     {
-      out << DefaultOutput.str();
+      Changes * pIt = Context.beginThread();
+      Changes * pEnd = Context.endThread();
+
+      for (; pIt != pEnd; ++pIt)
+        {
+          out << pIt->pDefaultOutput->str();
+          pIt->pDefaultOutput->str("");
+        }
     }
 
   out.close();
@@ -155,9 +196,9 @@ CCommunicate::ErrorCode CChanges::writeDefaultOutputData()
 // static
 CCommunicate::ErrorCode CChanges::determineNodesRequested()
 {
-  const std::map< size_t, CNode > & RemoteNodes = CNetwork::INSTANCE->getRemoteNodes();
-  std::map< size_t, CNode >::const_iterator it = RemoteNodes.begin();
-  std::map< size_t, CNode >::const_iterator end = RemoteNodes.end();
+  const std::map< size_t, CNode * > & RemoteNodes = CNetwork::Context.Active().getRemoteNodes();
+  std::map< size_t, CNode * >::const_iterator it = RemoteNodes.begin();
+  std::map< size_t, CNode * >::const_iterator end = RemoteNodes.end();
 
   size_t * pBuffer = RemoteNodes.size() > 0 ? new size_t[RemoteNodes.size()] : NULL;
   size_t * pId = pBuffer;
@@ -177,28 +218,38 @@ CCommunicate::ErrorCode CChanges::determineNodesRequested()
 // static 
 CCommunicate::ErrorCode CChanges::sendNodesRequested(std::ostream & os, int receiver)
 {
-  std::set< const CNode * >::const_iterator it = Nodes.begin();
-  std::set< const CNode * >::const_iterator end = Nodes.end();
+  Changes * pIt = Context.beginThread();
+  Changes * pEnd = Context.endThread();
+  size_t i = 0;
 
-  const std::set< const CNode * > & Requested = RankToNodesRequested[receiver];
-  std::set< const CNode * >::const_iterator itRequested = Requested.begin();
-  std::set< const CNode * >::const_iterator endRequested = Requested.end();
+  for (; pIt != pEnd; ++pIt)
+    {
+      std::set< const CNode * >::const_iterator it = pIt->Nodes.begin();
+      std::set< const CNode * >::const_iterator end = pIt->Nodes.end();
 
-  while (it != end && itRequested != endRequested)
-    if (*it < *itRequested)
-      {
-        ++it;
-      }
-    else if (*it > *itRequested)
-      {
-        ++itRequested;
-      }
-    else
-      {
-        (*it)->toBinary(os);
-        ++it;
-        ++itRequested;
-      }
+      const std::set< const CNode * > & Requested = RankToNodesRequested[receiver];
+      std::set< const CNode * >::const_iterator itRequested = Requested.begin();
+      std::set< const CNode * >::const_iterator endRequested = Requested.end();
+
+      while (it != end && itRequested != endRequested)
+        if (*it < *itRequested)
+          {
+            ++it;
+          }
+        else if (*it > *itRequested)
+          {
+            ++itRequested;
+          }
+        else
+          {
+            (*it)->toBinary(os);
+            ++it;
+            ++itRequested;
+            ++i;
+          }
+    }
+
+  CLogger::debug() << "CChanges::sendNodesRequested: Sending " << i << " nodes to: " << receiver;
 
   return CCommunicate::ErrorCode::Success;
 }
@@ -217,7 +268,7 @@ CCommunicate::ErrorCode CChanges::receiveNodesRequested(std::istream & is, int s
       if (is.fail())
         break;
 
-      CNode * pNode = CNetwork::INSTANCE->lookupNode(id, true);
+      CNode * pNode = CNetwork::Context.Active().lookupNode(id, true);
 
       if (pNode != NULL)
         Requested.insert(pNode);
@@ -225,53 +276,9 @@ CCommunicate::ErrorCode CChanges::receiveNodesRequested(std::istream & is, int s
 
   CLogger::debug() << "CChanges::receiveNodesRequested: rank "
                    << sender << " requested " << Requested.size() << " of "
-                   << CNetwork::INSTANCE->getLocalNodeCount() << " ("
-                   << 100.0 * Requested.size() / CNetwork::INSTANCE->getLocalNodeCount() << ")";
+                   << CNetwork::Context.Active().getLocalNodeCount() << " ("
+                   << 100.0 * Requested.size() / CNetwork::Context.Active().getLocalNodeCount() << ")";
 
   return CCommunicate::ErrorCode::Success;
 }
 
-// static
-size_t CChanges::size()
-{
-  return Nodes.size() + Edges.size();
-}
-
-// static
-const std::ostringstream & CChanges::getNodes()
-{
-  static std::ostringstream os;
-
-  os.str("");
-
-  std::set< const CNode * >::const_iterator it = Nodes.begin();
-  std::set< const CNode * >::const_iterator end = Nodes.end();
-
-  for (; it != end; ++it)
-    {
-      (*it)->toBinary(os);
-    }
-
-  return os;
-}
-
-// static
-const std::ostringstream & CChanges::getEdges()
-{
-  static std::ostringstream os;
-
-  os.str("");
-
-  std::set< const CEdge * >::const_iterator it = Edges.begin();
-  std::set< const CEdge * >::const_iterator end = Edges.end();
-
-  for (; it != end; ++it)
-    {
-      (*it)->toBinary(os);
-    }
-
-  return os;
-}
-
-CChanges::~CChanges()
-{}

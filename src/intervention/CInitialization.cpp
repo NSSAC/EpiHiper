@@ -111,16 +111,22 @@ bool CInitialization::processAll()
 {
   std::vector< CInitialization * >::iterator it = INSTANCES.begin();
   std::vector< CInitialization * >::iterator end = INSTANCES.end();
+  static CComputable::Sequence InitializationSequence;
 
-  CComputableSet RequiredTargets;
+#pragma omp single
+  {
+    CLogger::setSingle(true);
+    CComputableSet RequiredTargets;
 
-  for (; it != end; ++it)
-    {
-      RequiredTargets.insert((*it)->getTarget());
-    }
+    for (; it != end; ++it)
+      {
+        RequiredTargets.insert((*it)->getTarget());
+      }
 
-  CComputable::Sequence InitializationSequence;
-  CDependencyGraph::getUpdateSequence(InitializationSequence, RequiredTargets);
+    CDependencyGraph::getUpdateSequence(InitializationSequence, RequiredTargets);
+    CLogger::setSingle(false);
+  }
+
   bool success = CDependencyGraph::applyUpdateSequence(InitializationSequence);
 
   for (it = INSTANCES.begin(); it != end && success; ++it)
@@ -207,9 +213,9 @@ void CInitialization::fromJSON(const json_t * json)
             mActionEnsemble.isValid());
 }
 
-void CInitialization::process()
+bool CInitialization::process()
 {
-  mActionEnsemble.process(*mpTarget);
+  return mActionEnsemble.process(*mpTarget);
 }
 
 CSetContent * CInitialization::getTarget()

@@ -18,6 +18,7 @@
 
 #include "utilities/CAnnotation.h"
 #include "utilities/CCommunicate.h"
+#include "utilities/CContext.h"
 
 struct json_t;
 class CNode;
@@ -27,11 +28,6 @@ class CTrait;
 class CNetwork: public CAnnotation
 {
 private:
-  /**
-   * Default constructor
-   */
-  CNetwork() = delete;
-
   bool loadEdge(CEdge * pEdge, std::istream & is) const;
   void writeEdge(CEdge * pEdge, std::ostream & os) const;
   void partition(std::istream & is, const int & parts, const bool & save, const std::string & outputDirectory);
@@ -56,23 +52,28 @@ private:
 
 
 public:
-  static CNetwork * INSTANCE;
+  static CContext< CNetwork > Context;
 
   static void init();
   static void release();
-
+  static int index(const CNode * pNode);
+  static int index(const size_t & id);
+  
   /**
-   * Copy construnctor
+   * Default construnctor
    * @param const std::string & networkFile
    */
-  CNetwork(const std::string & networkFile);
+  CNetwork();
 
   /**
    * Destructor
    */
   virtual ~CNetwork();
 
+  void loadJsonPreamble(const std::string & networkFile);
+
   void load();
+
   void write(const std::string & file, bool binary);
 
   void partition(const int & parts, const bool & save, const std::string & outputDirectory = "");
@@ -93,13 +94,15 @@ public:
 
   CEdge * endEdge();
 
-  const std::map< size_t, CNode > & getRemoteNodes() const;
+  const std::map< size_t, CNode * > & getRemoteNodes() const;
   
-  std::map< size_t, CNode >::const_iterator beginRemoteNodes() const;
+  std::map< size_t, CNode * >::const_iterator beginRemoteNodes() const;
   
-  std::map< size_t, CNode >::const_iterator endRemoteNodes() const;
+  std::map< size_t, CNode * >::const_iterator endRemoteNodes() const;
   
   bool isRemoteNode(const CNode * pNode) const;
+
+  bool isRemoteNode(const size_t & id) const;
 
   int broadcastChanges();
 
@@ -114,12 +117,17 @@ public:
   bool haveValidPartition(const int & parts);
 
 private:
+  void initExternalEdges();
+  void initOutgoingEdges();
+  
   std::string mFile;
   CNode * mLocalNodes;
   size_t mFirstLocalNode;
   size_t mBeyondLocalNode;
   size_t mLocalNodesSize;
-  std::map< size_t, CNode > mRemoteNodes;
+  CNode * mExternalNodes;
+  size_t mExternalNodesSize;
+  std::map< size_t, CNode *> mRemoteNodes;
   CEdge * mEdges;
   size_t mEdgesSize;
   size_t mTotalNodesSize;
@@ -131,7 +139,6 @@ private:
   bool mValid;
   size_t mTotalPendingActions;
   json_t * mpJson;
-  CEdge ** mpOutgoingEdges;
 };
 
 #endif /* SRC_NETWORK_CNETWORK_H_ */

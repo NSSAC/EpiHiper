@@ -46,12 +46,11 @@ public:
   typedef bool (*pComparison)(const CValueInterface &, const CValueInterface &);
 
   CComparison() = delete;
-  CComparison(CConditionDefinition::ComparisonType operation, CValueInterface const & left, CValueInterface const & right);
-  CComparison(CConditionDefinition::ComparisonType operation, CValueInterface const & left, CValueInterface const * right);
-  CComparison(CConditionDefinition::ComparisonType operation, CValueInterface const * left, CValueInterface const & right);
-  CComparison(CConditionDefinition::ComparisonType operation, CValueInterface const * left, CValueInterface const * right);
+
+  CComparison(CConditionDefinition::ComparisonType operation, CValueInterface const * pLeft, bool inheritLeft, CValueInterface const * pRight, bool inheritRight);
 
   CComparison(const CComparison & src) = delete;
+
   virtual ~CComparison();
 
   virtual bool isTrue() const override;
@@ -111,8 +110,7 @@ public:
   typedef bool (*pWithin)(const CValueInterface &, const CValueList &);
 
   CContainedIn() = delete;
-  CContainedIn(CConditionDefinition::ComparisonType operation, const CValueInterface & value, const CValueList & set);
-  CContainedIn(CConditionDefinition::ComparisonType operation, const CValueInterface * pValue, const CValueList & set);
+  CContainedIn(CConditionDefinition::ComparisonType operation, const CValueInterface * pValue, bool inheritLeft, const CValueList & set);
   CContainedIn(const CContainedIn & src) = delete;
   virtual ~CContainedIn();
 

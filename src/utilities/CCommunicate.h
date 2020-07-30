@@ -15,7 +15,7 @@
 
 #include <iostream>
 
-#include <mpi.h>
+#include "utilities/CContext.h"
 
 #define FatalError(err, msg) \
   { \
@@ -183,14 +183,26 @@ public:
 
   typedef MPI_Status Status;
 
+private:
+  static CContext< size_t > ThreadIndex;
+
+public:
   static int MPIRank;
   static int MPINextRank;
   static int MPIPreviousRank;
   static int MPIProcesses;
   static MPI_Comm * MPICommunicator;
-  
+
   static void init(int argc, char ** argv);
 
+  static int LocalThreadIndex();
+
+  static int GlobalThreadIndex();
+
+  static int LocalProcesses();
+
+  static int TotalProcesses();
+  
   static int send(const void * buf,
                   int count,
                   int dest,

@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "utilities/CSimulation.h"
+#include "utilities/CLogger.h"
 #include "actions/CActionQueue.h"
 #include "actions/CChanges.h"
 #include "diseaseModel/CModel.h"
@@ -44,59 +45,80 @@ CSimulation::CSimulation()
   endTick = CSimConfig::getEndTick();
 }
 
-CSimulation::~CSimulation() 
+CSimulation::~CSimulation()
 {}
 
 // check all required components are ready
-bool CSimulation::validate() {
+bool CSimulation::validate()
+{
   valid = (startTick <= endTick);
-  
+
   return valid;
 }
 
 bool CSimulation::run()
 {
+  bool success = true;
+
   CActionQueue::setCurrentTick(startTick - 1);
   CChanges::setCurrentTick(startTick - 1);
   CChanges::initDefaultOutput();
   CModel::InitGlobalStateCountOutput();
-
   CDependencyGraph::buildGraph();
-      
-  if (!CDependencyGraph::applyUpdateSequence())
-    return false;
 
-  if (!CInitialization::processAll())
-    return false;
+#pragma omp parallel
+  {
+    if (!CDependencyGraph::applyUpdateSequence())
+#pragma omp atomic
+      success &= false;
 
-  CCommunicate::memUsage(CActionQueue::getCurrentTick());
+    if (!CInitialization::processAll())
+#pragma omp atomic
+      success &= false;
 
-  CActionQueue::processCurrentActions();
+    CCommunicate::memUsage(CActionQueue::getCurrentTick());
+
+    if (!CActionQueue::processCurrentActions())
+#pragma omp atomic
+      success &= false;
+  }
+
   CActionQueue::incrementTick();
   CChanges::incrementTick();
 
   CChanges::writeDefaultOutput();
   CModel::UpdateGlobalStateCounts();
   CModel::WriteGlobalStateCounts();
-  CNetwork::INSTANCE->broadcastChanges();
+  CNetwork::Context.Master().broadcastChanges();
 
   CStatus::update("running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
 
-  while (CActionQueue::getCurrentTick() < endTick)
+  while (CActionQueue::getCurrentTick() < endTick && success)
     {
-      CVariableList::INSTANCE.resetAll();
-      
-      if (!CDependencyGraph::applyUpdateSequence())
-        return false;
+#pragma omp parallel
+      {
+        CVariableList::INSTANCE.resetAll();
 
-      CModel::ProcessTransmissions();
-      
-      if (!CTrigger::processAll())
-        return false;
+        if (!CDependencyGraph::applyUpdateSequence())
+#pragma omp atomic
+          success &= false;
 
-      CIntervention::processAll();
-      CCommunicate::memUsage(CActionQueue::getCurrentTick());
-      CActionQueue::processCurrentActions();
+        CModel::ProcessTransmissions();
+
+        if (!CTrigger::processAll())
+#pragma omp atomic
+          success &= false;
+
+        if (!CIntervention::processAll())
+#pragma omp atomic
+          success &= false;
+
+        CCommunicate::memUsage(CActionQueue::getCurrentTick());
+
+        if (!CActionQueue::processCurrentActions())
+#pragma omp atomic
+          success &= false;
+      }
 
       CActionQueue::incrementTick();
       CChanges::incrementTick();
@@ -104,10 +126,10 @@ bool CSimulation::run()
       CChanges::writeDefaultOutput();
       CModel::UpdateGlobalStateCounts();
       CModel::WriteGlobalStateCounts();
-      CNetwork::INSTANCE->broadcastChanges();
+      CNetwork::Context.Master().broadcastChanges();
 
       CStatus::update("running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
     }
 
-  return true;
+  return success;
 }

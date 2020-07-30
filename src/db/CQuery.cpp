@@ -99,7 +99,7 @@ size_t toFieldValueList(const CField & field, const pqxx::result & result, CFiel
 }
 
 // static
-std::string CQuery::LocalConstraint = "";
+CContext< std::string > CQuery::LocalConstraint = CContext< std::string >();
 
 // static
 size_t CQuery::Limit = 100000;
@@ -107,16 +107,21 @@ size_t CQuery::Limit = 100000;
 // static
 void CQuery::init()
 {
-  if (LocalConstraint.empty())
+  LocalConstraint.init();
+
+  std::string & Active = LocalConstraint.Active();
+
+  if (Active.empty())
     {
       std::ostringstream Query;
 
-      CNode * pBegin = CNetwork::INSTANCE->beginNode();
-      CNode * pEnd = CNetwork::INSTANCE->endNode() - 1;
+      CNode * pBegin = CNetwork::Context.Active().beginNode();
+      CNode * pEnd = CNetwork::Context.Active().endNode() - 1;
       Query << "pid BETWEEN " << pBegin->id << " AND " << pEnd->id;
 
-      LocalConstraint = Query.str();
+      Active = Query.str();
 
+#pragma omp critical
       Limit = CSimConfig::getDBConnection().maxRecords;
     }
 }
@@ -163,37 +168,42 @@ bool CQuery::all(const std::string & table,
 
   if (local)
     {
-      Query << " WHERE " << LocalConstraint;
+      Query << " WHERE " << LocalConstraint.Active();
     }
 
   Query << " ORDER BY " << resultField;
   // std::cout << Query.str() << std::endl;
 
-  pqxx::read_transaction * pWork = CConnection::work();
-
-  if (pWork == NULL)
-    return false;
-
   bool success = true;
 
-  try
-    {
-      size_t Offset = 0;
-      while (toFieldValueList(ResultField, pWork->exec(Query.str() + limit(Offset)), result) == Limit
-             && Limit != 0)
-        continue;
-    }
+#pragma omp critical
+  {
+    pqxx::read_transaction * pWork = CConnection::work();
 
-  catch (const std::exception & e)
-    {
-      CLogger::error() << "CQuery: " << CLogger::sanitize(e.what());
+    if (pWork == NULL)
       success = false;
-    }
+    else
+      {
+        try
+          {
+            size_t Offset = 0;
+            while (toFieldValueList(ResultField, pWork->exec(Query.str() + limit(Offset)), result) == Limit
+                   && Limit != 0)
+              continue;
+          }
 
-  pWork->commit();
-  delete pWork;
+        catch (const std::exception & e)
+          {
+            CLogger::error() << "CQuery::All: " << CLogger::sanitize(e.what());
+            success = false;
+          }
 
-  CLogger::debug() << "CQuery: " << Query.str() << " returned '" << result.size() << "' rows.";
+        pWork->commit();
+        delete pWork;
+      }
+
+    CLogger::debug() << "CQuery::All: " << Query.str() << " returned '" << result.size() << "' rows.";
+  }
 
   return success;
 }
@@ -288,37 +298,42 @@ bool CQuery::in(const std::string & table,
 
   if (local)
     {
-      Query << " AND " << LocalConstraint;
+      Query << " AND " << LocalConstraint.Active();
     }
 
   Query << " ORDER BY " << resultField;
   // std::cout << Query.str() << std::endl;
 
-  pqxx::read_transaction * pWork = CConnection::work();
-
-  if (pWork == NULL)
-    return false;
-
   bool success = true;
 
-  try
-    {
-      size_t Offset = 0;
-      while (toFieldValueList(ResultField, pWork->exec(Query.str() + limit(Offset)), result) == Limit
-             && Limit != 0)
-        continue;
-    }
+#pragma omp critical
+  {
+    pqxx::read_transaction * pWork = CConnection::work();
 
-  catch (const std::exception & e)
-    {
-      CLogger::error() << "CQuery: " << CLogger::sanitize(e.what());
+    if (pWork == NULL)
       success = false;
-    }
+    else
+      {
+        try
+          {
+            size_t Offset = 0;
+            while (toFieldValueList(ResultField, pWork->exec(Query.str() + limit(Offset)), result) == Limit
+                   && Limit != 0)
+              continue;
+          }
 
-  pWork->commit();
-  delete pWork;
+        catch (const std::exception & e)
+          {
+            CLogger::error() << "CQuery::" << (in ?  "in: " : "notIn: ") << CLogger::sanitize(e.what());
+            success = false;
+          }
 
-  CLogger::debug() << "CQuery: " << Query.str() << " returned '" << result.size() << "' rows.";
+        pWork->commit();
+        delete pWork;
+
+        CLogger::debug() << "CQuery::" << (in ?  "in: " : "notIn: ") << Query.str() << " returned '" << result.size() << "' rows.";
+      }
+  }
 
   return success;
 }
@@ -392,37 +407,42 @@ bool CQuery::where(const std::string & table,
 
   if (local)
     {
-      Query << " AND " << LocalConstraint;
+      Query << " AND " << LocalConstraint.Active();
     }
 
   Query << " ORDER BY " << resultField;
   // std::cout << Query.str() << std::endl;
 
-  pqxx::read_transaction * pWork = CConnection::work();
-
-  if (pWork == NULL)
-    return false;
-
   bool success = true;
 
-  try
-    {
-      size_t Offset = 0;
-      while (toFieldValueList(ResultField, pWork->exec(Query.str() + limit(Offset)), result) == Limit
-             && Limit != 0)
-        continue;
-    }
+#pragma omp critical
+  {
+    pqxx::read_transaction * pWork = CConnection::work();
 
-  catch (const std::exception & e)
-    {
-      CLogger::error() << "CQuery: " << CLogger::sanitize(e.what());
+    if (pWork == NULL)
       success = false;
-    }
+    else
+      {
+        try
+          {
+            size_t Offset = 0;
+            while (toFieldValueList(ResultField, pWork->exec(Query.str() + limit(Offset)), result) == Limit
+                   && Limit != 0)
+              continue;
+          }
 
-  pWork->commit();
-  delete pWork;
+        catch (const std::exception & e)
+          {
+            CLogger::error() << "CQuery::where: " << CLogger::sanitize(e.what());
+            success = false;
+          }
 
-  CLogger::debug() << "CQuery: " << Query.str() << " returned '" << result.size() << "' rows.";
+        pWork->commit();
+        delete pWork;
+
+        CLogger::debug() << "CQuery::where: " << Query.str() << " returned '" << result.size() << "' rows.";
+      }
+  }
 
   return success;
 }

@@ -85,6 +85,7 @@ private:
     CValueInterface * value(const CNode * pNode) const;
     CValueInterface * value(const CEdge * pEdge) const;
     CValueInterface * value() const;
+    bool inherit() const;
   };
 
 public:

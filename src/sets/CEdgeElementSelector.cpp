@@ -622,8 +622,8 @@ bool CEdgeElementSelector::all()
 
   if (Edges.empty())
     {
-      Edges.resize(CNetwork::INSTANCE->getLocalEdgeCount());
-      CEdge * pEdge = CNetwork::INSTANCE->beginEdge();
+      Edges.resize(CNetwork::Context.Active().getLocalEdgeCount());
+      CEdge * pEdge = CNetwork::Context.Active().beginEdge();
       std::vector< CEdge * >::iterator it = Edges.begin();
       std::vector< CEdge * >::iterator end = Edges.end();
 
@@ -640,8 +640,8 @@ bool CEdgeElementSelector::propertySelection()
   std::vector< CEdge * > & Edges = getEdges();
   Edges.clear();
 
-  CEdge * pEdge = CNetwork::INSTANCE->beginEdge();
-  CEdge * pEdgeEnd = CNetwork::INSTANCE->endEdge();
+  CEdge * pEdge = CNetwork::Context.Active().beginEdge();
+  CEdge * pEdgeEnd = CNetwork::Context.Active().endEdge();
 
   for (; pEdge != pEdgeEnd; ++pEdge)
     if (mpComparison(mEdgeProperty.propertyOf(pEdge), *mpValue))
@@ -657,8 +657,8 @@ bool CEdgeElementSelector::propertyWithin()
   std::vector< CEdge * > & Edges = getEdges();
   Edges.clear();
 
-  CEdge * pEdge = CNetwork::INSTANCE->beginEdge();
-  CEdge * pEdgeEnd = CNetwork::INSTANCE->endEdge();
+  CEdge * pEdge = CNetwork::Context.Active().beginEdge();
+  CEdge * pEdgeEnd = CNetwork::Context.Active().endEdge();
 
   for (; pEdge != pEdgeEnd; ++pEdge)
     if (mpValueList->contains(mEdgeProperty.propertyOf(pEdge)))
@@ -675,6 +675,8 @@ bool CEdgeElementSelector::withTargetNodeIn()
   Edges.clear();
 
   const std::vector< CNode * > & Nodes = mpSelector->getNodes();
+  CLogger::debug() << "CEdgeElementSelector: withTargetNodeIn nodes " << Nodes.size();
+  const CNetwork & Active = CNetwork::Context.Active();
 
   if (!Nodes.empty())
     {
@@ -683,6 +685,10 @@ bool CEdgeElementSelector::withTargetNodeIn()
 
       for (; itNode != endNode; ++itNode)
         {
+          // We do not have edge information for remote nodes in an MPI environment and thus and must always ignore it.
+          if (Active.isRemoteNode(*itNode))
+            continue;
+
           CEdge * pEdge = (*itNode)->Edges;
           CEdge * pEdgeEnd = pEdge + (*itNode)->EdgesSize;
 
@@ -694,7 +700,7 @@ bool CEdgeElementSelector::withTargetNodeIn()
       // std::sort(Edges.begin(), Edges.end());
     }
 
-  CLogger::debug() << "CEdgeElementSelector: withTargetNodeIn returned '" << Edges.size() << "' edges.";
+  CLogger::debug() << "CEdgeElementSelector: withTargetNodeIn returned " << Edges.size() << " edges.";
   return true;
 }
 
@@ -704,6 +710,7 @@ bool CEdgeElementSelector::withSourceNodeIn()
   Edges.clear();
 
   const std::vector< CNode * > & Nodes = mpSelector->getNodes();
+  CLogger::debug() << "CEdgeElementSelector: withSourceNodeIn nodes " << Nodes.size();
 
   if (!Nodes.empty())
     {
@@ -712,8 +719,11 @@ bool CEdgeElementSelector::withSourceNodeIn()
 
       for (; itNode != endNode; ++itNode)
         {
-          CEdge ** pEdge = (*itNode)->pOutgoingEdges;
-          CEdge ** pEdgeEnd = pEdge + (*itNode)->OutgoingEdgesSize;
+          CNode::sOutgoingEdges & OutgoingEdges = (*itNode)->OutgoingEdges.Active();
+          CEdge ** pEdge = OutgoingEdges.pEdges;
+          CEdge ** pEdgeEnd = pEdge + OutgoingEdges.Size;
+
+          CLogger::debug() << "CEdgeElementSelector::withSourceNodeIn: node " << (*itNode)->id << " edges " << OutgoingEdges.Size;
 
           for (;pEdge != pEdgeEnd; ++pEdge)
             Edges.push_back(*pEdge);
@@ -722,7 +732,7 @@ bool CEdgeElementSelector::withSourceNodeIn()
       std::sort(Edges.begin(), Edges.end());
     }
 
-  CLogger::debug() << "CEdgeElementSelector: withSourceNodeIn returned '" << Edges.size() << "' edges.";
+  CLogger::debug() << "CEdgeElementSelector: withSourceNodeIn returned " << Edges.size() << " edges.";
   return true;
 }
 
@@ -736,14 +746,14 @@ bool CEdgeElementSelector::inDBTable()
   CFieldValueList FieldValueList;
   success = CQuery::all(mDBTable, "lid", FieldValueList, false);
 
-  CEdge * pEdge = CNetwork::INSTANCE->beginEdge();
-  CEdge * pEdgeEnd = CNetwork::INSTANCE->endEdge();
+  CEdge * pEdge = CNetwork::Context.Active().beginEdge();
+  CEdge * pEdgeEnd = CNetwork::Context.Active().endEdge();
 
   for (; pEdge != pEdgeEnd; ++pEdge)
     if (FieldValueList.contains(pEdge->locationId))
       Edges.push_back(pEdge);
 
-  CLogger::debug() << "CEdgeElementSelector: inDBTable returned '" << Edges.size() << "' edges.";
+  CLogger::debug() << "CEdgeElementSelector: inDBTable returned " << Edges.size() << " edges.";
 #endif
 
   return success;
@@ -763,8 +773,8 @@ bool CEdgeElementSelector::withDBFieldSelection()
   else
     success = CQuery::where(mDBTable, "lid", FieldValueList, false, mDBField, *mpDBFieldValue, mSQLComparison);
 
-  CEdge * pEdge = CNetwork::INSTANCE->beginEdge();
-  CEdge * pEdgeEnd = CNetwork::INSTANCE->endEdge();
+  CEdge * pEdge = CNetwork::Context.Active().beginEdge();
+  CEdge * pEdgeEnd = CNetwork::Context.Active().endEdge();
 
   for (; pEdge != pEdgeEnd; ++pEdge)
     if (FieldValueList.contains(pEdge->locationId))
@@ -791,15 +801,15 @@ bool CEdgeElementSelector::withDBFieldWithin()
   else
     {
       CField Field = CSchema::INSTANCE.getTable(mDBTable).getField(mDBField);
-      const std::map< CValueList::Type, CValueList > & ValueListMap = mpSelector->getDBFieldValues();
-      std::map< CValueList::Type, CValueList >::const_iterator found = ValueListMap.find(Field.getType());
+      const CDBFieldValues & ValueListMap = mpSelector->getDBFieldValues();
+      CDBFieldValues::const_iterator found = ValueListMap.find(Field.getType());
 
       if (found != ValueListMap.end())
         success = CQuery::in(mDBTable, "lid", FieldValueList, false, mDBField, found->second);
     }
 
-  CEdge * pEdge = CNetwork::INSTANCE->beginEdge();
-  CEdge * pEdgeEnd = CNetwork::INSTANCE->endEdge();
+  CEdge * pEdge = CNetwork::Context.Active().beginEdge();
+  CEdge * pEdgeEnd = CNetwork::Context.Active().endEdge();
 
   for (; pEdge != pEdgeEnd; ++pEdge)
     if (FieldValueList.contains(pEdge->locationId))
@@ -825,15 +835,15 @@ bool CEdgeElementSelector::withDBFieldNotWithin()
   else
     {
       CField Field = CSchema::INSTANCE.getTable(mDBTable).getField(mDBField);
-      const std::map< CValueList::Type, CValueList > & ValueListMap = mpSelector->getDBFieldValues();
-      std::map< CValueList::Type, CValueList >::const_iterator found = ValueListMap.find(Field.getType());
+      const CDBFieldValues & ValueListMap = mpSelector->getDBFieldValues();
+      CDBFieldValues::const_iterator found = ValueListMap.find(Field.getType());
 
       if (found != ValueListMap.end())
         success = CQuery::notIn(mDBTable, "lid", FieldValueList, false, mDBField, found->second);
     }
 
-  CEdge * pEdge = CNetwork::INSTANCE->beginEdge();
-  CEdge * pEdgeEnd = CNetwork::INSTANCE->endEdge();
+  CEdge * pEdge = CNetwork::Context.Active().beginEdge();
+  CEdge * pEdgeEnd = CNetwork::Context.Active().endEdge();
 
   for (; pEdge != pEdgeEnd; ++pEdge)
     if (FieldValueList.contains(pEdge->locationId))

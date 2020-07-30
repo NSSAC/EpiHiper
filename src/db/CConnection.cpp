@@ -58,7 +58,8 @@ void CConnection::init()
     {
       if (dbConnection.connectionMaxDelay > 0)
         {
-          std::this_thread::sleep_for(std::chrono::milliseconds(CRandom::uniform_int(0, dbConnection.connectionMaxDelay)(CRandom::G)));
+          std::random_device rd;
+          std::this_thread::sleep_for(std::chrono::milliseconds(CRandom::uniform_int(0, dbConnection.connectionMaxDelay)(rd)));
         }
 
       Tries--;

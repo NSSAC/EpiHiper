@@ -274,7 +274,7 @@ CSimConfig::CSimConfig(const std::string & configFile)
     }
 
   valid &= mEndTick != std::numeric_limits< int >::max()
-           && mStartTick < mEndTick;
+           && mStartTick <= mEndTick;
 
   pValue = json_object_get(pRoot, "seed");
 

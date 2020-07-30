@@ -25,6 +25,7 @@
 #include <map>
 
 #include "utilities/CCommunicate.h"
+#include "utilities/CContext.h"
 
 class CNode;
 class CEdge;
@@ -35,14 +36,11 @@ class CMetadata;
 class CChanges
 {
 public:
+  static void init();
+  static void release();
   static void record(const CNode * pNode, const CMetadata & metadata);
   static void record(const CEdge * pEdge, const CMetadata & metadata);
   static void record(const CVariable * pVariable, const CMetadata & metadata);
-  static void clear();
-  static size_t size();
-
-  static const std::ostringstream &  getNodes();
-  static const std::ostringstream &  getEdges();
 
   static void initDefaultOutput();
   static void writeDefaultOutput();
@@ -52,16 +50,18 @@ public:
   static CCommunicate::ErrorCode receiveNodesRequested(std::istream & is, int sender);
   static void setCurrentTick(size_t tick);
   static void incrementTick();
-
-  CChanges() = delete;
-  virtual ~CChanges();
+  static void clear();
 
 private:
-  static std::set< const CNode * > Nodes;
-  static std::set< const CEdge * > Edges;
-  static std::stringstream DefaultOutput;
-  static std::map< size_t, std::set< const CNode * > > RankToNodesRequested;
+  struct Changes
+  {
+    std::set< const CNode * > Nodes;
+    std::set< const CEdge * > Edges;
+    std::stringstream *pDefaultOutput;
+  };
 
+  static CContext< Changes > Context;
+  static std::map< size_t, std::set< const CNode * > > RankToNodesRequested;
   static size_t Tick;
 };
 

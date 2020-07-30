@@ -15,12 +15,27 @@
 
 #include "math/CValueList.h"
 #include "math/CComputable.h"
+#include "utilities/CContext.h"
 
 class CNode;
 class CEdge;
 
 class CSetContent: public CComputable
 {
+public:
+  class CDBFieldValues : public std::map< CValueList::Type, CValueList >
+  {
+  public:
+    size_t size() const;
+  };
+
+ struct SetContent
+  {
+    std::vector< CNode * > nodes;
+    std::vector< CEdge * > edges;
+    CDBFieldValues dBFieldValues;
+  };
+
 public:
   static CSetContent * create(const json_t * json);
   // static CSetContent * copy(const CSetContent * pSetContent);
@@ -42,31 +57,41 @@ public:
 
   const bool & isValid() const;
 
-  virtual bool contains(CNode * pNode) const;
+  bool contains(CNode * pNode) const;
 
-  virtual bool contains(CEdge * pEdge) const;
+  bool contains(CEdge * pEdge) const;
 
-  virtual bool contains(const CValueInterface & value) const;
+  bool contains(const CValueInterface & value) const;
 
-  virtual std::vector< CEdge * >::const_iterator beginEdges() const;
+  std::vector< CEdge * >::const_iterator beginEdges() const;
 
-  virtual std::vector< CEdge * >::const_iterator endEdges() const;
+  std::vector< CEdge * >::const_iterator endEdges() const;
 
-  virtual std::vector< CNode * >::const_iterator beginNodes() const;
+  std::vector< CNode * >::const_iterator beginNodes() const;
 
-  virtual std::vector< CNode * >::const_iterator endNodes() const;
+  std::vector< CNode * >::const_iterator endNodes() const;
 
-  virtual const std::vector< CEdge * > & getEdges() const;
+  const std::vector< CEdge * > & getEdges() const;
 
-  virtual const std::vector< CNode * > & getNodes() const;
+  const std::vector< CNode * > & getNodes() const;
 
-  virtual const std::map< CValueList::Type, CValueList > & getDBFieldValues() const;
+  const CDBFieldValues & getDBFieldValues() const;
 
-  virtual std::vector< CEdge * > & getEdges();
+  std::vector< CEdge * > & getEdges();
 
-  virtual std::vector< CNode * > & getNodes();
+  std::vector< CNode * > & getNodes();
 
-  virtual std::map< CValueList::Type, CValueList > & getDBFieldValues();
+  CDBFieldValues & getDBFieldValues();
+
+  inline virtual const CContext< SetContent > & getContext() const
+  {
+    return mContext;
+  }
+
+  inline virtual CContext< SetContent > & getContext()
+  {
+    return mContext;
+  }
 
   void sampleMax(const size_t & max, CSetContent & sampled, CSetContent & NotSampled) const;
 
@@ -74,10 +99,12 @@ public:
 
   size_t size() const;
 
+  size_t totalSize() const;
+
+  CContext< size_t > sizes() const;
+
 private:
-  std::vector< CNode * > mNodes;
-  std::vector< CEdge * > mEdges;
-  std::map< CValueList::Type, CValueList > mDBFieldValues;
+  CContext< SetContent > mContext;
 
 protected:
   bool mValid;

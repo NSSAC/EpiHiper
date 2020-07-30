@@ -16,6 +16,7 @@
 #include "math/CDependencyGraph.h"
 #include "actions/CActionQueue.h"
 #include "actions/CConditionDefinition.h"
+#include "utilities/CLogger.h"
 
 // Uncomment this line below to get debug print out.
 // #define DEBUG_OUTPUT 1
@@ -85,7 +86,6 @@ bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
 
   return INSTANCE.getUpdateSequence(updateSequence, Changed, requestedComputables, UpToDate);
 }
-
 
 CDependencyGraph::CDependencyGraph()
   : mComputables2Nodes()

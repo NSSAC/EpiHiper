@@ -154,7 +154,7 @@ const bool & CActionEnsemble::isValid() const
   return mValid;
 }
 
-void CActionEnsemble::process(const CSetContent & targets)
+bool CActionEnsemble::process(const CSetContent & targets)
 {
   CLogger::info() << "CActionEnsemble: Target set contains '" << targets.size() << "' items.";
   
@@ -191,4 +191,6 @@ void CActionEnsemble::process(const CSetContent & targets)
     CLogger::info("CActionEnsemble: Process 'sampling'.");
     
   mSampling.process(targets);
+
+  return !CLogger::hasErrors();
 }

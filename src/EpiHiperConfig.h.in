@@ -16,4 +16,11 @@
 
 #include "git-commit.h"
 
+// Add attribute location id to edges
 #cmakedefine USE_LOCATION_ID
+
+// Enable multithreading by using of OpenMP 
+#cmakedefine USE_OMP
+
+// Enable multithreading by using of MPI
+#cmakedefine USE_MPI

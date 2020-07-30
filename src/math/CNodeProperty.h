@@ -15,6 +15,7 @@
 
 #include "math/CValueInterface.h"
 
+class CValue;
 class CNode;
 class CEdge;
 class COperation;
@@ -38,17 +39,17 @@ public:
 
   const bool & isValid() const;
 
-  CValueInterface & propertyOf(const CNode * pNode);
+  CValue propertyOf(const CNode * pNode);
   COperation * createOperation(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
 
   static std::pair< CEdge *, CEdge * > edges(CNode * pNode);
 
 private:
-  CValueInterface & id(CNode * pNode);
-  CValueInterface & susceptibilityFactor(CNode * pNode);
-  CValueInterface & infectivityFactor(CNode * pNode);
-  CValueInterface & healthState(CNode * pNode);
-  CValueInterface & nodeTrait(CNode * pNode);
+  CValue id(CNode * pNode);
+  CValue susceptibilityFactor(CNode * pNode);
+  CValue infectivityFactor(CNode * pNode);
+  CValue healthState(CNode * pNode);
+  CValue nodeTrait(CNode * pNode);
 
   COperation * setId(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
   COperation * setSusceptibilityFactor(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
@@ -56,7 +57,7 @@ private:
   COperation * setHealthState(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
   COperation * setNodeTrait(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
 
-  CValueInterface & (CNodeProperty::*mpPropertyOf)(CNode *);
+  CValue (CNodeProperty::*mpPropertyOf)(CNode *);
   COperation * (CNodeProperty::*mpCreateOperation)(CNode *, const CValueInterface &, CValueInterface::pOperator pOperator, const CMetadata & info);
 
   bool mValid;

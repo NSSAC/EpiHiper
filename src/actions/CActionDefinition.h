@@ -48,6 +48,8 @@ public:
 
   bool execute(CNode * pNode) const;
 
+  const size_t & getDelay() const;
+  
   double getPriority() const;
 
   static CActionDefinition * GetActionDefinition(const size_t & index);

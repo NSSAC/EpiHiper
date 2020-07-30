@@ -19,9 +19,19 @@ size_t CComputable::UniqueId(0);
 CComputable::CComputable()
   : mComputableId(UniqueId++)
   , mStatic(false)
-  , mComputedOnce(false)
+  , mComputedOnce()
   , mPrerequisites()
 {
+  mComputedOnce.init();
+  mComputedOnce.Master() = false;
+
+  bool * pIt = mComputedOnce.beginThread();
+  bool * pEnd = mComputedOnce.endThread();
+
+  for (; pIt != pEnd; ++pIt)
+    if (mComputedOnce.isThread(pIt))
+      *pIt = false;
+
   Instances.insert(this);
 }
 
@@ -46,10 +56,10 @@ const CComputableSet & CComputable::getPrerequisites() const
 
 bool CComputable::compute()
 {
-  if (mStatic && mComputedOnce)
+  if (mStatic && mComputedOnce.Active())
     return true;
 
-  mComputedOnce = true;
+  mComputedOnce.Active() = true;
 
   CLogger::debug() << "CComputable: Computing '" << mComputableId << "'" <<  (mStatic ? " (static)" : "") << ".";
   return computeProtected();

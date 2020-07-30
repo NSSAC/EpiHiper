@@ -44,7 +44,7 @@ public:
 
   const bool & isValid() const;
 
-  void process();
+  bool process();
 
   CSetContent * getTarget();
 

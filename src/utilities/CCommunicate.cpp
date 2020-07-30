@@ -52,21 +52,33 @@ void CCommunicate::resizeReceiveBuffer(int size)
 }
 
 // static
+#ifdef USE_MPI
 void CCommunicate::init(int argc, char ** argv)
+#else
+void CCommunicate::init(int /* argc */ , char ** /* argv */)
+#endif // USE_MPI
 {
+  ThreadIndex.init();
+
+#ifdef USE_MPI
   MPI_Init(&argc, &argv);
+#endif // USE_MPI
+
   MPI_Comm_rank(MPI_COMM_WORLD, &MPIRank);
   MPI_Comm_size(MPI_COMM_WORLD, &MPIProcesses);
 
   MPINextRank = (MPIProcesses + MPIRank + 1) % MPIProcesses;
   MPIPreviousRank = (MPIProcesses + MPIRank - 1) % MPIProcesses;
 
+
   CLogger::setTask(MPIRank, MPIProcesses);
 
+#ifdef USE_MPI
   MPICommunicator = new MPI_Comm[MPIProcesses];
   int Shift = sizeof(int) * 4;
   MPI_Comm Dummy;
 
+  // Initialize pairwise communicators for round robin tournament messaging
   for (int i = 0; i < MPIProcesses; ++i)
     for (int j = i + 1; j < MPIProcesses; ++j)
       {
@@ -106,7 +118,33 @@ void CCommunicate::init(int argc, char ** argv)
               CLogger::error() << "CCommunicate::init: Group Size " << Size;
           }
       }
+  #endif // USE_MPI
 }
+
+// static 
+int CCommunicate::LocalThreadIndex()
+{
+  return ThreadIndex.localIndex(&ThreadIndex.Active());
+}
+
+// static 
+int CCommunicate::GlobalThreadIndex()
+{
+  return ThreadIndex.globalIndex(&ThreadIndex.Active());
+}
+
+// static 
+int CCommunicate::LocalProcesses()
+{
+  return ThreadIndex.size();
+}
+
+// static 
+int CCommunicate::TotalProcesses()
+{
+  return MPIProcesses * LocalProcesses();
+}
+ 
 
 // static
 int CCommunicate::abortMessage(ErrorCode err, const std::string & msg, const char * file, int line)
@@ -119,12 +157,17 @@ int CCommunicate::abortMessage(ErrorCode err, const std::string & msg, const cha
 // static
 int CCommunicate::abort(ErrorCode errorcode)
 {
+#ifdef USE_MPI  
   return MPI_Abort(MPI_COMM_WORLD, (int) errorcode);
+#else
+  return (int) errorcode;
+#endif // USE_MPI
 }
 
 // static
 int CCommunicate::finalize(void)
 {
+#ifdef USE_MPI  
   if (MPIWinSize)
     {
       MPI_Win_free(&MPIWin);
@@ -135,9 +178,13 @@ int CCommunicate::finalize(void)
     }
 
   return MPI_Finalize();
+#else
+  return MPI_SUCCESS;
+#endif // USE_MPI
 }
 
 // static
+#ifdef USE_MPI  
 int CCommunicate::send(const void * buf,
                        int count,
                        int dest,
@@ -149,8 +196,18 @@ int CCommunicate::send(const void * buf,
   CLogger::debug() << "CCommunicate::send: '" << count << "' bytes to '" << dest << "'.";
   return MPI_Send(buf, count, MPI_CHAR, dest, 0, comm);
 }
+#else
+int CCommunicate::send(const void * /* buf */,
+                       int /* count */,
+                       int /* dest */,
+                       MPI_Comm /* comm */)
+{
+  return MPI_SUCCESS;
+}
+#endif // USE_MPI
 
 // static
+#ifdef USE_MPI  
 int CCommunicate::receive(void * buf,
                           int count,
                           int source,
@@ -163,8 +220,19 @@ int CCommunicate::receive(void * buf,
   CLogger::debug() << "CCommunicate::receive: '" << count << "' bytes from '" << source << "'.";
   return MPI_Recv(buf, count, MPI_CHAR, source, 0, comm, status);
 }
+#else
+int CCommunicate::receive(void * /* buf */,
+                          int /* count */,
+                          int /* source */,
+                          MPI_Status * /* status */,
+                          MPI_Comm /* comm */)
+{
+  return MPI_SUCCESS;
+}
+#endif // USE_MPI
 
 // static
+#ifdef USE_MPI  
 int CCommunicate::broadcast(void * buffer,
                             int count,
                             int root)
@@ -175,6 +243,14 @@ int CCommunicate::broadcast(void * buffer,
   CLogger::debug() << "CCommunicate::broadcast: '" << count << "' bytes from '" << root << "'.";
   return MPI_Bcast(buffer, count, MPI_CHAR, root, MPI_COMM_WORLD);
 }
+#else
+int CCommunicate::broadcast(void * /* buffer */,
+                            int /* count */,
+                            int /* root */)
+{
+  return MPI_SUCCESS;
+}
+#endif // USE_MPI
 
 // static
 int CCommunicate::broadcastAll(const void * buffer,
@@ -613,15 +689,19 @@ int CCommunicate::allocateRMA()
         {
           /* Everyone will retrieve from a buffer on root */
           RMABuffer = new double[MPIWinSize];
+#ifdef USE_MPI
           result = MPI_Win_create(RMABuffer, MPIWinSize, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &MPIWin);
+#endif // USE_MPI
         }
       else
         {
           /* Others only retrieve, so these windows can be size 0 */
+#ifdef USE_MPI
           result = MPI_Win_create(NULL, 0, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &MPIWin);
+#endif // USE_MPI
         }
 
-      MPI_Win_fence(0, MPIWin);
+      result = barrierRMA();
     }
 
   return result;
@@ -632,13 +712,19 @@ int CCommunicate::barrierRMA()
 {
   int result = (int) ErrorCode::Success;
 
+#pragma omp barrier
 
+#ifdef USE_MPI
   if (MPIWinSize > 0)
     {
       CLogger::debug() << "CCommunicate::barrierRMA: before";
+
+#pragma omp single
       result = MPI_Win_fence(0, MPIWin);
+
       CLogger::debug() << "CCommunicate::barrierRMA: after";
     }
+#endif // USE_MPI
 
   return result; 
 }
@@ -646,15 +732,18 @@ int CCommunicate::barrierRMA()
 // static
 double CCommunicate::getRMA(const int & index)
 {
-  if (index >= (int) MPIWinSize)
-    return std::numeric_limits< double >::quiet_NaN();
+  double Value = std::numeric_limits< double >::quiet_NaN();
 
-  double Value;
-
-  MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, MPIWin);
-  MPI_Get(&Value, 1, MPI_DOUBLE, 0, (int) index, 1, MPI_DOUBLE, MPIWin);
-  MPI_Win_flush(0, MPIWin);
-  MPI_Win_unlock(0, MPIWin);
+  if (index < (int) MPIWinSize)
+#pragma omp critical
+    {
+#ifdef USE_MPI
+      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, MPIWin);
+      MPI_Get(&Value, 1, MPI_DOUBLE, 0, (int) index, 1, MPI_DOUBLE, MPIWin);
+      MPI_Win_flush(0, MPIWin);
+      MPI_Win_unlock(0, MPIWin);
+#endif // USE_MPI
+    }
 
   return Value;
 }
@@ -662,21 +751,26 @@ double CCommunicate::getRMA(const int & index)
 // static
 double CCommunicate::updateRMA(const int & index, CCommunicate::Operator pOperator, const double & value)
 {
-  if (index >= (int) MPIWinSize)
-    return std::numeric_limits< double >::quiet_NaN();
+  double Value = std::numeric_limits< double >::quiet_NaN();
 
-  double Value;
+  if (index < (int) MPIWinSize)
+#pragma omp critical
+    {
+#ifdef USE_MPI
+      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, MPIWin);
+      MPI_Get(&Value, 1, MPI_DOUBLE, 0, (int) index, 1, MPI_DOUBLE, MPIWin);
+      MPI_Win_flush(0, MPIWin);
+#endif // USE_MPI
 
-  MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, MPIWin);
-  MPI_Get(&Value, 1, MPI_DOUBLE, 0, (int) index, 1, MPI_DOUBLE, MPIWin);
-  MPI_Win_flush(0, MPIWin);
+      (*pOperator)(Value, value);
 
-  (*pOperator)(Value, value);
-
-  MPI_Put(&Value, 1, MPI_DOUBLE, 0, (int) index, 1, MPI_DOUBLE, MPIWin);
-  MPI_Win_flush(0, MPIWin);
-  MPI_Win_unlock(0, MPIWin);
-
+#ifdef USE_MPI
+      MPI_Put(&Value, 1, MPI_DOUBLE, 0, (int) index, 1, MPI_DOUBLE, MPIWin);
+      MPI_Win_flush(0, MPIWin);
+      MPI_Win_unlock(0, MPIWin);
+#endif // USE_MPI
+    }
+  
   return Value;
 }
 

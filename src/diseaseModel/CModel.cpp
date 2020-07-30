@@ -282,12 +282,12 @@ bool CModel::processTransmissions() const
 
   CRandom::uniform_real Uniform01(0.0, 1.0);
 
-  CNode * pNode = CNetwork::INSTANCE->beginNode();
-  CNode * pNodeEnd = CNetwork::INSTANCE->endNode();
+  CNode * pNode = CNetwork::Context.Active().beginNode();
+  CNode * pNodeEnd = CNetwork::Context.Active().endNode();
 
   CTransmission ** pPossibleTransmissions = NULL;
   
-  for (pNode = CNetwork::INSTANCE->beginNode(); pNode != pNodeEnd; ++pNode)
+  for (pNode = CNetwork::Context.Active().beginNode(); pNode != pNodeEnd; ++pNode)
     if (pNode->susceptibility > 0.0
         && (pPossibleTransmissions = mPossibleTransmissions[pNode->healthState].Transmissions) != NULL)
       {
@@ -326,9 +326,9 @@ bool CModel::processTransmissions() const
           }
 
         if (A0 > 0
-            && -log(Uniform01(CRandom::G)) < A0 * mTransmissability / 86400)
+            && -log(Uniform01(CRandom::G.Active())) < A0 * mTransmissability / 86400)
           {
-            double alpha = Uniform01(CRandom::G) * A0;
+            double alpha = Uniform01(CRandom::G.Active()) * A0;
 
             std::vector< Candidate >::const_iterator itCandidate = Candidates.begin();
             std::vector< Candidate >::const_iterator endCandidate = Candidates.end();
@@ -365,7 +365,6 @@ void CModel::StateChanged(CNode * pNode)
 void CModel::stateChanged(CNode * pNode) const
 {
   // std::cout << pNode->id << ": " << pNode->Edges << ", " << pNode->Edges + pNode->EdgesSize << ", " << pNode->EdgesSize << std::endl;
-
   const CProgression * pProgression = nextProgression(pNode->healthState);
 
   if (pProgression != NULL)
@@ -393,7 +392,8 @@ const CProgression * CModel::nextProgression(const CModel::state_t & state) cons
 
   if (Progressions.A0 > 0.0)
     {
-      double alpha = CRandom::uniform_real(0.0, Progressions.A0)(CRandom::G);
+      double alpha = CRandom::uniform_real(0.0, Progressions.A0)(CRandom::G.Active());
+
       std::vector< const CProgression * >::const_iterator it = Progressions.Progressions.begin();
       std::vector< const CProgression * >::const_iterator end = Progressions.Progressions.end();
 
@@ -454,8 +454,23 @@ int CModel::UpdateGlobalStateCounts()
 
   for (; pState != pStateEnd; ++pState, ++pLocalCount)
     {
-      *pLocalCount = pState->getLocalCounts();
-      pState->resetCounts();
+      CContext< CHealthState::Counts > & StateCounts = pState->getLocalCounts();
+      pLocalCount->Current = 0;
+      pLocalCount->In = 0;
+      pLocalCount->Out = 0;
+      CHealthState::Counts * pIt = StateCounts.beginThread();
+      CHealthState::Counts * pEnd = StateCounts.endThread();
+
+      for (; pIt != pEnd; ++pIt)
+        {
+          pLocalCount->Current += pIt->Current;
+          pLocalCount->In += pIt->In;
+          pIt->In = 0;
+          pLocalCount->Out += pIt->Out;
+          pIt->Out = 0;
+        }
+
+      pState->setGlobalCounts(*pLocalCount);
     }
 
   CCommunicate::Receive ReceiveCounts(&CModel::ReceiveGlobalStateCounts);
@@ -562,7 +577,7 @@ void CModel::WriteGlobalStateCounts()
           for (; it != end; ++it)
             if (it->getType() == CVariable::Type::global)
               {
-                it->process();
+                it->getValue();
                 out << "," << it->toNumber();
               }
 

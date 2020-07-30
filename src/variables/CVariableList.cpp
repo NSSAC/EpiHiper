@@ -154,12 +154,19 @@ CVariable & CVariableList::operator[](const json_t * json)
 
 void CVariableList::resetAll(const bool & force)
 {
-  std::vector< CVariable >::iterator it = begin();
+  std::vector< CVariable >::iterator it;
   std::vector< CVariable >::iterator itEnd = end();
 
-  for (; it != itEnd; ++it)
+  for (it = begin(); it != itEnd; ++it)
     {
       it->reset(force);
     }
-}
 
+  CCommunicate::barrierRMA();
+
+#pragma omp single
+  for (it = begin(); it != itEnd; ++it)
+    {
+      it->getValue();
+    }
+}
