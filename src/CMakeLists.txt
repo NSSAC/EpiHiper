@@ -56,15 +56,28 @@ add_library (EpiHiperLib SHARED $<TARGET_OBJECTS:EpiHiperLib-core>)
 add_executable (EpiHiper EpiHiper.cpp EpiHiperConfig.h)
 add_dependencies(EpiHiper EpiHiperLib GIT_COMMIT)
 
-set (EPIHIPER_LIBARIES 
-    EpiHiperLib
-	${MPI_LIBRARIES}
-	${PGSQL_LIBRARY} 
-	${CMAKE_BINARY_DIR}/lib/libjansson.a 
-	${CMAKE_BINARY_DIR}/lib/libpqxx.a
-	OpenMP::OpenMP_CXX
-	-ldl
-)
+if (ENABLE_OMP)
+	set (EPIHIPER_LIBARIES 
+		EpiHiperLib
+		${MPI_LIBRARIES}
+		${PGSQL_LIBRARY} 
+		${CMAKE_BINARY_DIR}/lib/libjansson.a 
+		${CMAKE_BINARY_DIR}/lib/libpqxx.a
+		OpenMP::OpenMP_CXX
+		-ldl
+	)
+else ()
+	set (EPIHIPER_LIBARIES 
+		EpiHiperLib
+		${MPI_LIBRARIES}
+		${PGSQL_LIBRARY} 
+		${CMAKE_BINARY_DIR}/lib/libjansson.a 
+		${CMAKE_BINARY_DIR}/lib/libpqxx.a
+		-ldl
+	)
+
+	target_compile_options(EpiHiperLib-core BEFORE PRIVATE -Wno-unknown-pragmas)
+endif (ENABLE_OMP)
 
 target_link_libraries (EpiHiper PUBLIC ${EPIHIPER_LIBARIES})
 

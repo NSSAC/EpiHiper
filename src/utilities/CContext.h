@@ -10,12 +10,22 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include <omp.h>
 #include <mpi.h>
 #include <cstring>
 
 #ifndef UTILITIES_CCONTEXT_H
 #define UTILITIES_CCONTEXT_H
+
+#ifdef USE_OMP
+# include <omp.h>
+# define __GET_MAX_THREADS omp_get_max_threads() 
+# define __GET_NUM_THREADS omp_get_num_threads()
+# define __GET_THREAD_NUM omp_get_thread_num() 
+#else
+# define __GET_MAX_THREADS 1
+# define __GET_NUM_THREADS 1
+# define __GET_THREAD_NUM 0
+#endif // USE_OMP
 
 template < class Data > class CContext
 {
@@ -123,7 +133,7 @@ template < class Data > void CContext< Data >::init()
     return;
     
   MasterData = new Data();
-  Size = omp_get_max_threads();
+  Size = __GET_MAX_THREADS;
 
   if (Size > 1)
     {
@@ -162,14 +172,14 @@ template < class Data > Data & CContext< Data >::Master()
 
 template < class Data > Data & CContext< Data >::Active()
 {
-  switch (omp_get_num_threads())
+  switch (__GET_NUM_THREADS)
     {
       case 1:
         return *MasterData;
         break;
 
       default:
-        return ThreadData[omp_get_thread_num()];
+        return ThreadData[__GET_THREAD_NUM];
         break;
     }
 
@@ -183,14 +193,14 @@ template < class Data > const Data & CContext< Data >::Master() const
 
 template < class Data > const Data & CContext< Data >::Active() const
 {
-  switch (omp_get_num_threads())
+  switch (__GET_NUM_THREADS)
     {
       case 1:
         return *MasterData;
         break;
 
       default:
-        return ThreadData[omp_get_thread_num()];
+        return ThreadData[__GET_THREAD_NUM];
         break;
     }
 

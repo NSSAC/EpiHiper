@@ -65,7 +65,7 @@ double CRandom::CNormal::operator()(generator_t & generator)
 CRandom::generator_t & CRandom::CContext::Active()
 {
   // Master is not initialized and must not be used
-  return ThreadData[omp_get_thread_num()];
+  return ThreadData[__GET_THREAD_NUM];
 }
 
 // static 

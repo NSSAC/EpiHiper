@@ -33,8 +33,10 @@ endif(ENABLE_OMP)
 find_package (MPI REQUIRED)
 include_directories(BEFORE ${MPI_INCLUDE_PATH})
 
-find_package (OpenMP REQUIRED)
-include_directories(BEFORE ${OpenMP_INCLUDE_PATH})
+if (ENABLE_OMP)
+  find_package (OpenMP REQUIRED)
+  include_directories(BEFORE ${OpenMP_INCLUDE_PATH})
+endif (ENABLE_OMP)
 
 find_package (PGSQL REQUIRED)
 include_directories(BEFORE ${PGSQL_INCLUDE_DIR})
@@ -51,6 +53,11 @@ message(STATUS "-----------------------------------------------------------
    Source Dir         = ${CMAKE_SOURCE_DIR}
    Binary Dir         = ${CMAKE_BINARY_DIR}
    Install Prefix     = ${CMAKE_INSTALL_PREFIX}
+
+  Options:
+
+   Use Location Id    = ${ENABLE_LOCATION_ID}
+   Use OpenMP         = ${ENABLE_OMP}
 
  Dependencies:
 
