@@ -38,7 +38,7 @@ make
 ```
 
 ### Running EpiHiper
-The following assumes that you have a properly configured runParameters.json file. The schema for the for the file can be found [here](https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/runParametersSchema.json).
+The following assumes that you have a properly configured runParameters.json file. The schema for the file can be found [here](https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/runParametersSchema.json).
 
 __Compiled with: MPI = off, OpenMP = off__
 ```
@@ -56,3 +56,4 @@ __Compiled with: MPI = on, OpenMP = on__
 ```
 mpirun -np <MPI processes> --bind-to none -x OMP_NUM_THREADS=<OpenMP threads> EpiHiper --config runParameters.json
 ```
+The will execute EpiHiper in parallel with `<MPI processes> * <OpenMP threads>` threads.
