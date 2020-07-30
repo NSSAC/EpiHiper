@@ -37,16 +37,22 @@ cmake /project/biocomplexity/nssac/EpiHiper/git/EpiHiper-code
 make
 ```
 
-### Run the minimal example
-```
-# make sure this is executed on a compute node (within a slurm job)
-mkdir output
-cd output
-srun <build>/src/EpiHiper --seed 1234567 --dbconn \
-  --config /project/biocomplexity/nssac/EpiHiper/test/001/interventionExampleRunParameters.json  dummydb
-# output file is created as output/EpiHiper_output.txt
-```
+### Running EpiHiper
+The following assumes that you have a properly configured runParameters.json file. The schema for the for the file can be found [here](https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/runParametersSchema.json).
 
-This blackbox version reads a EpiHiper-CSV format network file, for each of the specified ticks, generates random infections, and writes them to EpiHiper standard output file. So it needs at least (i) a configuration file (e.g. input/runParametersExample.json) which specifies the paths to the network file and the output file; (ii) an integer as seed for its random number generation; (iii) the network file (in EpiHiper-CSV format).
-
-It does not parse the disease model file. Its output looks like an SI model. The output is syntactically correct and can be used as input for developing analysis tools. But it won't make sense epidemiologically. It also ignores intervention file and personTraitDB connection information.
+__Compiled with: MPI = off, OpenMP = off__
+```
+EpiHiper --config runParameters.json
+```
+__Compiled with: MPI = on, OpenMP = off__ 
+```
+mpirun -np <MPI processes> EpiHiper --config runParameters.json
+```
+__Compiled with: MPI = off, OpenMP = on__ 
+```
+OMP_NUM_THREADS=<OpenMP threads> EpiHiper --config runParameters.json
+```
+__Compiled with: MPI = on, OpenMP = on__ 
+```
+mpirun -np <MPI processes> --bind-to none -x OMP_NUM_THREADS=<OpenMP threads> EpiHiper --config runParameters.json
+```
