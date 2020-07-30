@@ -79,7 +79,26 @@ void CArgs::printWhoAmI()
 {
   std::cout << Name << " Version "
             << EpiHiper_VERSION_MAJOR << "." << EpiHiper_VERSION_MINOR << "." << EpiHiper_VERSION_PATCH
-            << " (build: " << __DATE__ << ", commit: " << GIT_COMMIT << ")" << std::endl;
+            << " (build: " << __DATE__ << ", commit: " << GIT_COMMIT
+            << ", MPI: "
+#ifdef USE_MPI
+            << "ON"
+#else
+            << "OFF"
+#endif // USE_MPI
+            << ", OpenMP: "
+#ifdef USE_OMP
+            << "ON"
+#else
+            << "OFF"
+#endif // USE_OMP
+            << ", LID: "
+#ifdef USE_LOCATION_ID
+            << "ON"
+#else
+            << "OFF"
+#endif // USE_OMP
+            << ")" << std::endl;
 }
 
 const std::string & CArgs::getConfig()

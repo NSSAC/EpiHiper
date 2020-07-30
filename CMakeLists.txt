@@ -28,15 +28,19 @@ option(ENABLE_OMP "Enable the OpenMP support" ON)
 
 if (ENABLE_OMP)
   set(USE_OMP 1)
-endif(ENABLE_OMP)
 
-find_package (MPI REQUIRED)
-include_directories(BEFORE ${MPI_INCLUDE_PATH})
-
-if (ENABLE_OMP)
   find_package (OpenMP REQUIRED)
   include_directories(BEFORE ${OpenMP_INCLUDE_PATH})
-endif (ENABLE_OMP)
+endif(ENABLE_OMP)
+
+option(ENABLE_MPI "Enable the MPI support" ON)
+
+if (ENABLE_MPI)
+  set(USE_MPI 1)
+
+  find_package (MPI REQUIRED)
+  include_directories(BEFORE ${MPI_INCLUDE_PATH})
+endif(ENABLE_MPI)
 
 find_package (PGSQL REQUIRED)
 include_directories(BEFORE ${PGSQL_INCLUDE_DIR})
@@ -58,6 +62,7 @@ message(STATUS "-----------------------------------------------------------
 
    Use Location Id    = ${ENABLE_LOCATION_ID}
    Use OpenMP         = ${ENABLE_OMP}
+   Use MPI            = ${ENABLE_MPI}
 
  Dependencies:
 

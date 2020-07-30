@@ -139,7 +139,7 @@ void CLogger::CStream< level >::flush(const std::string & msg)
 
   if ((single != -1
        && Context.localIndex(&Context.Active()) == single)
-      || __GET_NUM_THREADS == 1)
+      || omp_get_num_threads() == 1)
     {
       pIt = Context.beginThread();
       pEnd = Context.endThread();

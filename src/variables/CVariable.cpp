@@ -199,7 +199,8 @@ void CVariable::reset(const bool & force)
       *mpLocalValue = mInitialValue;
 
       if (CCommunicate::MPIRank == 0
-          && mType == Type::global)
+          && mType == Type::global
+          && CCommunicate::MPIProcesses > 1)
         {
           CCommunicate::updateRMA(mIndex, &CValueInterface::equal, *mpLocalValue);
         }
@@ -208,7 +209,8 @@ void CVariable::reset(const bool & force)
 
 void CVariable::getValue()
 {
-  if (mType == Type::global)
+  if (mType == Type::global &&
+      CCommunicate::MPIProcesses > 1)
     {
       double Value = CCommunicate::getRMA(mIndex);
 
@@ -230,7 +232,8 @@ bool CVariable::setValue(double value, CValueInterface::pOperator pOperator, con
 
   double Value;
 
-  if (mType == Type::global)
+  if (mType == Type::global
+      && CCommunicate::MPIProcesses > 1)
     Value = CCommunicate::updateRMA(mIndex, pOperator, value);
   else
     (*pOperator)(Value, value);

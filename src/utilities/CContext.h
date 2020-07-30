@@ -10,21 +10,32 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include <mpi.h>
-#include <cstring>
-
 #ifndef UTILITIES_CCONTEXT_H
 #define UTILITIES_CCONTEXT_H
 
+#include <cstring>
+#include "EpiHiperConfig.h"
+
+#ifdef USE_MPI
+#include <mpi.h>
+#else
+  typedef int MPI_Status;
+  typedef int MPI_Comm;
+  typedef int MPI_Win;
+# define MPI_COMM_WORLD 1
+# define MPI_SUCCESS 0
+# define MPI_ERR_UNKNOWN 2
+# define MPI_ERR_LASTCODE 100
+# define MPI_Comm_rank(comm, rank) (*rank = 0)
+# define MPI_Comm_size(comm, processes) (*processes = 1)
+#endif
+
 #ifdef USE_OMP
 # include <omp.h>
-# define __GET_MAX_THREADS omp_get_max_threads() 
-# define __GET_NUM_THREADS omp_get_num_threads()
-# define __GET_THREAD_NUM omp_get_thread_num() 
 #else
-# define __GET_MAX_THREADS 1
-# define __GET_NUM_THREADS 1
-# define __GET_THREAD_NUM 0
+# define omp_get_max_threads() (1)
+# define omp_get_num_threads() (1)
+# define omp_get_thread_num() (0)
 #endif // USE_OMP
 
 template < class Data > class CContext
@@ -133,7 +144,7 @@ template < class Data > void CContext< Data >::init()
     return;
     
   MasterData = new Data();
-  Size = __GET_MAX_THREADS;
+  Size = omp_get_max_threads();
 
   if (Size > 1)
     {
@@ -172,14 +183,14 @@ template < class Data > Data & CContext< Data >::Master()
 
 template < class Data > Data & CContext< Data >::Active()
 {
-  switch (__GET_NUM_THREADS)
+  switch (omp_get_num_threads())
     {
       case 1:
         return *MasterData;
         break;
 
       default:
-        return ThreadData[__GET_THREAD_NUM];
+        return ThreadData[omp_get_thread_num()];
         break;
     }
 
@@ -193,14 +204,14 @@ template < class Data > const Data & CContext< Data >::Master() const
 
 template < class Data > const Data & CContext< Data >::Active() const
 {
-  switch (__GET_NUM_THREADS)
+  switch (omp_get_num_threads())
     {
       case 1:
         return *MasterData;
         break;
 
       default:
-        return ThreadData[__GET_THREAD_NUM];
+        return ThreadData[omp_get_thread_num()];
         break;
     }
 

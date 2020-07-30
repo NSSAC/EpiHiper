@@ -745,7 +745,7 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
         }
     }
 
-  CCommunicate::broadcast(Partition, (parts * 3 + 1) * sizeof(MPI_UINT64_T), 0);
+  CCommunicate::broadcast(Partition, (parts * 3 + 1) * sizeof(int), 0);
 
   CNetwork * pEnd = Context.endThread();
 

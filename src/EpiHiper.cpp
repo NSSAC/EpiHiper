@@ -160,7 +160,7 @@ int main(int argc, char * argv[])
 
   CVariableList::INSTANCE.resetAll(true);
 
-  CNetwork::Context.Active().load();
+  CNetwork::Context.Master().load();
 
   if (CLogger::hasErrors())
     {

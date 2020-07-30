@@ -15,8 +15,6 @@
 
 #include <iostream>
 
-#include <mpi.h>
-
 #include "utilities/CContext.h"
 
 #define FatalError(err, msg) \
