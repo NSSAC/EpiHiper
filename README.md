@@ -37,6 +37,13 @@ cmake /project/biocomplexity/nssac/EpiHiper/git/EpiHiper-code
 make
 ```
 
+__Build options__
+* `-DENABLE_LOCATION_ID=[ON|OFF]` Enable location Id support for networks. (default: OFF)
+* `-DENABLE_MPI==[ON|OFF]` Enable MPI parallelization. (default: ON)
+* `-DENABLE_OMP==[ON|OFF]` Enable OpenMP parallelization. (default: OFF)
+
+Note: It is possible to enable both MPI and OpenMP simultaneously.
+
 ### Run the minimal example
 ```
 # make sure this is executed on a compute node (within a slurm job)
