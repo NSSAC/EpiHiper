@@ -120,6 +120,16 @@ void CValue::fromJSON(const json_t * json)
       return;
     }
 
+  pValue = json_object_get(pRoot, "id");
+
+  if (json_is_real(pValue))
+    {
+      mType = Type::id;
+      mpValue = new size_t((size_t) json_real_value(pValue));
+      mValid = true;
+      return;
+    }
+
   pValue = json_object_get(pRoot, "number");
 
   if (json_is_real(pValue))

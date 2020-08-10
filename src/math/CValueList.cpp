@@ -192,6 +192,17 @@ void CValueList::fromJSON(const json_t * json)
 
   if (pArray == NULL)
     {
+      pValue = json_object_get(pValueList, "id");
+
+      if (json_is_array(pValue))
+        {
+          mType = Type::id;
+          pArray = pValue;
+        }
+    }
+
+  if (pArray == NULL)
+    {
       pValue = json_object_get(pValueList, "number");
 
       if (json_is_array(pValue))
@@ -326,8 +337,6 @@ void CValueList::fromJSON(const json_t * json)
 
           if (json_is_string(pValue))
             {
-              mType = Type::id;
-
               const CHealthState * pHealthState = CModel::GetState(json_string_value(pValue));
 
               if (pHealthState == NULL)
@@ -337,6 +346,10 @@ void CValueList::fromJSON(const json_t * json)
                 }
 
               std::set< CValue >::insert(CModel::StateToType(pHealthState));
+            }
+          else if (json_is_real(pValue))
+            {
+              std::set< CValue >::insert((size_t) json_real_value(pValue));
             }
           else
             {
