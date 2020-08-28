@@ -38,6 +38,7 @@ make
 ```
 
 __Build options__
+* `-DCMAKE_BUILD_TYPE=[Debug|Release]` Enable debug build. (default: Release)
 * `-DENABLE_LOCATION_ID=[ON|OFF]` Enable location Id support for networks. (default: OFF)
 * `-DENABLE_MPI==[ON|OFF]` Enable MPI parallelization. (default: ON)
 * `-DENABLE_OMP==[ON|OFF]` Enable OpenMP parallelization. (default: OFF)
