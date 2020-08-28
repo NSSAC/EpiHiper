@@ -745,7 +745,7 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
         }
     }
 
-  CCommunicate::broadcast(Partition, (parts * 3 + 1) * sizeof(int), 0);
+  CCommunicate::broadcast(Partition, (parts * 3 + 1) * sizeof(size_t), 0);
 
   CNetwork * pEnd = Context.endThread();
 
@@ -758,6 +758,8 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
       pIt->mBeyondLocalNode = *pPartInfo;
       pIt->mValid = true;
     }
+
+  // CLogger::info() << "CNetwork::partition: " << mFirstLocalNode << ", " << mBeyondLocalNode << ", " << mLocalNodesSize << ", " << mEdgesSize << std::endl;
 }
 
 void CNetwork::load()
@@ -863,7 +865,8 @@ void CNetwork::load()
       }
   }
 
-  // std::cout << Communicate::Rank << ": " << mFirstLocalNode << ", " << mBeyondLocalNode << ", " << mLocalNodesSize << ", " << mEdgesSize << std::endl;
+  // CLogger::info() << "CNetwork::load: " << mFirstLocalNode << ", " << mBeyondLocalNode << ", " << mLocalNodesSize << ", " << mEdgesSize << std::endl;
+
   {
     CLogger::info Info;
     Info.imbue(std::locale(""));
@@ -1428,13 +1431,8 @@ bool CNetwork::loadEdge(CEdge * pEdge, std::istream & is) const
     }
   else
     {
-      static char * Line = NULL;
-      static size_t LineSize = 1024;
-
-      if (Line == NULL)
-        {
-          Line = new char[LineSize];
-        }
+      char Line[1024];
+      size_t LineSize = 1024;
 
       std::istream::pos_type p = is.tellg();
 
