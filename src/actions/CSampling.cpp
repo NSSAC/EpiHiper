@@ -388,7 +388,9 @@ void CSampling::determineThreadLimits()
   // We now determine the numbers for all process
   double Requested = 0.0;
   double Available = mCount;
+  double Target = 0.0;
   double Allowed = 0.0;
+  double Error = 0.0;
 
   size_t * pRemote = mpCommunicateBuffer;
   size_t * pRemoteEnd = mpCommunicateBuffer + CCommunicate::TotalProcesses();
@@ -409,14 +411,31 @@ void CSampling::determineThreadLimits()
       for (pRemote = mpCommunicateBuffer; pRemote != pRemoteEnd; ++pRemote)
         if (Available > 0.5)
           {
-            Allowed = std::round(((double) *pRemote) * Available / Requested);
-            *pRemote = Allowed;
+            Target = ((double) *pRemote) * Available / Requested;
+            Allowed = round(Target);
+
+            // Accumulate the error
+            Error += Allowed - Target;
+
+            // Keep the total error within (-1, 1)
+            if (Error >= 1.0)
+              {
+                Error -= 1.0;
+                Allowed -= 1.0;
+              }
+            else if (Error <= -1.0)
+              {
+                Error += 1.0;
+                Allowed += 1.0;
+              }
+
             Requested -= *pRemote;
+            *pRemote = Allowed;
             Available -= *pRemote;
 
             if (Available < -0.5)
               {
-                *pRemote += 1;
+                *pRemote -= 1;
                 Requested += 1;
                 Available += 1;
               }
