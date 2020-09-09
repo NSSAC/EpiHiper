@@ -7,3 +7,6 @@
 [submodule "dependencies/spdlog"]
 	path = dependencies/spdlog
 	url = git@github.com:gabime/spdlog.git
+[submodule "tools/2019-nCoV_vax"]
+	path = tools/2019-nCoV_vax
+	url = git@github.com:NSSAC/2019-nCoV_vax.git
