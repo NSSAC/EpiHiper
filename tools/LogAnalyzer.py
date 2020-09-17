@@ -20,8 +20,8 @@ from pathlib import Path
 import json
 
 
-parser = argparse.ArgumentParser(description="Summarize initialization, trigger, and iterventions.")
-parser.add_argument('files', nargs='+', help='Log files to sumarize')
+parser = argparse.ArgumentParser(description="Summarize initialization, triggers, and interventions.")
+parser.add_argument('files', nargs='+', help='Log files to summarize')
 args = parser.parse_args()
 
 summary = dict()

@@ -31,6 +31,7 @@ Value = [
     '[in]',
     '[out]'
 ]
+
 AgeGroups = [
     'p',
     's',
@@ -39,26 +40,11 @@ AgeGroups = [
     'g'
     ]
 
-HealthStates = [
-    'S',
-    'HypRxFail', 
-    'HypRxProt',
-    'E',
-    'Ipresymp',
-    'Isymp',
-    'Iasymp',
-    'rMedAttend',
-    'hMedAttend',
-    'dMedAttend',
-    'Hosp',
-    'dHosp',
-    'Vent',
-    'dVent',
-    'Death',
-    'R',
-    'RyetS',
-    'Rimmune'
-    ]
+HealthStates = []
+
+for h in df.columns:
+    if h.find('[out]') != -1:
+        HealthStates.append(h.split('_')[0])
 
 analysis = []
 
