@@ -48,7 +48,7 @@ add_dependencies(EpiHiperLib-core jansson libpqxx spdlog)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   target_compile_options(EpiHiperLib-core PRIVATE -Werror -Wall -Wextra -Wsuggest-override ${OpenMP_CXX_FLAGS})
 else(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  target_compile_options(EpiHiperLib-core PRIVATE -Wall -Wextra -Wsuggest-override)
+  target_compile_options(EpiHiperLib-core PRIVATE -Wall -Wextra -Wsuggest-override ${OpenMP_CXX_FLAGS})
 endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
 add_library (EpiHiperLib SHARED $<TARGET_OBJECTS:EpiHiperLib-core>)
