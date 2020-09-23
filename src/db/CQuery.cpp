@@ -107,6 +107,7 @@ size_t CQuery::Limit = 100000;
 // static
 void CQuery::init()
 {
+#pragma omp single
   LocalConstraint.init();
 
   std::string & Active = LocalConstraint.Active();
@@ -437,7 +438,9 @@ bool CQuery::where(const std::string & table,
             success = false;
           }
 
-        pWork->commit();
+        if (success)
+          pWork->commit();
+
         delete pWork;
 
         CLogger::debug() << "CQuery::where: " << Query.str() << " returned '" << result.size() << "' rows.";
