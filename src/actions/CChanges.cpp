@@ -98,24 +98,26 @@ void CChanges::record(const CNode * pNode, const CMetadata & metadata)
 
       if (metadata.contains("ContactNode"))
         {
-          (*Active.pDefaultOutput) << (size_t) metadata.getInt("ContactNode") << std::endl;
+          (*Active.pDefaultOutput) << (size_t) metadata.getInt("ContactNode");
         }
       else
         {
-          (*Active.pDefaultOutput) << -1 << std::endl;
+          (*Active.pDefaultOutput) << -1;
         }
 
       if (CEdge::HasLocationId)
         {
           if (metadata.contains("LocationId"))
             {
-              (*Active.pDefaultOutput) << (size_t) metadata.getInt("LocationId") << std::endl;
+              (*Active.pDefaultOutput) << "," << (size_t) metadata.getInt("LocationId");
             }
           else
             {
-              (*Active.pDefaultOutput) << -1 << std::endl;
+              (*Active.pDefaultOutput) << "," << -1;
             }
         }
+
+      (*Active.pDefaultOutput) << std::endl;
     }
 }
 
