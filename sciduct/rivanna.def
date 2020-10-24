@@ -99,10 +99,10 @@ From: centos:7.6.1810
     yum install -y nodejs
 
     # jq is a processor for helping with json from bash
-    npm install -g jq-cli-wrapper
+    npm install --unsafe-perm -g jq-cli-wrapper
 
     # Install the EpiHiper validator
-    npm install -g @shoops/epi-hiper-validator
+    npm install --unsafe-perm -g @shoops/epi-hiper-validator
     ln -s /usr/lib/node_modules/@shoops/epi-hiper-validator/bin/epiHiper* /epihiper/bin
 
 %environment
