@@ -224,7 +224,7 @@ void CModel::fromJSON(const json_t * json)
         }
     }
 
-  pValue = json_object_get(json, "");
+  pValue = json_object_get(json, "transmissability");
 
   if (json_is_real(pValue))
     {

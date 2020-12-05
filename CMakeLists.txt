@@ -38,7 +38,7 @@ option(ENABLE_MPI "Enable the MPI support" ON)
 if (ENABLE_MPI)
   set(USE_MPI 1)
 
-  find_package (MPI REQUIRED)
+  find_package(MPI)
   include_directories(BEFORE ${MPI_INCLUDE_PATH})
 endif(ENABLE_MPI)
 
