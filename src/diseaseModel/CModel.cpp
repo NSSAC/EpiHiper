@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -315,7 +315,7 @@ bool CModel::processTransmissions() const
                 Candidate Candidate;
                 Candidate.pEdge = pEdge;
                 Candidate.pTransmission = pTransmission;
-                Candidate.Propensity = (*CTransmissionPropensity::pPROPENSITY)(pEdge, pTransmission);
+                Candidate.Propensity = (*CTransmissionPropensity::pPROPENSITY)(pEdge, pTransmission, mTransmissability);
 
                 if (Candidate.Propensity > 0.0)
                   {

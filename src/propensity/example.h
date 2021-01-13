@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -18,7 +18,7 @@ class CEdge;
 
 extern "C"
 {
-  double propensity(const CEdge * pEdge, const CTransmission * pTransmission);
+  double propensity(const CEdge * pEdge, const CTransmission * pTransmission, const double & transmissability);
 }
 
 #endif // SRC_PROPENSITY_EXAMPLE_H_

@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -23,11 +23,11 @@
 void * lib_handle = NULL;
 
 // static 
-double CTransmissionPropensity::defaultPropensity(const CEdge * pEdge, const CTransmission * pTransmission)
+double CTransmissionPropensity::defaultPropensity(const CEdge * pEdge, const CTransmission * pTransmission, const double & transmissability)
 {
   // ρ(P, P', Τi,j,k) = (| contactTime(P, P') ∩ [tn, tn + Δtn] |) × contactWeight(P, P') × σ(P, Χi) × ι(P',Χk) × ω(Τi,j,k)
   return pEdge->duration * pEdge->weight * pEdge->pTarget->susceptibility
-    * pEdge->pSource->infectivity * pTransmission->getTransmissibility();
+    * pEdge->pSource->infectivity * pTransmission->getTransmissibility() * transmissability;
 }
 
 // static 

@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -20,9 +20,9 @@ class CTransmission;
 
 class CTransmissionPropensity {
 public:
-  typedef double (*pPropensity)(const CEdge * pEdge, const CTransmission * pTransmission);
+  typedef double (*pPropensity)(const CEdge * pEdge, const CTransmission * pTransmission, const double & transmissability);
 
-  static double defaultPropensity(const CEdge * pEdge, const CTransmission * pTransmission);
+  static double defaultPropensity(const CEdge * pEdge, const CTransmission * pTransmission, const double & transmissability);
   static void Init();
   static void Release();
   static pPropensity pPROPENSITY;
