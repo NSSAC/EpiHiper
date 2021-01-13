@@ -18,7 +18,7 @@ class CEdge;
 
 extern "C"
 {
-  double propensity(const CEdge * pEdge, const CTransmission * pTransmission, const double & transmissability);
+  double propensity(const CEdge * pEdge, const CTransmission * pTransmission);
 }
 
 #endif // SRC_PROPENSITY_EXAMPLE_H_

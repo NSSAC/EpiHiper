@@ -315,7 +315,7 @@ bool CModel::processTransmissions() const
                 Candidate Candidate;
                 Candidate.pEdge = pEdge;
                 Candidate.pTransmission = pTransmission;
-                Candidate.Propensity = (*CTransmissionPropensity::pPROPENSITY)(pEdge, pTransmission, mTransmissability);
+                Candidate.Propensity = (*CTransmissionPropensity::pPROPENSITY)(pEdge, pTransmission);
 
                 if (Candidate.Propensity > 0.0)
                   {

@@ -16,8 +16,8 @@
 #include "network/CNode.h"
 #include "network/CEdge.h"
 
-double propensity(const CEdge * pEdge, const CTransmission * pTransmission, const double & transmissability)
+double propensity(const CEdge * pEdge, const CTransmission * pTransmission)
 {
   return pEdge->duration * pEdge->weight * pEdge->pTarget->susceptibility
-    * pEdge->pSource->infectivity * pTransmission->getTransmissibility() * transmissability;
+    * pEdge->pSource->infectivity * pTransmission->getTransmissibility();
 }

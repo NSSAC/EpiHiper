@@ -20,9 +20,9 @@ class CTransmission;
 
 class CTransmissionPropensity {
 public:
-  typedef double (*pPropensity)(const CEdge * pEdge, const CTransmission * pTransmission, const double & transmissability);
+  typedef double (*pPropensity)(const CEdge * pEdge, const CTransmission * pTransmission);
 
-  static double defaultPropensity(const CEdge * pEdge, const CTransmission * pTransmission, const double & transmissability);
+  static double defaultPropensity(const CEdge * pEdge, const CTransmission * pTransmission);
   static void Init();
   static void Release();
   static pPropensity pPROPENSITY;

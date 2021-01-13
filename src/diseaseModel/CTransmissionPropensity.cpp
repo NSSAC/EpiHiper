@@ -23,11 +23,11 @@
 void * lib_handle = NULL;
 
 // static 
-double CTransmissionPropensity::defaultPropensity(const CEdge * pEdge, const CTransmission * pTransmission, const double & transmissability)
+double CTransmissionPropensity::defaultPropensity(const CEdge * pEdge, const CTransmission * pTransmission)
 {
   // ρ(P, P', Τi,j,k) = (| contactTime(P, P') ∩ [tn, tn + Δtn] |) × contactWeight(P, P') × σ(P, Χi) × ι(P',Χk) × ω(Τi,j,k)
   return pEdge->duration * pEdge->weight * pEdge->pTarget->susceptibility
-    * pEdge->pSource->infectivity * pTransmission->getTransmissibility() * transmissability;
+    * pEdge->pSource->infectivity * pTransmission->getTransmissibility();
 }
 
 // static 
