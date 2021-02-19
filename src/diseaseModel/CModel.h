@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -117,7 +117,7 @@ private:
   std::vector< CProgression > mProgressions;
   PossibleTransmissions * mPossibleTransmissions;
   PossibleProgressions * mPossibleProgressions;
-  double mTransmissability;
+  double mTransmissibility;
   bool mValid;
 };
 

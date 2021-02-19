@@ -1,5 +1,5 @@
 # BEGIN: Copyright 
-# Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+# Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 # All rights reserved 
 # END: Copyright 
 
@@ -38,7 +38,7 @@ option(ENABLE_MPI "Enable the MPI support" ON)
 if (ENABLE_MPI)
   set(USE_MPI 1)
 
-  find_package(MPI)
+  find_package(MPI COMPONENTS CXX)
   include_directories(BEFORE ${MPI_INCLUDE_PATH})
 endif(ENABLE_MPI)
 

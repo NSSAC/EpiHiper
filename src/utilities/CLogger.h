@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -19,15 +19,6 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/sink.h>
 #include "utilities/CContext.h"
-
-struct LoggerData
-{
-  std::shared_ptr< spdlog::logger > pLogger;
-  std::shared_ptr< spdlog::sinks::sink > pConsole;
-  std::shared_ptr< spdlog::sinks::sink > pFile;
-  std::string task;
-  std::stack< spdlog::level::level_enum > levels;
-};
 
 class CLogger
 {

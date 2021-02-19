@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -170,7 +170,7 @@ final:
   CLogger::popLevel();
 
   if (!valid)
-    CLogger::error("Value Instance: Invalid.");
+    CLogger::error() << "Value Instance: Invalid. " << json_dumps(json, JSON_COMPACT | JSON_INDENT(0));
 }
 
 CValueInterface * CConditionDefinition::ValueInstance::value(const CNode * pNode) const

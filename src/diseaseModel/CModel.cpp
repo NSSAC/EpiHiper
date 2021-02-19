@@ -59,7 +59,7 @@ CModel::CModel(const std::string & modelFile)
   , mProgressions()
   , mPossibleTransmissions(NULL)
   , mPossibleProgressions(NULL)
-  , mTransmissability(1.0)
+  , mTransmissibility(1.0)
   , mValid(false)
 {
   json_t * pRoot = CSimConfig::loadJson(modelFile, JSON_DECODE_INT_AS_REAL);
@@ -224,11 +224,11 @@ void CModel::fromJSON(const json_t * json)
         }
     }
 
-  pValue = json_object_get(json, "transmissability");
+  pValue = json_object_get(json, "transmissibility");
 
   if (json_is_real(pValue))
     {
-      mTransmissability = json_real_value(pValue);
+      mTransmissibility = json_real_value(pValue);
     }
 
   mValid = true;
@@ -325,8 +325,8 @@ bool CModel::processTransmissions() const
               }
           }
 
-        if (A0 > 0
-            && -log(Uniform01(CRandom::G.Active())) < A0 * mTransmissability / 86400)
+        if (A0 > 0.0
+            && -log(Uniform01(CRandom::G.Active())) < A0 * mTransmissibility / 86400.0)
           {
             double alpha = Uniform01(CRandom::G.Active()) * A0;
 
