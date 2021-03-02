@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -29,6 +29,7 @@ CSizeOf::CSizeOf()
   , CComputable()
   , mpSetContent(NULL)
   , mIndex(std::numeric_limits< size_t >::max())
+  , mIndentifier()
 {}
 
 CSizeOf::CSizeOf(const CSizeOf & src)
@@ -36,6 +37,7 @@ CSizeOf::CSizeOf(const CSizeOf & src)
   , CComputable(src)
   , mpSetContent(src.mpSetContent != NULL ? src.mpSetContent->copy() : NULL)
   , mIndex(src.mIndex)
+  , mIndentifier(src.mIndentifier)
 {}
 
 CSizeOf::CSizeOf(const json_t * json)
@@ -43,6 +45,7 @@ CSizeOf::CSizeOf(const json_t * json)
   , CComputable()
   , mpSetContent(NULL)
   , mIndex(std::numeric_limits< size_t >::max())
+  , mIndentifier()
 {
   fromJSON(json);
 
@@ -91,7 +94,7 @@ int CSizeOf::broadcastSize()
     CLogger::setSingle(false);
   }
 
-  CLogger::debug() << "CSizeOf: Returned '" << *static_cast< double * >(mpValue) << "'.";
+  CLogger::debug() << "CSizeOf: Returned '" << *static_cast< double * >(mpValue) << "' for " << mIndentifier;
   return (int) CCommunicate::ErrorCode::Success;
 }
 
@@ -127,6 +130,11 @@ void CSizeOf::fromJSON(const json_t * json)
       mPrerequisites.insert(mpSetContent);
       mStatic = mpSetContent->isStatic();
       mValid = true;
+
+      char * str = json_dumps(json_object_get(json, "sizeof"), JSON_COMPACT | JSON_INDENT(0));
+      mIndentifier = str;
+      free(str);
+
       return;
     }
 

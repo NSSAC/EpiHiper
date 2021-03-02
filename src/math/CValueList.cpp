@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -373,6 +373,8 @@ void CValueList::fromJSON(const json_t * json)
                   CLogger::error() << "Value list: Invalid enum '" << json_string_value(pValue) << "' for feature '" << pFeature->getId() << "' for trait '" << pTrait->getId() << "'.";
                   return;
                 }
+
+              std::set< CValue >::insert(CTraitData::value(pFeature->getMask(), pEnum->getMask()));
             }
           else
             {

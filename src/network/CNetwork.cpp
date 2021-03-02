@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -1111,8 +1111,13 @@ void CNetwork::write(const std::string & file, bool binary)
       json_string_set(pValue, mIsBinary ? "binary" : "text");
     }
 
+
   std::ofstream os(file.c_str());
-  os << json_dumps(mpJson, JSON_COMPACT | JSON_INDENT(0)) << std::endl;
+
+  char * str = json_dumps(mpJson, JSON_COMPACT | JSON_INDENT(0));
+  os << str << std::endl;
+  free(str);
+
   os << "targetPID,targetActivity,sourcePID,sourceActivity,duration";
 
   if (CEdge::HasLocationId)
@@ -1185,7 +1190,9 @@ bool CNetwork::openPartition(const size_t & partition,
       return false;
     }
 
-  os << json_dumps(pJson, JSON_COMPACT | JSON_INDENT(0)) << std::endl;
+  char * str = json_dumps(pJson, JSON_COMPACT | JSON_INDENT(0));
+  os << str << std::endl;
+  free(str);
 
   if (CEdge::HasLocationId)
     os << "targetPID,targetActivity,sourcePID,sourceActivity,duration,LID,edgeTrait,active,weight";
@@ -1197,39 +1204,40 @@ bool CNetwork::openPartition(const size_t & partition,
   return true;
 }
 
-  void CNetwork::writePartition(const size_t & partition,
-                                const size_t & partCount,
-                                const size_t & nodeCount,
-                                const size_t & firstLocalNode,
-                                const size_t & beyondLocalNode,
-                                const size_t & edgeCount,
-                                const std::string & edges,
-                                const std::string & outputDirectory)
-  {
-    std::ofstream os;
+void CNetwork::writePartition(const size_t & partition,
+                              const size_t & partCount,
+                              const size_t & nodeCount,
+                              const size_t & firstLocalNode,
+                              const size_t & beyondLocalNode,
+                              const size_t & edgeCount,
+                              const std::string & edges,
+                              const std::string & outputDirectory)
+{
+  std::ofstream os;
 
-    openPartition(partition,
-                  partCount,
-                  nodeCount,
-                  firstLocalNode,
-                  beyondLocalNode,
-                  edgeCount,
-                  outputDirectory,
-                  os);
+  openPartition(partition,
+                partCount,
+                nodeCount,
+                firstLocalNode,
+                beyondLocalNode,
+                edgeCount,
+                outputDirectory,
+                os);
 
-    os << edges << std::endl;
+  os << edges << std::endl;
 
-    os.close();
-  }
+  os.close();
+}
 
-  bool CNetwork::haveValidPartition(const int & parts)
-  {
-    bool haveValidPartition = parts > 0;
+bool CNetwork::haveValidPartition(const int & parts)
+{
+  bool haveValidPartition = parts > 0;
 
-#pragma omp parallel for 
+#pragma omp parallel for
   for (int i = 0; i < parts; ++i)
     {
-      if (!haveValidPartition) continue;
+      if (!haveValidPartition)
+        continue;
 
       bool valid = true;
       std::ostringstream File;
@@ -1262,8 +1270,8 @@ bool CNetwork::openPartition(const size_t & partition,
           valid = false;
         }
 
-#pragma omp atomic 
-       haveValidPartition &= valid;   
+#pragma omp atomic
+      haveValidPartition &= valid;
     }
 
   return haveValidPartition;

@@ -170,7 +170,11 @@ final:
   CLogger::popLevel();
 
   if (!valid)
-    CLogger::error() << "Value Instance: Invalid. " << json_dumps(json, JSON_COMPACT | JSON_INDENT(0));
+  {
+    char * str = json_dumps(json, JSON_COMPACT | JSON_INDENT(0));
+    CLogger::error() << "Value Instance: Invalid. " << str;
+    free(str);
+  }
 }
 
 CValueInterface * CConditionDefinition::ValueInstance::value(const CNode * pNode) const

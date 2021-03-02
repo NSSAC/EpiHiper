@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -93,7 +93,7 @@ void CSetOperation::fromJSON(const json_t * json)
 
   if (!json_is_string(pValue))
     {
-      CLogger::error("Set operation: Invalid or missing value for 'operatioon'.");
+      CLogger::error("Set operation: Invalid or missing value for 'operation'.");
       return;
     }
 
@@ -107,7 +107,7 @@ void CSetOperation::fromJSON(const json_t * json)
     }
   else
     {
-      CLogger::error("Set operation: Invalid value for 'operatioon'.");
+      CLogger::error("Set operation: Invalid value for 'operation'.");
       return;
     }
 
