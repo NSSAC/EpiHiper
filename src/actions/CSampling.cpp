@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -18,6 +18,7 @@
 #include "actions/CActionEnsemble.h"
 #include "sets/CSetContent.h"
 #include "utilities/CLogger.h"
+#include "variables/CVariableList.h"
 
 CSampling::CSampled::CSampled()
   : CSetContent()
@@ -47,6 +48,7 @@ void CSampling::CSampled::fromJSON(const json_t * /* json */)
 
 CSampling::CSampling()
   : mType()
+  , mpVariable(NULL)
   , mPercentage()
   , mCount()
   , mpSampled(NULL)
@@ -63,6 +65,7 @@ CSampling::CSampling()
 
 CSampling::CSampling(const CSampling & src)
   : mType(src.mType)
+  , mpVariable(src.mpVariable)
   , mPercentage(src.mPercentage)
   , mCount(src.mCount)
   , mpSampled(src.mpSampled != NULL ? new CActionEnsemble(*src.mpSampled) : NULL)
@@ -77,6 +80,7 @@ CSampling::CSampling(const CSampling & src)
 
 CSampling::CSampling(const json_t * json)
   : mType()
+  , mpVariable(NULL)
   , mPercentage()
   , mCount()
   , mpSampled(NULL)
@@ -206,24 +210,39 @@ void CSampling::fromJSON(const json_t * json)
       return;
     }
 
-  pValue = json_object_get(json, "number");
+  mpVariable = &CVariableList::INSTANCE[json];
 
-  if (!json_is_real(pValue))
+  if (mpVariable->isValid())
     {
-      CLogger::error("Sampling: Missing or invalid 'number'.");
-      return;
+      if (mpVariable->getType() == CVariable::Type::global)
+        {
+          CLogger::error() << "Sampling: The variable '" << mpVariable->getId() << "' must have scope local.";
+          return;
+        }
     }
-
-  switch (mType)
+  else
     {
-    case Type::relativeIndividual:
-    case Type::relativeGroup:
-      mPercentage = json_real_value(pValue);
-      break;
+      mpVariable = NULL;
 
-    case Type::absolute:
-      mCount = std::round(json_real_value(pValue));
-      break;
+      pValue = json_object_get(json, "number");
+
+      if (!json_is_real(pValue))
+        {
+          CLogger::error("Sampling: Missing or invalid 'number'.");
+          return;
+        }
+
+      switch (mType)
+        {
+        case Type::relativeIndividual:
+        case Type::relativeGroup:
+          mPercentage = json_real_value(pValue);
+          break;
+
+        case Type::absolute:
+          mCount = std::round(json_real_value(pValue));
+          break;
+        }
     }
 
   pValue = json_object_get(json, "sampled");
@@ -289,6 +308,9 @@ void CSampling::process(const CSetContent & targets)
     }
   else
     {
+      if (mpVariable != NULL)
+        mPercentage = mpVariable->toNumber();
+
       mpTargets->samplePercent(mPercentage, mSampledTargets, mNotSampledTargets);
     }
 
@@ -387,7 +409,7 @@ void CSampling::determineThreadLimits()
 {
   // We now determine the numbers for all process
   double Requested = 0.0;
-  double Available = mCount;
+  double Available = 0.0;
   double Target = 0.0;
   double Allowed = 0.0;
   double Error = 0.0;
@@ -402,7 +424,17 @@ void CSampling::determineThreadLimits()
 
   if (mType == Type::relativeGroup)
     {
+      if (mpVariable != NULL)
+        mPercentage = mpVariable->toNumber();
+
       Available = std::round(Requested * mPercentage / 100.0);
+    }
+  else
+    {
+      if (mpVariable != NULL)
+        Available = std::round(mpVariable->toNumber());
+      else  
+        Available = mCount;
     }
 
   if (Available < Requested)

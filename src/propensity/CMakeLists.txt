@@ -1,5 +1,5 @@
 # BEGIN: Copyright 
-# Copyright (C) 2020 Rector and Visitors of the University of Virginia 
+# Copyright (C) 2020 - 2021 Rector and Visitors of the University of Virginia 
 # All rights reserved 
 # END: Copyright 
 
@@ -15,5 +15,5 @@ cmake_minimum_required (VERSION 3.11)
 file(GLOB HEADERS_PROPENSITY *.h)
 file(GLOB SOURCES_PROPENSITY *.cpp)
 
-add_library(propenisty SHARED ${SOURCES_PROPENSITY} ${HEADERS_PROPENSITY})
+add_library(propensity SHARED ${SOURCES_PROPENSITY} ${HEADERS_PROPENSITY})
 
