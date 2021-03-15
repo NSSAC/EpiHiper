@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -280,7 +280,7 @@ void CActionDefinition::process(const CNode * pNode) const
       CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Add action for node '" << pNode->id << "'.";
       CActionQueue::addAction(mDelay, new CNodeAction(this, pNode));
     }
-  catch (const std::exception & e)
+  catch (...)
     {
       CLogger::error() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Failed to create action for node '" << pNode->id << "'.";
     }
@@ -309,7 +309,7 @@ bool CActionDefinition::execute() const
             }
         }
     }
-  catch (const std::exception & e)
+  catch (...)
     {
       CLogger::error() << "CActionDefinition::execute: [ActionDefinition:" << mIndex << "] Failed to execute action.";
       success = false;
@@ -344,7 +344,7 @@ bool CActionDefinition::execute(CEdge * pEdge) const
             }
         }
     }
-  catch (const std::exception & e)
+  catch (...)
     {
       CLogger::error() << "CActionDefinition::execute: [ActionDefinition:" << mIndex << "] Failed to execute action for edge '" << pEdge->targetId << "," << pEdge->sourceId << "'.";
       success = false;
@@ -379,7 +379,7 @@ bool CActionDefinition::execute(CNode * pNode) const
             }
         }
     }
-  catch (const std::exception & e)
+  catch (...)
     {
       CLogger::error() << "CActionDefinition::execute: [ActionDefinition:" << mIndex << "] Failed to execute action for node '" << pNode->id << "'.";
       success = false;

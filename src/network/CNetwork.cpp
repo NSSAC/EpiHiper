@@ -873,7 +873,19 @@ void CNetwork::load()
     Info << "Network: Allocating nodes '" << mLocalNodesSize << "' (" << mLocalNodesSize * sizeof(CNode) << " bytes).";
   }
 
-  mLocalNodes = new CNode[mLocalNodesSize];
+  try
+    {
+      mLocalNodes = new CNode[mLocalNodesSize];
+    }
+
+  catch (...)
+    {
+      CLogger::error Error;
+      Error.imbue(std::locale(""));
+      Error << "Network: Allocating nodes failed '" << mLocalNodesSize << "' (" << mLocalNodesSize * sizeof(CNode) << " bytes).";
+
+      return;
+    }
 
   {
     CLogger::info Info;
@@ -881,7 +893,19 @@ void CNetwork::load()
     Info << "Network: Allocating edges '" << mEdgesSize << "' (" << mEdgesSize * sizeof(CEdge) << " bytes).";
   }
 
-  mEdges = new CEdge[mEdgesSize];
+  try
+    {
+      mEdges = new CEdge[mEdgesSize];
+    }
+
+  catch (...)
+    {
+      CLogger::error Error;
+      Error.imbue(std::locale(""));
+      Error << "Network: Allocating edges failed '" << mEdgesSize << "' (" << mEdgesSize * sizeof(CEdge) << " bytes).";
+
+      return;
+    }
 
   CLogger::info("Network: Allocation completed");
   CNode * pNode = mLocalNodes;
