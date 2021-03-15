@@ -632,7 +632,7 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
       size_t * pNodes = pPartition + 1;
       size_t * pEdges = pPartition + 2;
 
-      size_t DesiredPerComputeNode = mTotalEdgesSize / parts + 1;
+      double DesiredPerComputeNode = (double) mTotalEdgesSize / parts;
 
       size_t Node = std::numeric_limits< size_t >::max();
       size_t CurrentNode = std::numeric_limits< size_t >::max();
@@ -662,9 +662,12 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
                   CLogger::error("Network target nodes are not sorted.");
                   return;
                 }
+
               if (PartitionEdgeCount >= PartitionIndex * DesiredPerComputeNode)
                 {
-                  if (2 * PartitionIndex * DesiredPerComputeNode < LastNodeEdgeCount + PartitionEdgeCount)
+                  // PartitionIndex * DesiredPerComputeNode - LastNodeEdgeCount < PartitionEdgeCount - PartitionIndex * DesiredPerComputeNode
+                  if (2 * PartitionIndex * DesiredPerComputeNode < LastNodeEdgeCount + PartitionEdgeCount 
+                      && *pNodes > 1) // A partition must include a least 1 node
                     {
                       *pNodes -= 1;
                       *pEdges -= PartitionEdgeCount - LastNodeEdgeCount;
