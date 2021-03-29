@@ -1709,7 +1709,7 @@ bool CNetwork::dumpActiveNetwork()
   const CSimConfig::dump_active_network & dumpActiveNetwork = CSimConfig::getDumpActiveNetwork();
 
   // Is network dump required?
-  if (dumpActiveNetwork.threshhold < 0.0)
+  if (dumpActiveNetwork.threshold < 0.0)
     return true;
 
   const CTick & CurrentTick = CActionQueue::getCurrentTick();
@@ -1748,7 +1748,7 @@ bool CNetwork::dumpActiveNetwork()
     CEdge * pEndEdge = Active.endEdge();
 
     for (; pEdge != pEndEdge; ++pEdge)
-      if (pEdge->weight >= dumpActiveNetwork.threshhold)
+      if (pEdge->weight >= dumpActiveNetwork.threshold)
         {
           if (CurrentNode != pEdge->targetId)
             {

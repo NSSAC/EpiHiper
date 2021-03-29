@@ -305,11 +305,11 @@ CSimConfig::CSimConfig(const std::string & configFile)
       "description": "If present causes regular dumps of the active network",
       "required": [
         "output",
-        "threshhold"
+        "threshold"
       ],
       "properties": {
-        "threshhold": {
-          "description": "The threshhold for the weight for which active edges are dumped.",
+        "threshold": {
+          "description": "The threshold for the weight for which active edges are dumped.",
           "type": "number",
           "minimum": 0
         },
@@ -551,7 +551,7 @@ CSimConfig::CSimConfig(const std::string & configFile)
     }
 
   mDumpActiveNetwork.output = "";
-  mDumpActiveNetwork.threshhold = -1.0;
+  mDumpActiveNetwork.threshold = -1.0;
   mDumpActiveNetwork.startTick = mStartTick;
   mDumpActiveNetwork.endTick = mEndTick;
   mDumpActiveNetwork.tickIncrement = 1;
@@ -561,11 +561,11 @@ CSimConfig::CSimConfig(const std::string & configFile)
 
   if (json_is_object(pDump))
     {
-      pValue = json_object_get(pDump, "threshhold");
+      pValue = json_object_get(pDump, "threshold");
 
       if (json_is_real(pValue))
         {
-          mDumpActiveNetwork.threshhold = json_real_value(pValue);
+          mDumpActiveNetwork.threshold = json_real_value(pValue);
         }
 
       pValue = json_object_get(pDump, "output");

@@ -38,7 +38,7 @@ public:
   struct dump_active_network
   {
     std::string output;
-    double threshhold = -1.0;
+    double threshold = -1.0;
     int startTick;
     int endTick;
     int tickIncrement;
