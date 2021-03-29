@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -35,6 +35,16 @@ public:
     size_t connectionMaxDelay;
   };
 
+  struct dump_active_network
+  {
+    std::string output;
+    double threshhold = -1.0;
+    int startTick;
+    int endTick;
+    int tickIncrement;
+    std::string encoding;
+  };
+
 private:
   bool valid;
 
@@ -61,6 +71,7 @@ private:
   size_t mPartitionEdgeLimit;
   CLogger::LogLevel mLogLevel;
   db_connection mDBConnection;
+  dump_active_network mDumpActiveNetwork;
 
 private:
   static CSimConfig * INSTANCE;
@@ -93,7 +104,7 @@ public:
   static const size_t & getPartitionEdgeLimit();
   static CLogger::LogLevel getLogLevel();
   static const db_connection & getDBConnection();
-
+  static const dump_active_network & getDumpActiveNetwork();
   static json_t * loadJson(const std::string & jsonFile, int flags);
   static json_t * loadJsonPreamble(const std::string & jsonFile, int flags);
 };

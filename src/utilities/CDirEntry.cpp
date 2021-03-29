@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -422,5 +422,20 @@ std::string CDirEntry::resolve(const std::string & pathSpec,
     }
 
   return pathSpec;
+}
+
+bool CDirEntry::remove(const std::string & path)
+{
+  if (isDir(path))
+    return (rmdir(path.c_str()) == 0);
+  else if (isFile(path))
+#ifdef WIN32
+    return (_wremove(CLocaleString::fromUtf8(path).c_str()) == 0);
+
+#else
+    return (::remove(path.c_str()) == 0);
+#endif
+
+  return false;
 }
 

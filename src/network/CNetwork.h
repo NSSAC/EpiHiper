@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -50,6 +50,11 @@ private:
                       const std::string & edges,
                       const std::string & outputDirectory);
 
+  struct dump_active_network
+  {
+    size_t Nodes;
+    size_t Edges;
+  };
 
 public:
   static CContext< CNetwork > Context;
@@ -58,7 +63,8 @@ public:
   static void release();
   static int index(const CNode * pNode);
   static int index(const size_t & id);
-  
+  static bool dumpActiveNetwork();
+
   /**
    * Default construnctor
    * @param const std::string & networkFile
@@ -73,6 +79,8 @@ public:
   void loadJsonPreamble(const std::string & networkFile);
 
   void load();
+
+  void writePreamble(std::ostream & os) const;
 
   void write(const std::string & file, bool binary);
 
@@ -116,6 +124,11 @@ public:
 
   bool haveValidPartition(const int & parts);
 
+
+  CCommunicate::ErrorCode receiveDump(std::istream & is, int sender);
+  
+  bool concatenateDump();
+
 private:
   void initExternalEdges();
   void initOutgoingEdges();
@@ -139,6 +152,9 @@ private:
   bool mValid;
   size_t mTotalPendingActions;
   json_t * mpJson;
+
+  dump_active_network mDumpActiveNetwork;
+
 };
 
 #endif /* SRC_NETWORK_CNETWORK_H_ */

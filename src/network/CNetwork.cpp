@@ -134,6 +134,7 @@ CNetwork::CNetwork()
   , mValid(false)
   , mTotalPendingActions(0)
   , mpJson(NULL)
+  , mDumpActiveNetwork()
 {}
 
 void CNetwork::loadJsonPreamble(const std::string & networkFile)
@@ -154,13 +155,13 @@ void CNetwork::loadJsonPreamble(const std::string & networkFile)
 // virtual
 CNetwork::~CNetwork()
 {
+  if (!Context.isMaster(this))
+    return;
+
   if (mpJson != NULL)
     {
       json_decref(mpJson);
     }
-
-  if (!Context.isMaster(this))
-    return;
 
   // This data is owned by master;
   if (mLocalNodes != NULL)
@@ -1127,20 +1128,8 @@ void CNetwork::initOutgoingEdges()
   }
 }
 
-void CNetwork::write(const std::string & file, bool binary)
+void CNetwork::writePreamble(std::ostream & os) const
 {
-  mIsBinary = binary;
-
-  json_t * pValue = json_object_get(mpJson, "encoding");
-
-  if (json_is_string(pValue))
-    {
-      json_string_set(pValue, mIsBinary ? "binary" : "text");
-    }
-
-
-  std::ofstream os(file.c_str());
-
   char * str = json_dumps(mpJson, JSON_COMPACT | JSON_INDENT(0));
   os << str << std::endl;
   free(str);
@@ -1160,7 +1149,24 @@ void CNetwork::write(const std::string & file, bool binary)
     os << ",weight";
 
   os << std::endl;
+}
 
+void CNetwork::write(const std::string & file, bool binary)
+{
+  mIsBinary = binary;
+
+  json_t * pValue = json_object_get(mpJson, "encoding");
+
+  if (json_is_string(pValue))
+    {
+      json_string_set(pValue, mIsBinary ? "binary" : "text");
+    }
+
+
+  std::ofstream os(file.c_str());
+
+  writePreamble(os);
+  
   CEdge * pEdge = beginEdge();
   CEdge * pEdgeEnd = endEdge();
 
@@ -1258,9 +1264,9 @@ void CNetwork::writePartition(const size_t & partition,
 
 bool CNetwork::haveValidPartition(const int & parts)
 {
-  bool haveValidPartition = parts > 0;
+  bool haveValidPartition = (parts > 0);
 
-#pragma omp parallel for
+#pragma omp parallel for reduction(&: haveValidPartition)
   for (int i = 0; i < parts; ++i)
     {
       if (!haveValidPartition)
@@ -1297,7 +1303,6 @@ bool CNetwork::haveValidPartition(const int & parts)
           valid = false;
         }
 
-#pragma omp atomic
       haveValidPartition &= valid;
     }
 
@@ -1697,3 +1702,174 @@ const size_t & CNetwork::getLocalEdgeCount() const
 {
   return mEdgesSize;
 }
+
+// static
+bool CNetwork::dumpActiveNetwork()
+{
+  const CSimConfig::dump_active_network & dumpActiveNetwork = CSimConfig::getDumpActiveNetwork();
+
+  // Is network dump required?
+  if (dumpActiveNetwork.threshhold < 0.0)
+    return true;
+
+  const CTick & CurrentTick = CActionQueue::getCurrentTick();
+
+  // Is the current tick within the interval [statTick, endTick]
+  if (CurrentTick < dumpActiveNetwork.startTick || dumpActiveNetwork.endTick < CurrentTick)
+    return true;
+
+  // Is the current tick matching the tick increments.
+  // Note: dumpActiveNetwork.startTick will always be dumped but dumpActiveNetwork.endTick may be not.
+  if ((CurrentTick - dumpActiveNetwork.startTick) % dumpActiveNetwork.tickIncrement != 0)
+    return true;
+
+  // We need to dump the network
+  // Each thread will write its own part and the master thread will create JSON preample and combine the individual files.
+
+#pragma omp parallel
+  {
+    CNetwork & Active = Context.Active();
+
+    std::ostringstream File;
+    File << dumpActiveNetwork.output << "." << Context.globalIndex(&Active);
+
+    std::ofstream os;
+    os.open(File.str().c_str());
+
+    // Preserve the existing format
+    bool IsBinary = Active.mIsBinary;
+    Active.mIsBinary = (dumpActiveNetwork.encoding == "binary");
+
+    size_t CurrentNode = std::numeric_limits< size_t >::max();
+    Active.mDumpActiveNetwork.Nodes = 0;
+    Active.mDumpActiveNetwork.Edges = 0;
+
+    CEdge * pEdge = Active.beginEdge();
+    CEdge * pEndEdge = Active.endEdge();
+
+    for (; pEdge != pEndEdge; ++pEdge)
+      if (pEdge->weight >= dumpActiveNetwork.threshhold)
+        {
+          if (CurrentNode != pEdge->targetId)
+            {
+              CurrentNode = pEdge->targetId;
+              ++Active.mDumpActiveNetwork.Nodes;
+            }
+
+          Active.writeEdge(pEdge, os);
+          ++Active.mDumpActiveNetwork.Edges;
+        }
+
+    Active.mIsBinary = IsBinary;
+
+    os.close();
+  }
+
+  if (CCommunicate::LocalProcesses() > 1)
+    {
+      CNetwork & Master = Context.Master();
+
+      Master.mDumpActiveNetwork.Nodes = 0;
+      Master.mDumpActiveNetwork.Edges = 0;
+
+      CNetwork * pIt = Context.beginThread();
+      CNetwork * pEnd = Context.endThread();
+
+      for (; pIt != pEnd; ++pIt)
+        {
+          Master.mDumpActiveNetwork.Nodes += pIt->mDumpActiveNetwork.Nodes;
+          Master.mDumpActiveNetwork.Edges += pIt->mDumpActiveNetwork.Edges;
+        }
+    }
+
+  // Construct the complete network based on the parts
+  if (CCommunicate::MPIProcesses > 1)
+    {
+      dump_active_network DumpActiveNetwork = Context.Master().mDumpActiveNetwork;
+
+      CCommunicate::ClassMemberReceive< CNetwork > Receive(&Context.Master(), &CNetwork::receiveDump);
+      CCommunicate::master(0, &DumpActiveNetwork, sizeof(dump_active_network), sizeof(dump_active_network), &Receive);
+    }
+
+  if (CCommunicate::MPIRank != 0)
+    return true;
+
+  return Context.Master().concatenateDump();
+}
+
+CCommunicate::ErrorCode CNetwork::receiveDump(std::istream & is, int sender)
+{
+  if (CCommunicate::MPIRank == 0
+      && sender != CCommunicate::MPIRank)
+      {
+        dump_active_network DumpActiveNetwork;
+        is.read(reinterpret_cast< char * >(&DumpActiveNetwork), sizeof(dump_active_network));
+
+        mDumpActiveNetwork.Nodes += DumpActiveNetwork.Nodes;
+        mDumpActiveNetwork.Edges += DumpActiveNetwork.Edges;
+      }
+
+  return CCommunicate::ErrorCode::Success;
+}
+
+bool CNetwork::concatenateDump()
+{
+  const CSimConfig::dump_active_network & dumpActiveNetwork = CSimConfig::getDumpActiveNetwork();
+
+  json_t * pValue = json_object_get(mpJson, "encoding");
+
+  if (json_is_string(pValue))
+    {
+      json_string_set(pValue, dumpActiveNetwork.encoding.c_str());
+    }
+
+  pValue = json_object_get(mpJson, "numberOfNodes");
+
+  if (json_is_integer(pValue))
+    {
+      json_integer_set(pValue, mDumpActiveNetwork.Nodes);
+    }
+
+  pValue = json_object_get(mpJson, "numberOfEdges");
+
+  if (json_is_integer(pValue))
+    {
+      json_integer_set(pValue, mDumpActiveNetwork.Edges);
+    }
+
+  pValue = json_object_get(mpJson, "partition");
+
+  if (json_is_object(pValue))
+    {
+      json_object_del(mpJson, "partition");
+    }
+
+  std::ostringstream File;
+  File << dumpActiveNetwork.output << "[" << CActionQueue::getCurrentTick() << "]";
+
+  std::ofstream os;
+  os.open(File.str().c_str());
+
+  // write JSON preamble
+  writePreamble(os);
+
+  std::ifstream is;
+  int p = 0;
+  int pMax = CCommunicate::TotalProcesses();
+
+  for (; p < pMax; ++p)
+    {
+      File.str("");
+      File << dumpActiveNetwork.output << "." << p;
+      is.open(File.str().c_str());
+      os << is.rdbuf();
+      is.close();
+
+      CDirEntry::remove(File.str());
+    }
+
+  os.close();
+
+  return true;
+}
+

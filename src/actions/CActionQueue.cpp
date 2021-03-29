@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -28,6 +28,47 @@ void CActionQueue::init()
 // static
 void CActionQueue::release()
 {
+  if (Context.size() > 1)
+    {
+      map::iterator itAction = Context.Master().actionQueue.begin();
+      map::iterator endAction = Context.Master().actionQueue.end();
+
+      for (; itAction != endAction; ++itAction)
+        {
+          delete itAction->second;
+        }
+
+      map::iterator itLocal = Context.Master().locallyAdded.begin();
+      map::iterator endLocal = Context.Master().locallyAdded.end();
+
+      for (; itLocal != endLocal; ++itLocal)
+        {
+          delete itLocal->second;
+        }
+    }
+
+  sActionQueue * pActionQueue = Context.beginThread();
+  sActionQueue * pEndActionQueue = Context.endThread();
+
+  for (; pActionQueue != pEndActionQueue; ++pActionQueue)
+    {
+      map::iterator itAction = pActionQueue->actionQueue.begin();
+      map::iterator endAction = pActionQueue->actionQueue.end();
+
+      for (; itAction != endAction; ++itAction)
+        {
+          delete itAction->second;
+        }
+
+      map::iterator itLocal = pActionQueue->locallyAdded.begin();
+      map::iterator endLocal = pActionQueue->locallyAdded.end();
+
+      for (; itLocal != endLocal; ++itLocal)
+        {
+          delete itLocal->second;
+        }
+    }
+    
   Context.release();
 }
 

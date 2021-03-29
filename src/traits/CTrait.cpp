@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -90,6 +90,9 @@ CTrait::CTrait()
   , mBytes(0)
   , mFeatures()
   , mFeatureMap()
+  , mTextEncoding()
+  , mTextDecoding()
+  , mValueEncoding()
   , mValid(false)
 {}
 
@@ -101,6 +104,9 @@ CTrait::CTrait(const CTrait & src)
   , mBytes(src.mBytes)
   , mFeatures(src.mFeatures)
   , mFeatureMap()
+  , mTextEncoding(src.mTextEncoding)
+  , mTextDecoding(src.mTextDecoding)
+  , mValueEncoding(src.mValueEncoding)
   , mValid(src.mValid)
 {
   updateFeatureMap();
@@ -115,6 +121,9 @@ CTrait & CTrait::operator=(const CTrait & rhs)
       mId = rhs.mId;
       mBytes = rhs.mBytes;
       mFeatures = rhs.mFeatures;
+      mTextEncoding = rhs.mTextEncoding;
+      mTextDecoding = rhs.mTextDecoding;
+      mValueEncoding = rhs.mValueEncoding;
       mValid = rhs.mValid;
 
       updateFeatureMap();
@@ -247,6 +256,14 @@ CTraitData::base CTrait::getDefault() const
 
 bool CTrait::fromString(const char * str, CTraitData::base & data) const
 {
+  std::map< std::string, CTraitData::base >::const_iterator found = mTextDecoding.find(str);
+
+  if (found != mTextDecoding.end())
+    {
+      data = found->second;
+      return true;
+    }
+
   bool success = false;
   const char * ptr = str;
 
@@ -281,12 +298,21 @@ bool CTrait::fromString(const char * str, CTraitData::base & data) const
 
   if (!success)
     CLogger::error() << "CTrait: Invalid trait encoding '" << str << "'.";
-    
+
+  mTextDecoding[str] = data;
+
   return success;
 }
 
 std::string CTrait::toString(CTraitData::base & data) const
 {
+  std::map< CTraitData::base, std::string >::const_iterator found = mTextEncoding.find(data);
+
+  if (found != mTextEncoding.end())
+    {
+      return found->second;
+    }
+
   std::ostringstream os;
   std::vector< CFeature >::const_iterator it = mFeatures.begin();
   std::vector< CFeature >::const_iterator end = mFeatures.end();
@@ -306,11 +332,20 @@ std::string CTrait::toString(CTraitData::base & data) const
       os << i << ":" << (Value.second >> FirstBit) + 1;
     }
 
+  mTextEncoding[data] = os.str();
+  
   return os.str();
 }
 
 std::string CTrait::toString(CTraitData::value & value) const
 {
+  std::map< CTraitData::value, std::string >::const_iterator found = mValueEncoding.find(value);
+
+  if (found != mValueEncoding.end())
+    {
+      return found->second;
+    }
+
   std::ostringstream os;
   std::vector< CFeature >::const_iterator it = mFeatures.begin();
   std::vector< CFeature >::const_iterator end = mFeatures.end();
@@ -323,6 +358,8 @@ std::string CTrait::toString(CTraitData::value & value) const
         break;
       }
 
+  mValueEncoding[value] = os.str();
+  
   return os.str();
 }
 

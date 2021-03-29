@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -28,45 +28,43 @@
 
 struct json_t;
 
-class CTrait: public CAnnotation
+class CTrait : public CAnnotation
 {
 public:
-
   static std::map< std::string, CTrait > INSTANCES;
   static CTrait const * ActivityTrait;
   static CTrait const * EdgeTrait;
   static CTrait const * NodeTrait;
 
-
   static void init();
 
   static void load(const std::string & jsonFile);
 
-	/**
-	 * Default constructor
-	 */
-	CTrait();
+  /**
+   * Default constructor
+   */
+  CTrait();
 
-	/**
-	 * Copy construnctor
-	 * @param const Trait & src
-	 */
-	CTrait(const CTrait & src);
+  /**
+   * Copy construnctor
+   * @param const Trait & src
+   */
+  CTrait(const CTrait & src);
 
-	/**
-	 * Destructor
-	 */
-	virtual ~CTrait();
+  /**
+   * Destructor
+   */
+  virtual ~CTrait();
 
-	CTrait & operator=(const CTrait & rhs);
+  CTrait & operator=(const CTrait & rhs);
 
-	virtual void fromJSON(const json_t * json) override;
+  virtual void fromJSON(const json_t * json) override;
 
-	const std::string & getId() const;
+  const std::string & getId() const;
 
-	const bool & isValid() const;
+  const bool & isValid() const;
 
-	size_t size() const;
+  size_t size() const;
 
   const CFeature * operator[](const size_t & index) const;
 
@@ -74,7 +72,7 @@ public:
 
   const CFeature * operator[](const json_t * json) const;
 
-	CTraitData::base getDefault() const;
+  CTraitData::base getDefault() const;
 
   bool fromString(const char * str, CTraitData::base & data) const;
 
@@ -89,11 +87,14 @@ private:
 
   void updateFeatureMap();
 
-	std::string mId;
-	size_t mBytes;
-	std::vector< CFeature > mFeatures;
-	std::map< std::string, CFeature * > mFeatureMap;
-	bool mValid;
+  std::string mId;
+  size_t mBytes;
+  std::vector< CFeature > mFeatures;
+  std::map< std::string, CFeature * > mFeatureMap;
+  mutable std::map< CTraitData::base, std::string > mTextEncoding;
+  mutable std::map< std::string, CTraitData::base > mTextDecoding;
+  mutable std::map< CTraitData::value, std::string > mValueEncoding;
+  bool mValid;
 };
 
 #endif /* SRC_TRAITS_CTRAIT_H_ */

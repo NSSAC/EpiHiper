@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -804,7 +804,7 @@ void CCommunicate::memUsage(const int & tick)
   vm_usage = vsize / 1024.0;
   resident_set = rss * page_size_kb;
 
-  CLogger::info() << "Tick: " << tick << "; VM: " << vm_usage << "; RSS: " << resident_set;
+  CLogger::info() << "Tick: " << tick + 1 << "; VM: " << (size_t) vm_usage << "; RSS: " << (size_t) resident_set;
 }
 
 CCommunicate::~CCommunicate()

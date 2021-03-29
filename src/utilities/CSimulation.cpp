@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -90,6 +90,7 @@ bool CSimulation::run()
   CModel::UpdateGlobalStateCounts();
   CModel::WriteGlobalStateCounts();
   CNetwork::Context.Master().broadcastChanges();
+  CNetwork::dumpActiveNetwork();
 
   CStatus::update("running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
 
@@ -127,6 +128,8 @@ bool CSimulation::run()
       CModel::UpdateGlobalStateCounts();
       CModel::WriteGlobalStateCounts();
       CNetwork::Context.Master().broadcastChanges();
+
+      CNetwork::dumpActiveNetwork();
 
       CStatus::update("running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
     }

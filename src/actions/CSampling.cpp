@@ -103,8 +103,12 @@ CSampling::~CSampling()
 
   if (mpSampled != NULL)
     delete mpSampled;
+
   if (mpNotSampled != NULL)
     delete mpNotSampled;
+
+  if (mpCommunicateBuffer != NULL)
+    delete [] mpCommunicateBuffer;
 }
 
 // virtual

@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -152,6 +152,12 @@ const CSimConfig::db_connection & CSimConfig::getDBConnection()
   return CSimConfig::INSTANCE->mDBConnection;
 }
 
+// static 
+const CSimConfig::dump_active_network & CSimConfig::getDumpActiveNetwork()
+{
+  return CSimConfig::INSTANCE->mDumpActiveNetwork;
+}
+  
 // constructor: parse JSON
 CSimConfig::CSimConfig(const std::string & configFile)
   : valid(false)
@@ -183,7 +189,164 @@ CSimConfig::CSimConfig(const std::string & configFile)
   CDirEntry::makePathAbsolute(mRunParameters, CDirEntry::getPWD());
 
   json_t * pRoot = loadJson(configFile, JSON_DECODE_INT_AS_REAL);
-
+/*
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EpiHiper run parameters",
+  "description": "A schema describing the run parameters for EpiHiper",
+  "definitions": {},
+  "type": "object",
+  "required": [
+    "epiHiperSchema",
+    "modelScenario",
+    "startTick",
+    "endTick"
+  ],
+  "properties": {
+    "epiHiperSchema": {
+      "type": "string",
+      "pattern": "^./runParametersSchema.json$"
+    },
+    "modelScenario": {
+      "description": "Filename of the disease model in a json file.",
+      "allOf": [
+        {"$ref": "./typeRegistry.json#/definitions/localPath"},
+        {"$ref": "./typeRegistry.json#/definitions/jsonFormat"}
+      ]
+    },
+    "startTick": {
+      "description": "The start tick for the simulation run",
+      "type": "number",
+      "minimum": 0,
+      "multipleOf": 1.0
+    },
+    "endTick": {
+      "description": "The start tick for the simulation run",
+      "type": "number",
+      "minimum": 0,
+      "multipleOf": 1.0
+    },
+    "output": {
+      "description": "Path + name of the output file",
+      "$ref": "./typeRegistry.json#/definitions/localPath"
+    },
+    "summaryOutput": {
+      "description": "Path + name of the summary output file",
+      "$ref": "./typeRegistry.json#/definitions/localPath"
+    },
+    "status": {
+      "description": "Path + name of the output SciDuct status file",
+      "allOf": [
+        {"$ref": "./typeRegistry.json#/definitions/localPath"},
+        {"$ref": "./typeRegistry.json#/definitions/jsonFormat"}
+      ]
+    },
+    "seed": {
+      "description": "The seed for the random number generator",
+      "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
+    },
+    "replicate": {
+      "description": "The number of the replicate created with the job",
+      "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
+    },
+    "partitionEdgeLimit": {
+      "description": "The maximum number of network edges which are partitioned on the fly.",
+      "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
+    },
+    "logLevel": {
+      "description": "The logging level (default warn)",
+      "type": "string",
+      "enum": [
+        "trace",
+        "debug",
+        "info",
+        "warn",
+        "error",
+        "critical",
+        "off"
+      ]
+    },
+    "dbName": {
+      "description": "The name of the data base",
+      "type": "string"
+    },
+    "dbHost": {
+      "description": "The host of the database (including optional port)",
+      "type": "string"
+    },
+    "dbUser": {
+      "description": "The database user",
+      "type": "string"
+    },
+    "dbPassword": {
+      "description": "The password of the DB user",
+      "type": "string"
+    },
+    "dbMaxRecords": {
+      "description": "The maximal number of records returned by a single query (default: 100,000; 0: unlimited)",
+      "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
+    },
+    "dbConnectionTimeout": {
+      "description": "The maximal number of second to wait for a connection (default: 2)",
+      "type": "number",
+      "multipleOf": 1,
+      "minimum": 2
+    },
+    "dbConnectionRetries": {
+      "description": "The maximal number of retries for a connection (default: 15)",
+      "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
+    },
+    "dbConnectionMaxDelay": {
+      "description": "The maximal delay in milli seconds for attempting a connection (default: 500)",
+      "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
+    },
+    "dumpActiveNetwork": {
+      "type": "object",
+      "description": "If present causes regular dumps of the active network",
+      "required": [
+        "output",
+        "threshhold"
+      ],
+      "properties": {
+        "threshhold": {
+          "description": "The threshhold for the weight for which active edges are dumped.",
+          "type": "number",
+          "minimum": 0
+        },
+        "output": {
+          "description": "Path + name of the output file (default: /output/contactNetwork)",
+          "$ref": "./typeRegistry.json#/definitions/localPath"
+        },
+        "startTick": {
+          "description": "The start tick for the simulation run (default: startTick of simulation).",
+          "type": "number",
+          "minimum": 0,
+          "multipleOf": 1.0
+        },
+        "endTick": {
+          "description": "The start tick for the simulation run (default: endTick of simulation).",
+          "type": "number",
+          "minimum": 0,
+          "multipleOf": 1.0
+        },
+        "tickIncrement": {
+          "description": "The number of ticks between network dumps (default: 1).",
+          "type": "number",
+          "minimum": 0,
+          "multipleOf": 1.0
+        },
+        "format": {
+          "description": "The format of the network file (default: text).",
+          "enum": [
+            "text",
+            "binary"
+          ]
+        }
+      }
+    }
+  }
+}
+*/
   if (pRoot == NULL)
     {
       return;
@@ -239,11 +402,13 @@ CSimConfig::CSimConfig(const std::string & configFile)
   if (!CDirEntry::exist(CDirEntry::dirName(mSummaryOutput)))
     CDirEntry::createDir(CDirEntry::dirName(mSummaryOutput));
 
+  std::string DefauJobDirtDir;
+
   if (CDirEntry::exist("/job")
       && CDirEntry::isWritable("/job"))
-    DefaultDir = "/job";
+    DefauJobDirtDir = "/job";
   else
-    DefaultDir = ".";
+    DefauJobDirtDir = ".";
 
   pValue = json_object_get(pRoot, "status");
 
@@ -252,7 +417,7 @@ CSimConfig::CSimConfig(const std::string & configFile)
   else
     mStatus = "sciduct.status.json";
 
-  mStatus = CDirEntry::resolve(mStatus, mRunParameters, DefaultDir);
+  mStatus = CDirEntry::resolve(mStatus, mRunParameters, DefauJobDirtDir);
 
   if (!CDirEntry::exist(CDirEntry::dirName(mStatus)))
     CDirEntry::createDir(CDirEntry::dirName(mStatus));
@@ -383,6 +548,74 @@ CSimConfig::CSimConfig(const std::string & configFile)
   if (json_is_real(pValue))
     {
       mDBConnection.connectionMaxDelay = json_real_value(pValue);
+    }
+
+  mDumpActiveNetwork.output = "";
+  mDumpActiveNetwork.threshhold = -1.0;
+  mDumpActiveNetwork.startTick = mStartTick;
+  mDumpActiveNetwork.endTick = mEndTick;
+  mDumpActiveNetwork.tickIncrement = 1;
+  mDumpActiveNetwork.encoding = "text";
+
+  json_t * pDump = json_object_get(pRoot, "dumpActiveNetwork");
+
+  if (json_is_object(pDump))
+    {
+      pValue = json_object_get(pDump, "threshhold");
+
+      if (json_is_real(pValue))
+        {
+          mDumpActiveNetwork.threshhold = json_real_value(pValue);
+        }
+
+      pValue = json_object_get(pDump, "output");
+
+      if (json_is_string(pValue))
+        mDumpActiveNetwork.output = json_string_value(pValue);
+      else
+        mDumpActiveNetwork.output = "contactNetwork";
+
+      mDumpActiveNetwork.output = CDirEntry::resolve(mDumpActiveNetwork.output, mRunParameters, DefaultDir);
+
+      if (!CDirEntry::exist(CDirEntry::dirName(mDumpActiveNetwork.output)))
+        CDirEntry::createDir(CDirEntry::dirName(mDumpActiveNetwork.output));
+
+      pValue = json_object_get(pDump, "startTick");
+
+      if (json_is_real(pValue))
+        {
+          mDumpActiveNetwork.startTick = json_real_value(pValue);
+        }
+
+      valid &= mDumpActiveNetwork.startTick >= mStartTick;
+
+      pValue = json_object_get(pDump, "endTick");
+
+      if (json_is_real(pValue))
+        {
+          mDumpActiveNetwork.endTick = json_real_value(pValue);
+        }
+
+      valid &= mDumpActiveNetwork.endTick <= mEndTick
+               && mDumpActiveNetwork.startTick <= mDumpActiveNetwork.endTick;
+
+      pValue = json_object_get(pDump, "tickIncrement");
+
+      if (json_is_real(pValue))
+        {
+          mDumpActiveNetwork.tickIncrement = json_real_value(pValue);
+        }
+
+      valid &= mDumpActiveNetwork.tickIncrement > 0;
+
+      pValue = json_object_get(pDump, "encoding");
+
+      if (json_is_string(pValue))
+        {
+          mDumpActiveNetwork.encoding = json_string_value(pValue);
+        }
+
+      valid &= mDumpActiveNetwork.encoding == "text" || mDumpActiveNetwork.encoding == "binary";
     }
 
   json_decref(pRoot);

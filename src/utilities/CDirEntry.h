@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -153,9 +153,16 @@ public:
    * @param const std::string & defaultTo
    * @return const std::string absolutePath
    */
+
   static std::string resolve(const std::string & pathSpec,
                              const std::string & relativeTo,
                              const std::string & defaultTo = "");
+  /**
+   * Removes a file or directory specified by path.
+   * @param const std::string & path
+   * @return bool success
+   */
+  static bool remove(const std::string & path);
 };
 
 #endif // SRC_UTILITIES_CDIRENTRY_H_
