@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -186,6 +186,21 @@ public:
 private:
   static CContext< size_t > ThreadIndex;
 
+  static int send(const void * buf,
+                  int count,
+                  int dest,
+                  MPI_Comm comm);
+
+  static int receive(void * buf,
+                     int count,
+                     int source,
+                     MPI_Status * status,
+                     MPI_Comm comm);
+
+  static int broadcastAll(const void * buffer,
+                          int count,
+                          ReceiveInterface * pReceive);
+
 public:
   static int MPIRank;
   static int MPINextRank;
@@ -203,24 +218,9 @@ public:
 
   static int TotalProcesses();
   
-  static int send(const void * buf,
-                  int count,
-                  int dest,
-                  MPI_Comm comm);
-
-  static int receive(void * buf,
-                     int count,
-                     int source,
-                     MPI_Status * status,
-                     MPI_Comm comm);
-
   static int broadcast(void * buffer,
                        int count,
                        int root);
-
-  static int broadcastAll(const void * buffer,
-                          int count,
-                          ReceiveInterface * pReceive);
 
   static int sequential(int firstRank, SequentialProcessInterface * pSequential);
 

@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <cassert>
 #include <sstream>
+#include <chrono>
 
 #include "utilities/CLogger.h"
 #include "utilities/CCommunicate.h"
@@ -299,6 +300,8 @@ int CCommunicate::broadcastAll(const void * buffer,
 // static
 int CCommunicate::sequential(int firstRank, CCommunicate::SequentialProcessInterface * pSequential)
 {
+  std::chrono::time_point<std::chrono::steady_clock> Start = std::chrono::steady_clock::now();
+
   ErrorCode Result = ErrorCode::Success;
   Status status;
   int signal = 0;
@@ -324,6 +327,8 @@ int CCommunicate::sequential(int firstRank, CCommunicate::SequentialProcessInter
       send(&signal, sizeof(int), MPINextRank, MPI_COMM_WORLD);
     }
 
+  CLogger::debug() << "CCommunicate::sequential: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+
   return (int) Result;
 }
 
@@ -334,6 +339,8 @@ int CCommunicate::master(int masterRank,
                          int countFromCenter,
                          CCommunicate::ReceiveInterface * pReceive)
 {
+  std::chrono::time_point<std::chrono::steady_clock> Start = std::chrono::steady_clock::now();
+ 
   ErrorCode Result = ErrorCode::Success;
   Status status;
 
@@ -372,6 +379,8 @@ int CCommunicate::master(int masterRank,
 
       Result = (*pReceive)(is, masterRank);
     }
+
+  CLogger::debug() << "CCommunicate::master: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
 
   return (int) Result;
 }
@@ -436,6 +445,8 @@ int CCommunicate::roundRobinFixed(const void * buffer,
                                   int count,
                                   CCommunicate::ReceiveInterface * pReceive)
 {
+  std::chrono::time_point<std::chrono::steady_clock> Start = std::chrono::steady_clock::now();
+ 
   ErrorCode Result = ErrorCode::Success;
   Status status;
 
@@ -501,6 +512,8 @@ int CCommunicate::roundRobinFixed(const void * buffer,
         }
     }
 
+  CLogger::debug() << "CCommunicate::roundRobinFixed: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+
   return (int) Result;
 }
 
@@ -509,6 +522,8 @@ int CCommunicate::roundRobin(const void * buffer,
                              int count,
                              CCommunicate::ReceiveInterface * pReceive)
 {
+  std::chrono::time_point<std::chrono::steady_clock> Start = std::chrono::steady_clock::now();
+ 
   ErrorCode Result = ErrorCode::Success;
   Status status;
 
@@ -585,6 +600,8 @@ int CCommunicate::roundRobin(const void * buffer,
         }
     }
 
+  CLogger::debug() << "CCommunicate::roundRobin: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+
   return (int) Result;
 }
 
@@ -592,6 +609,8 @@ int CCommunicate::roundRobin(const void * buffer,
 int CCommunicate::roundRobin(SendInterface * pSend,
                              ReceiveInterface * pReceive)
 {
+  std::chrono::time_point<std::chrono::steady_clock> Start = std::chrono::steady_clock::now();
+
   ErrorCode Result = ErrorCode::Success;
   Status status;
 
@@ -674,6 +693,8 @@ int CCommunicate::roundRobin(SendInterface * pSend,
         }
     }
 
+  CLogger::debug() << "CCommunicate::roundRobin: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+
   return (int) Result;
 }
 
@@ -717,12 +738,12 @@ int CCommunicate::barrierRMA()
 #ifdef USE_MPI
   if (MPIWinSize > 0)
     {
-      CLogger::debug() << "CCommunicate::barrierRMA: before";
+      std::chrono::time_point<std::chrono::steady_clock> Start = std::chrono::steady_clock::now();
 
 #pragma omp single
       result = MPI_Win_fence(0, MPIWin);
 
-      CLogger::debug() << "CCommunicate::barrierRMA: after";
+      CLogger::debug() << "CCommunicate::barrierRMA: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
     }
 #endif // USE_MPI
 
