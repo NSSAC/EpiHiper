@@ -17,37 +17,26 @@ shopt -s globstar
 OPTIND=1
 
 show_help() {
-    echo "Usage: $(basename $0)  [-m] logfile"
+    echo "Usage: $(basename $0)"
 }
 
 MASTER=false
 
-while getopts "hm" opt; do
+while getopts "h" opt; do
     case "$opt" in
         h)
             show_help
             exit 0
-            ;;
-        m)
-            MASTER=""
             ;;
     esac
 done
 
 shift $((OPTIND-1))
 
-head -n 1 $1 | gawk -- '
-{
-    print "start:           " substr($2, 1, length($2) - 1)
-}'
-
-tail -n 1 $1 | gawk -- '
-{
-    print "end:             " substr($2, 1, length($2) - 1)
-}
-'
-
-grep '\(Tick:\|CCommunicate\)' $1 | gawk -- '
+analizeSingle () {
+    start=$(head -n 1 $1 | gawk -- '{print substr($2, 1, length($2) - 1)}')
+    end=$(tail -n 1 $1 | gawk -- '{print substr($2, 1, length($2) - 1)}')
+    communicate=$(grep '\(Tick:\|CCommunicate\)' $1 | gawk -- '
 BEGIN {
     total = 0
     count = 0
@@ -58,12 +47,7 @@ BEGIN {
 }
 
 END {
-    print "message total:   " total/1000 " kB"
-    print "message count:   " count
-    print "message time:    " communication " micro seconds" 
-    print "writing:         " writing " micro seconds" 
-    print "synchronization: " synchronization " micro seconds" 
-    print "memory:          " memory " kB"
+    print total/1000 ", " count ", " communication ", "  writing ", "  synchronization ", " memory
 }
 
 $5 ~ "Tick:" {
@@ -71,7 +55,7 @@ $5 ~ "Tick:" {
     memory = (memory < tmp ? tmp : memory)
 }
 
-$5 ~ "CCommunicate::(send|broadcast'${MASTER}')" {
+$5 ~ "CCommunicate::(send|broadcast'$2')" {
     count += 1
     total += substr($6, 2, length($6) - 2)
 }
@@ -87,4 +71,16 @@ $5 ~ "CCommunicate::sequential" {
 $5 ~ "CCommunicate::barrierRMA" {
     synchronization += substr($8, 2, length($8) - 2)
 }
-'
+')
+
+echo $1, $start, $end, $communicate
+}
+
+MASTER=""
+
+echo "file, start, end, message total [kB], message count, message time [us], writing [us], synchronization [us], memory [kB]"
+
+for f in EpiHiper.*.log; do
+    analizeSingle $f $MASTER
+    MASTER=false
+done

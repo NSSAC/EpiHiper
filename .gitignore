@@ -13,3 +13,5 @@ src/git-commit.h
 src/EpiHiperConfig.h
 
 tools/2019-nCoV_vax
+
+*.log
