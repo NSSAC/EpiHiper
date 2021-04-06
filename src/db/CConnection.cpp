@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -75,7 +75,8 @@ void CConnection::init()
 
           std::string Message = CLogger::sanitize(e.base().what());
 
-          if (Message.find("timeout expired") == std::string::npos
+          if ((Message.find("timeout expired") == std::string::npos
+               && Message.find("Could not obtain client encoding") == std::string::npos)
               || Tries == 0)
             {
               CLogger::error() << Message;
