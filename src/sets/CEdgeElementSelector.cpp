@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -185,6 +185,10 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
     }
   */
 
+  char * str = json_dumps(json, JSON_COMPACT | JSON_INDENT(0));
+  std::string JSON = str;
+  free(str);
+
   mValid = false; // DONE
   mStatic = true;
   mPrerequisites.clear();
@@ -193,7 +197,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
   if (json_is_string(pValue)
       && strcmp(json_string_value(pValue), "edge") != 0)
     {
-      CLogger::error("Edge selector: Invalid value for 'elementType'.");
+      CLogger::error() << "Edge selector: Invalid or missing value 'elementType' for " << JSON;
       return;
     }
 
@@ -267,7 +271,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
 
           if (!mEdgeProperty.isValid())
             {
-              CLogger::error("Edge selector: Invalid or missing value for 'left'.");
+              CLogger::error() << "Edge selector: Invalid or missing value 'left' for " << JSON;
               return;
             }
 
@@ -276,7 +280,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
           if (mpValueList != NULL
               && !mpValueList->isValid())
             {
-              CLogger::error("Edge selector: Invalid or missing value for 'right'.");
+              CLogger::error() << "Edge selector: Invalid or missing value 'right' for " << JSON;
               return;
             }
 
@@ -339,7 +343,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
           return;
         }
 
-      CLogger::error("Edge selector: Missing value for 'operator'.");
+      CLogger::error() << "Edge selector: Invalid or missing value 'operator' for " << JSON;
       return;
     }
 
@@ -406,7 +410,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
 
       if (!Table.isValid())
         {
-          CLogger::error("Edge selector: Invalid or missing value for 'mDBTable'.");
+          CLogger::error() << "Edge selector: Invalid or missing value 'table' for " << JSON;
           return;
         }
 
@@ -414,7 +418,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
 
       if (!Field.isValid())
         {
-          CLogger::error("Node selector: Invalid or missing value for 'mDBField'.");
+          CLogger::error() << "Edge selector: Invalid or missing value 'field' for " << JSON;
           return;
         }
 
@@ -445,7 +449,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
           mpSelector = NULL;
         }
 
-      CLogger::error("Edge selector: Invalid or missing value for 'right'.");
+      CLogger::error() << "Edge selector: Invalid or missing value 'right' for " << JSON;
       return;
     }
 
@@ -469,7 +473,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
           mpSelector = NULL;
         }
 
-      CLogger::error("Edge selector: Invalid or missing value for 'selector'.");
+      CLogger::error() << "Edge selector: Invalid or missing value 'selector' for " << JSON;
       return;
     }
 
@@ -512,7 +516,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
               return;
             }
 
-          CLogger::error("Edge selector: Invalid value for 'right'.");
+          CLogger::error() << "Edge selector: Invalid or missing value 'right' for " << JSON;
           return;
         }
 
@@ -564,7 +568,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
 
       if (!Table.isValid())
         {
-          CLogger::error("Edge selector: Invalid or missing value for 'mDBTable'.");
+          CLogger::error() << "Edge selector: Invalid or missing value 'table' for " << JSON;
           return;
         }
 
@@ -572,7 +576,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
 
       if (!Field.isValid())
         {
-          CLogger::error("Edge selector: Invalid or missing value for 'mDBField'.");
+          CLogger::error() << "Edge selector: Invalid or missing value 'field' for " << JSON;
           return;
         }
 
@@ -602,7 +606,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
         }
     }
 
-  CLogger::error("Edge selector: Invalid or missing value for 'operator'.");
+  CLogger::error() << "Edge selector: Invalid or missing value 'operator' for " << JSON;
   return;
 }
 

@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -57,16 +57,17 @@ void CFieldValue::fromJSON(const json_t * json)
   if (json_is_real(pValue))
     {
       destroyValue();
+      mValid = true;
 
       if (mType == Type::integer)
         mpValue = new int(json_integer_value(pValue));
+      else if (mType == Type::number)
+        mpValue = new double(json_real_value(pValue));
+      else if (mType == Type::id)
+        mpValue = new size_t(json_real_value(pValue));
       else
-        {
-          mType = Type::number;
-          mpValue = new double(json_real_value(pValue));
-        }
+        mValid = false;
 
-      mValid = true;
       return;
     }
 

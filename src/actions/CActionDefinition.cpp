@@ -184,7 +184,7 @@ void CActionDefinition::fromJSON(const json_t * json)
 
       if (!OperationDefinition.isValid())
         {
-          CLogger::error() << "Action : Invalid value for opeartions item '" << i << "'.";
+          CLogger::error() << "Action : Invalid value for operations item '" << i << "'.";
           return;
         }
 

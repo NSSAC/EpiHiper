@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -236,20 +236,32 @@ bool CQuery::in(const std::string & table,
   const CTable & Table = CSchema::INSTANCE.getTable(table);
 
   if (!Table.isValid())
-    return false;
+    {
+      CLogger::error() << "CQuery::where: Invalid table '" << table << "'."; 
+      return false;
+    }
 
   const CField & ResultField = Table.getField(resultField);
 
   if (!ResultField.isValid())
-    return false;
+    {
+      CLogger::error() << "CQuery::where: Invalid result field '" << resultField << "'."; 
+      return false;
+    }
 
   const CField & ConstraintField = Table.getField(constraintField);
 
   if (!ConstraintField.isValid())
-    return false;
+    {
+      CLogger::error() << "CQuery::where: Invalid result field '" << constraintField << "'."; 
+      return false;
+    }
 
   if (constraints.size() > 0 && constraints.getType() != ConstraintField.getType())
-    return false;
+    {
+      CLogger::error() << "CQuery::where: type miss match '" << (int) ConstraintField.getType() << "' != '" << (int) constraints.getType() << "'."; 
+      return false;
+    }
 
   std::ostringstream Query;
 
@@ -364,20 +376,32 @@ bool CQuery::where(const std::string & table,
   const CTable & Table = CSchema::INSTANCE.getTable(table);
 
   if (!Table.isValid())
-    return false;
+    {
+      CLogger::error() << "CQuery::where: Invalid table '" << table << "'."; 
+      return false;
+    }
 
   const CField & ResultField = Table.getField(resultField);
 
   if (!ResultField.isValid())
-    return false;
+    {
+      CLogger::error() << "CQuery::where: Invalid result field '" << resultField << "'."; 
+      return false;
+    }
 
   const CField & ConstraintField = Table.getField(constraintField);
 
   if (!ConstraintField.isValid())
-    return false;
+    {
+      CLogger::error() << "CQuery::where: Invalid result field '" << constraintField << "'."; 
+      return false;
+    }
 
   if (constraint.getType() != ConstraintField.getType())
-    return false;
+    {
+      CLogger::error() << "CQuery::where: type miss match '" << (int) ConstraintField.getType() << "' != '" << (int) constraint.getType() << "'."; 
+      return false;
+    }
 
   std::ostringstream Query;
   Query << "SELECT DISTINCT " << resultField << " FROM " << table << " WHERE " << constraintField << " " << cmp << " ";

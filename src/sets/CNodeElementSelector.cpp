@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -203,7 +203,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
                   }
                 },
                 {
-                  "description": "A filter returining nodes if the result of comparing left and right values with the operator is true.",
+                  "description": "A filter returning nodes if the result of comparing left and right values with the operator is true.",
                   "required": [
                     "operator",
                     "left",
@@ -257,6 +257,10 @@ void CNodeElementSelector::fromJSON(const json_t * json)
     }
   */
 
+  char * str = json_dumps(json, JSON_COMPACT | JSON_INDENT(0));
+  std::string JSON = str;
+  free(str);
+
   mValid = false; // DONE
   mPrerequisites.clear();
   json_t * pValue = json_object_get(json, "elementType");
@@ -264,7 +268,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
   if (json_is_string(pValue)
       && strcmp(json_string_value(pValue), "node") != 0)
     {
-      CLogger::error("Node selector: Invalid value for 'elementType'.");
+      CLogger::error() << "Node selector: Invalid or missing value 'elementType' for " << JSON;
       return;
     }
 
@@ -283,7 +287,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
     }
   else
     {
-      CLogger::error("Node selector: Invalid or missing value for 'scope'.");
+      CLogger::error() << "Node selector: Invalid or missing value 'scope' for " << JSON;
       return;
     }
 
@@ -355,7 +359,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
           if (!mNodeProperty.isValid())
             {
-              CLogger::error("Node selector: Invalid or missing value for 'left'.");
+              CLogger::error() << "Node selector: Invalid or missing value 'left' for " << JSON;
               return;
             }
 
@@ -364,7 +368,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
           if (mpValueList != NULL
               && !mpValueList->isValid())
             {
-              CLogger::error("Node selector: Invalid or missing value for 'right'.");
+              CLogger::error() << "Node selector: Invalid or missing value 'right' for " << JSON;
               return;
             }
 
@@ -376,7 +380,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
         {
           if (!mLocalScope)
             {
-              CLogger::error("Node selector: Invalid  value for 'scope'.");
+              CLogger::error() << "Node selector: Invalid or missing value 'scope' for " << JSON;
               return;
             }
 
@@ -416,7 +420,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
               mpSelector = NULL;
             }
 
-          CLogger::error("Node selector: Invalid or missing value for 'selector'.");
+          CLogger::error() << "Node selector: Invalid or missing value 'selector' for " << JSON;
           return;
         }
       else if (strcmp(Operator, "in") == 0)
@@ -462,7 +466,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
         {
           if (!mLocalScope)
             {
-              CLogger::error("Node selector: Invalid  value for 'scope'.");
+              CLogger::error() << "Node selector: Invalid or missing value 'scope' for " << JSON;
               return;
             }
 
@@ -471,7 +475,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
           return;
         }
 
-      CLogger::error("Node selector: Missing value for 'operator'.");
+      CLogger::error() << "Node selector: Invalid or missing value 'operator' for " << JSON;
       return;
     }
 
@@ -538,7 +542,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
       if (!Table.isValid())
         {
-          CLogger::error("Node selector: Invalid or missing value for 'mDBTable'.");
+          CLogger::error() << "Node selector: Invalid or missing value 'table' for " << JSON;
           return;
         }
 
@@ -546,7 +550,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
       if (!Field.isValid())
         {
-          CLogger::error("Node selector: Invalid or missing value for 'mDBField'.");
+          CLogger::error() << "Node selector: Invalid or missing value 'field' for " << JSON;
           return;
         }
 
@@ -577,7 +581,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
           mpSelector = NULL;
         }
 
-      CLogger::error("Node selector: Invalid or missing value for 'right'.");
+      CLogger::error() << "Node selector: Invalid or missing value 'right' for " << JSON;
       return;
     }
 
@@ -619,7 +623,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
               return;
             }
 
-          CLogger::error("Node selector: Invalid value for 'right'.");
+          CLogger::error() << "Node selector: Invalid or missing value 'right' for " << JSON;
           return;
         }
 
@@ -671,7 +675,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
       if (!Table.isValid())
         {
-          CLogger::error("Node selector: Invalid or missing value for 'mDBTable'.");
+          CLogger::error() << "Node selector: Invalid or missing value 'table' for " << JSON;
           return;
         }
 
@@ -679,7 +683,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
       if (!Field.isValid())
         {
-          CLogger::error("Node selector: Invalid or missing value for 'mDBField'.");
+          CLogger::error() << "Node selector: Invalid or missing value 'field' for " << JSON;
           return;
         }
 
@@ -707,7 +711,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
         }
     }
 
-  CLogger::error("Node selector: Invalid or missing value for 'operator'.");
+  CLogger::error() << "Node selector: Invalid or missing value 'operator' for " << JSON;
 }
 
 // virtual
