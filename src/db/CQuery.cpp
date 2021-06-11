@@ -237,7 +237,7 @@ bool CQuery::in(const std::string & table,
 
   if (!Table.isValid())
     {
-      CLogger::error() << "CQuery::where: Invalid table '" << table << "'."; 
+      CLogger::error() << "CQuery::in: Invalid table '" << table << "'."; 
       return false;
     }
 
@@ -245,7 +245,7 @@ bool CQuery::in(const std::string & table,
 
   if (!ResultField.isValid())
     {
-      CLogger::error() << "CQuery::where: Invalid result field '" << resultField << "'."; 
+      CLogger::error() << "CQuery::in: Invalid result field '" << resultField << "'."; 
       return false;
     }
 
@@ -253,14 +253,27 @@ bool CQuery::in(const std::string & table,
 
   if (!ConstraintField.isValid())
     {
-      CLogger::error() << "CQuery::where: Invalid result field '" << constraintField << "'."; 
+      CLogger::error() << "CQuery::in: Invalid result field '" << constraintField << "'."; 
       return false;
     }
 
   if (constraints.size() > 0 && constraints.getType() != ConstraintField.getType())
     {
-      CLogger::error() << "CQuery::where: type miss match '" << (int) ConstraintField.getType() << "' != '" << (int) constraints.getType() << "'."; 
+      CLogger::error() << "CQuery::in: type mismatch '" << (int) ConstraintField.getType() << "' != '" << (int) constraints.getType() << "'."; 
       return false;
+    }
+
+  if (constraints.getType() == CFieldValueList::Type::string)
+    {
+      CFieldValueList::const_iterator it = constraints.begin();
+      CFieldValueList::const_iterator end = constraints.end();
+
+      for (; it != end; ++it)
+        if (!ConstraintField.isValidValue(it->toString()))
+          {
+            CLogger::error() << "CQuery::in: invalid enum value for '" << ConstraintField.getId() << " ': '" << it->toString() << "'.";
+            return false;
+          }
     }
 
   std::ostringstream Query;
@@ -399,7 +412,14 @@ bool CQuery::where(const std::string & table,
 
   if (constraint.getType() != ConstraintField.getType())
     {
-      CLogger::error() << "CQuery::where: type miss match '" << (int) ConstraintField.getType() << "' != '" << (int) constraint.getType() << "'."; 
+      CLogger::error() << "CQuery::where: type mismatch '" << (int) ConstraintField.getType() << "' != '" << (int) constraint.getType() << "'."; 
+      return false;
+    }
+
+  if (constraint.getType() == CFieldValue::Type::string
+      && !ConstraintField.isValidValue(constraint.toString()))
+    {
+      CLogger::error() << "CQuery::where: invalid enum value for '" << ConstraintField.getId() << " ': '" << constraint.toString() << "'.";
       return false;
     }
 

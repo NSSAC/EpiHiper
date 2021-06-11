@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -20,6 +20,7 @@ CField::CField()
   : mId()
   , mLabel()
   , mType()
+  , mValidValues()
   , mValid(false)
 {}
 
@@ -27,6 +28,7 @@ CField::CField(const CField & src)
   : mId(src.mId)
   , mLabel(src.mLabel)
   , mType(src.mType)
+  , mValidValues(src.mValidValues)
   , mValid(src.mValid)
 {}
 
@@ -37,6 +39,8 @@ CField::~CField()
 void CField::fromJSON(const json_t * json)
 {
   mValid = false; // DONE
+  mValidValues.clear();
+
   json_t * pValue = json_object_get(json, "name");
 
   if (!json_is_string(pValue))
@@ -87,6 +91,20 @@ void CField::fromJSON(const json_t * json)
         }
     }
 
+  if (mType == CValue::Type::string)
+    {
+      pValue = json_object_get(json, "constraints");
+
+      if (json_is_object(pValue))
+        {
+          json_t * pEnums = json_object_get(pValue, "enum");
+
+          if (json_is_array(pEnums))
+            for (size_t i = 0, imax = json_array_size(pEnums); i < imax; ++i)
+              mValidValues.insert(json_string_value(json_array_get(pEnums, i)));
+        }
+    }
+  
   mValid = true;
 }
 
@@ -104,3 +122,12 @@ const CValue::Type & CField::getType() const
 {
   return mType;
 }
+
+bool CField::isValidValue(const std::string & value) const
+{
+  if (mValidValues.empty())
+    return true;
+    
+  return mValidValues.find(value) != mValidValues.end();
+}
+

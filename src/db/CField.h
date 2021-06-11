@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -43,10 +43,13 @@ public:
 
   const CValue::Type & getType() const;
 
+  bool isValidValue( const std::string & value) const;
+
 private:
   std::string mId;
   std::string mLabel;
   CValue::Type mType;
+  std::set< std::string > mValidValues;
   bool mValid;
 };
 
