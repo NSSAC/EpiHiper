@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -63,21 +63,6 @@ void CFieldValueList::fromJSON(const json_t * json)
 
   json_t * pValue = json_array_get(pArray, 0);
 
-  if (json_is_real(pValue)
-      && mType != Type::integer)
-    {
-      mType = Type::number;
-    }
-  else if (json_is_string(pValue))
-    {
-      mType = Type::string;
-    }
-  else
-    {
-      CLogger::error("Field value list: Invalid type for 'valueList'.");
-      return;
-    }
-
   mValid = true;
 
   switch (mType)
@@ -87,7 +72,8 @@ void CFieldValueList::fromJSON(const json_t * json)
         {
           pValue = json_array_get(pArray, i);
 
-          if (json_is_integer(pValue))
+          if (json_is_real(pValue) &&
+              json_real_value(pValue) - (int) json_real_value(pValue) < json_real_value(pValue) * 100.0 * std::numeric_limits< double >::epsilon())
             std::set< CValue >::insert(CFieldValue((int) json_integer_value(pValue)));
           else
             {
