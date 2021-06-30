@@ -47,6 +47,8 @@ CFieldValue::~CFieldValue()
 void CFieldValue::fromJSON(const json_t * json)
 {
   mValid = false; // DONE
+  destroyValue();
+
   json_t * pValue = json_object_get(json, "value");
 
   if (pValue == NULL)
@@ -54,33 +56,65 @@ void CFieldValue::fromJSON(const json_t * json)
       CLogger::error("Field value: Missing 'value'.");
     }
 
-  if (json_is_real(pValue))
+  switch (mType)
     {
-      destroyValue();
-      mValid = true;
-
-      if (mType == Type::integer)
-        mpValue = new int(json_integer_value(pValue));
-      else if (mType == Type::number)
-        mpValue = new double(json_real_value(pValue));
-      else if (mType == Type::id)
-        mpValue = new size_t(json_real_value(pValue));
+    case Type::id:
+      if (json_is_real(pValue) 
+          && json_real_value(pValue) - (size_t) json_real_value(pValue) < json_real_value(pValue) * 100.0 * std::numeric_limits< double >::epsilon())
+        {
+          mpValue = new size_t((size_t) json_real_value(pValue));
+          mValid = true;
+        }
       else
-        mValid = false;
+        {
+          CLogger::error("Field value: Invalid type for 'value'.");
+        }
+      break;
 
-      return;
+    case Type::integer:
+      if (json_is_real(pValue) 
+          && json_real_value(pValue) - (int) json_real_value(pValue) < json_real_value(pValue) * 100.0 * std::numeric_limits< double >::epsilon())
+        {
+          mpValue = new int((int) json_real_value(pValue));
+          mValid = true;
+        }
+      else
+        {
+          CLogger::error("Field value: Invalid type for 'value'.");
+        }
+      break;
+
+    case Type::number:
+      if (json_is_real(pValue))
+        {
+          mpValue = new double(json_real_value(pValue));
+          mValid = true;
+        }
+      else
+        {
+          CLogger::error("Field value: Invalid type for 'value'.");
+        }
+      break;
+
+    case Type::string:
+      if (json_is_string(pValue))
+        {
+          mpValue = new std::string(json_string_value(pValue));
+          mValid = true;
+        }
+      else
+        {
+          CLogger::error("Field value: Invalid type for 'value'.");
+        }
+      break;
+
+    case Type::boolean:
+    case Type::traitData:
+    case Type::traitValue:
+      CLogger::error("Field value: Invalid type for 'value'.");
+      mValid = false; // DONE
+      break;
     }
-
-  if (json_is_string(pValue))
-    {
-      destroyValue();
-      mType = Type::string;
-      mpValue = new std::string(json_string_value(pValue));
-      mValid = true;
-      return;
-    }
-
-  CLogger::error("Field value: Invalid type for 'value'.");
 
   return;
 }

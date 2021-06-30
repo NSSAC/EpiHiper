@@ -67,6 +67,22 @@ void CFieldValueList::fromJSON(const json_t * json)
 
   switch (mType)
     {
+    case Type::id:
+      for (size_t i = 0, imax = json_array_size(pArray); i < imax && mValid; ++i)
+        {
+          pValue = json_array_get(pArray, i);
+
+          if (json_is_real(pValue) &&
+              json_real_value(pValue) - (size_t) json_real_value(pValue) < json_real_value(pValue) * 100.0 * std::numeric_limits< double >::epsilon())
+            std::set< CValue >::insert(CFieldValue((size_t) json_real_value(pValue)));
+          else
+            {
+              CLogger::error() << "Field value list: Invalid type for index '" << i << "'.";
+              mValid = false; // DONE
+            }
+        }
+      break;
+
     case Type::integer:
       for (size_t i = 0, imax = json_array_size(pArray); i < imax && mValid; ++i)
         {
@@ -74,10 +90,10 @@ void CFieldValueList::fromJSON(const json_t * json)
 
           if (json_is_real(pValue) &&
               json_real_value(pValue) - (int) json_real_value(pValue) < json_real_value(pValue) * 100.0 * std::numeric_limits< double >::epsilon())
-            std::set< CValue >::insert(CFieldValue((int) json_integer_value(pValue)));
+            std::set< CValue >::insert(CFieldValue((int) json_real_value(pValue)));
           else
             {
-              CLogger::error() << "Field value list: Invalid type for value '" << i << "'.";
+              CLogger::error() << "Field value list: Invalid type for index '" << i << "'.";
               mValid = false; // DONE
             }
         }
@@ -92,7 +108,7 @@ void CFieldValueList::fromJSON(const json_t * json)
             std::set< CValue >::insert(CFieldValue(json_real_value(pValue)));
           else
             {
-              CLogger::error() << "Field value list: Invalid type for value '" << i << "'.";
+              CLogger::error() << "Field value list: Invalid type for index '" << i << "'.";
               mValid = false; // DONE
             }
         }
@@ -107,7 +123,7 @@ void CFieldValueList::fromJSON(const json_t * json)
             std::set< CValue >::insert(CFieldValue(json_string_value(pValue)));
           else
             {
-              CLogger::error() << "Field value list: Invalid type for value '" << i << "'.";
+              CLogger::error() << "Field value list: Invalid type for index '" << i << "'.";
               mValid = false; // DONE
             }
         }
@@ -116,7 +132,6 @@ void CFieldValueList::fromJSON(const json_t * json)
       case Type::boolean:
       case Type::traitData:
       case Type::traitValue:
-      case Type::id:
         break;
     }
 }
