@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -265,9 +265,13 @@ CAnalyzer::CAnalyzer(const std::string & jsonFile)
           pIt->healthState = s;
           pIt->total = 0;
           pIt->histogramIn = new size_t[mMaxTick + 1];
-          memset(pIt->histogramIn, 0, (mMaxTick + 1)* sizeof(size_t));
+          memset(pIt->histogramIn, 0, (mMaxTick + 1) * sizeof(size_t));
           pIt->histogramOut = new size_t[mMaxTick + 1];
-          memset(pIt->histogramOut, 0, (mMaxTick + 1)* sizeof(size_t));
+          memset(pIt->histogramOut, 0, (mMaxTick + 1) * sizeof(size_t));
+          pIt->entryTickMean = 0.0;
+          pIt->entryTickSD = 0.0;
+          pIt->durationMean = 0.0;
+          pIt->durationSD = 0.0;
         }
     }
 }
@@ -288,43 +292,63 @@ void CAnalyzer::run()
   std::set< const CHealthState * >::const_iterator itExposed = Exposed.begin();
   std::set< const CHealthState * >::const_iterator endExposed = Exposed.end();
 
+  size_t MaxTick = 0;
+
   for (; itExposed != endExposed; ++itExposed)
-    for (size_t i = 0; i != mSampleSize; ++i)
-      {
-        const CHealthState * pState = *itExposed;
-        size_t Tick = 0;
+    {
+      CModel::state_t Exposed = mpModel->stateToType(*itExposed);
 
-        while (pState != NULL && Tick <= mMaxTick)
-          {
-            // Record the current state and time
-            CModel::state_t S = mpModel->stateToType(pState);
-            StateStatistics & Statistics = mData[S];
-            ++Statistics.total;
-            ++Statistics.histogramIn[Tick];
+      for (size_t i = 0; i != mSampleSize; ++i)
+        {
+          const CHealthState * pState = *itExposed;
+          size_t Tick = 0;
 
-            // Advance the state according to the possible progressions.
-            const CProgression * pProgression = mpModel->nextProgression(S);
+          while (pState != NULL && Tick <= mMaxTick)
+            {
+              // Record the current state and time
+              CModel::state_t S = mpModel->stateToType(pState);
+             
+              StateStatistics & Statistics = mData[S];
+              Statistics.exposedState.insert(Exposed);
+              ++Statistics.total;
+              ++Statistics.histogramIn[Tick];
+              
+              double delta = Tick - Statistics.entryTickMean;
+              Statistics.entryTickMean += delta/Statistics.total;
+              Statistics.entryTickSD += delta * (Tick - Statistics.entryTickMean);
 
-            if (pProgression != NULL)
-              {
-                pState = pProgression->getExitState();
-                Tick += pProgression->getDwellTime();
-                ++Statistics.histogramOut[Tick];
-              }
-            else
-              {
-                pState = NULL;
-              }
-          }
-      }
+              // Advance the state according to the possible progressions.
+              const CProgression * pProgression = mpModel->nextProgression(S);
+
+              if (pProgression != NULL)
+                {
+                  pState = pProgression->getExitState();
+                  unsigned int Duration = pProgression->getDwellTime();
+                  Tick += Duration;
+                  ++Statistics.histogramOut[Tick];
+
+                  delta = Duration - Statistics.durationMean;
+                  Statistics.durationMean += delta/Statistics.total;
+                  Statistics.durationSD += delta * (Duration - Statistics.durationMean);
+                }
+              else
+                {
+                  if (Tick > MaxTick)
+                    MaxTick = Tick;
+
+                  pState = NULL;
+                }
+            }
+        }
+    }
 
   // Write the result to a csv file
   std::ofstream os(mOutput);
 
   // Header row
-  os << "State,Total,Tick:";
+  os << "State,Total,Relative,Entry Tick Mean,Entry Tick SD,Duration,Duration SD,Tick:";
 
-  for (size_t i = 0; i <= mMaxTick; ++i)
+  for (size_t i = 0; i <= MaxTick; ++i)
     os << "," << i;
 
   os << std::endl;
@@ -334,18 +358,18 @@ void CAnalyzer::run()
 
   for (; pIt != pEnd; ++pIt)
     {
-      os << mpModel->stateFromType(pIt->healthState)->getId() << "," << pIt->total << ",in" ;
+      os << mpModel->stateFromType(pIt->healthState)->getId() << "," << pIt->total << "," << ((double )pIt->total)/(pIt->exposedState.size() * mSampleSize) << "," << pIt->entryTickMean << "," << pIt->entryTickSD/pIt->total << "," << pIt->durationMean << "," << pIt->durationSD/pIt->total << ",in" ;
 
-      for (size_t i = 0; i <= mMaxTick; ++i)
+      for (size_t i = 0; i <= MaxTick; ++i)
         os << "," << pIt->histogramIn[i];
 
       os << std::endl;
 
-      os <<  ",,current" ;
+      os <<  ",,,,,,,current" ;
 
       size_t Current = 0;
 
-      for (size_t i = 0; i <= mMaxTick; ++i)
+      for (size_t i = 0; i <= MaxTick; ++i)
         {
           Current += pIt->histogramIn[i] - pIt->histogramOut[i];
           os << "," << Current;
@@ -353,9 +377,9 @@ void CAnalyzer::run()
 
       os << std::endl;
 
-      os <<  ",,out" ;
+      os <<  ",,,,,,,out" ;
 
-      for (size_t i = 0; i <= mMaxTick; ++i)
+      for (size_t i = 0; i <= MaxTick; ++i)
         os << "," << pIt->histogramOut[i];
 
       os << std::endl;

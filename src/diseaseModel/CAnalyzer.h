@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -29,6 +29,11 @@ public:
     size_t total;
     size_t * histogramIn;
     size_t * histogramOut;
+    double entryTickMean;
+    double entryTickSD;
+    double durationMean;
+    double durationSD;
+    std::set< CModel::state_t > exposedState;
   };
 
   static void Init();
