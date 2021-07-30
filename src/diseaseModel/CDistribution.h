@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -28,6 +28,7 @@ public:
    discrete,
    uniform,
    normal,
+   gamma,
    __NONE
   };
 
@@ -53,6 +54,7 @@ private:
   CRandom::uniform_int * mpUniformInt;
   CRandom::uniform_real * mpUniformReal;
   CRandom::normal * mpNormal;
+  CRandom::gamma * mpGamma;
 
   bool mValid;
 
@@ -61,6 +63,7 @@ private:
   unsigned int uniformSet() const;
   unsigned int uniformDiscrete() const;
   unsigned int normal() const;
+  unsigned int gamma() const;
 };
 
 #endif /* SRC_DISEASEMODEL_CDISTRIBUTION_H_ */

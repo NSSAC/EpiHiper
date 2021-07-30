@@ -1,5 +1,5 @@
 # BEGIN: Copyright 
-# Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+# Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 # All rights reserved 
 # END: Copyright 
 
@@ -46,7 +46,7 @@ add_library (EpiHiperLib-core OBJECT ${SOURCES_EPIHIPER} ${HEADERS_EPIHIPER})
 add_dependencies(EpiHiperLib-core jansson libpqxx spdlog)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  target_compile_options(EpiHiperLib-core PRIVATE -Werror -Wall -Wextra -Wsuggest-override ${OpenMP_CXX_FLAGS})
+  target_compile_options(EpiHiperLib-core PRIVATE -Werror -Wall -Wextra ${OpenMP_CXX_FLAGS})
 else(CMAKE_BUILD_TYPE STREQUAL "Debug")
   target_compile_options(EpiHiperLib-core PRIVATE -Wall -Wextra -Wsuggest-override ${OpenMP_CXX_FLAGS})
 endif(CMAKE_BUILD_TYPE STREQUAL "Debug")

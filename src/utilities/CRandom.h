@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -52,6 +52,8 @@ public:
   typedef uniform_real::param_type uniform_real_p;
   typedef CNormal normal;
   typedef normal::param_type normal_p;
+  typedef std::gamma_distribution<double> gamma;
+  typedef std::gamma_distribution<double>::param_type gamma_p;
   
   static void seed(result_t seed);
   static void init(size_t seed);

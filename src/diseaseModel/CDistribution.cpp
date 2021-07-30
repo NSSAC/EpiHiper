@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -25,6 +25,7 @@ CDistribution::CDistribution()
   , mpUniformInt(NULL)
   , mpUniformReal(NULL)
   , mpNormal(NULL)
+  , mpGamma(NULL)
   , mValid(false)
 {}
 
@@ -37,6 +38,7 @@ CDistribution::CDistribution(const CDistribution & src)
   , mpUniformInt(src.mpUniformInt != NULL ? new CRandom::uniform_int(*src.mpUniformInt) : NULL)
   , mpUniformReal(src.mpUniformReal != NULL ? new CRandom::uniform_real(*src.mpUniformReal) : NULL)
   , mpNormal(src.mpNormal != NULL ? new CRandom::normal(*src.mpNormal) : NULL)
+  , mpGamma(src.mpGamma != NULL ? new CRandom::gamma(*src.mpGamma) : NULL)
   , mValid(src.mValid)
 {}
 
@@ -49,6 +51,8 @@ CDistribution::~CDistribution()
     delete mpUniformReal;
   if (mpNormal != NULL)
     delete mpNormal;
+  if (mpGamma != NULL)
+    delete mpGamma;
 }
 
 void CDistribution::fromJSON(const json_t * json)
@@ -128,6 +132,24 @@ void CDistribution::fromJSON(const json_t * json)
               "properties": {
                 "mean": {"$ref": "#/definitions/nonNegativeNumber"},
                 "standardDeviation": {"$ref": "#/definitions/nonNegativeNumber"}
+              }
+            },
+            "gamma": {
+              "type": "object",
+              "description": "A number is sampled from a Gamma distribution.",
+              "required": [
+                "alpha",
+                "beta"
+              ],
+              "properties": {
+                "alpha": {
+                  "description": "shape parameter",
+                  "$ref": "#/definitions/nonNegativeNumber"
+                },
+                "beta": {
+                  "description": "scale parameter",
+                  "$ref": "#/definitions/nonNegativeNumber"
+                }
               }
             }
           }
@@ -363,6 +385,56 @@ void CDistribution::fromJSON(const json_t * json)
       mpNormal = new CRandom::normal(mean, standardDeviation);
       return;
     }
+
+  pValue = json_object_get(json, "gamma");
+
+  if (json_is_object(pValue))
+    {
+      mType = Type::gamma;
+      mpSample = &CDistribution::gamma;
+
+      double alpha;
+      json_t * pReal = json_object_get(pValue, "alpha");
+
+      if (json_is_real(pReal))
+        {
+          alpha = json_real_value(pReal);
+
+          if (alpha < 0)
+            {
+              CLogger::error("Distribution gamma: Negative value for 'alpha'.");
+              return;
+            }
+        }
+      else
+        {
+          CLogger::error("Distribution gamma: Invalid or missing 'gamma'.");
+          return;
+        }
+
+      double beta;
+      pReal = json_object_get(pValue, "standardDeviation");
+
+      if (json_is_real(pReal))
+        {
+          beta = json_real_value(pReal);
+          
+          if (beta < 0)
+            {
+              CLogger::error("Distribution gamma: Negative value for 'beta'.");
+              return;
+            }
+        }
+      else
+        {
+          CLogger::error("Distribution gamma: Invalid or missing 'beta'.");
+          return;
+        }
+
+      mValid = true;
+      mpGamma = new CRandom::gamma(alpha, beta);
+      return;
+    }
 }
 
 const bool & CDistribution::isValid() const
@@ -411,4 +483,9 @@ unsigned int CDistribution::uniformDiscrete() const
 unsigned int CDistribution::normal() const
 {
   return std::round(std::max(0.0, mpNormal->operator()(CRandom::G.Active())));
+}
+
+unsigned int CDistribution::gamma() const
+{
+  return std::round(std::max(0.0, mpGamma->operator()(CRandom::G.Active())));
 }
