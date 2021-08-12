@@ -413,7 +413,7 @@ void CDistribution::fromJSON(const json_t * json)
         }
 
       double beta;
-      pReal = json_object_get(pValue, "standardDeviation");
+      pReal = json_object_get(pValue, "beta");
 
       if (json_is_real(pReal))
         {
