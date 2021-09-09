@@ -27,6 +27,7 @@ From: centos:7.6.1810
     bin/analyze.sh /epihiper/bin
     bin/validateSchema.sh /epihiper/bin
     bin/validateRules.sh /epihiper/bin
+    bin/addNoiseApp.sh /epihiper/bin
     CentOS-Base.repo /etc/yum.repos.d
     
 %post
@@ -121,6 +122,11 @@ From: centos:7.6.1810
     echo Validating Rules
     echo Job ID: ${SLURM_JOB_ID:-222222}
     /epihiper/bin/validateRules.sh $@
+	
+%apprun addNoise
+    echo Adding Noise
+    echo Job ID: ${SLURM_JOB_ID:-222222}
+    /epihiper/bin/addNoiseApp.sh $@
 	
 %apprun epiHiper
     echo Rank $PMI_RANK: Running EpiHiper Simulation
