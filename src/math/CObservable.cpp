@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -146,7 +146,8 @@ bool CObservable::computeHealthStateAbsolute()
 
   if (pHealthState != NULL)
     {
-      assignValue(&pHealthState->getGlobalCounts().Current);
+      double Absolute = (double) pHealthState->getGlobalCounts().Current;
+      assignValue(&Absolute);
 
       return true;
     }
@@ -232,7 +233,7 @@ void CObservable::fromJSON(const json_t * json)
           mpCompute = &CObservable::computeHealthStateAbsolute;
 
           destroyValue();
-          mType = Type::id;
+          mType = Type::number;
           mpValue = createValue(mType);
         }
       else if (strcmp(json_string_value(pValue), "relative") == 0)

@@ -286,10 +286,10 @@ COperation * COperationDefinition::createOperation(CEdge * pEdge, const CMetadat
 COperation * COperationDefinition::createOperation(const CMetadata & info) const
 {
   if (mpSourceVariable != NULL)
-    new COperationInstance< CVariable, CValue >(mpTargetVariable, *mpSourceVariable, mpOperator, &CVariable::setValue, info);
+    return new COperationInstance< CVariable, CValue >(mpTargetVariable, *mpSourceVariable, mpOperator, &CVariable::setValue, info);
 
   if (mpObservable != NULL)
-    new COperationInstance< CVariable, CValue >(mpTargetVariable, *mpSourceVariable, mpOperator, &CVariable::setValue, info);
+    return new COperationInstance< CVariable, CValue >(mpTargetVariable, *mpObservable, mpOperator, &CVariable::setValue, info);
 
   return new COperationInstance< CVariable, CValue >(mpTargetVariable, mValue, mpOperator, &CVariable::setValue, info);
 }

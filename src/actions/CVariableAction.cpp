@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -15,7 +15,8 @@
 
 CVariableAction::CVariableAction(const CActionDefinition * pDefinition)
   : CAction()
-  , mpDefinition(pDefinition){}
+  , mpDefinition(pDefinition)
+{}
 
 // virtual 
 CVariableAction::~CVariableAction()
