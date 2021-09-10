@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -15,8 +15,10 @@
 
 #include "actions/COperationDefinition.h"
 #include "actions/COperation.h"
+#include "actions/CConditionDefinition.h"
 #include "math/CNodeProperty.h"
 #include "math/CEdgeProperty.h"
+#include "math/CObservable.h"
 #include "variables/CVariableList.h"
 #include "utilities/CMetadata.h"
 #include "utilities/CLogger.h"
@@ -26,8 +28,10 @@ COperationDefinition::COperationDefinition()
   , mTargetType()
   , mpNodeProperty(NULL)
   , mpEdgeProperty(NULL)
-  , mpVariable(NULL)
+  , mpTargetVariable(NULL)
   , mpOperator(NULL)
+  , mpSourceVariable(NULL)
+  , mpObservable(NULL)
   , mValue((json_t *) NULL)
   , mValid(false)
 {}
@@ -37,8 +41,10 @@ COperationDefinition::COperationDefinition(const COperationDefinition & src)
   , mTargetType()
   , mpNodeProperty(src.mpNodeProperty != NULL ? new CNodeProperty(*src.mpNodeProperty) : NULL)
   , mpEdgeProperty(src.mpEdgeProperty != NULL ? new CEdgeProperty(*src.mpEdgeProperty) : NULL)
-  , mpVariable(src.mpVariable)
+  , mpTargetVariable(src.mpTargetVariable)
   , mpOperator(src.mpOperator)
+  , mpSourceVariable(src.mpSourceVariable)
+  , mpObservable(src.mpObservable)
   , mValue(src.mValue)
   , mValid(src.mValid)
 {}
@@ -48,8 +54,10 @@ COperationDefinition::COperationDefinition(const json_t * json)
   , mTargetType()
   , mpNodeProperty(NULL)
   , mpEdgeProperty(NULL)
-  , mpVariable(NULL)
+  , mpTargetVariable(NULL)
   , mpOperator(NULL)
+  , mpSourceVariable(NULL)
+  , mpObservable(NULL)
   , mValue((json_t *) NULL)
   , mValid(false)
 {
@@ -113,9 +121,19 @@ void COperationDefinition::fromJSON(const json_t * json)
           }
         }
       },
-      {"$ref": "#/definitions/value"}
+      {
+        "oneOf": [
+          {"$ref": "#/definitions/value"},
+          {"$ref": "#/definitions/observable"},
+          {"$ref": "#/definitions/variableReference"}
+        ]
+      }
     ]
   */
+
+  char * str = json_dumps(json, JSON_COMPACT | JSON_INDENT(0));
+  std::string JSON = str;
+  free(str);
 
   mValid = false; // DONE
   json_t * pValue = json_object_get(json, "target");
@@ -126,9 +144,9 @@ void COperationDefinition::fromJSON(const json_t * json)
       return;
     }
 
-  mpVariable = &CVariableList::INSTANCE[pValue];
+  mpTargetVariable = &CVariableList::INSTANCE[pValue];
 
-  if (mpVariable->isValid())
+  if (mpTargetVariable->isValid())
     {
       mTargetType = TargetType::variable;
     }
@@ -194,7 +212,39 @@ void COperationDefinition::fromJSON(const json_t * json)
       return;
     }
 
+  mpSourceVariable = &CVariableList::INSTANCE[json];
+
+  if (mpSourceVariable->isValid())
+    {
+      mValid = true;
+      return; 
+    }
+
+  mpSourceVariable = NULL;
+
+  mpObservable = CObservable::get(json);
+
+  if (mpObservable != NULL
+      && mpObservable->isValid())
+    {
+      CConditionDefinition::RequiredComputables.insert(mpObservable);
+      mValid = true;
+      return;
+    }
+
+  mpObservable = NULL;
+
   mValue.fromJSON(json_object_get(json, "value"));
+
+  if (!mValue.isValid())
+    {
+      char * str = json_dumps(json, JSON_COMPACT | JSON_INDENT(0));
+      std::string JSON = str;
+      free(str);
+
+      CLogger::error() << "Operation: Invalid '" << JSON;
+    }
+
   mValid = mValue.isValid();
 }
 
@@ -205,23 +255,41 @@ const bool & COperationDefinition::isValid() const
 
 COperation * COperationDefinition::createOperation(CNode * pNode, const CMetadata & info) const
 {
-  if (pNode != NULL
-      && mpNodeProperty != NULL)
-    return mpNodeProperty->createOperation(pNode, mValue, mpOperator, info);
+  if (pNode == NULL
+      || mpNodeProperty == NULL)
+    return createOperation(info);
 
-  return createOperation(info);
+  if (mpSourceVariable != NULL)
+    return mpNodeProperty->createOperation(pNode, *mpSourceVariable, mpOperator, info);
+
+  if (mpObservable != NULL)
+    return mpNodeProperty->createOperation(pNode, *mpObservable, mpOperator, info);
+
+  return mpNodeProperty->createOperation(pNode, mValue, mpOperator, info);
 }
 
 COperation * COperationDefinition::createOperation(CEdge * pEdge, const CMetadata & info) const
 {
-  if (pEdge != NULL
-      && mpEdgeProperty != NULL)
-    return mpEdgeProperty->createOperation(pEdge, mValue, mpOperator, info);
+  if (pEdge == NULL
+      || mpEdgeProperty == NULL)
+    return createOperation(info);
 
-  return createOperation(info);
+  if (mpSourceVariable != NULL)
+    return mpEdgeProperty->createOperation(pEdge, *mpSourceVariable, mpOperator, info);
+
+  if (mpObservable != NULL)
+    return mpEdgeProperty->createOperation(pEdge, *mpObservable, mpOperator, info);
+
+  return mpEdgeProperty->createOperation(pEdge, mValue, mpOperator, info);
 }
 
 COperation * COperationDefinition::createOperation(const CMetadata & info) const
 {
-  return new COperationInstance< CVariable, double >(mpVariable, mValue.toNumber(), mpOperator, &CVariable::setValue, info);
+  if (mpSourceVariable != NULL)
+    new COperationInstance< CVariable, CValue >(mpTargetVariable, *mpSourceVariable, mpOperator, &CVariable::setValue, info);
+
+  if (mpObservable != NULL)
+    new COperationInstance< CVariable, CValue >(mpTargetVariable, *mpSourceVariable, mpOperator, &CVariable::setValue, info);
+
+  return new COperationInstance< CVariable, CValue >(mpTargetVariable, mValue, mpOperator, &CVariable::setValue, info);
 }

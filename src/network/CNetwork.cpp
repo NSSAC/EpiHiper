@@ -1748,7 +1748,8 @@ bool CNetwork::dumpActiveNetwork()
     CEdge * pEndEdge = Active.endEdge();
 
     for (; pEdge != pEndEdge; ++pEdge)
-      if (pEdge->weight >= dumpActiveNetwork.threshold)
+      if (pEdge->active
+          && pEdge->weight >= dumpActiveNetwork.threshold)
         {
           if (CurrentNode != pEdge->targetId)
             {

@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -27,6 +27,7 @@ class COperation;
 class CNodeProperty;
 class CEdgeProperty;
 class CVariable;
+class CObservable;
 class CNode;
 class CEdge;
 class CMetadata;
@@ -74,8 +75,10 @@ private:
   TargetType mTargetType;
   CNodeProperty * mpNodeProperty;
   CEdgeProperty * mpEdgeProperty;
-  CVariable * mpVariable;
+  CVariable * mpTargetVariable;
   CValueInterface::pOperator mpOperator;
+  CVariable * mpSourceVariable;
+  CObservable * mpObservable;
   CValue mValue;
   bool mValid;
 };

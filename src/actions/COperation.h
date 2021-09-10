@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -43,11 +43,11 @@ private:
 public:
   COperationInstance() = delete;
 
-  COperationInstance(Target *pTarget,
-                    Value value,
-                    CValueInterface::pOperator pOperator,
-                    bool(Target::*method)(Value, CValueInterface::pOperator, const CMetadata &),
-                    const CMetadata & metadata = CMetadata())
+  COperationInstance(Target * pTarget,
+                     Value value,
+                     CValueInterface::pOperator pOperator,
+                     bool (Target::*method)(Value, CValueInterface::pOperator, const CMetadata &),
+                     const CMetadata & metadata = CMetadata())
     : mpTarget(pTarget)
     , mValue(value)
     , mpOperator(pOperator)

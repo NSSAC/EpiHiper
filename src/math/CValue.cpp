@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -72,7 +72,8 @@ CValue::CValue(const CValue & src)
   : CValueInterface(src.mType, createValue(src.mType))
   , mValid(src.mValid)
 {
-  assignValue(src.mpValue);
+  if (src.mValid)
+    assignValue(src.mpValue);
 }
 
 CValue::CValue(const json_t * json)

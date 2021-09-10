@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -243,3 +243,9 @@ bool CVariable::setValue(double value, CValueInterface::pOperator pOperator, con
 
   return true;
 }
+
+bool CVariable::setValue(const CValue value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
+{
+  return setValue(value.toNumber(), pOperator, metadata);
+}
+
