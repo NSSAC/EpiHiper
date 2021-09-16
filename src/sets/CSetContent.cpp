@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -302,7 +302,7 @@ void CSetContent::samplePercent(const double & percent, CSetContent & sampled, C
 
   CRandom::uniform_real Percent(0.0, 100.0);
 
-  // Sampling is ony supported if we have either only nodes or only edges;
+  // Sampling is only supported if we have either only nodes or only edges;
   if (size() == getNodes().size())
     {
       std::vector< CNode * >::const_iterator it = getNodes().begin();

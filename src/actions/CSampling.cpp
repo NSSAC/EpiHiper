@@ -315,6 +315,12 @@ void CSampling::process(const CSetContent & targets)
       if (mpVariable != NULL)
         mPercentage = mpVariable->toNumber();
 
+      if (std::isnan(mPercentage))
+        {
+          CLogger::warn("CSampling: Percentage evaluates to NaN, no items will be sampled."); 
+          mPercentage = 0.0;
+        }
+
       mpTargets->samplePercent(mPercentage, mSampledTargets, mNotSampledTargets);
     }
 
@@ -441,7 +447,16 @@ void CSampling::determineThreadLimits()
         Available = mCount;
     }
 
-  if (Available < Requested)
+  if (std::isnan(Available))
+    {
+      CLogger::warn("CSampling: Available evaluates to NaN, no items will be sampled."); 
+
+      for (pRemote = mpCommunicateBuffer; pRemote != pRemoteEnd; ++pRemote)
+        {
+          *pRemote = 0;
+        }
+    }
+  else if (Available < Requested)
     {
       // We need to limit the individual counts;
       for (pRemote = mpCommunicateBuffer; pRemote != pRemoteEnd; ++pRemote)

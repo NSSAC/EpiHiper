@@ -230,7 +230,7 @@ bool CVariable::setValue(double value, CValueInterface::pOperator pOperator, con
                    << " "
                    << value;
 
-  double Value;
+  double Value = *mpLocalValue;
 
   if (mType == Type::global
       && CCommunicate::MPIProcesses > 1)
