@@ -19,6 +19,7 @@
 #include "math/CNodeProperty.h"
 #include "math/CEdgeProperty.h"
 #include "math/CObservable.h"
+#include "math/CSizeOf.h"
 #include "variables/CVariableList.h"
 #include "utilities/CMetadata.h"
 #include "utilities/CLogger.h"
@@ -32,6 +33,7 @@ COperationDefinition::COperationDefinition()
   , mpOperator(NULL)
   , mpSourceVariable(NULL)
   , mpObservable(NULL)
+  , mpSizeOf(NULL)
   , mValue((json_t *) NULL)
   , mValid(false)
 {}
@@ -45,6 +47,7 @@ COperationDefinition::COperationDefinition(const COperationDefinition & src)
   , mpOperator(src.mpOperator)
   , mpSourceVariable(src.mpSourceVariable)
   , mpObservable(src.mpObservable)
+  , mpSizeOf(src.mpSizeOf)
   , mValue(src.mValue)
   , mValid(src.mValid)
 {}
@@ -58,6 +61,7 @@ COperationDefinition::COperationDefinition(const json_t * json)
   , mpOperator(NULL)
   , mpSourceVariable(NULL)
   , mpObservable(NULL)
+  , mpSizeOf(NULL)
   , mValue((json_t *) NULL)
   , mValid(false)
 {
@@ -125,7 +129,8 @@ void COperationDefinition::fromJSON(const json_t * json)
         "oneOf": [
           {"$ref": "#/definitions/value"},
           {"$ref": "#/definitions/observable"},
-          {"$ref": "#/definitions/variableReference"}
+          {"$ref": "#/definitions/variableReference"},
+          {"$ref": "#/definitions/sizeof"}
         ]
       }
     ]
@@ -234,6 +239,20 @@ void COperationDefinition::fromJSON(const json_t * json)
 
   mpObservable = NULL;
 
+  CLogger::pushLevel(spdlog::level::off);
+  mpSizeOf = new CSizeOf(json);
+  CLogger::popLevel();
+  
+  if (mpSizeOf->isValid())
+    {
+      CConditionDefinition::RequiredComputables.insert(mpSizeOf);
+      mValid = true;
+      return;
+    }
+
+  delete mpSizeOf;
+  mpSizeOf = NULL;
+
   mValue.fromJSON(json_object_get(json, "value"));
 
   if (!mValue.isValid())
@@ -265,6 +284,9 @@ COperation * COperationDefinition::createOperation(CNode * pNode, const CMetadat
   if (mpObservable != NULL)
     return mpNodeProperty->createOperation(pNode, *mpObservable, mpOperator, info);
 
+  if (mpSizeOf != NULL)
+    return mpNodeProperty->createOperation(pNode, *mpSizeOf, mpOperator, info);
+
   return mpNodeProperty->createOperation(pNode, mValue, mpOperator, info);
 }
 
@@ -280,6 +302,9 @@ COperation * COperationDefinition::createOperation(CEdge * pEdge, const CMetadat
   if (mpObservable != NULL)
     return mpEdgeProperty->createOperation(pEdge, *mpObservable, mpOperator, info);
 
+  if (mpSizeOf != NULL)
+    return mpEdgeProperty->createOperation(pEdge, *mpSizeOf, mpOperator, info);
+
   return mpEdgeProperty->createOperation(pEdge, mValue, mpOperator, info);
 }
 
@@ -290,6 +315,9 @@ COperation * COperationDefinition::createOperation(const CMetadata & info) const
 
   if (mpObservable != NULL)
     return new COperationInstance< CVariable, CValue >(mpTargetVariable, *mpObservable, mpOperator, &CVariable::setValue, info);
+
+  if (mpSizeOf != NULL)
+    return new COperationInstance< CVariable, CValue >(mpTargetVariable, *mpSizeOf, mpOperator, &CVariable::setValue, info);
 
   return new COperationInstance< CVariable, CValue >(mpTargetVariable, mValue, mpOperator, &CVariable::setValue, info);
 }

@@ -28,6 +28,7 @@ class CNodeProperty;
 class CEdgeProperty;
 class CVariable;
 class CObservable;
+class CSizeOf;
 class CNode;
 class CEdge;
 class CMetadata;
@@ -79,6 +80,7 @@ private:
   CValueInterface::pOperator mpOperator;
   CVariable * mpSourceVariable;
   CObservable * mpObservable;
+  CSizeOf * mpSizeOf;
   CValue mValue;
   bool mValid;
 };
