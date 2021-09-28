@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -31,7 +31,22 @@ public:
     totalPopulation
   };
 
-  static CObservable * get(const ObservableType & observableType, const size_t & id);
+  enum struct ObservableSubset
+  {
+    in,
+    current,
+    out
+  };
+
+  struct ObservableKey {
+    size_t id;
+    ObservableType type;
+    ObservableSubset subset;
+
+    bool operator < (const ObservableKey & rhs) const;
+  };
+
+  static CObservable * get(const ObservableKey & key);
 
   static CObservable * get(const json_t * json);
 
@@ -46,10 +61,10 @@ public:
   bool operator < (const CObservable & rhs) const;
 
 private:
-  typedef std::map< std::pair< size_t, ObservableType>, CObservable * > ObservableMap;
+  typedef std::map< ObservableKey, CObservable * > ObservableMap;
   static ObservableMap Observables;
 
-  CObservable(const ObservableType & observableType, const size_t & id);
+  // CObservable(const ObservableType & observableType, const size_t & id);
 
   CObservable(const json_t * json);
 
@@ -64,6 +79,7 @@ private:
   bool computeHealthStateRelative();
 
   ObservableType mObservableType;
+  ObservableSubset mObservableSubset;
   size_t mId;
 
   bool (CObservable::*mpCompute)();

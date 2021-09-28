@@ -20,10 +20,21 @@
 #include "network/CNetwork.h"
 #include "utilities/CLogger.h"
 
-// static
-CObservable * CObservable::get(const CObservable::ObservableType & observableType, const size_t & id)
+bool CObservable::ObservableKey::operator < (const CObservable::ObservableKey & rhs) const
 {
-  ObservableMap::iterator found = Observables.find(std::make_pair(id, observableType));
+  if (id != rhs.id)
+    return id < rhs.id;
+
+  if (type != rhs.type)
+    return type < rhs.type;
+
+  return subset < rhs.subset;
+}
+
+// static
+CObservable * CObservable::get(const CObservable::ObservableKey & key)
+{
+  ObservableMap::iterator found = Observables.find(key);
 
   if (found != Observables.end())
     return found->second;
@@ -42,11 +53,12 @@ CObservable * CObservable::get(const json_t * json)
       return NULL;
     }
 
-  CObservable * pExisting = get(pNew->mObservableType, pNew->mId);
+  ObservableKey Key = {pNew->mId, pNew->mObservableType, pNew->mObservableSubset};
+  CObservable * pExisting = get(Key);
 
   if (pExisting == NULL)
     {
-      Observables[std::make_pair(pNew->mId, pNew->mObservableType)] = pNew;
+      Observables[Key] = pNew;
       return pNew;
     }
 
@@ -57,7 +69,8 @@ CObservable * CObservable::get(const json_t * json)
 CObservable::CObservable()
   : CValue(false)
   , CComputable()
-  , mObservableType()
+  , mObservableType(ObservableType::healthStateAbsolute)
+  , mObservableSubset(ObservableSubset::current)
   , mId(-1)
   , mpCompute(NULL)
 {
@@ -68,22 +81,16 @@ CObservable::CObservable(const CObservable & src)
   : CValue(src)
   , CComputable(src)
   , mObservableType(src.mObservableType)
+  , mObservableSubset(src.mObservableSubset)
   , mId(src.mId)
   , mpCompute(src.mpCompute)
-{}
-
-CObservable::CObservable(const ObservableType & observableType, const size_t & id)
-  : CValue(false)
-  , CComputable()
-  , mObservableType(observableType)
-  , mId(id)
-  , mpCompute(NULL)
 {}
 
 CObservable::CObservable(const json_t * json)
   : CValue(false)
   , CComputable()
-  , mObservableType()
+  , mObservableType(ObservableType::healthStateAbsolute)
+  , mObservableSubset(ObservableSubset::current)
   , mId(-1)
   , mpCompute(NULL)
 {
@@ -146,7 +153,23 @@ bool CObservable::computeHealthStateAbsolute()
 
   if (pHealthState != NULL)
     {
-      double Absolute = (double) pHealthState->getGlobalCounts().Current;
+      double Absolute = std::numeric_limits< double >::quiet_NaN();
+
+      switch (mObservableSubset)
+        {
+        case ObservableSubset::current:
+          Absolute = (double) pHealthState->getGlobalCounts().Current;
+          break;
+
+        case ObservableSubset::in:
+          Absolute = (double) pHealthState->getGlobalCounts().In;
+          break;
+
+        case ObservableSubset::out:
+          Absolute = (double) pHealthState->getGlobalCounts().Out;
+          break;
+        }
+
       assignValue(&Absolute);
 
       return true;
@@ -161,7 +184,23 @@ bool CObservable::computeHealthStateRelative()
 
   if (pHealthState != NULL)
     {
-      double Relative = ((double) pHealthState->getGlobalCounts().Current) / CNetwork::Context.Active().getGlobalNodeCount();
+      double Relative = std::numeric_limits< double >::quiet_NaN();
+
+      switch (mObservableSubset)
+        {
+        case ObservableSubset::current:
+          Relative = (double) pHealthState->getGlobalCounts().Current / CNetwork::Context.Active().getGlobalNodeCount();
+          break;
+
+        case ObservableSubset::in:
+          Relative = (double) pHealthState->getGlobalCounts().In / CNetwork::Context.Active().getGlobalNodeCount();
+          break;
+
+        case ObservableSubset::out:
+          Relative = (double) pHealthState->getGlobalCounts().Out / CNetwork::Context.Active().getGlobalNodeCount();
+          break;
+        }
+
       assignValue(&Relative);
 
       return true;
@@ -194,6 +233,14 @@ void CObservable::fromJSON(const json_t * json)
                   "enum": [
                     "absolute",
                     "relative"
+                  ]
+                },
+                "subset": {
+                  "type": "string",
+                  "enum": [
+                    "in",
+                    "out",
+                    "current"
                   ]
                 }
               }
@@ -248,6 +295,27 @@ void CObservable::fromJSON(const json_t * json)
       else
         {
           CLogger::error() << "Observable: Invalid type '" << json_string_value(pValue) << "'.";
+          return;
+        }
+
+      pValue = json_object_get(pObservable, "subset");
+
+      if (!json_is_string(pValue)
+          || strcmp(json_string_value(pValue), "current") == 0)
+        {
+          mObservableSubset = ObservableSubset::current;
+        }
+      else if (strcmp(json_string_value(pValue), "in") == 0)
+        {
+          mObservableSubset = ObservableSubset::in;
+        }
+      else if (strcmp(json_string_value(pValue), "out") == 0)
+        {
+          mObservableSubset = ObservableSubset::out;
+        }
+      else
+        {
+          CLogger::error() << "Observable: Invalid subset '" << json_string_value(pValue) << "'.";
           return;
         }
 
