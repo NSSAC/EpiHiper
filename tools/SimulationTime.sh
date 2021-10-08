@@ -13,7 +13,7 @@
 # END: License 
 
 accumulateReplicates () {
-  for f in $(ls -d $1-replicate?/va/output/replicate_1); do
+  for f in $(ls -d $1-replicate?/$2/output/replicate_1); do
     accumulateProcesses $f
   done | gawk -- '
   BEGIN {
@@ -43,31 +43,31 @@ accumulateReplicates () {
 
     delta = $1 - initialization
     initialization += delta/count
-    initializationSD += delta * initialization 
+    initializationSD += delta *  ($1 - initialization)
     
     delta = $2 - output
     output += delta/count
-    outputSD += delta * output 
+    outputSD += delta * ($2 - output)
     
     delta = $3 - synchronize
     synchronize += delta/count
-    synchronizeSD += delta * synchronize 
+    synchronizeSD += delta * ($3 - synchronize)
     
     delta = $4 - applyUpdateSequence
     applyUpdateSequence += delta/count
-    applyUpdateSequenceSD += delta * applyUpdateSequence 
+    applyUpdateSequenceSD += delta * ($4 - applyUpdateSequence)
     
     delta = $5 - ProcessTransmissions
     ProcessTransmissions += delta/count
-    ProcessTransmissionsSD += delta * ProcessTransmissions 
+    ProcessTransmissionsSD += delta * ($5 - ProcessTransmissions)
     
     delta = $6 - ProcessIntervention
     ProcessIntervention += delta/count
-    ProcessInterventionSD += delta * ProcessIntervention 
+    ProcessInterventionSD += delta * ($6 - ProcessIntervention)
     
     delta = $7 - processCurrentActions
     processCurrentActions += delta/count
-    processCurrentActionsSD += delta * processCurrentActions 
+    processCurrentActionsSD += delta * ($7 - processCurrentActions)
   }
   '
 }
@@ -147,6 +147,4 @@ accumulateProcess () {
   '
 }
 
-accumulateReplicates $1
-
-# accumulateProcesses $1
+accumulateReplicates $1 $2
