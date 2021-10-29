@@ -13,7 +13,7 @@
 # END: License 
 
 accumulateReplicates () {
-  for f in $(ls -d $1-replicate?/$2/output/replicate_1); do
+  for f in $(ls -d $1/$2/replicate_?); do
     accumulateProcesses $f
   done | gawk -- '
   BEGIN {
@@ -24,8 +24,6 @@ accumulateReplicates () {
     outputSD = 0
     synchronize = 0
     synchronizeSD = 0
-    applyUpdateSequence = 0
-    applyUpdateSequenceSD = 0
     ProcessTransmissions = 0
     ProcessTransmissionsSD = 0
     ProcessIntervention = 0
@@ -35,7 +33,7 @@ accumulateReplicates () {
   }
 
   END {
-    print initialization " " sqrt(initializationSD/count) " " output " " sqrt(outputSD/count) " " synchronize " " sqrt(synchronizeSD/count) " "  applyUpdateSequence " " sqrt(applyUpdateSequenceSD/count) " " ProcessTransmissions " " sqrt(ProcessTransmissionsSD/count) " " ProcessIntervention " " sqrt(ProcessInterventionSD/count) " " processCurrentActions " " sqrt(processCurrentActionsSD/count)
+    print initialization " " sqrt(initializationSD/count) " " output " " sqrt(outputSD/count) " " synchronize " " sqrt(synchronizeSD/count) " " ProcessTransmissions " " sqrt(ProcessTransmissionsSD/count) " " ProcessIntervention " " sqrt(ProcessInterventionSD/count) " " processCurrentActions " " sqrt(processCurrentActionsSD/count)
   }
 
   {
@@ -53,21 +51,17 @@ accumulateReplicates () {
     synchronize += delta/count
     synchronizeSD += delta * ($3 - synchronize)
     
-    delta = $4 - applyUpdateSequence
-    applyUpdateSequence += delta/count
-    applyUpdateSequenceSD += delta * ($4 - applyUpdateSequence)
-    
-    delta = $5 - ProcessTransmissions
+    delta = $4 - ProcessTransmissions
     ProcessTransmissions += delta/count
-    ProcessTransmissionsSD += delta * ($5 - ProcessTransmissions)
+    ProcessTransmissionsSD += delta * ($4 - ProcessTransmissions)
     
-    delta = $6 - ProcessIntervention
+    delta = $5 - ProcessIntervention
     ProcessIntervention += delta/count
-    ProcessInterventionSD += delta * ($6 - ProcessIntervention)
+    ProcessInterventionSD += delta * ($5 - ProcessIntervention)
     
-    delta = $7 - processCurrentActions
+    delta = $6 - processCurrentActions
     processCurrentActions += delta/count
-    processCurrentActionsSD += delta * ($7 - processCurrentActions)
+    processCurrentActionsSD += delta * ($6 - processCurrentActions)
   }
   '
 }
@@ -78,43 +72,25 @@ accumulateProcesses () {
     accumulateProcess $f
   done | gawk -- '
   BEGIN {
-    count = 0
     initialization = 0
     output = 0
     synchronize = 0
-    applyUpdateSequence = 0
     ProcessTransmissions = 0
     ProcessIntervention = 0
     processCurrentActions = 0
   }
 
   END {
-    print initialization " " output " " synchronize " " applyUpdateSequence " " ProcessTransmissions " " ProcessIntervention " " processCurrentActions
+    print initialization " " output " " synchronize " " ProcessTransmissions " " ProcessIntervention " " processCurrentActions
   }
 
   {
-    count += 1
-
-    delta = $1 - initialization
-    initialization += delta/count
-    
-    delta = $2 - output
-    output += delta/count
-    
-    delta = $3 - synchronize
-    synchronize += delta/count
-    
-    delta = $4 - applyUpdateSequence
-    applyUpdateSequence += delta/count
-    
-    delta = $5 - ProcessTransmissions
-    ProcessTransmissions += delta/count
-    
-    delta = $6 - ProcessIntervention
-    ProcessIntervention += delta/count
-    
-    delta = $7 - processCurrentActions
-    processCurrentActions += delta/count
+    initialization += $1
+    output += $2
+    synchronize += $3
+    ProcessTransmissions += $4
+    ProcessIntervention += $5
+    processCurrentActions += $6
   }
   '
 
@@ -127,24 +103,29 @@ accumulateProcess () {
     initialization = 0
     output = 0
     synchronize = 0
-    applyUpdateSequence = 0
     ProcessTransmissions = 0
     ProcessIntervention = 0
     processCurrentActions = 0
   }
 
   END {
-    print initialization/1000 " " output/1000 " " synchronize/1000 " "  applyUpdateSequence/1000 " "  ProcessTransmissions/1000 " " ProcessIntervention/1000 " " processCurrentActions/1000
+    print initialization/1000 " " output/1000 " " synchronize/1000 " "  ProcessTransmissions/1000 " " ProcessIntervention/1000 " " processCurrentActions/1000
   }
 
   $5 ~ "CSimulation::initialization:" {initialization += substr($8, 2, length($8) - 2)}
   $5 ~ "CSimulation::output:" {output += substr($8, 2, length($8) - 2)}
   $5 ~ "CSimulation::synchronize:" {synchronize += substr($8, 2, length($8) - 2)}
-  $5 ~ "CSimulation::applyUpdateSequence:" {applyUpdateSequence += substr($8, 2, length($8) - 2)}
+  $5 ~ "CSimulation::applyUpdateSequence:" {ProcessIntervention += substr($8, 2, length($8) - 2)}
   $5 ~ "CSimulation::ProcessTransmissions:" {ProcessTransmissions += substr($8, 2, length($8) - 2)}
   $5 ~ "CSimulation::ProcessIntervention:" {ProcessIntervention += substr($8, 2, length($8) - 2)}
   $5 ~ "CSimulation::processCurrentActions:" {processCurrentActions += substr($8, 2, length($8) - 2)}
   '
 }
 
-accumulateReplicates $1 $2
+[ -e Performance-$1.csv ] && rm Performance-$1.csv
+
+for f in A B C D; do
+    echo -n $f" " >> Performance-$1.csv
+    accumulateReplicates Scenario-$f $1 >> Performance-$1.csv
+done
+
