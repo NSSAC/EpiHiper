@@ -402,13 +402,13 @@ CSimConfig::CSimConfig(const std::string & configFile)
   if (!CDirEntry::exist(CDirEntry::dirName(mSummaryOutput)))
     CDirEntry::createDir(CDirEntry::dirName(mSummaryOutput));
 
-  std::string DefauJobDirtDir;
+  std::string DefaultJobDirtDir;
 
   if (CDirEntry::exist("/job")
       && CDirEntry::isWritable("/job"))
-    DefauJobDirtDir = "/job";
+    DefaultJobDirtDir = "/job";
   else
-    DefauJobDirtDir = ".";
+    DefaultJobDirtDir = ".";
 
   pValue = json_object_get(pRoot, "status");
 
@@ -417,7 +417,7 @@ CSimConfig::CSimConfig(const std::string & configFile)
   else
     mStatus = "sciduct.status.json";
 
-  mStatus = CDirEntry::resolve(mStatus, mRunParameters, DefauJobDirtDir);
+  mStatus = CDirEntry::resolve(mStatus, mRunParameters, DefaultJobDirtDir);
 
   if (!CDirEntry::exist(CDirEntry::dirName(mStatus)))
     CDirEntry::createDir(CDirEntry::dirName(mStatus));

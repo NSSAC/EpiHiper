@@ -58,7 +58,7 @@ CDistribution::~CDistribution()
 void CDistribution::fromJSON(const json_t * json)
 {
   /*
-      "distribution": {
+    "distribution": {
       "allOf": [
         {"$ref": "#/definitions/annotation"},
         {
@@ -77,12 +77,15 @@ void CDistribution::fromJSON(const json_t * json)
             },
             {
               "required": ["normal"]
+            },
+            {
+              "required": ["gamma"]
             }
           ],
           "properties": {
             "fixed": {"$ref": "#/definitions/nonNegativeNumber"},
             "discrete": {
-              "description": "A number is sampled from the array with each number having the same propability.",
+              "description": "A number is sampled from the array with each number having the given propability.",
               "type": "array",
               "items": {
                 "type": "object",

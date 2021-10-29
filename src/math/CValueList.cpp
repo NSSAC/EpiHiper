@@ -320,8 +320,9 @@ void CValueList::fromJSON(const json_t * json)
         {
           pValue = json_array_get(pArray, i);
 
-          if (json_is_integer(pValue))
-            std::set< CValue >::insert((int) json_integer_value(pValue));
+          if (json_is_real(pValue) &&
+              abs(json_real_value(pValue) - (int) json_real_value(pValue)) <= abs(json_real_value(pValue)) * 100.0 * std::numeric_limits< double >::epsilon())
+            std::set< CValue >::insert((int) json_real_value(pValue));
           else
             {
               CLogger::error() << "Value list (integer): Invalid value for item '" << i << "'.";
@@ -347,7 +348,8 @@ void CValueList::fromJSON(const json_t * json)
 
               std::set< CValue >::insert(CModel::StateToType(pHealthState));
             }
-          else if (json_is_real(pValue))
+          else if (json_is_real(pValue) &&
+                   abs(json_real_value(pValue) - (size_t) json_real_value(pValue)) <= abs(json_real_value(pValue)) * 100.0 * std::numeric_limits< double >::epsilon())
             {
               std::set< CValue >::insert((size_t) json_real_value(pValue));
             }
