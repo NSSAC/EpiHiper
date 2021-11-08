@@ -30,7 +30,6 @@ CVariable CVariable::Transmissibility()
   Transmissibility.mType = Type::local;
   Transmissibility.mInitialValue = 1.0;
   Transmissibility.mValid = true;
-  Transmissibility.reset(true);
 
   return Transmissibility;
 }
@@ -261,5 +260,10 @@ bool CVariable::setValue(double value, CValueInterface::pOperator pOperator, con
 bool CVariable::setValue(const CValue value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
   return setValue(value.toNumber(), pOperator, metadata);
+}
+
+void CVariable::setInitialValue(const double & initialValue)
+{
+  mInitialValue = initialValue;
 }
 

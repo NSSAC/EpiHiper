@@ -28,7 +28,6 @@
 #include "network/CNode.h"
 #include "utilities/CRandom.h"
 #include "utilities/CLogger.h"
-#include "utilities/CMetadata.h"
 #include "variables/CVariableList.h"
 
 // static
@@ -232,7 +231,7 @@ void CModel::fromJSON(const json_t * json)
 
   if (json_is_real(pValue))
     {
-      CVariableList::INSTANCE["%transmissibility%"].setValue(json_real_value(pValue), &CValueInterface::equal, CMetadata());
+      CVariableList::INSTANCE["%transmissibility%"].setInitialValue(json_real_value(pValue));
     }
 
   mValid = true;

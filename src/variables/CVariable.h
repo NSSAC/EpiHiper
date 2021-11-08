@@ -61,7 +61,7 @@ public:
 
   bool setValue(const CValue value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
 
-  void setIndex(const size_t & index);
+  void setInitialValue(const double & initialValue);
 
   /*
     "=",
