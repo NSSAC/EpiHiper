@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -55,8 +55,11 @@ void CVariableList::fromJSON(const json_t * json)
           return;
         }
 
-      mId2Index[Variable.getId()] = i;
-      push_back(Variable);
+      if (!append(Variable))
+        {
+          CLogger::error() << "Variable list: Duplicate variable ID '" << Variable.getId() << "'.";
+          return;
+        }
     }
 
   mValid = true;
@@ -169,4 +172,15 @@ void CVariableList::resetAll(const bool & force)
     {
       it->getValue();
     }
+}
+
+bool CVariableList::append(const CVariable & variable)
+{
+  if (mId2Index.find(variable.getId()) != mId2Index.end())
+    return false;
+
+  mId2Index[variable.getId()] = size();
+  push_back(variable);
+
+  return true;
 }

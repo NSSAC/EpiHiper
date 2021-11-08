@@ -28,6 +28,7 @@
 #include "network/CNode.h"
 #include "utilities/CRandom.h"
 #include "utilities/CLogger.h"
+#include "utilities/CMetadata.h"
 #include "variables/CVariableList.h"
 
 // static
@@ -59,9 +60,12 @@ CModel::CModel(const std::string & modelFile)
   , mProgressions()
   , mPossibleTransmissions(NULL)
   , mPossibleProgressions(NULL)
-  , mTransmissibility(1.0)
+  , mpTransmissibility(NULL)
   , mValid(false)
 {
+  CVariableList::INSTANCE.append(CVariable::Transmissibility());
+  mpTransmissibility = &CVariableList::INSTANCE["%transmissibility%"].toNumber();
+
   json_t * pRoot = CSimConfig::loadJson(modelFile, JSON_DECODE_INT_AS_REAL);
 
   if (pRoot != NULL)
@@ -228,7 +232,7 @@ void CModel::fromJSON(const json_t * json)
 
   if (json_is_real(pValue))
     {
-      mTransmissibility = json_real_value(pValue);
+      CVariableList::INSTANCE["%transmissibility%"].setValue(json_real_value(pValue), &CValueInterface::equal, CMetadata());
     }
 
   mValid = true;
@@ -326,7 +330,7 @@ bool CModel::processTransmissions() const
           }
 
         if (A0 > 0.0
-            && -log(Uniform01(CRandom::G.Active())) < A0 * mTransmissibility / 86400.0)
+            && -log(Uniform01(CRandom::G.Active())) < A0 * *mpTransmissibility / 86400.0)
           {
             double alpha = Uniform01(CRandom::G.Active()) * A0;
 

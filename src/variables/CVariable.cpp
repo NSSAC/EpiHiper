@@ -21,6 +21,20 @@
 #include "utilities/CMetadata.h"
 #include "utilities/CLogger.h"
 
+// static 
+CVariable CVariable::Transmissibility()
+{
+  CVariable Transmissibility;
+
+  Transmissibility.mId = "%transmissibility%";
+  Transmissibility.mType = Type::local;
+  Transmissibility.mInitialValue = 1.0;
+  Transmissibility.mValid = true;
+  Transmissibility.reset(true);
+
+  return Transmissibility;
+}
+
 CVariable::CVariable()
   : CValue(std::numeric_limits< double >::quiet_NaN())
   , CAnnotation()

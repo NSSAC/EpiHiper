@@ -29,6 +29,8 @@ public:
   };
 
 public:
+  static CVariable Transmissibility();
+  
   CVariable();
 
   CVariable(const CVariable & src);

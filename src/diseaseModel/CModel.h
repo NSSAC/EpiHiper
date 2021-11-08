@@ -117,7 +117,7 @@ private:
   std::vector< CProgression > mProgressions;
   PossibleTransmissions * mPossibleTransmissions;
   PossibleProgressions * mPossibleProgressions;
-  double mTransmissibility;
+  const double * mpTransmissibility;
   bool mValid;
 };
 

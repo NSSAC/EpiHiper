@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -51,6 +51,8 @@ public:
   CVariable & operator[](const json_t * json);
 
   void resetAll(const bool & force = false);
+
+  bool append(const CVariable & variable);
 
 private:
   std::map< std::string, size_t > mId2Index;
