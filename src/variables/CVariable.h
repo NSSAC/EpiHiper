@@ -29,7 +29,7 @@ public:
   };
 
 public:
-  static CVariable Transmissibility();
+  static CVariable * transmissibility();
   
   CVariable();
 

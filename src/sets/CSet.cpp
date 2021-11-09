@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -16,8 +16,28 @@
 #include "network/CNetwork.h"
 #include "network/CNode.h"
 #include "network/CEdge.h"
-#include "sets/CSetContent.h"
 #include "utilities/CLogger.h"
+
+// static 
+CSet * CSet::empty()
+{
+  CSet * pEmpty = new CSet();
+  pEmpty->mId = "%empty%";
+  pEmpty->mType = Type::local;
+  pEmpty->mValid = true;
+  pEmpty->mStatic = true;
+
+  return pEmpty;
+}
+  
+CSet::CSet()
+  : CSetContent()
+  , CAnnotation()
+  , mId()
+  , mType()
+  , mpSetContent(NULL)
+  , mValid(true)
+{}
 
 CSet::CSet(const CSet & src)
   : CSetContent(src)

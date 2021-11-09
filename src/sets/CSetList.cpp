@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -20,7 +20,11 @@ CSetList::CSetList()
   : std::vector< CSet * >()
   , mId2Index()
   , mValid(true)
-{}
+{
+  CSet * pEmpty = CSet::empty();
+  mId2Index[pEmpty->getId()] = 0;
+  push_back(pEmpty);
+}
 
 CSetList::CSetList(const CSetList & src)
   : std::vector< CSet * >(src)

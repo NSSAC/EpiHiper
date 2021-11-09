@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -30,8 +30,12 @@ public:
     local
   };
 
-  CSet() = delete;
+  static CSet * empty();
 
+private:
+  CSet();
+
+public:
   CSet(const CSet & src);
 
   CSet(const json_t * json);
@@ -50,7 +54,7 @@ public:
 
   inline virtual const CContext< SetContent > & getContext() const override
   {
-    if (mValid)
+    if (mValid && mpSetContent != NULL)
       return mpSetContent->getContext();
 
     return CSetContent::getContext();
@@ -58,7 +62,7 @@ public:
 
   inline virtual CContext< SetContent > & getContext() override
   {
-    if (mValid)
+    if (mValid && mpSetContent != NULL)
       return mpSetContent->getContext();
 
     return CSetContent::getContext();

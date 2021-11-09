@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -164,6 +164,7 @@ bool CActionEnsemble::process(const CSetContent & targets)
   if (!mOnce.empty())
     CLogger::info() << "CActionEnsemble: Process '" << mOnce.size() << "' action definitions in 'once'.";
 
+#pragma omp single
   for (; it != end; ++it)
     (*it)->process();
 

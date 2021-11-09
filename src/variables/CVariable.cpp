@@ -22,16 +22,16 @@
 #include "utilities/CLogger.h"
 
 // static 
-CVariable CVariable::Transmissibility()
+CVariable * CVariable::transmissibility()
 {
-  CVariable Transmissibility;
+  CVariable * pTransmissibility = new CVariable();
 
-  Transmissibility.mId = "%transmissibility%";
-  Transmissibility.mType = Type::local;
-  Transmissibility.mInitialValue = 1.0;
-  Transmissibility.mValid = true;
+  pTransmissibility->mId = "%transmissibility%";
+  pTransmissibility->mType = Type::local;
+  pTransmissibility->mInitialValue = 1.0;
+  pTransmissibility->mValid = true;
 
-  return Transmissibility;
+  return pTransmissibility;
 }
 
 CVariable::CVariable()

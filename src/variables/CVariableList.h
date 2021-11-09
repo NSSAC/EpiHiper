@@ -27,9 +27,14 @@
 
 struct json_t;
 
-class CVariableList: public std::vector< CVariable>
+class CVariableList: protected std::vector< CVariable * >
 {
+private: 
+  typedef std::vector< CVariable * > base;
+
 public:
+  typedef std::vector< CVariable * >::const_iterator const_iterator;
+
   static CVariableList INSTANCE;
 
   CVariableList();
@@ -52,7 +57,11 @@ public:
 
   void resetAll(const bool & force = false);
 
-  bool append(const CVariable & variable);
+  bool append(CVariable * pVariable);
+
+  const_iterator begin() const;
+  
+  const_iterator end() const;
 
 private:
   std::map< std::string, size_t > mId2Index;

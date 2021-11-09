@@ -17,13 +17,13 @@
 #include "utilities/CLogger.h"
 
 CVariableList::CVariableList()
-  : std::vector< CVariable >()
+  : base()
   , mId2Index()
   , mValid(true)
 {}
 
 CVariableList::CVariableList(const CVariableList & src)
-  : std::vector< CVariable >(src)
+  : base(src)
   , mId2Index(src.mId2Index)
   , mValid(src.mValid)
 {}
@@ -47,17 +47,19 @@ void CVariableList::fromJSON(const json_t * json)
 
   for (size_t i = 0, imax = json_array_size(json); i < imax; ++i)
     {
-      CVariable Variable(json_array_get(json, i));
+      CVariable *pVariable = new CVariable(json_array_get(json, i));
 
-      if (!Variable.isValid())
+      if (!pVariable->isValid())
         {
           CLogger::error() << "Variable list: Invalid value for item '" << i << "'.";
+          delete pVariable;
           return;
         }
 
-      if (!append(Variable))
+      if (!append(pVariable))
         {
-          CLogger::error() << "Variable list: Duplicate variable ID '" << Variable.getId() << "'.";
+          CLogger::error() << "Variable list: Duplicate variable ID '" << pVariable->getId() << "'.";
+          delete pVariable;
           return;
         }
     }
@@ -71,12 +73,12 @@ void CVariableList::toBinary(std::ostream & os) const
 
   os.write(reinterpret_cast<const char *>(&Size), sizeof(size_t));
 
-  std::vector< CVariable >::const_iterator it = begin();
-  std::vector< CVariable >::const_iterator itEnd = end();
+  const_iterator it = begin();
+  const_iterator itEnd = end();
 
   for (; it != itEnd; ++it)
     {
-      it->toBinary(os);
+      (*it)->toBinary(os);
     }
 }
 
@@ -90,12 +92,12 @@ void CVariableList::fromBinary(std::istream & is)
 
   if (!mValid) return;
 
-  std::vector< CVariable >::iterator it = begin();
-  std::vector< CVariable >::iterator itEnd = end();
+  base::iterator it = base::begin();
+  base::iterator itEnd = base::end();
 
   for (; it != itEnd; ++it)
     {
-      it->fromBinary(is);
+      (*it)->fromBinary(is);
     }
 }
 
@@ -104,7 +106,7 @@ CVariable & CVariableList::operator[](const size_t & index)
   static CVariable Invalid;
 
   if (index < size())
-    return std::vector< CVariable >::operator[](index);
+    return *base::operator[](index);
 
   return Invalid;
 }
@@ -157,30 +159,40 @@ CVariable & CVariableList::operator[](const json_t * json)
 
 void CVariableList::resetAll(const bool & force)
 {
-  std::vector< CVariable >::iterator it;
-  std::vector< CVariable >::iterator itEnd = end();
+  base::iterator it;
+  base::iterator itEnd = base::end();
 
-  for (it = begin(); it != itEnd; ++it)
+  for (it = base::begin(); it != itEnd; ++it)
     {
-      it->reset(force);
+      (*it)->reset(force);
     }
 
   CCommunicate::barrierRMA();
 
 #pragma omp single
-  for (it = begin(); it != itEnd; ++it)
+  for (it = base::begin(); it != itEnd; ++it)
     {
-      it->getValue();
+      (*it)->getValue();
     }
 }
 
-bool CVariableList::append(const CVariable & variable)
+bool CVariableList::append(CVariable * pVariable)
 {
-  if (mId2Index.find(variable.getId()) != mId2Index.end())
+  if (mId2Index.find(pVariable->getId()) != mId2Index.end())
     return false;
 
-  mId2Index[variable.getId()] = size();
-  push_back(variable);
+  mId2Index[pVariable->getId()] = size();
+  push_back(pVariable);
 
   return true;
+}
+
+CVariableList::const_iterator CVariableList::begin() const
+{
+  return base::begin();
+}
+  
+CVariableList::const_iterator CVariableList::end() const
+{
+  return base::end();
 }

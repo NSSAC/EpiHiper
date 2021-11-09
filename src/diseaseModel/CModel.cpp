@@ -62,7 +62,7 @@ CModel::CModel(const std::string & modelFile)
   , mpTransmissibility(NULL)
   , mValid(false)
 {
-  CVariableList::INSTANCE.append(CVariable::Transmissibility());
+  CVariableList::INSTANCE.append(CVariable::transmissibility());
   mpTransmissibility = &CVariableList::INSTANCE["%transmissibility%"].toNumber();
 
   json_t * pRoot = CSimConfig::loadJson(modelFile, JSON_DECODE_INT_AS_REAL);
@@ -529,11 +529,11 @@ void CModel::InitGlobalStateCountOutput()
             }
 
           // We also add variables
-          CVariableList::iterator it = CVariableList::INSTANCE.begin();
-          CVariableList::iterator end = CVariableList::INSTANCE.end();
+          CVariableList::const_iterator it = CVariableList::INSTANCE.begin();
+          CVariableList::const_iterator end = CVariableList::INSTANCE.end();
 
           for (; it != end; ++it)
-            out << "," << it->getId() << ((it->getType() == CVariable::Type::global) ? "(g)" : "(l)");
+            out << "," << (*it)->getId() << (((*it)->getType() == CVariable::Type::global) ? "(g)" : "(l)");
 
           out << std::endl;
         }
@@ -573,13 +573,13 @@ void CModel::WriteGlobalStateCounts()
             }
 
           // We also add variables
-          CVariableList::iterator it = CVariableList::INSTANCE.begin();
-          CVariableList::iterator end = CVariableList::INSTANCE.end();
+          CVariableList::const_iterator it = CVariableList::INSTANCE.begin();
+          CVariableList::const_iterator end = CVariableList::INSTANCE.end();
 
           for (; it != end; ++it)
             {
-              it->getValue();
-              out << "," << it->toNumber();
+              (*it)->getValue();
+              out << "," << (*it)->toNumber();
             }
 
           out << std::endl;
