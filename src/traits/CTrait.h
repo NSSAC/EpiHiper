@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -30,15 +30,22 @@ struct json_t;
 
 class CTrait : public CAnnotation
 {
-public:
+private:
   static std::map< std::string, CTrait > INSTANCES;
+public:
   static CTrait const * ActivityTrait;
   static CTrait const * EdgeTrait;
   static CTrait const * NodeTrait;
 
   static void init();
 
+  static const CTrait * find(const std::string & id);
+
   static void load(const std::string & jsonFile);
+
+  static void load(const json_t * json);
+
+  static void loadSingle(const json_t * json);
 
   /**
    * Default constructor

@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -55,20 +55,7 @@ void CInitialization::load(const std::string & file)
 
   json_t * pRoot = CSimConfig::loadJson(file, JSON_DECODE_INT_AS_REAL);
 
-  // Get the key "traits"
-  json_t * pTraits = json_object_get(pRoot, "traits");
-
-  // Iterate of the array elements
-  for (size_t i = 0, imax = json_array_size(pTraits); i < imax; ++i)
-    {
-      CTrait Trait;
-      Trait.fromJSON(json_array_get(pTraits, i));
-
-      if (Trait.isValid())
-        {
-          CTrait::INSTANCES[Trait.getId()] = Trait;
-        }
-    }
+  CTrait::load(pRoot);
 
   CSetList::INSTANCE.fromJSON(json_object_get(pRoot, "sets"));
   CVariableList::INSTANCE.fromJSON(json_object_get(pRoot, "variables"));

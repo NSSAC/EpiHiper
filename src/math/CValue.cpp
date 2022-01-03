@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -166,10 +166,7 @@ void CValue::fromJSON(const json_t * json)
 
   if (json_is_string(pValue))
     {
-      std::map< std::string, CTrait >::const_iterator found = CTrait::INSTANCES.find(json_string_value(pValue));
-
-      if (found != CTrait::INSTANCES.end())
-        pTrait = &found->second;
+      pTrait = CTrait::find(json_string_value(pValue));
 
       if (pTrait == NULL)
         {

@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -413,17 +413,12 @@ void CNetwork::fromJSON(const json_t * json)
       return;
     }
 
+
   pValue = json_object_get(json, "activityEncoding");
 
   if (json_is_object(pValue))
     {
-      CTrait Trait;
-      Trait.fromJSON(pValue);
-
-      if (Trait.isValid())
-        {
-          CTrait::INSTANCES[Trait.getId()] = Trait;
-        }
+      CTrait::loadSingle(pValue);
     }
 
   if (!CTrait::ActivityTrait->isValid())
@@ -466,12 +461,10 @@ void CNetwork::fromJSON(const json_t * json)
 
   if (json_is_object(pValue))
     {
-      CTrait Trait;
-      Trait.fromJSON(pValue);
+      CTrait::loadSingle(pValue);
 
-      if (Trait.isValid())
+      if (CTrait::EdgeTrait->isValid())
         {
-          CTrait::INSTANCES[Trait.getId()] = Trait;
           CEdge::HasEdgeTrait = (Size == 4);
         }
     }

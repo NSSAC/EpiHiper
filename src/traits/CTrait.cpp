@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -33,12 +33,26 @@
 // static
 void CTrait::init()
 {
+  // Initialize empty predefined traits
   if (INSTANCES.empty())
     {
       CTrait::ActivityTrait = &INSTANCES["activityTrait"];
       CTrait::EdgeTrait = &INSTANCES["edgeTrait"];
       CTrait::NodeTrait = &INSTANCES["nodeTrait"];
     }
+}
+
+// static 
+const CTrait * CTrait::find(const std::string & id)
+{
+  std::map< std::string, CTrait >::const_iterator found = INSTANCES.find(id);
+
+  if (found != INSTANCES.end())
+    {
+      return &found->second;
+    }
+
+  return NULL;
 }
 
 // static
@@ -53,24 +67,50 @@ void CTrait::load(const std::string & jsonFile)
       return;
     }
 
-  // Get the key "traits"
-  json_t * pTraits = json_object_get(pRoot, "traits");
+  load(pRoot);
+  json_decref(pRoot);
+}
+
+// static 
+void CTrait::load(const json_t * json)
+{
+  json_t * pTraits = json_object_get(json, "traits");
 
   // Iterate of the array elements
   for (size_t i = 0, imax = json_array_size(pTraits); i < imax; ++i)
     {
-      CTrait Trait;
-      Trait.fromJSON(json_array_get(pTraits, i));
+      json_t * pItem = json_array_get(pTraits, i);
+      json_t * pValue = json_object_get(pItem, "id");
 
-      if (Trait.isValid())
+      if (!json_is_string(pValue))
         {
-          INSTANCES[Trait.getId()] = Trait;
+          CLogger::error("Trait: Invalid or missing value for 'id'.");
+          return;
         }
+
+      std::map< std::string, CTrait >::iterator found = INSTANCES.insert(std::make_pair(std::string(json_string_value(pValue)), CTrait())).first;
+
+      found->second.fromJSON(pItem);
     }
 
-  json_decref(pRoot);
-
   return;
+}
+
+// static 
+void CTrait::loadSingle(const json_t * json)
+{
+  // Check whether we have an id object and load the corresponding trait object.
+  json_t * pValue = json_object_get(json, "id");
+
+  if (!json_is_string(pValue))
+    {
+      CLogger::error("Trait: Invalid or missing value for 'id'.");
+      return;
+    }
+
+  std::map< std::string, CTrait >::iterator found = INSTANCES.insert(std::make_pair(std::string(json_string_value(pValue)), CTrait())).first;
+
+  found->second.fromJSON(json);
 }
 
 void CTrait::updateFeatureMap()
@@ -138,19 +178,23 @@ void CTrait::fromJSON(const json_t * json)
 
   json_t * pValue = json_object_get(json, "id");
 
-  if (json_is_string(pValue))
-    {
-      mId = json_string_value(pValue);
-      mAnnId = mId;
-    }
-
   if (mId.empty())
     {
-      CLogger::error("Trait: Invalid or missing value for 'id'.");
-      return;
+      if (json_is_string(pValue))
+        {
+          mId = json_string_value(pValue);
+          mAnnId = mId;
+        }
+
+      if (mId.empty())
+        {
+          CLogger::error("Trait: Invalid or missing value for 'id'.");
+          return;
+        }
+
+      CAnnotation::fromJSON(json);
     }
 
-  CAnnotation::fromJSON(json);
   pValue = json_object_get(json, "features");
 
   // Iterate of the array elements
@@ -158,16 +202,10 @@ void CTrait::fromJSON(const json_t * json)
     {
       const CFeature * pFeature = operator[](json_array_get(pValue, i));
 
-      if (pFeature != NULL)
+      // Augmenting or redefining a feature is not supported supported
+      if (pFeature!= NULL)
         {
-          const_cast< CFeature * >(pFeature)->augment(json_array_get(pValue, i));
-
-          if (!pFeature->isValid())
-            {
-              CLogger::error() << "Trait: Invalid value for item '" << i << "'.";
-              return;
-            }
-
+          CLogger::warn() << "Trait: Duplicate definition of '" << mId << "[" << pFeature->getId() << "]'.";
           continue;
         }
 
