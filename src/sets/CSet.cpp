@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -164,4 +164,10 @@ bool CSet::computeProtected()
 {
   CLogger::debug("CSet: No operation.");
   return true;
+}
+
+// virtual 
+std::string CSet::getComputableId() const
+{
+  return "CSet: " + mId;
 }

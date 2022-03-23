@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -38,6 +38,8 @@ public:
   virtual void fromJSON(const json_t * json) override;
 
   virtual bool computeProtected() override;
+
+  virtual std::string getComputableId() const override;
 
   virtual const CContext< SetContent > & getContext() const override
   {

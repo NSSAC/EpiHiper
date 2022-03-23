@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -281,7 +281,7 @@ void CSampling::fromJSON(const json_t * json)
         }
     }
 
-  mValid = true;
+  mValid = mpSampled != nullptr || mpNotSampled != nullptr;
 }
 
 void CSampling::process(const CSetContent & targets)

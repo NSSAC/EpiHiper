@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -52,6 +52,8 @@ public:
 
   virtual bool computeProtected() override;
 
+  virtual std::string getComputableId() const override;
+  
   inline virtual const CContext< SetContent > & getContext() const override
   {
     if (mValid && mpSetContent != NULL)

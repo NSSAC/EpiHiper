@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -222,7 +222,7 @@ bool CSetOperation::computeUnion()
 
   for (it = mSets.begin(); it != end; ++it)
     {
-      Debug << Separator << (*it)->size();
+      Debug << Separator << (*it)->getComputableId() << ": " << (*it)->size();
 
       if (Separator.empty())
         Separator = ", ";
@@ -300,7 +300,7 @@ bool CSetOperation::computeIntersection()
 
   for (it = mSets.begin(); it != end; ++it)
     {
-      Debug << Separator << (*it)->size();
+      Debug << Separator << (*it)->getComputableId() << ": " << (*it)->size();
 
       if (Separator.empty())
         Separator = ", ";

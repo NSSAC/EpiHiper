@@ -1,5 +1,5 @@
 # BEGIN: Copyright 
-# Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+# Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 # All rights reserved 
 # END: Copyright 
 
@@ -52,12 +52,12 @@ ExternalProject_Add(jansson
 ExternalProject_Add(libpqxx
   PREFIX            ${CMAKE_BINARY_DIR}/dependencies
   SOURCE_DIR        ${CMAKE_CURRENT_SOURCE_DIR}/libpqxx
-  
+
   CONFIGURE_COMMAND  CXXFLAGS=-std=c++11 ${CMAKE_CURRENT_SOURCE_DIR}/libpqxx/configure 
   	--prefix=${CMAKE_BINARY_DIR} 
   	--libdir=${CMAKE_BINARY_DIR}/lib 
-  	--with-postgres-include=${PGSQL_INCLUDE_DIR} 
-  	--with-postgres-lib=${PGSQL_LIBRARY} 
+#  	--with-postgres-include=${PGSQL_INCLUDE_DIR} 
+#  	--with-postgres-lib=${PGSQL_LIBRARY} 
   	--disable-documentation
   	
   BUILD_COMMAND      make 

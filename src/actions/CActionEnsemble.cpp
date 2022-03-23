@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -142,7 +142,11 @@ void CActionEnsemble::fromJSON(const json_t * json)
 
   if (!mSampling.isValid())
     {
-      CLogger::error("Action ensemble: Invalid value for 'sampling'.");
+      char * str = json_dumps(json, JSON_COMPACT | JSON_INDENT(0));
+      std::string JSON = str;
+      free(str);
+
+      CLogger::error() << "Action ensemble: Invalid value for 'sampling': " << JSON;
       return;
     }
 
