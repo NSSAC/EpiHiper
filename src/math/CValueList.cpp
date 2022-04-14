@@ -62,6 +62,7 @@ bool CValueList::append(const CValue & value)
 
 bool CValueList::contains(const CValueInterface & value) const
 {
+  // Convert CValueInterface::Type::traitData to CValueInterface::Type::value
   if (value.getType() == CValueInterface::Type::traitData 
       && !empty())
     return contains(CValue(CTraitData::getValue(value.toTraitData(), std::set< CValue >::begin()->toTraitValue().first)));

@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -164,7 +164,11 @@ void CNodeElementSelector::fromJSON(const json_t * json)
                 "operator": {
                   "description": "",
                   "type": "string",
-                  "enum": ["withPropertyIn"]
+                  "enum": [
+                    "withPropertyIn",
+                    "in",
+                    "not in"
+                  ]
                 },
                 "left": {
                   "type": "object",
@@ -327,7 +331,9 @@ void CNodeElementSelector::fromJSON(const json_t * json)
           mpComparison = &operator>;
           mSQLComparison = ">";
         }
-      else if (strcmp(Operator, "withPropertyIn") == 0)
+      else if (strcmp(Operator, "withPropertyIn") == 0
+               || strcmp(Operator, "in") == 0
+               || strcmp(Operator, "not in") == 0)
         {
           /*
          {
@@ -341,7 +347,11 @@ void CNodeElementSelector::fromJSON(const json_t * json)
              "operator": {
                "description": "",
                "type": "string",
-               "enum": ["withPropertyIn"]
+                  "enum": [
+                    "withPropertyIn",
+                    "in",
+                    "not in"
+                  ]
              },
              "left": {
                "type": "object",
@@ -372,7 +382,11 @@ void CNodeElementSelector::fromJSON(const json_t * json)
               return;
             }
 
-          mpCompute = &CNodeElementSelector::propertyWithin;
+          if (strcmp(Operator, "not in") == 0)
+            mpCompute = &CNodeElementSelector::propertyNotIn;
+          else
+            mpCompute = &CNodeElementSelector::propertyIn;
+
           mValid = true;
           return;
         }
@@ -780,7 +794,7 @@ bool CNodeElementSelector::propertySelection()
   return true;
 }
 
-bool CNodeElementSelector::propertyWithin()
+bool CNodeElementSelector::propertyIn()
 {
   std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
@@ -792,7 +806,7 @@ bool CNodeElementSelector::propertyWithin()
     if (mpValueList->contains(mNodeProperty.propertyOf(pNode)))
       Nodes.push_back(pNode);
 
-  CLogger::debug() << "CNodeElementSelector: propertyWithin returned '" << Nodes.size() << "' nodes.";
+  CLogger::debug() << "CNodeElementSelector: propertyIn returned '" << Nodes.size() << "' nodes.";
 
   if (!mLocalScope)
     {
@@ -812,10 +826,47 @@ bool CNodeElementSelector::propertyWithin()
       if (sort)
         std::sort(Nodes.begin(), Nodes.end());
 
-      CLogger::debug() << "CNodeElementSelector: propertyWithin returned '" << Nodes.size() << "' nodes.";
+      CLogger::debug() << "CNodeElementSelector: propertyIn returned '" << Nodes.size() << "' nodes.";
     }
   return true;
+}
 
+bool CNodeElementSelector::propertyNotIn()
+{
+  std::vector< CNode * > & Nodes = getNodes();
+  Nodes.clear();
+
+  CNode * pNode = CNetwork::Context.Active().beginNode();
+  CNode * pNodeEnd = CNetwork::Context.Active().endNode();
+
+  for (; pNode != pNodeEnd; ++pNode)
+    if (!mpValueList->contains(mNodeProperty.propertyOf(pNode)))
+      Nodes.push_back(pNode);
+
+  CLogger::debug() << "CNodeElementSelector: propertyNotIn returned '" << Nodes.size() << "' nodes.";
+
+  if (!mLocalScope)
+    {
+      CLogger::debug("CNodeElementSelector: Processing remote nodes");
+
+      std::map< size_t, CNode * >::const_iterator it = CNetwork::Context.Active().beginRemoteNodes();
+      std::map< size_t, CNode * >::const_iterator end = CNetwork::Context.Active().endRemoteNodes();
+      bool sort = false;
+
+      for (; it != end; ++it)
+        if (!mpValueList->contains(mNodeProperty.propertyOf(it->second)))
+          {
+            Nodes.push_back(const_cast< CNode * >(it->second));
+            sort = true;
+          }
+
+      if (sort)
+        std::sort(Nodes.begin(), Nodes.end());
+
+      CLogger::debug() << "CNodeElementSelector: propertyNotIn returned '" << Nodes.size() << "' nodes.";
+    }
+
+  return true;
 }
 
 bool CNodeElementSelector::withIncomingEdge()

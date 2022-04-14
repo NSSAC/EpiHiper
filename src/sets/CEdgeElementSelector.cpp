@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -148,7 +148,11 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
                 "operator": {
                   "description": "",
                   "type": "string",
-                  "enum": ["withPropertyIn"]
+                  "enum": [
+                    "withPropertyIn",
+                    "in",
+                    "not in"
+                  ]
                 },
                 "left": {
                   "type": "object",
@@ -239,8 +243,10 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
           mpComparison = &operator>;
           mSQLComparison = ">";
         }
-      else if (strcmp(Operator, "withPropertyIn") == 0)
-        {
+      else if (strcmp(Operator, "withPropertyIn") == 0
+               || strcmp(Operator, "in") == 0
+               || strcmp(Operator, "not in") == 0)
+         {
           /*
          {
            "description": "",
@@ -253,7 +259,11 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
              "operator": {
                "description": "",
                "type": "string",
-               "enum": ["withPropertyIn"]
+                  "enum": [
+                    "withPropertyIn",
+                    "in",
+                    "not in"
+                  ]
              },
              "left": {
                "type": "object",
@@ -284,7 +294,11 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
               return;
             }
 
-          mpCompute = &CEdgeElementSelector::propertyWithin;
+          if (strcmp(Operator, "not in") == 0)
+            mpCompute = &CEdgeElementSelector::propertyNotIn;
+          else
+            mpCompute = &CEdgeElementSelector::propertyIn;
+
           mStatic &= mEdgeProperty.isReadOnly();
           mValid = true;
           return;
@@ -656,7 +670,7 @@ bool CEdgeElementSelector::propertySelection()
   return true;
 }
 
-bool CEdgeElementSelector::propertyWithin()
+bool CEdgeElementSelector::propertyIn()
 {
   std::vector< CEdge * > & Edges = getEdges();
   Edges.clear();
@@ -668,8 +682,23 @@ bool CEdgeElementSelector::propertyWithin()
     if (mpValueList->contains(mEdgeProperty.propertyOf(pEdge)))
       Edges.push_back(pEdge);
 
+  CLogger::debug() << "CEdgeElementSelector: propertyIn returned '" << Edges.size() << "' edges.";
+  return true;
+}
 
-  CLogger::debug() << "CEdgeElementSelector: propertyWithin returned '" << Edges.size() << "' edges.";
+bool CEdgeElementSelector::propertyNotIn()
+{
+  std::vector< CEdge * > & Edges = getEdges();
+  Edges.clear();
+
+  CEdge * pEdge = CNetwork::Context.Active().beginEdge();
+  CEdge * pEdgeEnd = CNetwork::Context.Active().endEdge();
+
+  for (; pEdge != pEdgeEnd; ++pEdge)
+    if (!mpValueList->contains(mEdgeProperty.propertyOf(pEdge)))
+      Edges.push_back(pEdge);
+
+  CLogger::debug() << "CEdgeElementSelector: propertyNotIn returned '" << Edges.size() << "' edges.";
   return true;
 }
 

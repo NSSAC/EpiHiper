@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -41,7 +41,8 @@ public:
 private:
   bool all();
   bool propertySelection();
-  bool propertyWithin();
+  bool propertyIn();
+  bool propertyNotIn();
   bool withTargetNodeIn();
   bool withSourceNodeIn();
   bool inDBTable();

@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2020 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -25,15 +25,15 @@ class CAnalyzer
 public:
   struct StateStatistics
   {
-    CModel::state_t healthState;
-    size_t total;
-    size_t * histogramIn;
-    size_t * histogramOut;
-    double entryTickMean;
-    double entryTickSD;
-    double durationMean;
-    double durationSD;
-    std::set< CModel::state_t > exposedState;
+    CModel::state_t healthState = 0;
+    size_t total = 0;
+    size_t * histogramIn = NULL;
+    size_t * histogramOut = NULL;
+    double entryTickMean = 0;
+    double entryTickSD = 0;
+    double durationMean = 0;
+    double durationSD = 0;
+    std::set< CModel::state_t > exposedState = std::set< CModel::state_t >();
   };
 
   static void Init();
