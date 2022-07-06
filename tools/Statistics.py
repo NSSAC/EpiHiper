@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # BEGIN: Copyright 
-# Copyright (C) 2020 Rector and Visitors of the University of Virginia 
+# Copyright (C) 2020 - 2022 Rector and Visitors of the University of Virginia 
 # All rights reserved 
 # END: Copyright 
 
@@ -34,14 +34,14 @@ for file in args.files:
 
     # each row
     for i, row in df.iterrows():
-        if not row['Tick'] in statistics:
-            statistics[row['Tick']] = dict()
+        if not row['tick'] in statistics:
+            statistics[row['tick']] = dict()
         
-        rowStats = statistics[row['Tick']]
+        rowStats = statistics[row['tick']]
 
-        # column except 'Tick'
+        # column except 'tick'
         for col in df.columns:
-            if col == 'Tick': continue
+            if col == 'tick': continue
 
             if not col in rowStats:
                 rowStats[col] = copy.copy(template)
@@ -58,7 +58,7 @@ for file in args.files:
 data = []
 
 for t in sorted(statistics):
-    row = {'Tick': t}
+    row = {'tick': t}
     Stats = statistics[t]
 
     for col in Stats:

@@ -279,40 +279,43 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
 
           mEdgeProperty.fromJSON(json_object_get(json, "left"));
 
-          if (!mEdgeProperty.isValid())
+          if (mEdgeProperty.isValid())
+            {
+              mpValueList = new CValueList(json_object_get(json, "right"));
+
+              if (mpValueList != NULL
+                  && !mpValueList->isValid())
+                {
+                  CLogger::error() << "Edge selector: Invalid or missing value 'right' for " << JSON;
+                  return;
+                }
+
+              if (strcmp(Operator, "not in") == 0)
+                mpCompute = &CEdgeElementSelector::propertyNotIn;
+              else
+                mpCompute = &CEdgeElementSelector::propertyIn;
+
+              mStatic &= mEdgeProperty.isReadOnly();
+              mValid = true;
+              return;
+            }
+
+          if (strcmp(Operator, "in") == 0)
+            {
+              CConnection::setRequired(true);
+              mpCompute = &CEdgeElementSelector::withDBFieldWithin;
+            }
+          else if (strcmp(Operator, "not in") == 0)
+            {
+              CConnection::setRequired(true);
+              mpCompute = &CEdgeElementSelector::withDBFieldNotWithin;
+            }
+          else
             {
               CLogger::error() << "Edge selector: Invalid or missing value 'left' for " << JSON;
               return;
             }
-
-          mpValueList = new CValueList(json_object_get(json, "right"));
-
-          if (mpValueList != NULL
-              && !mpValueList->isValid())
-            {
-              CLogger::error() << "Edge selector: Invalid or missing value 'right' for " << JSON;
-              return;
-            }
-
-          if (strcmp(Operator, "not in") == 0)
-            mpCompute = &CEdgeElementSelector::propertyNotIn;
-          else
-            mpCompute = &CEdgeElementSelector::propertyIn;
-
-          mStatic &= mEdgeProperty.isReadOnly();
-          mValid = true;
-          return;
-        }
-      else if (strcmp(Operator, "in") == 0)
-        {
-          CConnection::setRequired(true);
-          mpCompute = &CEdgeElementSelector::withDBFieldWithin;
-        }
-      else if (strcmp(Operator, "not in") == 0)
-        {
-          CConnection::setRequired(true);
-          mpCompute = &CEdgeElementSelector::withDBFieldNotWithin;
-        }
+         }
       else if (strcmp(json_string_value(pValue), "withTargetNodeIn") == 0)
         {
           mpCompute = &CEdgeElementSelector::withTargetNodeIn;

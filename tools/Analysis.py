@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # BEGIN: Copyright 
-# Copyright (C) 2020 Rector and Visitors of the University of Virginia 
+# Copyright (C) 2020 - 2022 Rector and Visitors of the University of Virginia 
 # All rights reserved 
 # END: Copyright 
 
@@ -18,6 +18,7 @@ import random as random
 import datetime as datetime
 from operator import itemgetter
 import copy as copy
+from collections import OrderedDict
 
 parser = argparse.ArgumentParser(description="Statistcs means/std variation for all columns except the first in a csv file.")
 parser.add_argument('inFile', help='Input file')
@@ -49,8 +50,9 @@ for h in df.columns:
 analysis = []
 
 for i, row in df.iterrows():
-    Row = {'Tick': i}
-
+    Row = OrderedDict()
+    Row['tick'] = i
+    
     for s in HealthStates:
         for v in Value:
             Total = 0

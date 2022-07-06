@@ -367,28 +367,40 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
           mNodeProperty.fromJSON(json_object_get(json, "left"));
 
-          if (!mNodeProperty.isValid())
+          if (mNodeProperty.isValid())
+            {
+              mpValueList = new CValueList(json_object_get(json, "right"));
+
+              if (mpValueList != NULL
+                  && !mpValueList->isValid())
+                {
+                  CLogger::error() << "Node selector: Invalid or missing value 'right' for " << JSON;
+                  return;
+                }
+
+              if (strcmp(Operator, "not in") == 0)
+                mpCompute = &CNodeElementSelector::propertyNotIn;
+              else
+                mpCompute = &CNodeElementSelector::propertyIn;
+
+              mValid = true;
+              return;
+            }
+          if (strcmp(Operator, "in") == 0)
+            {
+              CConnection::setRequired(true);
+              mpCompute = &CNodeElementSelector::withDBFieldWithin;
+            }
+          else if (strcmp(Operator, "not in") == 0)
+            {
+              CConnection::setRequired(true);
+              mpCompute = &CNodeElementSelector::withDBFieldNotWithin;
+            }
+          else
             {
               CLogger::error() << "Node selector: Invalid or missing value 'left' for " << JSON;
               return;
             }
-
-          mpValueList = new CValueList(json_object_get(json, "right"));
-
-          if (mpValueList != NULL
-              && !mpValueList->isValid())
-            {
-              CLogger::error() << "Node selector: Invalid or missing value 'right' for " << JSON;
-              return;
-            }
-
-          if (strcmp(Operator, "not in") == 0)
-            mpCompute = &CNodeElementSelector::propertyNotIn;
-          else
-            mpCompute = &CNodeElementSelector::propertyIn;
-
-          mValid = true;
-          return;
         }
       else if (strcmp(Operator, "withIncomingEdgeIn") == 0)
         {
@@ -436,16 +448,6 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
           CLogger::error() << "Node selector: Invalid or missing value 'selector' for " << JSON;
           return;
-        }
-      else if (strcmp(Operator, "in") == 0)
-        {
-          CConnection::setRequired(true);
-          mpCompute = &CNodeElementSelector::withDBFieldWithin;
-        }
-      else if (strcmp(Operator, "not in") == 0)
-        {
-          CConnection::setRequired(true);
-          mpCompute = &CNodeElementSelector::withDBFieldNotWithin;
         }
     }
   else
