@@ -15,12 +15,10 @@
 import argparse
 import math
 import pandas as pd
-import random as random
-import datetime as datetime
-from operator import itemgetter
 import copy as copy
+from collections import OrderedDict
 
-parser = argparse.ArgumentParser(description="Statistcs means/std variation for all columns except the first in a csv file.")
+parser = argparse.ArgumentParser(description="Statistics means/std variation for all columns except the first in a csv file.")
 parser.add_argument('files', nargs='+', help='Files to calculate statistics')
 args = parser.parse_args()
 
@@ -35,7 +33,7 @@ for file in args.files:
     # each row
     for i, row in df.iterrows():
         if not row['tick'] in statistics:
-            statistics[row['tick']] = dict()
+            statistics[row['tick']] = OrderedDict()
         
         rowStats = statistics[row['tick']]
 
@@ -58,7 +56,8 @@ for file in args.files:
 data = []
 
 for t in sorted(statistics):
-    row = {'tick': t}
+    row = OrderedDict()
+    row['tick'] = t
     Stats = statistics[t]
 
     for col in Stats:
