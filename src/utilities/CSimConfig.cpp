@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -126,6 +126,12 @@ const size_t & CSimConfig::getSeed()
 }
 
 // static
+const std::map< int, size_t > & CSimConfig::getReseed()
+{
+  return CSimConfig::INSTANCE->mReseed;
+}
+
+// static
 const size_t & CSimConfig::getReplicate()
 {
   return CSimConfig::INSTANCE->mReplicate;
@@ -176,6 +182,7 @@ CSimConfig::CSimConfig(const std::string & configFile)
   , mIntervention()
   , mPropensityPlugin()
   , mSeed(-1)
+  , mReseed()
   , mReplicate(-1)
   , mPartitionEdgeLimit(100000000)
   , mDBConnection()
@@ -244,6 +251,23 @@ CSimConfig::CSimConfig(const std::string & configFile)
     "seed": {
       "description": "The seed for the random number generator",
       "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
+    },
+    "reseed": {
+      "type":"array",
+      "items": {
+        "type":"object",
+        "required": ["tick"],
+        "properties": {
+          "tick": {
+            "description": "The tick at which the seed should be changed",
+            "type": "integer"
+          },
+          "seed": {
+            "description": "The seed for the random number generator (default: auto generated)",
+            "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
+          }
+        }
+      }
     },
     "replicate": {
       "description": "The number of the replicate created with the job",
@@ -448,6 +472,33 @@ CSimConfig::CSimConfig(const std::string & configFile)
       mSeed = json_real_value(pValue);
     }
 
+  pValue = json_object_get(pRoot, "reseed");
+
+  if (json_is_array(pValue))
+    for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
+      {
+        json_t * pReseed = json_array_get(pValue, i);
+
+        if (json_is_object(pReseed))
+          {
+            json_t * pTick = json_object_get(pReseed, "tick");
+
+            if (!json_is_real(pTick))
+              continue;
+
+            size_t Seed = -1;
+
+            json_t * pSeed = json_object_get(pReseed, "seed");
+
+            if (json_is_real(pSeed))
+              {
+                Seed = json_real_value(pSeed);
+              }
+
+            mReseed[json_real_value(pTick)] = Seed;
+          }
+      }
+    
   pValue = json_object_get(pRoot, "replicate");
 
   if (json_is_real(pValue))

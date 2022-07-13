@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -14,6 +14,7 @@
 #define SIM_CONFIG_H
 
 #include <vector>
+#include <map>
 #include <string>
 
 #include "utilities/CLogger.h"
@@ -67,6 +68,7 @@ private:
   std::string mIntervention;
   std::string mPropensityPlugin;
   size_t mSeed;
+  std::map< int, size_t > mReseed;
   size_t mReplicate;
   size_t mPartitionEdgeLimit;
   CLogger::LogLevel mLogLevel;
@@ -100,6 +102,7 @@ public:
   static const std::string & getIntervention();
   static const std::string & getPropensityPlugin();
   static const size_t & getSeed();
+  static const std::map< int, size_t> & getReseed();
   static const size_t & getReplicate();
   static const size_t & getPartitionEdgeLimit();
   static CLogger::LogLevel getLogLevel();

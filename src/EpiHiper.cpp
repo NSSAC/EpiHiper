@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -35,7 +35,7 @@
 #include "sets/CSetReference.h"
 
 // Uncomment the following line if you want to attache a debugger
-// #define DEBUG_WAIT 1
+#define DEBUG_WAIT 1
 
 #ifdef DEBUG_WAIT
 #  include <sys/types.h>

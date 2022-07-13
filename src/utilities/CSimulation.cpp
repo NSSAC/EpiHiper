@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2020 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -147,6 +147,12 @@ bool CSimulation::run()
       Start = std::chrono::steady_clock::now();
       CActionQueue::incrementTick();
       CChanges::incrementTick();
+
+      std::map< int, size_t >::const_iterator found = CSimConfig::getReseed().find(CActionQueue::getCurrentTick());
+
+      if (found != CSimConfig::getReseed().end())
+#pragma omp master
+        CRandom::init(found->second);
 
       CChanges::writeDefaultOutput();
       CModel::UpdateGlobalStateCounts();
