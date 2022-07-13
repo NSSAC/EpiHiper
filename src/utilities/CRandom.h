@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -57,7 +57,7 @@ public:
   
   static void seed(result_t seed);
   static void init(size_t seed);
-
+  static result_t getSeed();
   class CContext : public ::CContext< generator_t >
   {
   public:
@@ -67,7 +67,8 @@ public:
   static CContext G;
 
 private:
-  static bool haveSeed;
+  static bool mHaveSeed;
+  static result_t mSeed;
 };
 
 #endif /* SRC_UTILITIES_CRANDOM_H_ */

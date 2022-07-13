@@ -35,7 +35,7 @@
 #include "sets/CSetReference.h"
 
 // Uncomment the following line if you want to attache a debugger
-#define DEBUG_WAIT 1
+// #define DEBUG_WAIT 1
 
 #ifdef DEBUG_WAIT
 #  include <sys/types.h>

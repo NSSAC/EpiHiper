@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -69,16 +69,19 @@ CRandom::generator_t & CRandom::CContext::Active()
 }
 
 // static 
-bool CRandom::haveSeed = false;
+bool CRandom::mHaveSeed = false;
+
+// static 
+CRandom::result_t CRandom::mSeed = -1;
 
 // static
 void CRandom::init(size_t seed)
 {
   CRandom::G.init();
 
-  haveSeed = (seed != std::numeric_limits< size_t >::max());
+  mHaveSeed = (seed != std::numeric_limits< size_t >::max());
 
-  if (!haveSeed)
+  if (!mHaveSeed)
     {
       CRandom::seed(std::random_device()());
       return;
@@ -98,6 +101,8 @@ void CRandom::init(size_t seed)
 // static
 void CRandom::seed(CRandom::result_t value)
 {
+  mSeed = value;
+
   int TotalSeeds = CCommunicate::TotalProcesses();
   result_t Seeds[TotalSeeds];
   result_t *pSeed = Seeds;
@@ -105,7 +110,7 @@ void CRandom::seed(CRandom::result_t value)
 
   if (CCommunicate::GlobalThreadIndex() == 0)
     {
-      if (haveSeed)
+      if (mHaveSeed)
         {
           std::seed_seq seq{value, value + 1, value + 3, value + 5, value + 7};
           seq.generate(pSeed, pSeedEnd);
@@ -124,9 +129,15 @@ void CRandom::seed(CRandom::result_t value)
 
   for (; pIt != pEnd; ++pIt)
     {
-      if (haveSeed)
+      if (mHaveSeed)
         CLogger::debug() << "CRandom::seed: Seeding thread " << G.globalIndex(pIt) << " with: " << Seeds[G.globalIndex(pIt)];
 
       pIt->seed(Seeds[G.globalIndex(pIt)]);
     }  
+}
+
+// static 
+CRandom::result_t CRandom::getSeed()
+{
+  return mSeed;
 }

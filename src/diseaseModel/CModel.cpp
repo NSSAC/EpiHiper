@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -535,7 +535,7 @@ void CModel::InitGlobalStateCountOutput()
           for (; it != end; ++it)
             out << "," << (*it)->getId() << (((*it)->getType() == CVariable::Type::global) ? "(g)" : "(l)");
 
-          out << std::endl;
+          out << ",seed" << std::endl;
         }
       else
         {
@@ -582,7 +582,7 @@ void CModel::WriteGlobalStateCounts()
               out << "," << (*it)->toNumber();
             }
 
-          out << std::endl;
+          out << "," << CRandom::getSeed() << std::endl;
         }
       else
         {

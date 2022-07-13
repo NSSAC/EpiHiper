@@ -148,12 +148,6 @@ bool CSimulation::run()
       CActionQueue::incrementTick();
       CChanges::incrementTick();
 
-      std::map< int, size_t >::const_iterator found = CSimConfig::getReseed().find(CActionQueue::getCurrentTick());
-
-      if (found != CSimConfig::getReseed().end())
-#pragma omp master
-        CRandom::init(found->second);
-
       CChanges::writeDefaultOutput();
       CModel::UpdateGlobalStateCounts();
       CModel::WriteGlobalStateCounts();
@@ -168,6 +162,13 @@ bool CSimulation::run()
       CNetwork::dumpActiveNetwork();
 
       CStatus::update("running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
+
+      std::map< int, size_t >::const_iterator found = CSimConfig::getReseed().find(CActionQueue::getCurrentTick());
+
+      if (found != CSimConfig::getReseed().end())
+#pragma omp master
+        CRandom::init(found->second);
+
     }
 
   return success;
