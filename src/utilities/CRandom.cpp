@@ -110,16 +110,8 @@ void CRandom::seed(CRandom::result_t value)
 
   if (CCommunicate::GlobalThreadIndex() == 0)
     {
-      if (mHaveSeed)
-        {
-          std::seed_seq seq{value, value + 1, value + 3, value + 5, value + 7};
-          seq.generate(pSeed, pSeedEnd);
-        }
-      else
-        {
-          for (; pSeed != pSeedEnd; ++pSeed)
-            *pSeed = std::random_device()();
-        }
+      std::seed_seq seq{value, value + 1, value + 3, value + 5, value + 7};
+      seq.generate(pSeed, pSeedEnd);
     }
 
   CCommunicate::broadcast(Seeds, sizeof(result_t) * TotalSeeds, 0);
