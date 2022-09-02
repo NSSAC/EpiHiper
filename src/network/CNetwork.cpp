@@ -1214,9 +1214,7 @@ void CNetwork::initOutgoingEdges()
 
 void CNetwork::writePreamble(std::ostream & os) const
 {
-  char * str = json_dumps(mpJson, JSON_COMPACT | JSON_INDENT(0));
-  os << str << std::endl;
-  free(str);
+  os << CSimConfig::jsonToString(mpJson) << std::endl;
 
   os << "targetPID,targetActivity,sourcePID,sourceActivity,duration";
 
@@ -1307,9 +1305,7 @@ bool CNetwork::openPartition(const size_t & partition,
       return false;
     }
 
-  char * str = json_dumps(pJson, JSON_COMPACT | JSON_INDENT(0));
-  os << str << std::endl;
-  free(str);
+  os << CSimConfig::jsonToString(pJson) << std::endl;
 
   if (CEdge::HasLocationId)
     os << "targetPID,targetActivity,sourcePID,sourceActivity,duration,LID,edgeTrait,active,weight";

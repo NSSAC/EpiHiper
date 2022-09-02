@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -21,6 +21,7 @@
 #include "math/CSizeOf.h"
 #include "variables/CVariableList.h"
 #include "utilities/CLogger.h"
+#include "utilities/CSimConfig.h"
 
 CConditionDefinition::ValueInstance::ValueInstance()
   : pCounter(new size_t(1))
@@ -171,9 +172,7 @@ final:
 
   if (!valid)
   {
-    char * str = json_dumps(json, JSON_COMPACT | JSON_INDENT(0));
-    CLogger::error() << "Value Instance: Invalid. " << str;
-    free(str);
+    CLogger::error() << "Value Instance: Invalid. " << CSimConfig::jsonToString(json);
   }
 }
 

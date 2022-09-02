@@ -27,6 +27,7 @@
 #include "network/CEdge.h"
 #include "actions/CActionQueue.h"
 #include "utilities/CLogger.h"
+#include "utilities/CSimConfig.h"
 
 CNodeElementSelector::CNodeElementSelector()
   : CSetContent()
@@ -261,10 +262,6 @@ void CNodeElementSelector::fromJSON(const json_t * json)
     }
   */
 
-  char * str = json_dumps(json, JSON_COMPACT | JSON_INDENT(0));
-  std::string JSON = str;
-  free(str);
-
   mValid = false; // DONE
   mPrerequisites.clear();
   json_t * pValue = json_object_get(json, "elementType");
@@ -272,7 +269,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
   if (json_is_string(pValue)
       && strcmp(json_string_value(pValue), "node") != 0)
     {
-      CLogger::error() << "Node selector: Invalid or missing value 'elementType' for " << JSON;
+      CLogger::error() << "Node selector: Invalid or missing value 'elementType' for " << CSimConfig::jsonToString(json);
       return;
     }
 
@@ -291,7 +288,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
     }
   else
     {
-      CLogger::error() << "Node selector: Invalid or missing value 'scope' for " << JSON;
+      CLogger::error() << "Node selector: Invalid or missing value 'scope' for " << CSimConfig::jsonToString(json);
       return;
     }
 
@@ -374,7 +371,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
               if (mpValueList != NULL
                   && !mpValueList->isValid())
                 {
-                  CLogger::error() << "Node selector: Invalid or missing value 'right' for " << JSON;
+                  CLogger::error() << "Node selector: Invalid or missing value 'right' for " << CSimConfig::jsonToString(json);
                   return;
                 }
 
@@ -398,7 +395,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
             }
           else
             {
-              CLogger::error() << "Node selector: Invalid or missing value 'left' for " << JSON;
+              CLogger::error() << "Node selector: Invalid or missing value 'left' for " << CSimConfig::jsonToString(json);
               return;
             }
         }
@@ -406,7 +403,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
         {
           if (!mLocalScope)
             {
-              CLogger::error() << "Node selector: Invalid or missing value 'scope' for " << JSON;
+              CLogger::error() << "Node selector: Invalid or missing value 'scope' for " << CSimConfig::jsonToString(json);
               return;
             }
 
@@ -446,7 +443,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
               mpSelector = NULL;
             }
 
-          CLogger::error() << "Node selector: Invalid or missing value 'selector' for " << JSON;
+          CLogger::error() << "Node selector: Invalid or missing value 'selector' for " << CSimConfig::jsonToString(json);
           return;
         }
     }
@@ -482,7 +479,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
         {
           if (!mLocalScope)
             {
-              CLogger::error() << "Node selector: Invalid or missing value 'scope' for " << JSON;
+              CLogger::error() << "Node selector: Invalid or missing value 'scope' for " << CSimConfig::jsonToString(json);
               return;
             }
 
@@ -491,7 +488,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
           return;
         }
 
-      CLogger::error() << "Node selector: Invalid or missing value 'operator' for " << JSON;
+      CLogger::error() << "Node selector: Invalid or missing value 'operator' for " << CSimConfig::jsonToString(json);
       return;
     }
 
@@ -558,7 +555,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
       if (!Table.isValid())
         {
-          CLogger::error() << "Node selector: Invalid or missing value 'table' for " << JSON;
+          CLogger::error() << "Node selector: Invalid or missing value 'table' for " << CSimConfig::jsonToString(json);
           return;
         }
 
@@ -566,7 +563,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
       if (!Field.isValid())
         {
-          CLogger::error() << "Node selector: Invalid or missing value 'field' for " << JSON;
+          CLogger::error() << "Node selector: Invalid or missing value 'field' for " << CSimConfig::jsonToString(json);
           return;
         }
 
@@ -597,7 +594,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
           mpSelector = NULL;
         }
 
-      CLogger::error() << "Node selector: Invalid or missing value 'right' for " << JSON;
+      CLogger::error() << "Node selector: Invalid or missing value 'right' for " << CSimConfig::jsonToString(json);
       return;
     }
 
@@ -639,7 +636,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
               return;
             }
 
-          CLogger::error() << "Node selector: Invalid or missing value 'right' for " << JSON;
+          CLogger::error() << "Node selector: Invalid or missing value 'right' for " << CSimConfig::jsonToString(json);
           return;
         }
 
@@ -691,7 +688,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
       if (!Table.isValid())
         {
-          CLogger::error() << "Node selector: Invalid or missing value 'table' for " << JSON;
+          CLogger::error() << "Node selector: Invalid or missing value 'table' for " << CSimConfig::jsonToString(json);
           return;
         }
 
@@ -699,7 +696,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
       if (!Field.isValid())
         {
-          CLogger::error() << "Node selector: Invalid or missing value 'field' for " << JSON;
+          CLogger::error() << "Node selector: Invalid or missing value 'field' for " << CSimConfig::jsonToString(json);
           return;
         }
 
@@ -727,7 +724,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
         }
     }
 
-  CLogger::error() << "Node selector: Invalid or missing value 'operator' for " << JSON;
+  CLogger::error() << "Node selector: Invalid or missing value 'operator' for " << CSimConfig::jsonToString(json);
 }
 
 // virtual

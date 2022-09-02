@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -17,6 +17,7 @@
 #include "math/CSizeOf.h"
 #include "sets/CSetContent.h"
 #include "utilities/CLogger.h"
+#include "utilities/CSimConfig.h"
 
 // static
 std::vector< CSizeOf * > CSizeOf::GetInstances()
@@ -29,7 +30,7 @@ CSizeOf::CSizeOf()
   , CComputable()
   , mpSetContent(NULL)
   , mIndex(std::numeric_limits< size_t >::max())
-  , mIndentifier()
+  , mIdentifier()
 {}
 
 CSizeOf::CSizeOf(const CSizeOf & src)
@@ -37,7 +38,7 @@ CSizeOf::CSizeOf(const CSizeOf & src)
   , CComputable(src)
   , mpSetContent(src.mpSetContent != NULL ? src.mpSetContent->copy() : NULL)
   , mIndex(src.mIndex)
-  , mIndentifier(src.mIndentifier)
+  , mIdentifier(src.mIdentifier)
 {}
 
 CSizeOf::CSizeOf(const json_t * json)
@@ -45,7 +46,7 @@ CSizeOf::CSizeOf(const json_t * json)
   , CComputable()
   , mpSetContent(NULL)
   , mIndex(std::numeric_limits< size_t >::max())
-  , mIndentifier()
+  , mIdentifier()
 {
   fromJSON(json);
 
@@ -81,7 +82,7 @@ bool CSizeOf::computeProtected()
 
 int CSizeOf::broadcastSize()
 {
-  // This barrier is necessarry since all threads must have finished computing the set.
+  // This barrier is necessary since all threads must have finished computing the set.
 #pragma omp barrier
 #pragma omp single
   {
@@ -94,7 +95,7 @@ int CSizeOf::broadcastSize()
     CLogger::setSingle(false);
   }
 
-  CLogger::debug() << "CSizeOf: Returned '" << *static_cast< double * >(mpValue) << "' for " << mIndentifier;
+  CLogger::debug() << "CSizeOf: Returned '" << *static_cast< double * >(mpValue) << "' for " << mIdentifier;
   return (int) CCommunicate::ErrorCode::Success;
 }
 
@@ -131,9 +132,7 @@ void CSizeOf::fromJSON(const json_t * json)
       mStatic = mpSetContent->isStatic();
       mValid = true;
 
-      char * str = json_dumps(json_object_get(json, "sizeof"), JSON_COMPACT | JSON_INDENT(0));
-      mIndentifier = str;
-      free(str);
+      mIdentifier = CSimConfig::jsonToString(json_object_get(json, "sizeof"));
 
       return;
     }

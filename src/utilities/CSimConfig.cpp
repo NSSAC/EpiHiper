@@ -810,3 +810,19 @@ json_t * CSimConfig::loadJson(const std::string & jsonFile, int flags)
 
   return pRoot;
 }
+
+// static
+std::string CSimConfig::jsonToString(const json_t * pJson)
+{
+  std::string JSON;
+
+  if (pJson != nullptr)
+    {
+      char * str = json_dumps(pJson, JSON_COMPACT | JSON_INDENT(0));
+      JSON = str;
+      free(str);
+    }
+
+  return JSON;
+}
+

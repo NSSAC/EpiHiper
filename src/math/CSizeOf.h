@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -58,7 +58,7 @@ private:
 
   CSetContent * mpSetContent;
   size_t mIndex;
-  std::string mIndentifier;
+  std::string mIdentifier;
 };
 
 #endif /* SRC_MATH_CSIZEOF_H_ */

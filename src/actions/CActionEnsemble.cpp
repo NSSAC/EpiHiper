@@ -13,6 +13,7 @@
 #include <jansson.h>
 
 #include "utilities/CLogger.h"
+#include "utilities/CSimConfig.h"
 #include "actions/CActionEnsemble.h"
 #include "sets/CSetContent.h"
 
@@ -142,11 +143,7 @@ void CActionEnsemble::fromJSON(const json_t * json)
 
   if (!mSampling.isValid())
     {
-      char * str = json_dumps(json, JSON_COMPACT | JSON_INDENT(0));
-      std::string JSON = str;
-      free(str);
-
-      CLogger::error() << "Action ensemble: Invalid value for 'sampling': " << JSON;
+      CLogger::error() << "Action ensemble: Invalid value for 'sampling': " << CSimConfig::jsonToString(json);
       return;
     }
 

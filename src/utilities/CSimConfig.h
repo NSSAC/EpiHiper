@@ -110,6 +110,7 @@ public:
   static const dump_active_network & getDumpActiveNetwork();
   static json_t * loadJson(const std::string & jsonFile, int flags);
   static json_t * loadJsonPreamble(const std::string & jsonFile, int flags);
+  static std::string jsonToString(const json_t * pJson);
 };
 
 #endif

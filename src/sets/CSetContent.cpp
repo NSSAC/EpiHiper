@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -24,6 +24,7 @@
 #include "sets/CSetList.h"
 #include "utilities/CRandom.h"
 #include "utilities/CLogger.h"
+#include "utilities/CSimConfig.h"
 
 size_t CSetContent::CDBFieldValues::size() const
 {
@@ -82,7 +83,7 @@ CSetContent * CSetContent::create(const json_t * json)
         }
       else
         {
-          CLogger::error("Set content: Invalid value for 'elementType'.");
+          CLogger::error() << "Set content: Invalid value for 'elementType'. " << CSimConfig::jsonToString(json);
           return NULL;
         }
     }
@@ -101,7 +102,7 @@ CSetContent * CSetContent::create(const json_t * json)
       return new CSetReference(json);
     }
 
-  CLogger::error("Set content: Invalid.");
+  CLogger::error() << "Set content: Invalid. ";
   return NULL;
 }
 

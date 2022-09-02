@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -23,6 +23,7 @@
 #include "variables/CVariableList.h"
 #include "utilities/CMetadata.h"
 #include "utilities/CLogger.h"
+#include "utilities/CSimConfig.h"
 
 COperationDefinition::COperationDefinition()
   : CAnnotation()
@@ -135,10 +136,6 @@ void COperationDefinition::fromJSON(const json_t * json)
       }
     ]
   */
-
-  char * str = json_dumps(json, JSON_COMPACT | JSON_INDENT(0));
-  std::string JSON = str;
-  free(str);
 
   mValid = false; // DONE
   json_t * pValue = json_object_get(json, "target");
@@ -257,11 +254,7 @@ void COperationDefinition::fromJSON(const json_t * json)
 
   if (!mValue.isValid())
     {
-      char * str = json_dumps(json, JSON_COMPACT | JSON_INDENT(0));
-      std::string JSON = str;
-      free(str);
-
-      CLogger::error() << "Operation: Invalid '" << JSON;
+      CLogger::error() << "Operation: Invalid '" << CSimConfig::jsonToString(json);
     }
 
   mValid = mValue.isValid();
