@@ -10,7 +10,7 @@ The support for multiple independent disease models is straight forward. Instead
 
 Each individual (node) currently has a single health state as well as unique infectivity, susceptibility, infectivity factor, and susceptibility factor. Replacing each of those with vectors would allow to record each models disease state and the according infectivity and susceptibility.
 
-The transmission process will have to be adapted to support multi diseases. This again is straight forward by looping over all loaded disease models and computing their transmission processes independently.
+The transmission process will have to be adapted to support multi diseases. This again is straight forward by looping over all loaded disease models and computing their transmission processes independently. Note, it is possible through custom propensity functions to utilize all state information from both involved individuals thus having disease interdependence.
 
 To support some commonality between diseases like susceptibility influenced by behaviors such as mask wearing the addition of common infectivity, common susceptibility, common infectivity factor, and common susceptibility factor would be beneficiary. Furthermore the current single transmissibility should be similarly replaced by a vector of transmissibilities and a common transmissibility.
 
