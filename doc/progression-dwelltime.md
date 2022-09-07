@@ -16,5 +16,5 @@ For both the state progression and dwell time we will allow the replacement of t
   unsigned int dwellTime(CNode * pNode, CProgression * pProgression, CModel * pModel)
 ```
 
-### Pointer to CModel
-The pointer to CModel is technically not required for single disease models as the global singleton may be accessed. However for the multi disease model the information must be provided. Therefore to provide a common interface it will be always provided by the caller. 
+### Pointer to Model
+The pointer to a model is technically not required for single disease models as the global singleton may be accessed. However for the multi disease model the information must be provided. Therefore to provide a common interface it will be always provided by the caller. 
