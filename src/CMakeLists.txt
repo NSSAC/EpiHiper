@@ -1,5 +1,5 @@
 # BEGIN: Copyright 
-# Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+# Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 # All rights reserved 
 # END: Copyright 
 
@@ -92,5 +92,3 @@ target_link_libraries (EpiHiperR0 PUBLIC ${EPIHIPER_LIBARIES})
 add_executable (EpiHiperModelAnalyzer EpiHiperModelAnalyzer.cpp EpiHiperConfig.h)
 add_dependencies(EpiHiperModelAnalyzer EpiHiperLib GIT_COMMIT)
 target_link_libraries (EpiHiperModelAnalyzer PUBLIC ${EPIHIPER_LIBARIES})
-
-add_subdirectory(propensity)

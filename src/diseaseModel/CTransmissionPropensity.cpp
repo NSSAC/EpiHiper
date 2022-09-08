@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2020 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -18,48 +18,29 @@
 #include "diseaseModel/CTransmission.h"
 #include "network/CEdge.h"
 #include "network/CNode.h"
-#include "utilities/CLogger.h"
+#include "utilities/CPlugin.h"
 #include "utilities/CSimConfig.h"
-void * lib_handle = NULL;
 
-// static 
+// static
 double CTransmissionPropensity::defaultPropensity(const CEdge * pEdge, const CTransmission * pTransmission)
 {
   // ρ(P, P', Τi,j,k) = (| contactTime(P, P') ∩ [tn, tn + Δtn] |) × contactWeight(P, P') × σ(P, Χi) × ι(P',Χk) × ω(Τi,j,k)
   return pEdge->duration * pEdge->weight * pEdge->pTarget->susceptibility
-    * pEdge->pSource->infectivity * pTransmission->getTransmissibility();
+         * pEdge->pSource->infectivity * pTransmission->getTransmissibility();
 }
 
-// static 
+// static
+CTransmissionPropensity::calculate_type CTransmissionPropensity::calculate = &CTransmissionPropensity::defaultPropensity;
+
+// static
 void CTransmissionPropensity::Init()
 {
-  std::string PropensityPlugin = CSimConfig::getPropensityPlugin();
+  CPlugin Plugin(CSimConfig::getPropensityPlugin());
 
-  if (PropensityPlugin.empty())
-    return;
+  CTransmissionPropensity::calculate = Plugin.symbol< calculate_type > ("propensity");
 
-  lib_handle = dlopen(PropensityPlugin.c_str(), RTLD_NOW | RTLD_DEEPBIND);
-
-  if (lib_handle == NULL)
+  if (CTransmissionPropensity::calculate == nullptr)
     {
-      CLogger::error() << "CTransmissionPropensity: " << dlerror();
-    }
-
-   char *error;
-   CTransmissionPropensity::pPROPENSITY = (pPropensity) dlsym(lib_handle, "propensity");
-
-   if ((error = dlerror()) != NULL) 
-    {
-      CLogger::error() << "CTransmissionPropensity: " << error;
+      CTransmissionPropensity::calculate = &CTransmissionPropensity::defaultPropensity;
     }
 }
-
-// static 
-void CTransmissionPropensity::Release()
-{
-  if (lib_handle != NULL)
-    dlclose(lib_handle);
-}
-
-// static 
-CTransmissionPropensity::pPropensity CTransmissionPropensity::pPROPENSITY = &CTransmissionPropensity::defaultPropensity;

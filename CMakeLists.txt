@@ -1,5 +1,5 @@
 # BEGIN: Copyright 
-# Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+# Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 # All rights reserved 
 # END: Copyright 
 
@@ -49,6 +49,7 @@ include_directories(BEFORE ${PROJECT_BINARY_DIR}/include)
 
 add_subdirectory(dependencies)
 add_subdirectory(src)
+add_subdirectory(plugins)
 
 message(STATUS "-----------------------------------------------------------
 

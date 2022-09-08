@@ -25,6 +25,7 @@
 #include "utilities/CLogger.h"
 #include "db/CSchema.h"
 #include "db/CConnection.h"
+#include "utilities/CPlugin.h"
 #include "utilities/CSimConfig.h"
 #include "utilities/CStatus.h"
 #include "actions/CActionQueue.h"
@@ -189,7 +190,7 @@ failed:
   CCommunicate::abort((CCommunicate::ErrorCode) MPI_ERR_UNKNOWN);
 
 success:
-  CTransmissionPropensity::Release();
+  CPlugin::Release();
   CModel::Release();
   CInitialization::release();
   CIntervention::release();

@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2020 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -20,12 +20,11 @@ class CTransmission;
 
 class CTransmissionPropensity {
 public:
-  typedef double (*pPropensity)(const CEdge * pEdge, const CTransmission * pTransmission);
+  typedef double (*calculate_type)(const CEdge * pEdge, const CTransmission * pTransmission);
 
   static double defaultPropensity(const CEdge * pEdge, const CTransmission * pTransmission);
   static void Init();
-  static void Release();
-  static pPropensity pPROPENSITY;
+  static calculate_type calculate;
 };
 
 #endif // SRC_DISEASEMODEL_CTRANSMISSIONPROPENSITY_H_

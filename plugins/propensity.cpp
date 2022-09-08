@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2020 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -10,7 +10,7 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "example.h"
+#include "propensity.h"
 
 #include "diseaseModel/CTransmission.h"
 #include "network/CNode.h"
