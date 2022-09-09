@@ -13,12 +13,12 @@
 #ifndef SRC_PROPENSITY_EXAMPLE_H_
 #define SRC_PROPENSITY_EXAMPLE_H_
 
-class CTransmission;
-class CEdge;
+class CProgression;
+class CNode;
 
 extern "C"
 {
-  double propensity(const CEdge * pEdge, const CTransmission * pTransmission);
+  unsigned int dwellTime(const CProgression * pProgression, const CNode * pNode);
 }
 
 #endif // SRC_PROPENSITY_EXAMPLE_H_

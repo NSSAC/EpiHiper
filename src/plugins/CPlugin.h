@@ -25,6 +25,7 @@ private:
   static std::map< std::string, void * > Libraries;
 
 public:
+  static void Init();
   static void Release();
 
   CPlugin(const std::string & pluginPath);
@@ -46,7 +47,7 @@ CType CPlugin::symbol(const std::string & symbol) const
     {
       pSymbol = (CType) dlsym(mpLibraryHandle, symbol.c_str());
 
-      if ((error = dlerror()) != NULL)
+      if ((error = dlerror()) != nullptr)
         {
           CLogger::error() << "CPlugin " << error;
           pSymbol = nullptr;

@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -14,15 +14,23 @@
 #define SRC_DISEASEMODEL_CHEALTHSTATE_H_
 
 #include <string>
+#include <vector>
 
 #include "utilities/CAnnotation.h"
 #include "utilities/CContext.h"
 
+class CProgression;
 struct json_t;
 
 class CHealthState: public CAnnotation
 {
 public:
+  struct PossibleProgressions
+  {
+    double A0;
+    std::vector< const CProgression * > Progressions;
+  };
+
   struct Counts
   {
     size_t Current;
@@ -38,14 +46,20 @@ public:
 
   virtual void fromJSON(const json_t * json) override;
 
+  const bool & isValid() const;
+
   const std::string & getId() const;
 
   const double & getSusceptibility() const;
 
   const double & getInfectivity() const;
 
-  const bool & isValid() const;
+  const PossibleProgressions & getPossibleProgressions() const;
 
+  void addProgression(const CProgression * pProgression);
+
+  const CProgression * nextProgression() const;
+  
   const CContext< Counts > & getLocalCounts() const;
 
   CContext< Counts > & getLocalCounts();
@@ -75,6 +89,8 @@ private:
   bool mValid;
   mutable CContext< Counts > mLocalCounts;
   Counts mGlobalCounts;
+  PossibleProgressions mProgressions;
+
 };
 
 #endif /* SRC_DISEASEMODEL_CHEALTHSTATE_H_ */

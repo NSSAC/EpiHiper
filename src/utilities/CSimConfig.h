@@ -46,6 +46,13 @@ public:
     std::string encoding;
   };
 
+  enum struct Plugin
+  {
+    transmissionPropensity,
+    nextProgression,
+    dwellTime
+  };
+
 private:
   bool valid;
 
@@ -66,7 +73,7 @@ private:
   std::string mSummaryOutput;
   std::string mStatus;
   std::string mIntervention;
-  std::string mPropensityPlugin;
+  std::map< Plugin, std::string > mPlugins;
   size_t mSeed;
   std::map< int, size_t > mReseed;
   size_t mReplicate;
@@ -100,7 +107,7 @@ public:
   static const std::string & getSummaryOutput();
   static const std::string & getStatus();
   static const std::string & getIntervention();
-  static const std::string & getPropensityPlugin();
+  static const std::string & getPlugin(Plugin plugin);
   static const size_t & getSeed();
   static const std::map< int, size_t> & getReseed();
   static const size_t & getReplicate();

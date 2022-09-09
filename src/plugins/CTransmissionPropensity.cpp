@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2020 - 2022 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -13,16 +13,16 @@
 #include <stdio.h>
 #include <dlfcn.h>
 
-#include "diseaseModel/CTransmissionPropensity.h"
+#include "plugins/CTransmissionPropensity.h"
 
+#include "plugins/CPlugin.h"
 #include "diseaseModel/CTransmission.h"
 #include "network/CEdge.h"
 #include "network/CNode.h"
-#include "utilities/CPlugin.h"
 #include "utilities/CSimConfig.h"
 
 // static
-double CTransmissionPropensity::defaultPropensity(const CEdge * pEdge, const CTransmission * pTransmission)
+double CTransmissionPropensity::defaultCalculate(const CEdge * pEdge, const CTransmission * pTransmission)
 {
   // ρ(P, P', Τi,j,k) = (| contactTime(P, P') ∩ [tn, tn + Δtn] |) × contactWeight(P, P') × σ(P, Χi) × ι(P',Χk) × ω(Τi,j,k)
   return pEdge->duration * pEdge->weight * pEdge->pTarget->susceptibility
@@ -30,17 +30,23 @@ double CTransmissionPropensity::defaultPropensity(const CEdge * pEdge, const CTr
 }
 
 // static
-CTransmissionPropensity::calculate_type CTransmissionPropensity::calculate = &CTransmissionPropensity::defaultPropensity;
+CTransmissionPropensity::calculate_type CTransmissionPropensity::calculate = &CTransmissionPropensity::defaultCalculate;
 
 // static
 void CTransmissionPropensity::Init()
 {
-  CPlugin Plugin(CSimConfig::getPropensityPlugin());
+  CPlugin Plugin(CSimConfig::getPlugin(CSimConfig::Plugin::transmissionPropensity));
 
-  CTransmissionPropensity::calculate = Plugin.symbol< calculate_type > ("propensity");
+  CTransmissionPropensity::calculate = Plugin.symbol< calculate_type > ("transmissionPropensity");
+
+  // Backwards compatability of old symbol name
+  if (CTransmissionPropensity::calculate == nullptr)
+    {
+      CTransmissionPropensity::calculate = Plugin.symbol< calculate_type > ("propensity");
+    }
 
   if (CTransmissionPropensity::calculate == nullptr)
     {
-      CTransmissionPropensity::calculate = &CTransmissionPropensity::defaultPropensity;
+      CTransmissionPropensity::calculate = &CTransmissionPropensity::defaultCalculate;
     }
 }

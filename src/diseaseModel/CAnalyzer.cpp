@@ -17,6 +17,8 @@
 #include "diseaseModel/CTransmission.h"
 #include "diseaseModel/CProgression.h"
 #include "diseaseModel/CHealthState.h"
+#include "plugins/CNextProgression.h"
+#include "plugins/CDwellTime.h"
 #include "utilities/CCommunicate.h"
 #include "utilities/CLogger.h"
 #include "utilities/CSimConfig.h"
@@ -313,12 +315,12 @@ void CAnalyzer::run()
               Statistics.entryTickSD += delta * (Tick - Statistics.entryTickMean);
 
               // Advance the state according to the possible progressions.
-              const CProgression * pProgression = mpModel->nextProgression(StateType);
+              const CProgression * pProgression = (*CNextProgression::calculate)(pState, nullptr);
 
               if (pProgression != NULL)
                 {
                   pState = pProgression->getExitState();
-                  unsigned int Duration = pProgression->getDwellTime();
+                  unsigned int Duration = (*CDwellTime::calculate)(pProgression, nullptr);
                   Tick += Duration;
                   
                   if (Tick <= mMaxTick)

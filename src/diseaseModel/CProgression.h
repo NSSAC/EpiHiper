@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -39,7 +39,7 @@ public:
 
   const CHealthState * getExitState() const;
 
-  const double & getPropability() const;
+  const double & getProbability() const;
 
   unsigned int getDwellTime() const;
 

@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -166,7 +166,7 @@ const CHealthState * CProgression::getExitState() const
   return mpExitState;
 }
 
-const double & CProgression::getPropability() const
+const double & CProgression::getProbability() const
 {
   return mProbability;
 }

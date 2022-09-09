@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2021 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -81,10 +81,6 @@ public:
 
   static void WriteGlobalStateCounts();
 
-  static const CProgression * NextProgression(const CModel::state_t & state); 
-
-  const CProgression * nextProgression(const CModel::state_t & state) const; 
-
   const CHealthState * getStates() const;
 
   const size_t & getStateCount() const;
@@ -100,12 +96,6 @@ private:
     CTransmission ** Transmissions;
   };
 
-  struct PossibleProgressions
-  {
-    double A0;
-    std::vector< const CProgression * > Progressions;
-  };
-
   bool processTransmissions() const;
   void stateChanged(CNode * pNode) const;
 
@@ -116,7 +106,7 @@ private:
   std::vector< CTransmission > mTransmissions;
   std::vector< CProgression > mProgressions;
   PossibleTransmissions * mPossibleTransmissions;
-  PossibleProgressions * mPossibleProgressions;
+
   const double * mpTransmissibility;
   bool mValid;
 };

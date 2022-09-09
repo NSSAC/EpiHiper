@@ -12,16 +12,28 @@
 
 #include <stdio.h>
 
-#include "utilities/CPlugin.h"
+#include "plugins/CPlugin.h"
+
+#include "plugins/CTransmissionPropensity.h"
+#include "plugins/CNextProgression.h"
+#include "plugins/CDwellTime.h"
 
 // static 
 std::map< std::string, void * > CPlugin::Libraries;
 
 // static
+void CPlugin::Init()
+{
+  CTransmissionPropensity::Init();
+  CNextProgression::Init();
+  CDwellTime::Init();
+}
+
+// static
 void CPlugin::Release()
 {
   for (auto Library : Libraries)
-    if (Library.second != NULL)
+    if (Library.second != nullptr)
       dlclose(Library.second);
 
   Libraries.clear();
@@ -29,7 +41,7 @@ void CPlugin::Release()
 
 CPlugin::CPlugin(const std::string & pluginPath)
   : mPluginPath(pluginPath)
-  , mpLibraryHandle(NULL)
+  , mpLibraryHandle(nullptr)
 {
   if (!mPluginPath.empty())
     {
@@ -43,7 +55,7 @@ CPlugin::CPlugin(const std::string & pluginPath)
         {
           mpLibraryHandle = dlopen(mPluginPath.c_str(), RTLD_NOW | RTLD_DEEPBIND);
 
-          if (mpLibraryHandle != NULL)
+          if (mpLibraryHandle != nullptr)
             {
               Libraries.insert(std::make_pair(mPluginPath, mpLibraryHandle));
             }

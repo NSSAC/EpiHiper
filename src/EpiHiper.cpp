@@ -16,7 +16,7 @@
 #include "utilities/CArgs.h"
 
 #include "diseaseModel/CModel.h"
-#include "diseaseModel/CTransmissionPropensity.h"
+#include "plugins/CPlugin.h"
 #include "utilities/CSimulation.h"
 #include "network/CNetwork.h"
 #include "traits/CTrait.h"
@@ -25,7 +25,6 @@
 #include "utilities/CLogger.h"
 #include "db/CSchema.h"
 #include "db/CConnection.h"
-#include "utilities/CPlugin.h"
 #include "utilities/CSimConfig.h"
 #include "utilities/CStatus.h"
 #include "actions/CActionQueue.h"
@@ -84,7 +83,8 @@ int main(int argc, char * argv[])
     }
 
   CStatus::load("epihiper", CArgs::getName(), CSimConfig::getStatus());
-  CTransmissionPropensity::Init();
+
+  CPlugin::Init();
 
   if (CLogger::hasErrors())
     {

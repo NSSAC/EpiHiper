@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2020 - 2022 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -10,21 +10,22 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#ifndef SRC_DISEASEMODEL_CTRANSMISSIONPROPENSITY_H_
-#define SRC_DISEASEMODEL_CTRANSMISSIONPROPENSITY_H_
+#ifndef SRC_PLUGINS_CTRANSMISSIONPROPENSITY_H_
+#define SRC_PLUGINS_CTRANSMISSIONPROPENSITY_H_
 
 #include <string>
 
 class CEdge;
 class CTransmission;
+class CModel;
 
 class CTransmissionPropensity {
 public:
   typedef double (*calculate_type)(const CEdge * pEdge, const CTransmission * pTransmission);
 
-  static double defaultPropensity(const CEdge * pEdge, const CTransmission * pTransmission);
+  static double defaultCalculate(const CEdge * pEdge, const CTransmission * pTransmission);
   static void Init();
   static calculate_type calculate;
 };
 
-#endif // SRC_DISEASEMODEL_CTRANSMISSIONPROPENSITY_H_
+#endif // SRC_PLUGINS_CTRANSMISSIONPROPENSITY_H_

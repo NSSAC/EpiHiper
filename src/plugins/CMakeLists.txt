@@ -10,16 +10,14 @@
 #   http://www.apache.org/licenses/LICENSE-2.0 
 # END: License 
 
-include_directories(BEFORE ${CMAKE_SOURCE_DIR}/src)
+cmake_minimum_required (VERSION 3.11)
 
-file(GLOB SOURCES_PROPENSITY transmissionPropensity.*)
+file(GLOB HEADERS_PLUGINS plugins/*.h)
+file(GLOB SOURCES_PLUGINS plugins/*.cpp)
 
-add_library(TransmissionPropensity SHARED ${SOURCES_PROPENSITY})
+# create source group for IDEs
+source_group(diseaseModel FILES ${SOURCES_PLUGINS} ${HEADERS_PLUGINS})
 
-file(GLOB SOURCES_PROPENSITY nextProgression.*)
-
-add_library(NextProgression SHARED ${SOURCES_PROPENSITY})
-
-file(GLOB SOURCES_PROPENSITY dwellTime.*)
-
-add_library(DwellTime SHARED ${SOURCES_PROPENSITY})
+# add files to main EPIHIPER sources
+set(SOURCES_EPIHIPER ${SOURCES_EPIHIPER} ${SOURCES_PLUGINS})
+set(HEADERS_EPIHIPER ${HEADERS_EPIHIPER} ${HEADERS_PLUGINS})

@@ -19,7 +19,9 @@
 #include "diseaseModel/CHealthState.h"
 #include "diseaseModel/CProgression.h"
 #include "diseaseModel/CTransmission.h"
-#include "diseaseModel/CTransmissionPropensity.h"
+#include "plugins/CTransmissionPropensity.h"
+#include "plugins/CNextProgression.h"
+#include "plugins/CDwellTime.h"
 #include "actions/CActionQueue.h"
 #include "actions/CProgressionAction.h"
 #include "actions/CTransmissionAction.h"
@@ -58,7 +60,6 @@ CModel::CModel(const std::string & modelFile)
   , mTransmissions()
   , mProgressions()
   , mPossibleTransmissions(NULL)
-  , mPossibleProgressions(NULL)
   , mpTransmissibility(NULL)
   , mValid(false)
 {
@@ -136,17 +137,14 @@ void CModel::fromJSON(const json_t * json)
   mStateCount = json_array_size(pValue);
   mStates = new CHealthState[mStateCount];
   mPossibleTransmissions = new PossibleTransmissions[mStateCount];
-  mPossibleProgressions = new PossibleProgressions[mStateCount];
-
+  
   PossibleTransmissions * pTransmissions = mPossibleTransmissions;
-  PossibleProgressions * pProgressions = mPossibleProgressions;
   CHealthState * pState = mStates;
 
-  for (size_t i = 0; i < mStateCount; ++i, ++pState, ++pTransmissions, ++pProgressions)
+  for (size_t i = 0; i < mStateCount; ++i, ++pState, ++pTransmissions)
     {
       pState->fromJSON(json_array_get(pValue, i));
       pTransmissions->Transmissions = NULL;
-      pProgressions->A0 = 0.0;
 
       if (pState->isValid())
         {
@@ -217,8 +215,7 @@ void CModel::fromJSON(const json_t * json)
 
       if (itProg->isValid())
         {
-          mPossibleProgressions[itProg->getEntryState() - mStates].A0 += itProg->getPropability();
-          mPossibleProgressions[itProg->getEntryState() - mStates].Progressions.push_back(&*itProg);
+          const_cast< CHealthState * >(itProg->getEntryState())->addProgression(&*itProg);
         }
       else
         {
@@ -368,50 +365,19 @@ void CModel::StateChanged(CNode * pNode)
 void CModel::stateChanged(CNode * pNode) const
 {
   // std::cout << pNode->id << ": " << pNode->Edges << ", " << pNode->Edges + pNode->EdgesSize << ", " << pNode->EdgesSize << std::endl;
-  const CProgression * pProgression = nextProgression(pNode->healthState);
+  const CProgression * pProgression = (*CNextProgression::calculate)(stateFromType(pNode->healthState), pNode);
 
   if (pProgression != NULL)
     {
       try
         {
-          CActionQueue::addAction(pProgression->getDwellTime(), new CProgressionAction(pProgression, pNode));
+          CActionQueue::addAction((*CDwellTime::calculate)(pProgression, pNode), new CProgressionAction(pProgression, pNode));
         }
       catch (...)
         {
           CLogger::error() << "CModel:: Failed to create progression for '" << pNode->id << "'.";
         }
     }
-}
-
-// static
-const CProgression * CModel::NextProgression(const CModel::state_t & state)
-{
-  return INSTANCE->nextProgression(state);
-}
-
-const CProgression * CModel::nextProgression(const CModel::state_t & state) const
-{
-  PossibleProgressions & Progressions = mPossibleProgressions[state];
-
-  if (Progressions.A0 > 0.0)
-    {
-      double alpha = CRandom::uniform_real(0.0, Progressions.A0)(CRandom::G.Active());
-
-      std::vector< const CProgression * >::const_iterator it = Progressions.Progressions.begin();
-      std::vector< const CProgression * >::const_iterator end = Progressions.Progressions.end();
-
-      for (; it != end; ++it)
-        {
-          alpha -= (*it)->getPropability();
-
-          if (alpha < 0.0)
-            break;
-        }
-
-      return (it != end) ? *it : *Progressions.Progressions.rbegin();
-    }
-
-  return NULL;
 }
 
 const CHealthState * CModel::getStates() const

@@ -114,9 +114,9 @@ const std::string & CSimConfig::getIntervention()
 }
 
 // static 
-const std::string & CSimConfig::getPropensityPlugin()
+const std::string & CSimConfig::getPlugin(CSimConfig::Plugin plugin)
 {
-  return CSimConfig::INSTANCE->mPropensityPlugin;
+  return CSimConfig::INSTANCE->mPlugins[plugin];
 }
   
 // static
@@ -180,7 +180,7 @@ CSimConfig::CSimConfig(const std::string & configFile)
   , mSummaryOutput()
   , mStatus()
   , mIntervention()
-  , mPropensityPlugin()
+  , mPlugins()
   , mSeed(-1)
   , mReseed()
   , mReplicate(-1)
@@ -387,11 +387,31 @@ CSimConfig::CSimConfig(const std::string & configFile)
 
   valid &= !mModelScenario.empty();
 
-  pValue = json_object_get(pRoot, "propensityPlugin");
+  pValue = json_object_get(pRoot, "pluginTransmissionPropensity");
+
+  // Backwards compatability of old attribute name
+  if (!json_is_string(pValue))
+    {
+      pValue = json_object_get(pRoot, "propensityPlugin");
+    }
 
   if (json_is_string(pValue))
     {
-      mPropensityPlugin = CDirEntry::resolve(json_string_value(pValue), mRunParameters);
+      mPlugins[Plugin::transmissionPropensity] = CDirEntry::resolve(json_string_value(pValue), mRunParameters);
+    }
+
+  pValue = json_object_get(pRoot, "pluginNextProgression");
+
+  if (json_is_string(pValue))
+    {
+      mPlugins[Plugin::nextProgression] = CDirEntry::resolve(json_string_value(pValue), mRunParameters);
+    }
+
+  pValue = json_object_get(pRoot, "pluginDwellTime");
+
+  if (json_is_string(pValue))
+    {
+      mPlugins[Plugin::dwellTime] = CDirEntry::resolve(json_string_value(pValue), mRunParameters);
     }
 
   std::string DefaultDir;

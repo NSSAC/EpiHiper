@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -13,6 +13,7 @@
 #include <jansson.h>
 
 #include "diseaseModel/CHealthState.h"
+#include "diseaseModel/CProgression.h"
 #include "utilities/CLogger.h"
 
 CHealthState::CHealthState()
@@ -110,6 +111,11 @@ void CHealthState::fromJSON(const json_t * json)
   mValid = true;
 }
 
+const bool & CHealthState::isValid() const
+{
+  return mValid;
+}
+
 const std::string & CHealthState::getId() const
 {
   return mId;
@@ -125,11 +131,42 @@ const double & CHealthState::getInfectivity() const
   return mInfectivity;
 }
 
-const bool & CHealthState::isValid() const
+const CHealthState::PossibleProgressions & CHealthState::getPossibleProgressions() const
 {
-  return mValid;
+  return mProgressions;
 }
 
+void CHealthState::addProgression(const CProgression * pProgression)
+{
+  if (mProgressions.Progressions.size() == 0)
+    {
+      mProgressions.A0 = 0.0;
+    }
+
+  mProgressions.A0 += pProgression->getProbability();
+  mProgressions.Progressions.push_back(pProgression);
+}
+
+const CProgression * CHealthState::nextProgression() const
+{
+  if (mProgressions.A0 > 0.0)
+    {
+      double alpha = CRandom::uniform_real(0.0, mProgressions.A0)(CRandom::G.Active());
+
+      for (const CProgression * pProgression : mProgressions.Progressions)
+        {
+          alpha -= pProgression->getProbability();
+
+          if (alpha < 0.0)
+            return pProgression;
+        }
+
+      return mProgressions.Progressions.back();
+    }
+
+  return NULL;
+}
+  
 const CContext< CHealthState::Counts > & CHealthState::getLocalCounts() const
 {
   return mLocalCounts;

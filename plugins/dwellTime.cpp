@@ -10,14 +10,13 @@
 //   http://www.apache.org/licenses/LICENSE-2.0 
 // END: License 
 
-#include "propensity.h"
+#include "dwellTime.h"
 
-#include "diseaseModel/CTransmission.h"
+#include "diseaseModel/CProgression.h"
 #include "network/CNode.h"
 #include "network/CEdge.h"
 
-double propensity(const CEdge * pEdge, const CTransmission * pTransmission)
+unsigned int dwellTime(const CProgression * pProgression, const CNode * /* pNode */)
 {
-  return pEdge->duration * pEdge->weight * pEdge->pTarget->susceptibility
-    * pEdge->pSource->infectivity * pTransmission->getTransmissibility();
+  return pProgression->getDwellTime();
 }
