@@ -19,9 +19,6 @@
 #include "diseaseModel/CHealthState.h"
 #include "diseaseModel/CProgression.h"
 #include "diseaseModel/CTransmission.h"
-#include "plugins/CTransmissionPropensity.h"
-#include "plugins/CNextProgression.h"
-#include "plugins/CDwellTime.h"
 #include "actions/CActionQueue.h"
 #include "actions/CProgressionAction.h"
 #include "actions/CTransmissionAction.h"
@@ -315,7 +312,7 @@ bool CModel::processTransmissions() const
                 Candidate Candidate;
                 Candidate.pEdge = pEdge;
                 Candidate.pTransmission = pTransmission;
-                Candidate.Propensity = (*CTransmissionPropensity::calculate)(pEdge, pTransmission);
+                Candidate.Propensity = pTransmission->propensity(pEdge);
 
                 if (Candidate.Propensity > 0.0)
                   {
@@ -365,13 +362,13 @@ void CModel::StateChanged(CNode * pNode)
 void CModel::stateChanged(CNode * pNode) const
 {
   // std::cout << pNode->id << ": " << pNode->Edges << ", " << pNode->Edges + pNode->EdgesSize << ", " << pNode->EdgesSize << std::endl;
-  const CProgression * pProgression = (*CNextProgression::calculate)(stateFromType(pNode->healthState), pNode);
+  const CProgression * pProgression = pNode->getHealthState()->nextProgression(pNode);
 
   if (pProgression != NULL)
     {
       try
         {
-          CActionQueue::addAction((*CDwellTime::calculate)(pProgression, pNode), new CProgressionAction(pProgression, pNode));
+          CActionQueue::addAction(pProgression->dwellTime(pNode), new CProgressionAction(pProgression, pNode));
         }
       catch (...)
         {

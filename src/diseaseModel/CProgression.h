@@ -18,13 +18,16 @@
 #include "utilities/CAnnotation.h"
 #include "diseaseModel/CDistribution.h"
 #include "diseaseModel/CFactorOperation.h"
+#include "plugins/epiHiperPlugin.h"
 
 struct json_t;
 class CHealthState;
 
-class CProgression: public CAnnotation
+class CProgression: public CAnnotation, public CCustomMethod< epiHiperPlugin::progression_dwell_time >
 {
 public:
+  static unsigned int defaultMethod(const CProgression * pProgression, const CNode * pNode);
+
   CProgression();
 
   CProgression(const CProgression & src);
@@ -41,7 +44,7 @@ public:
 
   const double & getProbability() const;
 
-  unsigned int getDwellTime() const;
+  unsigned int dwellTime(const CNode * pNode) const;
 
   void updateSusceptibilityFactor(double & factor) const;
 

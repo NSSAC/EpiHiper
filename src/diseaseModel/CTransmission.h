@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -17,13 +17,16 @@
 
 #include "utilities/CAnnotation.h"
 #include "diseaseModel/CFactorOperation.h"
+#include "plugins/epiHiperPlugin.h"
 
 struct json_t;
 class CHealthState;
 
-class CTransmission: public CAnnotation
+class CTransmission: public CAnnotation, public CCustomMethod< epiHiperPlugin::transmission_propensity >
 {
 public:
+  static double defaultMethod(const CTransmission * pTransmission, const CEdge * pEdge);
+
   CTransmission();
 
   CTransmission(const CTransmission & src);
@@ -47,6 +50,8 @@ public:
   void updateSusceptibilityFactor(double & factor) const;
 
   void updateInfectivityFactor(double & factor) const;
+
+  double propensity(const CEdge * pEdge) const;
 
 private:
   std::string mId;

@@ -16,8 +16,32 @@
 #include "diseaseModel/CProgression.h"
 #include "utilities/CLogger.h"
 
+// static
+const CProgression * CHealthState::defaultMethod(const CHealthState * pHealthState, const CNode * /* pNode */)
+{
+  const PossibleProgressions & Progressions = pHealthState->getPossibleProgressions();
+
+  if (Progressions.A0 > 0.0)
+    {
+      double alpha = CRandom::uniform_real(0.0, Progressions.A0)(CRandom::G.Active());
+
+      for (const CProgression * pProgression : Progressions.Progressions)
+        {
+          alpha -= pProgression->getProbability();
+
+          if (alpha < 0.0)
+            return pProgression;
+        }
+
+      return Progressions.Progressions.back();
+    }
+
+  return NULL;
+}
+
 CHealthState::CHealthState()
   : CAnnotation()
+  , CCustomMethod()
   , mId()
   , mSusceptibility(-1.0)
   , mInfectivity(-1.0)
@@ -42,10 +66,13 @@ CHealthState::CHealthState()
         pIt->Out = 0;
         pIt->In = 0;
       }
+
+  setCustomMethod(&defaultMethod);
 }
 
 CHealthState::CHealthState(const CHealthState & src)
   : CAnnotation(src)
+  , CCustomMethod(src)
   , mId(src.mId)
   , mSusceptibility(src.mSusceptibility)
   , mInfectivity(src.mInfectivity)
@@ -147,26 +174,11 @@ void CHealthState::addProgression(const CProgression * pProgression)
   mProgressions.Progressions.push_back(pProgression);
 }
 
-const CProgression * CHealthState::nextProgression() const
+const CProgression * CHealthState::nextProgression(const CNode * pNode) const
 {
-  if (mProgressions.A0 > 0.0)
-    {
-      double alpha = CRandom::uniform_real(0.0, mProgressions.A0)(CRandom::G.Active());
-
-      for (const CProgression * pProgression : mProgressions.Progressions)
-        {
-          alpha -= pProgression->getProbability();
-
-          if (alpha < 0.0)
-            return pProgression;
-        }
-
-      return mProgressions.Progressions.back();
-    }
-
-  return NULL;
+  return mpCustomMethod(this, pNode);
 }
-  
+
 const CContext< CHealthState::Counts > & CHealthState::getLocalCounts() const
 {
   return mLocalCounts;

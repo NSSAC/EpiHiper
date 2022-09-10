@@ -13,20 +13,54 @@
 #include <stdio.h>
 
 #include "plugins/CPlugin.h"
+#include "utilities/CSimConfig.h"
 
-#include "plugins/CTransmissionPropensity.h"
-#include "plugins/CNextProgression.h"
-#include "plugins/CDwellTime.h"
-
-// static 
+// static
 std::map< std::string, void * > CPlugin::Libraries;
 
 // static
 void CPlugin::Init()
 {
-  CTransmissionPropensity::Init();
-  CNextProgression::Init();
-  CDwellTime::Init();
+  for (const std::string & PluginPath : CSimConfig::getPlugins())
+    {
+      void * pLibraryHandle = nullptr;
+
+      if (!PluginPath.empty())
+        {
+          std::map< std::string, void * >::const_iterator found = Libraries.find(PluginPath);
+
+          if (found != Libraries.end())
+            {
+              CLogger::error() << "CPlugin " << PluginPath << ": Plugin already loaded.";
+              continue;
+            }
+          else
+            {
+              pLibraryHandle = dlopen(PluginPath.c_str(), RTLD_NOW | RTLD_DEEPBIND);
+
+              if (pLibraryHandle != nullptr)
+                {
+                  Libraries.insert(std::make_pair(PluginPath, pLibraryHandle));
+                }
+              else
+                {
+                  CLogger::error() << "CPlugin" << dlerror();
+                  continue;
+                }
+            }
+
+          char * error;
+          init pInit = (init) dlsym(pLibraryHandle, "init");
+
+          if ((error = dlerror()) != nullptr)
+            {
+              CLogger::error() << "CPlugin " << error;
+              continue;
+            }
+
+          (*pInit)();
+        }
+    }
 }
 
 // static
@@ -37,32 +71,4 @@ void CPlugin::Release()
       dlclose(Library.second);
 
   Libraries.clear();
-}
-
-CPlugin::CPlugin(const std::string & pluginPath)
-  : mPluginPath(pluginPath)
-  , mpLibraryHandle(nullptr)
-{
-  if (!mPluginPath.empty())
-    {
-      std::map< std::string, void * >::const_iterator found = Libraries.find(mPluginPath);
-
-      if (found != Libraries.end())
-        {
-          mpLibraryHandle = found->second;
-        }
-      else
-        {
-          mpLibraryHandle = dlopen(mPluginPath.c_str(), RTLD_NOW | RTLD_DEEPBIND);
-
-          if (mpLibraryHandle != nullptr)
-            {
-              Libraries.insert(std::make_pair(mPluginPath, mpLibraryHandle));
-            }
-          else
-            {
-              CLogger::error() << "CPlugin" << dlerror();
-            }
-        }
-    }
 }

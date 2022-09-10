@@ -25,36 +25,10 @@ private:
   static std::map< std::string, void * > Libraries;
 
 public:
+  typedef void (*init)();
+
   static void Init();
   static void Release();
-
-  CPlugin(const std::string & pluginPath);
-
-  template < class CType > CType symbol(const std::string & symbol) const;
-
-private:
-  std::string mPluginPath;
-  void * mpLibraryHandle;
 };
-
-template < class CType >
-CType CPlugin::symbol(const std::string & symbol) const
-{
-  char * error;
-  CType pSymbol = nullptr;
-
-  if (mpLibraryHandle != nullptr)
-    {
-      pSymbol = (CType) dlsym(mpLibraryHandle, symbol.c_str());
-
-      if ((error = dlerror()) != nullptr)
-        {
-          CLogger::error() << "CPlugin " << error;
-          pSymbol = nullptr;
-        }
-    }
-
-  return pSymbol;
-}
 
 #endif // SRC_UTILITIES_CPLUGIN_H_

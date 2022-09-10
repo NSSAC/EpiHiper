@@ -114,9 +114,9 @@ const std::string & CSimConfig::getIntervention()
 }
 
 // static 
-const std::string & CSimConfig::getPlugin(CSimConfig::Plugin plugin)
+const std::vector< std::string > & CSimConfig::getPlugins()
 {
-  return CSimConfig::INSTANCE->mPlugins[plugin];
+  return CSimConfig::INSTANCE->mPlugins;
 }
   
 // static
@@ -387,32 +387,18 @@ CSimConfig::CSimConfig(const std::string & configFile)
 
   valid &= !mModelScenario.empty();
 
-  pValue = json_object_get(pRoot, "pluginTransmissionPropensity");
+  pValue = json_object_get(pRoot, "plugins");
 
-  // Backwards compatability of old attribute name
-  if (!json_is_string(pValue))
-    {
-      pValue = json_object_get(pRoot, "propensityPlugin");
-    }
+  if (json_is_array(pValue))
+    for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
+      {
+        json_t * pPlugin = json_array_get(pValue, i);
 
-  if (json_is_string(pValue))
-    {
-      mPlugins[Plugin::transmissionPropensity] = CDirEntry::resolve(json_string_value(pValue), mRunParameters);
-    }
-
-  pValue = json_object_get(pRoot, "pluginNextProgression");
-
-  if (json_is_string(pValue))
-    {
-      mPlugins[Plugin::nextProgression] = CDirEntry::resolve(json_string_value(pValue), mRunParameters);
-    }
-
-  pValue = json_object_get(pRoot, "pluginDwellTime");
-
-  if (json_is_string(pValue))
-    {
-      mPlugins[Plugin::dwellTime] = CDirEntry::resolve(json_string_value(pValue), mRunParameters);
-    }
+        if (json_is_string(pPlugin))
+          {
+            mPlugins.push_back(CDirEntry::resolve(json_string_value(pPlugin), mRunParameters));
+          }
+      }
 
   std::string DefaultDir;
 

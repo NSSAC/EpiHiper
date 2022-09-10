@@ -18,11 +18,13 @@
 
 #include "utilities/CAnnotation.h"
 #include "utilities/CContext.h"
+#include "plugins/epiHiperPlugin.h"
 
 class CProgression;
+class pNode;
 struct json_t;
 
-class CHealthState: public CAnnotation
+class CHealthState: public CAnnotation, public CCustomMethod< epiHiperPlugin::state_progression >
 {
 public:
   struct PossibleProgressions
@@ -37,6 +39,8 @@ public:
     size_t In;
     size_t Out;
   };
+
+  static const CProgression * defaultMethod(const CHealthState * pHealthState, const CNode * pNode);
 
   CHealthState();
 
@@ -58,8 +62,8 @@ public:
 
   void addProgression(const CProgression * pProgression);
 
-  const CProgression * nextProgression() const;
-  
+  const CProgression * nextProgression(const CNode * pNode) const;
+
   const CContext< Counts > & getLocalCounts() const;
 
   CContext< Counts > & getLocalCounts();

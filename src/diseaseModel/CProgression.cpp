@@ -16,8 +16,15 @@
 #include "diseaseModel/CHealthState.h"
 #include "utilities/CLogger.h"
 
+// static
+unsigned int CProgression::defaultMethod(const CProgression * pProgression, const CNode * /* pNode */)
+{
+  return pProgression->mDwellTime.sample();
+}
+
 CProgression::CProgression()
   : CAnnotation()
+  , CCustomMethod()
   , mId()
   , mpEntryState(NULL)
   , mpExitState(NULL)
@@ -26,10 +33,13 @@ CProgression::CProgression()
   , mSusceptibilityFactorOperation()
   , mInfectivityFactorOperation()
   , mValid(false)
-{}
+{
+  setCustomMethod(&defaultMethod);
+}
 
 CProgression::CProgression(const CProgression & src)
   : CAnnotation(src)
+  , CCustomMethod(src)
   , mId(src.mId)
   , mpEntryState(src.mpEntryState)
   , mpExitState(src.mpExitState)
@@ -171,9 +181,9 @@ const double & CProgression::getProbability() const
   return mProbability;
 }
 
-unsigned int CProgression::getDwellTime() const
+unsigned int CProgression::dwellTime(const CNode * pNode) const
 {
-  return mDwellTime.sample();
+  return mpCustomMethod(this, pNode);
 }
 
 void CProgression::updateSusceptibilityFactor(double & factor) const
