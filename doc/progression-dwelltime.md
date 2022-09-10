@@ -1,20 +1,35 @@
 # State dependent Progression and Dwell Time
 
 ## Abstract
-The state progression and the dwell time are specified within the disease model. Individual properties do not influence either. This solution is working and covers the majority of cases. However it is desirable in particular in the multi disease model case to allow individual based progression.
+The state progression and the dwell time are specified within the disease model. Individual properties do not influence either. This solution is working and covers the majority of cases. However it is desirable in particular in the multi disease model case to allow individual based progression. The situation is similar to the transmission propensity however in that case EpiHiper already provides a plugin which allows to replace the default transmission propensity calculation.
 
 ## Implementation
-For both the state progression and dwell time we will allow the replacement of the EpiHiper build in implementation by user defined methods through a plugin system as currently in use for the transmission propensity calculation. The user may chose to provide no plugins (EpiHiper build in progression and dwell time calculation), a progression plugin (attribute `pluginNextProgression` in runParameters.json), a dwell time plugin (attribute `pluginDwellTime` in runParameters.json), or both. The plugins must be provided as a dynamic link library which provides the appropriate method described below.
+The implementation for all three situations: transmission propensity, health-state progression, and progression dwell time will be treated similarly. In all three cases EpiHiper will use the default calculations unless a method is registered which overrides it. To register a plugin transmission, health-state, and progression will allow the registration on an individual level, e.g. the default propensity calculation may be changed for just a single transmission. 
 
-### Progression Plugin Interface
+In order for a plugin to register a custom implementation it will be called after loading of the disease model has finished through a the method:
 ```
-  CProgression * nextProgression(CNode * pNode, CModel * pModel)
-```
-
-### Dwell Time Plugin Interface
-```
-  unsigned int dwellTime(CNode * pNode, CProgression * pProgression, CModel * pModel)
+extern "C"
+{
+  void init();
+}
 ```
 
-### Pointer to Model
-The pointer to a model is technically not required for single disease models as the global singleton may be accessed. However for the multi disease model the information must be provided. Therefore to provide a common interface it will be always provided by the caller. 
+A plugin will have access to either a singleton disease model `CModel::INSTANCE` (single disease case) or a singleton vector of disease models `CModel::INSTANCES` (multi-disease case). In the init method all custom implementations can be registered. Note, it is possible for a plugin to provide custom implementation for all tree situations. Furthermore it is possible to load multiple plugins. T
+
+Plugin will be specified at runtime in the runParameters.json file. In the attribute `plugins` which is of type array containing path and name of the dynamic link library providing the plugin.
+
+### Transmission Propensity Interface:
+```
+  typedef double (*transmission_propensity_type)(const CTransmission * pTransmission, const CEdge * pEdge);
+```
+
+### State Progression Interface
+```
+  typedef const CProgression * (*state_progression_type)(const CHealthState * pHealthState, const CNode * pNode);
+```
+
+### Progression Dwell Time Interface
+```
+  typedef unsigned int (*progression_dwell_time_type)(const CProgression * pProgression, const CNode * pNode);
+```
+
