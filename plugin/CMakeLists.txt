@@ -12,14 +12,8 @@
 
 include_directories(BEFORE ${CMAKE_SOURCE_DIR}/src)
 
-file(GLOB SOURCES_PROPENSITY transmissionPropensity.*)
+file(GLOB SOURCES_EXAMPLE *.cpp)
+file(GLOB HEADERS_EXAMPLE *.h)
 
-add_library(TransmissionPropensity SHARED ${SOURCES_PROPENSITY})
 
-file(GLOB SOURCES_PROPENSITY nextProgression.*)
-
-add_library(NextProgression SHARED ${SOURCES_PROPENSITY})
-
-file(GLOB SOURCES_PROPENSITY dwellTime.*)
-
-add_library(DwellTime SHARED ${SOURCES_PROPENSITY})
+add_library(EpiHiperPlugin SHARED ${SOURCES_EXAMPLE} ${HEADERS_EXAMPLE})

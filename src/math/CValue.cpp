@@ -18,6 +18,7 @@
 
 #include "traits/CTrait.h"
 #include "utilities/CLogger.h"
+#include "diseaseModel/CHealthState.h"
 
 CValue::CValue(const bool & boolean)
   : CValueInterface(Type::boolean, createValue(Type::boolean))
@@ -157,7 +158,7 @@ void CValue::fromJSON(const json_t * json)
         }
 
       mValid = true;
-      mpValue = new CModel::state_t(CModel::StateToType(pHealthState));
+      mpValue = new CModel::state_t(pHealthState->getIndex());
       return;
     }
 

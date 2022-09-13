@@ -291,7 +291,7 @@ void CAnalyzer::run()
 
   for (; itExposed != endExposed; ++itExposed)
     {
-      CModel::state_t ExposedType = mpModel->stateToType(*itExposed);
+      CModel::state_t ExposedType = (*itExposed)->getIndex();
 
       for (size_t i = 0; i != mSampleSize; ++i)
         {
@@ -301,7 +301,7 @@ void CAnalyzer::run()
           while (pState != NULL && Tick <= mMaxTick)
             {
               // Record the current state and time
-              CModel::state_t StateType = mpModel->stateToType(pState);
+              CModel::state_t StateType = pState->getIndex();
              
               StateStatistics & Statistics = mData[StateType];
               Statistics.exposedState.insert(ExposedType);

@@ -17,12 +17,12 @@
 
 #include "utilities/CAnnotation.h"
 #include "diseaseModel/CFactorOperation.h"
-#include "plugins/epiHiperPlugin.h"
+#include "plugins/CCustomMethod.h"
 
 struct json_t;
 class CHealthState;
 
-class CTransmission: public CAnnotation, public CCustomMethod< epiHiperPlugin::transmission_propensity >
+class CTransmission: public CAnnotation, public CCustomMethod< CCustomMethodType::transmission_propensity >
 {
 public:
   static double defaultMethod(const CTransmission * pTransmission, const CEdge * pEdge);

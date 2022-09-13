@@ -24,7 +24,7 @@ unsigned int CProgression::defaultMethod(const CProgression * pProgression, cons
 
 CProgression::CProgression()
   : CAnnotation()
-  , CCustomMethod()
+  , CCustomMethod(&CProgression::defaultMethod)
   , mId()
   , mpEntryState(NULL)
   , mpExitState(NULL)
@@ -33,9 +33,7 @@ CProgression::CProgression()
   , mSusceptibilityFactorOperation()
   , mInfectivityFactorOperation()
   , mValid(false)
-{
-  setCustomMethod(&defaultMethod);
-}
+{}
 
 CProgression::CProgression(const CProgression & src)
   : CAnnotation(src)

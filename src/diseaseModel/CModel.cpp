@@ -75,12 +75,7 @@ CModel::CModel(const std::string & modelFile)
 
 // virtual
 CModel::~CModel()
-{
-  if (mStates != NULL)
-    {
-      delete[] mStates;
-    }
-}
+{}
 
 void CModel::fromJSON(const json_t * json)
 {
@@ -132,11 +127,11 @@ void CModel::fromJSON(const json_t * json)
   json_t * pValue = json_object_get(json, "states");
 
   mStateCount = json_array_size(pValue);
-  mStates = new CHealthState[mStateCount];
+  mStates.resize(mStateCount);
   mPossibleTransmissions = new PossibleTransmissions[mStateCount];
   
   PossibleTransmissions * pTransmissions = mPossibleTransmissions;
-  CHealthState * pState = mStates;
+  std::vector< CHealthState >::iterator pState = mStates.begin();
 
   for (size_t i = 0; i < mStateCount; ++i, ++pState, ++pTransmissions)
     {
@@ -145,7 +140,8 @@ void CModel::fromJSON(const json_t * json)
 
       if (pState->isValid())
         {
-          mId2State[pState->getId()] = pState;
+          pState->setIndex(i);
+          mId2State[pState->getId()] = &*pState;
         }
       else
         {
@@ -185,13 +181,15 @@ void CModel::fromJSON(const json_t * json)
 
       if (itTrans->isValid())
         {
-          if (mPossibleTransmissions[itTrans->getEntryState() - mStates].Transmissions == NULL)
+          state_t StateType =itTrans->getEntryState()->getIndex();
+
+          if (mPossibleTransmissions[StateType].Transmissions == NULL)
             {
-              mPossibleTransmissions[itTrans->getEntryState() - mStates].Transmissions = new CTransmission*[mStateCount];
-              memset(mPossibleTransmissions[itTrans->getEntryState() - mStates].Transmissions, 0, sizeof(void *) * mStateCount);
+              mPossibleTransmissions[StateType].Transmissions = new CTransmission*[mStateCount];
+              memset(mPossibleTransmissions[StateType].Transmissions, 0, sizeof(void *) * mStateCount);
             }
 
-          mPossibleTransmissions[itTrans->getEntryState() - mStates].Transmissions[itTrans->getContactState() - mStates] = &*itTrans;
+          mPossibleTransmissions[StateType].Transmissions[itTrans->getContactState()->getIndex()] = &*itTrans;
         }
       else
         {
@@ -247,12 +245,6 @@ CHealthState * CModel::GetState(const std::string & id)
     return found->second;
 
   return NULL;
-}
-
-// static
-CModel::state_t CModel::StateToType(const CHealthState * pState)
-{
-  return INSTANCE->stateToType(pState);
 }
 
 // static
@@ -377,7 +369,7 @@ void CModel::stateChanged(CNode * pNode) const
     }
 }
 
-const CHealthState * CModel::getStates() const
+const std::vector< CHealthState > & CModel::getStates() const
 {
   return mStates;
 }
@@ -392,14 +384,13 @@ const std::vector< CTransmission > &  CModel::getTransmissions() const
   return mTransmissions;
 }
 
-CModel::state_t CModel::stateToType(const CHealthState * pState) const
+const std::vector< CProgression > & CModel::getProgressions() const
 {
-  return  pState - mStates;
+  return mProgressions;
 }
 
-CHealthState * CModel::stateFromType(const CModel::state_t & type) const
-{
-  return mStates + type;
+CHealthState * CModel::stateFromType(const CModel::state_t & type) {
+  return &mStates[type];
 }
 
 // static
@@ -408,14 +399,26 @@ const std::vector< CTransmission > & CModel::GetTransmissions()
   return INSTANCE->getTransmissions();
 }
 
+// static 
+const std::vector< CHealthState > & CModel::GetStates()
+{
+  return CModel::INSTANCE->getStates();
+}
+
+// static 
+const std::vector< CProgression > & CModel::GetProgressions()
+{
+  return CModel::INSTANCE->getProgressions();
+}
+
 // static
 int CModel::UpdateGlobalStateCounts()
 {
   size_t Size = INSTANCE->mStateCount;
   CHealthState::Counts LocalStateCounts[Size];
 
-  CHealthState * pState = INSTANCE->mStates;
-  CHealthState * pStateEnd = pState + Size;
+  std::vector< CHealthState >::iterator pState = INSTANCE->mStates.begin();
+  std::vector< CHealthState >::iterator pStateEnd = INSTANCE->mStates.end();
   CHealthState::Counts * pLocalCount = LocalStateCounts;
 
   for (; pState != pStateEnd; ++pState, ++pLocalCount)
@@ -448,11 +451,9 @@ int CModel::UpdateGlobalStateCounts()
 // static
 CCommunicate::ErrorCode CModel::ReceiveGlobalStateCounts(std::istream & is, int /* sender */)
 {
-  size_t Size = INSTANCE->mStateCount;
-
   CHealthState::Counts Increment;
-  CHealthState * pState = INSTANCE->mStates;
-  CHealthState * pStateEnd = pState + Size;
+  std::vector< CHealthState >::iterator pState = INSTANCE->mStates.begin();
+  std::vector< CHealthState >::iterator pStateEnd = INSTANCE->mStates.end();
 
   for (; pState != pStateEnd; ++pState)
     {
@@ -474,9 +475,8 @@ void CModel::InitGlobalStateCountOutput()
 
       if (out.good())
         {
-          size_t Size = INSTANCE->mStateCount;
-          CHealthState * pState = INSTANCE->mStates;
-          CHealthState * pStateEnd = pState + Size;
+          std::vector< CHealthState >::iterator pState = INSTANCE->mStates.begin();
+          std::vector< CHealthState >::iterator pStateEnd = INSTANCE->mStates.end();
           bool first = true;
 
           // Loop through all states
@@ -521,9 +521,8 @@ void CModel::WriteGlobalStateCounts()
 
       if (out.good())
         {
-          size_t Size = INSTANCE->mStateCount;
-          CHealthState * pState = INSTANCE->mStates;
-          CHealthState * pStateEnd = pState + Size;
+          std::vector< CHealthState >::iterator pState = INSTANCE->mStates.begin();
+          std::vector< CHealthState >::iterator pStateEnd = INSTANCE->mStates.end();
 
           out << CActionQueue::getCurrentTick();
 

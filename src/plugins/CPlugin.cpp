@@ -31,7 +31,7 @@ void CPlugin::Init()
 
           if (found != Libraries.end())
             {
-              CLogger::error() << "CPlugin " << PluginPath << ": Plugin already loaded.";
+              CLogger::warn() << "CPlugin " << PluginPath << ": Plugin already loaded.";
               continue;
             }
           else
@@ -50,7 +50,7 @@ void CPlugin::Init()
             }
 
           char * error;
-          init pInit = (init) dlsym(pLibraryHandle, "init");
+          EpiHiperPluginInit pInit = (EpiHiperPluginInit) dlsym(pLibraryHandle, "EpiHiperPluginInit");
 
           if ((error = dlerror()) != nullptr)
             {
@@ -58,6 +58,7 @@ void CPlugin::Init()
               continue;
             }
 
+          CLogger::info() << "CPlugin " << PluginPath << ": Calling EpiHiperPluginInit().";
           (*pInit)();
         }
     }

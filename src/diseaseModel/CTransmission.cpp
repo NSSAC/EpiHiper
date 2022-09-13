@@ -28,7 +28,7 @@ double CTransmission::defaultMethod(const CTransmission * pTransmission, const C
 
 CTransmission::CTransmission()
   : CAnnotation()
-  , CCustomMethod()
+  , CCustomMethod(&CTransmission::defaultMethod)
   , mId()
   , mpEntryState(NULL)
   , mpExitState(NULL)
@@ -37,9 +37,7 @@ CTransmission::CTransmission()
   , mSusceptibilityFactorOperation()
   , mInfectivityFactorOperation()
   , mValid(false)
-{
-  setCustomMethod(&defaultMethod);
-}
+{}
 
 CTransmission::CTransmission(const CTransmission & src)
   : CAnnotation(src)

@@ -25,7 +25,7 @@ private:
   static std::map< std::string, void * > Libraries;
 
 public:
-  typedef void (*init)();
+  typedef void (*EpiHiperPluginInit)();
 
   static void Init();
   static void Release();

@@ -19,25 +19,39 @@ class CTransmission;
 class CHealthState;
 class CProgression;
 
-namespace epiHiperPlugin 
+namespace CCustomMethodType 
 {
   typedef double (*transmission_propensity)(const CTransmission * pTransmission, const CEdge * pEdge);
   typedef const CProgression * (*state_progression)(const CHealthState * pHealthState, const CNode * pNode);
   typedef unsigned int (*progression_dwell_time)(const CProgression * pProgression, const CNode * pNode);
-} // namespace epiHiperPlugin
+} // namespace CCustomMethodType
 
 template < class custom_type >
 class CCustomMethod
 {
 public:
-  void setCustomMethod(custom_type pCustomMethod);
+  CCustomMethod() = delete;
+
+  CCustomMethod(custom_type pDefaultMethod);
+
+  void setCustomMethod(custom_type pCustomMethod) const;
 
 protected:
-  custom_type mpCustomMethod = nullptr;
+  custom_type mpDefaultMethod;
+  mutable custom_type mpCustomMethod;
 };
 
 template < class custom_type >
-void CCustomMethod< custom_type >::setCustomMethod(custom_type pCustomMethod)
+CCustomMethod< custom_type >::CCustomMethod(custom_type pDefaultMethod)
+  : mpDefaultMethod(pDefaultMethod)
+  , mpCustomMethod(pDefaultMethod)
+{}
+
+template < class custom_type >
+void CCustomMethod< custom_type >::setCustomMethod(custom_type pCustomMethod) const
 {
   mpCustomMethod = pCustomMethod;
+
+  if (mpCustomMethod == nullptr)
+    mpCustomMethod = mpDefaultMethod;
 }

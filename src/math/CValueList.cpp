@@ -16,6 +16,7 @@
 
 #include "traits/CTrait.h"
 #include "utilities/CLogger.h"
+#include "diseaseModel/CHealthState.h"
 
 CValueList::CValueList(const Type & type)
   : std::set< CValue >()
@@ -344,7 +345,7 @@ void CValueList::fromJSON(const json_t * json)
                   return;
                 }
 
-              std::set< CValue >::insert(CModel::StateToType(pHealthState));
+              std::set< CValue >::insert(pHealthState->getIndex());
             }
           else if (json_is_real(pValue) &&
                    abs(json_real_value(pValue) - (size_t) json_real_value(pValue)) <= abs(json_real_value(pValue)) * 100.0 * std::numeric_limits< double >::epsilon())

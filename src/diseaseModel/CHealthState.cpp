@@ -41,8 +41,9 @@ const CProgression * CHealthState::defaultMethod(const CHealthState * pHealthSta
 
 CHealthState::CHealthState()
   : CAnnotation()
-  , CCustomMethod()
+  , CCustomMethod(&CHealthState::defaultMethod)
   , mId()
+  , mIndex(std::numeric_limits< size_t >::max())
   , mSusceptibility(-1.0)
   , mInfectivity(-1.0)
   , mValid(false)
@@ -66,14 +67,13 @@ CHealthState::CHealthState()
         pIt->Out = 0;
         pIt->In = 0;
       }
-
-  setCustomMethod(&defaultMethod);
 }
 
 CHealthState::CHealthState(const CHealthState & src)
   : CAnnotation(src)
   , CCustomMethod(src)
   , mId(src.mId)
+  , mIndex(src.mIndex)
   , mSusceptibility(src.mSusceptibility)
   , mInfectivity(src.mInfectivity)
   , mValid(src.mValid)
@@ -146,6 +146,16 @@ const bool & CHealthState::isValid() const
 const std::string & CHealthState::getId() const
 {
   return mId;
+}
+
+void CHealthState::setIndex(const size_t & index)
+{
+  mIndex = index;
+}
+
+const size_t & CHealthState::getIndex() const
+{
+  return mIndex;
 }
 
 const double & CHealthState::getSusceptibility() const

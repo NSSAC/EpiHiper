@@ -18,13 +18,13 @@
 
 #include "utilities/CAnnotation.h"
 #include "utilities/CContext.h"
-#include "plugins/epiHiperPlugin.h"
+#include "plugins/CCustomMethod.h"
 
 class CProgression;
 class pNode;
 struct json_t;
 
-class CHealthState: public CAnnotation, public CCustomMethod< epiHiperPlugin::state_progression >
+class CHealthState: public CAnnotation, public CCustomMethod< CCustomMethodType::state_progression >
 {
 public:
   struct PossibleProgressions
@@ -53,6 +53,10 @@ public:
   const bool & isValid() const;
 
   const std::string & getId() const;
+
+  void setIndex(const size_t & index);
+
+  const size_t & getIndex() const;
 
   const double & getSusceptibility() const;
 
@@ -88,6 +92,7 @@ public:
 
 private:
   std::string mId;
+  size_t mIndex;
   double mSusceptibility;
   double mInfectivity;
   bool mValid;

@@ -49,7 +49,7 @@ include_directories(BEFORE ${PROJECT_BINARY_DIR}/include)
 
 add_subdirectory(dependencies)
 add_subdirectory(src)
-# add_subdirectory(plugins)
+add_subdirectory(plugin)
 
 message(STATUS "-----------------------------------------------------------
 

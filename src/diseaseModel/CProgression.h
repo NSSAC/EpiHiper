@@ -18,12 +18,12 @@
 #include "utilities/CAnnotation.h"
 #include "diseaseModel/CDistribution.h"
 #include "diseaseModel/CFactorOperation.h"
-#include "plugins/epiHiperPlugin.h"
+#include "plugins/CCustomMethod.h"
 
 struct json_t;
 class CHealthState;
 
-class CProgression: public CAnnotation, public CCustomMethod< epiHiperPlugin::progression_dwell_time >
+class CProgression: public CAnnotation, public CCustomMethod< CCustomMethodType::progression_dwell_time >
 {
 public:
   static unsigned int defaultMethod(const CProgression * pProgression, const CNode * pNode);

@@ -61,8 +61,6 @@ public:
 
   static CHealthState * GetState(const std::string & id);
 
-  static state_t StateToType(const CHealthState * pState);
-
   static CHealthState * StateFromType(const state_t & type);
 
   static const bool & isValid();
@@ -73,6 +71,10 @@ public:
 
   static const std::vector< CTransmission > & GetTransmissions();
 
+  static const std::vector< CHealthState > & GetStates();
+
+  static const std::vector< CProgression > & GetProgressions();
+
   static int UpdateGlobalStateCounts();
 
   static CCommunicate::ErrorCode ReceiveGlobalStateCounts(std::istream & is, int sender);
@@ -81,15 +83,16 @@ public:
 
   static void WriteGlobalStateCounts();
 
-  const CHealthState * getStates() const;
+  const std::vector< CHealthState > & getStates() const;
 
   const size_t & getStateCount() const;
 
   const std::vector< CTransmission > & getTransmissions() const;
 
-  state_t stateToType(const CHealthState * pState) const;
+  const std::vector< CProgression > & getProgressions() const;
 
-  CHealthState * stateFromType(const state_t & type) const;
+  CHealthState * stateFromType(const state_t & type);
+
 private:
   struct PossibleTransmissions
   {
@@ -99,7 +102,7 @@ private:
   bool processTransmissions() const;
   void stateChanged(CNode * pNode) const;
 
-  CHealthState * mStates;
+  std::vector< CHealthState > mStates;
   size_t mStateCount;
   std::map< std::string, CHealthState * > mId2State;
   CHealthState const * mpInitialState;
