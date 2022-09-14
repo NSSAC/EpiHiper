@@ -84,13 +84,6 @@ int main(int argc, char * argv[])
 
   CStatus::load("epihiper", CArgs::getName(), CSimConfig::getStatus());
 
-  CPlugin::Init();
-
-  if (CLogger::hasErrors())
-    {
-      goto failed;
-    }
-
   CActionQueue::init();
   CRandom::init(CSimConfig::getSeed());
   CTrait::init();
@@ -115,6 +108,13 @@ int main(int argc, char * argv[])
     }
 
   CModel::Load(CSimConfig::getDiseaseModel());
+
+  if (CLogger::hasErrors())
+    {
+      goto failed;
+    }
+
+  CPlugin::Init();
 
   if (CLogger::hasErrors())
     {

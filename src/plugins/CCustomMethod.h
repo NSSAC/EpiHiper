@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include "utilities/CLogger.h"
+
 class CEdge;
 class CNode;
 
@@ -50,6 +52,9 @@ CCustomMethod< custom_type >::CCustomMethod(custom_type pDefaultMethod)
 template < class custom_type >
 void CCustomMethod< custom_type >::setCustomMethod(custom_type pCustomMethod) const
 {
+  if (mpCustomMethod != mpDefaultMethod)
+    CLogger::warn("CCustomMethod: Overwriting previously set custom method.");
+
   mpCustomMethod = pCustomMethod;
 
   if (mpCustomMethod == nullptr)
