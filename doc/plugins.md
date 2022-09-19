@@ -21,7 +21,7 @@ The implementation for all three situations: transmission propensity, next healt
   static unsigned int progression_dwell_time(const CProgression * pProgression, const CNode * pNode);
 ```
 
-The registration of custom calculations for transmission propensity, next health-state, or dwell time will be allowed on individual instances of the appropriate classes (transmission, health-state, and progression). Note, the custom methods have access to all const methods of the provided arguments. In particular it is possible to call the default method. It is important to understand that the EpiHiper simulation process is unaware whether the default or custom methods are called, i.e., if default and custom methods return the same result the simulation results will be indistinguishable. 
+The registration of custom calculations for transmission propensity, next health-state, or dwell time will be allowed on individual instances of the appropriate classes (transmission, health-state, and progression). Note, the custom methods have access to all const methods of the provided arguments. In particular it is possible to call the default method. It is important to understand that the EpiHiper simulation process is unaware whether the default or custom methods are called, i.e., if default and custom methods return the same result the simulation outcomes will be indistinguishable. 
 
 In order for a plugin to register overriding custom methods the plugin needs to provide an entry point for EpiHiper to call. The declaration of the entrypoint is: 
 ```
