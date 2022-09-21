@@ -21,7 +21,8 @@ const CProgression * CHealthState::defaultMethod(const CHealthState * pHealthSta
 {
   const PossibleProgressions & Progressions = pHealthState->getPossibleProgressions();
 
-  if (Progressions.A0 > 0.0)
+  if (Progressions.A0 > 0.0
+      && !Progressions.Progressions.empty())
     {
       double alpha = CRandom::uniform_real(0.0, Progressions.A0)(CRandom::G.Active());
 

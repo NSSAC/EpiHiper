@@ -29,7 +29,7 @@ class CHealthState: public CAnnotation, public CCustomMethod< CCustomMethodType:
 public:
   struct PossibleProgressions
   {
-    double A0;
+    double A0 = 0.0;
     std::vector< const CProgression * > Progressions;
   };
 
