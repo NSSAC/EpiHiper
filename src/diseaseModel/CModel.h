@@ -96,7 +96,7 @@ public:
 private:
   struct PossibleTransmissions
   {
-    CTransmission ** Transmissions;
+    CTransmission ** Transmissions = nullptr;
   };
 
   bool processTransmissions() const;
