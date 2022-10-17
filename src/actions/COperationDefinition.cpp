@@ -146,11 +146,15 @@ void COperationDefinition::fromJSON(const json_t * json)
       return;
     }
 
+  // Strings may never be altered, i.e., this will always be invalid.
+  CValueInterface::Type TargetValueType = CValueInterface::Type::string;
+
   mpTargetVariable = &CVariableList::INSTANCE[pValue];
 
   if (mpTargetVariable->isValid())
     {
       mTargetType = TargetType::variable;
+      TargetValueType = mpTargetVariable->getType();
     }
   else
     {
@@ -160,6 +164,7 @@ void COperationDefinition::fromJSON(const json_t * json)
         {
           mpNodeProperty = new CNodeProperty(NodeProperty);
           mTargetType = TargetType::node;
+          TargetValueType = mpNodeProperty->getType();
         }
       else
         {
@@ -169,20 +174,27 @@ void COperationDefinition::fromJSON(const json_t * json)
             {
               mpEdgeProperty = new CEdgeProperty(EdgeProperty);
               mTargetType = TargetType::edge;
+              TargetValueType = mpEdgeProperty->getType();
             }
           else
             {
-              CLogger::error("Operation: Invalid target.");
+              CLogger::error() << "Operation: Invalid target '" << CSimConfig::jsonToString(json) << "'.";
               return;
             }
         }
+    }
+
+  if (TargetValueType == CValueInterface::Type::string)
+    {
+      CLogger::error() << "Operation: Invalid target value type '" << CSimConfig::jsonToString(json) << "'.";
+      return;
     }
 
   pValue = json_object_get(json, "operator");
 
   if (!json_is_string(pValue))
     {
-      CLogger::error("Operation: Invalid operator.");
+      CLogger::error() << "Operation: Invalid operator '" << CSimConfig::jsonToString(json) << "'.";
       return;
     }
 
@@ -210,7 +222,14 @@ void COperationDefinition::fromJSON(const json_t * json)
     }
   else
     {
-      CLogger::error() << "Operation: Invalid operator '" << Operator << "'.";
+      CLogger::error() << "Operation: Invalid operator '" << CSimConfig::jsonToString(json) << "'.";
+    }
+
+  if (mpOperator != &CValueInterface::equal
+      && TargetValueType != CValueInterface::Type::number 
+      && TargetValueType != CValueInterface::Type::integer)
+    {
+      CLogger::error() << "Operation: Target value type must be numeric for operator '" << CSimConfig::jsonToString(json) << "'.";
       return;
     }
 
@@ -230,6 +249,13 @@ void COperationDefinition::fromJSON(const json_t * json)
       && mpObservable->isValid())
     {
       CConditionDefinition::RequiredComputables.insert(mpObservable);
+
+      if (!CValueInterface::compatible(TargetValueType, mpObservable->getType()))
+        {
+          CLogger::error() << "Operation: Incompatible value types for '" << CSimConfig::jsonToString(json) << "'.";
+          return;
+        }
+
       mValid = true;
       return;
     }
@@ -243,6 +269,13 @@ void COperationDefinition::fromJSON(const json_t * json)
   if (mpSizeOf->isValid())
     {
       CConditionDefinition::RequiredComputables.insert(mpSizeOf);
+
+      if (!CValueInterface::compatible(TargetValueType, mpSizeOf->getType()))
+        {
+          CLogger::error() << "Operation: Incompatible value types for '" << CSimConfig::jsonToString(json) << "'.";
+          return;
+        }
+
       mValid = true;
       return;
     }
@@ -255,6 +288,12 @@ void COperationDefinition::fromJSON(const json_t * json)
   if (!mValue.isValid())
     {
       CLogger::error() << "Operation: Invalid '" << CSimConfig::jsonToString(json);
+    }
+
+  if (!CValueInterface::compatible(TargetValueType, mValue.getType()))
+    {
+      CLogger::error() << "Operation: Incompatible value types for '" << CSimConfig::jsonToString(json) << "'.";
+      return;
     }
 
   mValid = mValue.isValid();

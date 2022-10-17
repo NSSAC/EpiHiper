@@ -218,7 +218,7 @@ void CSampling::fromJSON(const json_t * json)
 
   if (mpVariable->isValid())
     {
-      if (mpVariable->getType() == CVariable::Type::global)
+      if (mpVariable->getScope() == CVariable::Scope::global)
         {
           CLogger::error() << "Sampling: The variable '" << mpVariable->getId() << "' must have scope local.";
           return;

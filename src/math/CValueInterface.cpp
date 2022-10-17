@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -255,6 +255,36 @@ void CValueInterface::multiply(double & lhs, const double & rhs)
 void CValueInterface::divide(double & lhs, const double & rhs)
 {
   lhs /= rhs;
+}
+
+// static 
+bool CValueInterface::compatible(const CValueInterface::Type & lhs, const CValueInterface::Type & rhs)
+{
+  bool compatible = false;
+
+  switch (lhs)
+    {
+      case Type::boolean:
+      case Type::string:
+      case Type::id:
+        compatible = (lhs == rhs);
+        break;
+
+      case Type::integer:
+      case Type::number:
+        compatible = (rhs == Type::integer || rhs == Type::number);
+        break;
+
+      case Type::traitData:
+        compatible = (rhs == Type::traitValue);
+        break;
+
+      case Type::traitValue:
+        compatible = (rhs == Type::traitData);
+        break;
+    }
+
+  return compatible;
 }
 
 // static 

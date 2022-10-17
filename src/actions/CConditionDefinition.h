@@ -1,5 +1,5 @@
 // BEGIN: Copyright 
-// Copyright (C) 2019 - 2020 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 // All rights reserved 
 // END: Copyright 
 
@@ -85,6 +85,8 @@ private:
     CValueInterface * value(const CNode * pNode) const;
     CValueInterface * value(const CEdge * pEdge) const;
     CValueInterface * value() const;
+    CValueInterface::Type interfaceType() const;
+
     bool inherit() const;
   };
 
@@ -124,6 +126,8 @@ public:
   CCondition * createCondition(const CNode * pNode) const;
 
   CCondition * createCondition(const CEdge * pEdge) const;
+
+  static bool compatible(const ValueInstance & lhs, const ValueInstance & rhs);
 
 private:
   BooleanOperationType mType;

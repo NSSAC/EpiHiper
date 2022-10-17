@@ -496,7 +496,7 @@ void CModel::InitGlobalStateCountOutput()
           CVariableList::const_iterator end = CVariableList::INSTANCE.end();
 
           for (; it != end; ++it)
-            out << "," << (*it)->getId() << (((*it)->getType() == CVariable::Type::global) ? "(g)" : "(l)");
+            out << "," << (*it)->getId() << (((*it)->getScope() == CVariable::Scope::global) ? "(g)" : "(l)");
 
           out << ",seed" << std::endl;
         }
