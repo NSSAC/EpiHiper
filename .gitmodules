@@ -1,0 +1,9 @@
+[submodule "dependencies/jansson"]
+	path = dependencies/jansson
+	url = https://github.com/akheron/jansson.git
+[submodule "dependencies/libpqxx"]
+	path = dependencies/libpqxx
+	url = https://github.com/jtv/libpqxx.git
+[submodule "dependencies/spdlog"]
+	path = dependencies/spdlog
+	url = https://github.com/gabime/spdlog.git

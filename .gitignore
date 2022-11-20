@@ -1,0 +1,17 @@
+.cproject
+.project
+.vscode/
+.settings/
+*.simg
+*.sif
+sciduct/cache*/
+sciduct/build.log
+sciduct/job/
+sciduct/input/
+sciduct/bin/EpiHiper
+src/git-commit.h
+src/EpiHiperConfig.h
+
+tools/2019-nCoV_vax
+
+*.log
