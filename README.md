@@ -10,10 +10,15 @@ cd EpiHiper
 
 ### Dependencies
 Requirements for building EpiHiper:
- - C++ 11 compatible compiler, e.g. gcc 7.5.0
+ - C++ 11 compatible compiler, e.g. gcc 7.1.0
  - Cmake version 3.11 or above
  - PostgreSQL library (provided by package: libpq5) 
  - PostgreSQL header  (provided by package: postgresql-devel)
+
+ All other dependencies are provided through git submodules, which are automatically retrieved during configuration and compiled during make. These dependencies are:
+ - [jansson](https://github.com/akheron/jansson.git)
+ - [libpqxx](https://github.com/jtv/libpqxx.git)
+ - [spdlog](https://github.com/gabime/spdlog.git)
 
 ### Building a single threaded executable
 ```
@@ -52,10 +57,13 @@ __Note__: It is possible to combine OpenMP and MPI
  - `-DENABLE_MPI==[ON|OFF]` Enable MPI parallelization. (default: ON)
  - `-DENABLE_OMP==[ON|OFF]` Enable OpenMP parallelization. (default: OFF)
 
+### Runing a single threaded executable
+```
+EpiHiper --config example/RunParameters.json
+```
 
 ### Runing a multi-threaded multi-process executable
 ```
-mpirun -np #MPI --bind-to none -x OMP_NUM_THREADS=#OMP <build>/src/EpiHiper \ 
-  --config /project/biocomplexity/nssac/EpiHiper/test/001/interventionExampleRunParameters.json
+mpirun -np #MPI --bind-to none -x OMP_NUM_THREADS=#OMP EpiHiper --config example/RunParameters.json
 ```
 Here `#MPI` is the number of MPI tasks and `#OMP` is the number of threads per task.

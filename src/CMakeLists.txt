@@ -86,6 +86,7 @@ else ()
 		${PGSQL_LIBRARY} 
 		${CMAKE_BINARY_DIR}/lib/libjansson.a 
 		${CMAKE_BINARY_DIR}/lib/libpqxx.a
+		-lpthread
 		-ldl
 	)
 
