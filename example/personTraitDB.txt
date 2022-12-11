@@ -1,0 +1,21 @@
+{"epiHiperSchema":"https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/csvDataResourceSchema.json","description":"Person trait database for utopia  2020 with age, gender, and county","name":"utopia","title":"utopia2020","profile":"tabular-data-resource","path":"utopia_epihiper_persontrait.csv","schema":{"fields":[{"title":"Person Id","name":"pid","type":"number"},{"title":"Household Id","name":"hid","type":"number"},{"title":"Age","name":"age","type":"integer"},{"title":"Age Group","name":"age_group","type":"string","constraints":{"enum":["p","s","a","o","g"]}},{"title":"Gender","name":"gender","type":"string","constraints":{"enum":["1","2"]}}],"primaryKey":["pid"]},"facets":[{"ann:id":"AgeGroup","ann:label":"Age Group","facets":[{"ann:id":"p","ann:label":"Preschool (0-4)","value":0},{"ann:id":"s","ann:label":"Students (5-17)","value":6},{"ann:id":"a","ann:label":"Adults (18-49)","value":8},{"ann:id":"o","ann:label":"Older Adults (50-64)","value":2},{"ann:id":"g","ann:label":"Seniors (65+)","value":3}]}, {"ann:id":"total","ann:label":"Total 2020 population","value":19}]}
+pid,hid,age,age_group,gender
+1,1,32,a,1
+2,1,28,a,2
+3,1,10,s,1
+4,1,8,s,2
+5,2,45,a,1
+6,2,43,a,2
+7,2,17,s,2
+8,2,14,s,2
+9,3,37,a,1
+10,3,37,a,2
+11,4,64,o,1
+12,4,41,a,1
+13,4,41,a,2
+14,4,12,s,1
+15,4,8,s,2
+16,5,65,g,1
+17,5,61,o,2
+18,6,74,g,1
+19,6,73,g,2
