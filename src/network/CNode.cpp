@@ -212,7 +212,7 @@ bool CNode::set(const CTransmission * pTransmission, CValueInterface::pOperator 
   pTransmission->updateSusceptibilityFactor(susceptibilityFactor);
   susceptibility = pHealthState->getSusceptibility() * susceptibilityFactor;
   pTransmission->updateInfectivityFactor(infectivityFactor);
-  infectivity = pHealthState->getInfectivity() * infectivity;
+  infectivity = pHealthState->getInfectivity() * infectivityFactor;
 
   // std::cout << id << "," << pTransmission->getEntryState() << "," << pTransmission->getExitState() << "," << pTransmission->getContactState() << std::endl;
 

@@ -1,0 +1,10 @@
+{
+  "$schema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/modelScenarioSchema.json",
+  "epiHiperSchema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/modelScenarioSchema.json",
+  "contactNetwork": "self://./contactNetwork.txt",
+  "personTraitDB": ["self://./personTraitDB.txt"],
+  "diseaseModel": "self://./diseaseModel.json",
+  "initialization": "self://./initialization.json",
+  "intervention": "self://./intervention.json",
+  "traits": "self://traits.json"
+}
