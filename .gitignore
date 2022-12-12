@@ -16,3 +16,9 @@ tools/2019-nCoV_vax
 
 *.log
 build
+
+example/output.csv
+
+example/stateTransistions.csv
+
+example/status.json
