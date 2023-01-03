@@ -1,7 +1,7 @@
 # BEGIN: Copyright 
 # MIT License 
 #  
-# Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
+# Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 #  
 # Permission is hereby granted, free of charge, to any person obtaining a copy 
 # of this software and associated documentation files (the "Software"), to deal 
@@ -56,7 +56,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/EpiHiperConfig.h.in ${CMAKE_CURRENT_S
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 add_library (EpiHiperLib-core OBJECT ${SOURCES_EPIHIPER} ${HEADERS_EPIHIPER})
-add_dependencies(EpiHiperLib-core jansson libpqxx spdlog arrow)
+add_dependencies(EpiHiperLib-core jansson libpqxx spdlog)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   target_compile_options(EpiHiperLib-core PRIVATE -Werror -Wall -Wextra ${OpenMP_CXX_FLAGS})
@@ -65,7 +65,7 @@ else(CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
 add_library (EpiHiperLib SHARED $<TARGET_OBJECTS:EpiHiperLib-core>)
-add_dependencies(EpiHiperLib jansson libpqxx spdlog arrow)
+add_dependencies(EpiHiperLib jansson libpqxx spdlog)
 
 add_executable (EpiHiper EpiHiper.cpp EpiHiperConfig.h)
 add_dependencies(EpiHiper EpiHiperLib GIT_COMMIT)
