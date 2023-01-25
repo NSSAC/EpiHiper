@@ -3,7 +3,7 @@
 # BEGIN: Copyright 
 # MIT License 
 #  
-# Copyright (C) 2020 - 2022 Rector and Visitors of the University of Virginia 
+# Copyright (C) 2020 - 2023 Rector and Visitors of the University of Virginia 
 #  
 # Permission is hereby granted, free of charge, to any person obtaining a copy 
 # of this software and associated documentation files (the "Software"), to deal 
@@ -37,8 +37,10 @@ ID=$(id -u)
 cd cache.rivanna
 
 # EpiHiper
-[ -e EpiHiper ] || \
-    scp rivanna1.hpc.virginia.edu:/project/biocomplexity/nssac/EpiHiper/build/src/EpiHiper .
+if [ ! -e EpiHiper ]; then
+    scp rivanna:/project/biocomplexity/nssac/EpiHiper/build/src/EpiHiper* . 
+    scp rivanna:/project/biocomplexity/nssac/EpiHiper/build/src/libEpiHiper* . 
+fi
 
 # Intel Runtime Libraries
 [ -e l_comp_lib_2018.5.274_comp.cpp_redist.tgz ] || \
