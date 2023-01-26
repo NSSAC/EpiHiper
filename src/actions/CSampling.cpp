@@ -466,13 +466,19 @@ void CSampling::fromJSON(const json_t * json)
     }
 
   const json_t * pSampleValue = NULL;
-  mConversionFactor = 100.0;
+  mConversionFactor = 1.0;
 
   switch (mType)
   {
     case Type::relativeGroup:
     case Type::relativeIndividual:
       pSampleValue = json_object_get(json, "probability");
+
+      if (pSampleValue != NULL)
+        mConversionFactor = 100.0;
+      else
+        pSampleValue = json_object_get(json, "percent");
+
       break;
 
     case Type::absolute:
@@ -565,7 +571,7 @@ void CSampling::process(const CSetContent & targets)
     }
 
   mpTargets = &targets;
-  // For types relativeGroup and absolute we need to communcate with the other comput nodes to determine the local number
+  // For types relativeGroup and absolute we need to communicate with the other compute nodes to determine the local number
   // even if targets are empty;
 
   if (mType == Type::relativeGroup || mType == Type::absolute)
