@@ -1,0 +1,100 @@
+{
+  "$schema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/initializationSchema.json",
+  "epiHiperSchema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/initializationSchema.json",
+  "sets": [
+    {
+      "id": "infections",
+      "scope": "local",
+      "content": {
+        "elementType": "node",
+        "scope": "local",
+        "left": {
+          "node": {
+            "property": "id"
+          }
+        },
+        "operator": "in",
+        "right": {
+          "valueList": {
+            "id": [
+              3, 5
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "vaccination",
+      "scope": "local",
+      "content": {
+        "elementType": "node",
+        "scope": "local",
+        "left": {
+          "node": {
+            "property": "id"
+          }
+        },
+        "operator": "in",
+        "right": {
+          "valueList": {
+            "id": [
+              7, 12, 13
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "initializations": [
+    {
+      "ann:id": "initial_infections",
+      "target": {
+        "set": {
+          "idRef": "infections"
+        }
+      },
+      "foreach": [
+        {
+          "operations": [
+            {
+              "target": {
+                "node": {
+                  "property": "healthState"
+                }
+              },
+              "operator": "=",
+              "value": {
+                "healthState": "I"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ann:id": "initial_vaccination",
+      "target": {
+        "set": {
+          "idRef": "vaccination"
+        }
+      },
+      "foreach": [
+        {
+          "operations": [
+            {
+              "target": {
+                "node": {
+                  "property": "healthState"
+                }
+              },
+              "operator": "=",
+              "value": {
+                "healthState": "V"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
