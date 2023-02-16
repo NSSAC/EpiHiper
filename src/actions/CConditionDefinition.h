@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -98,6 +97,8 @@ private:
     CValueInterface * value(const CNode * pNode) const;
     CValueInterface * value(const CEdge * pEdge) const;
     CValueInterface * value() const;
+    CValueInterface::Type interfaceType() const;
+
     bool inherit() const;
   };
 
@@ -137,6 +138,8 @@ public:
   CCondition * createCondition(const CNode * pNode) const;
 
   CCondition * createCondition(const CEdge * pEdge) const;
+
+  static bool compatible(const ValueInstance & lhs, const ValueInstance & rhs);
 
 private:
   BooleanOperationType mType;

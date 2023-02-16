@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -26,6 +25,7 @@
 #ifndef SRC_NETWORK_CNETWORK_H_
 #define SRC_NETWORK_CNETWORK_H_
 
+#include <set>
 #include <map>
 #include <iostream>
 
@@ -154,6 +154,7 @@ private:
   CNode * mExternalNodes;
   size_t mExternalNodesSize;
   std::map< size_t, CNode *> mRemoteNodes;
+  std::set< size_t > mSourceOnlyNodes;
   CEdge * mEdges;
   size_t mEdgesSize;
   size_t mTotalNodesSize;

@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -31,13 +30,16 @@
 #include "utilities/CAnnotation.h"
 #include "diseaseModel/CDistribution.h"
 #include "diseaseModel/CFactorOperation.h"
+#include "plugins/CCustomMethod.h"
 
 struct json_t;
 class CHealthState;
 
-class CProgression: public CAnnotation
+class CProgression: public CAnnotation, public CCustomMethod< CCustomMethodType::progression_dwell_time >
 {
 public:
+  static unsigned int defaultMethod(const CProgression * pProgression, const CNode * pNode);
+
   CProgression();
 
   CProgression(const CProgression & src);
@@ -52,9 +54,9 @@ public:
 
   const CHealthState * getExitState() const;
 
-  const double & getPropability() const;
+  const double & getProbability() const;
 
-  unsigned int getDwellTime() const;
+  unsigned int dwellTime(const CNode * pNode) const;
 
   void updateSusceptibilityFactor(double & factor) const;
 

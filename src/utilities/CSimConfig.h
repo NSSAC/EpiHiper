@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -27,6 +26,7 @@
 #define SIM_CONFIG_H
 
 #include <vector>
+#include <map>
 #include <string>
 
 #include "utilities/CLogger.h"
@@ -78,8 +78,9 @@ private:
   std::string mSummaryOutput;
   std::string mStatus;
   std::string mIntervention;
-  std::string mPropensityPlugin;
+  std::vector< std::string > mPlugins;
   size_t mSeed;
+  std::map< int, size_t > mReseed;
   size_t mReplicate;
   size_t mPartitionEdgeLimit;
   CLogger::LogLevel mLogLevel;
@@ -111,8 +112,9 @@ public:
   static const std::string & getSummaryOutput();
   static const std::string & getStatus();
   static const std::string & getIntervention();
-  static const std::string & getPropensityPlugin();
+  static const std::vector < std::string > & getPlugins();
   static const size_t & getSeed();
+  static const std::map< int, size_t> & getReseed();
   static const size_t & getReplicate();
   static const size_t & getPartitionEdgeLimit();
   static CLogger::LogLevel getLogLevel();
@@ -120,6 +122,7 @@ public:
   static const dump_active_network & getDumpActiveNetwork();
   static json_t * loadJson(const std::string & jsonFile, int flags);
   static json_t * loadJsonPreamble(const std::string & jsonFile, int flags);
+  static std::string jsonToString(const json_t * pJson);
 };
 
 #endif

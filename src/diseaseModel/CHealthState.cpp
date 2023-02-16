@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -26,11 +25,38 @@
 #include <jansson.h>
 
 #include "diseaseModel/CHealthState.h"
+#include "diseaseModel/CProgression.h"
 #include "utilities/CLogger.h"
+
+// static
+const CProgression * CHealthState::defaultMethod(const CHealthState * pHealthState, const CNode * /* pNode */)
+{
+  const PossibleProgressions & Progressions = pHealthState->getPossibleProgressions();
+
+  if (Progressions.A0 > 0.0
+      && !Progressions.Progressions.empty())
+    {
+      double alpha = CRandom::uniform_real(0.0, Progressions.A0)(CRandom::G.Active());
+
+      for (const CProgression * pProgression : Progressions.Progressions)
+        {
+          alpha -= pProgression->getProbability();
+
+          if (alpha < 0.0)
+            return pProgression;
+        }
+
+      return Progressions.Progressions.back();
+    }
+
+  return NULL;
+}
 
 CHealthState::CHealthState()
   : CAnnotation()
+  , CCustomMethod(&CHealthState::defaultMethod)
   , mId()
+  , mIndex(std::numeric_limits< size_t >::max())
   , mSusceptibility(-1.0)
   , mInfectivity(-1.0)
   , mValid(false)
@@ -58,7 +84,9 @@ CHealthState::CHealthState()
 
 CHealthState::CHealthState(const CHealthState & src)
   : CAnnotation(src)
+  , CCustomMethod(src)
   , mId(src.mId)
+  , mIndex(src.mIndex)
   , mSusceptibility(src.mSusceptibility)
   , mInfectivity(src.mInfectivity)
   , mValid(src.mValid)
@@ -123,9 +151,24 @@ void CHealthState::fromJSON(const json_t * json)
   mValid = true;
 }
 
+const bool & CHealthState::isValid() const
+{
+  return mValid;
+}
+
 const std::string & CHealthState::getId() const
 {
   return mId;
+}
+
+void CHealthState::setIndex(const size_t & index)
+{
+  mIndex = index;
+}
+
+const size_t & CHealthState::getIndex() const
+{
+  return mIndex;
 }
 
 const double & CHealthState::getSusceptibility() const
@@ -138,9 +181,25 @@ const double & CHealthState::getInfectivity() const
   return mInfectivity;
 }
 
-const bool & CHealthState::isValid() const
+const CHealthState::PossibleProgressions & CHealthState::getPossibleProgressions() const
 {
-  return mValid;
+  return mProgressions;
+}
+
+void CHealthState::addProgression(const CProgression * pProgression)
+{
+  if (mProgressions.Progressions.size() == 0)
+    {
+      mProgressions.A0 = 0.0;
+    }
+
+  mProgressions.A0 += pProgression->getProbability();
+  mProgressions.Progressions.push_back(pProgression);
+}
+
+const CProgression * CHealthState::nextProgression(const CNode * pNode) const
+{
+  return mpCustomMethod(this, pNode);
 }
 
 const CContext< CHealthState::Counts > & CHealthState::getLocalCounts() const

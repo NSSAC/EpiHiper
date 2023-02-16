@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -27,10 +26,21 @@
 
 #include "diseaseModel/CTransmission.h"
 #include "diseaseModel/CHealthState.h"
+#include "network/CEdge.h"
+#include "network/CNode.h"
 #include "utilities/CLogger.h"
+
+// static
+double CTransmission::defaultMethod(const CTransmission * pTransmission, const CEdge * pEdge)
+{
+  // ρ(P, P', Τi,j,k) = (| contactTime(P, P') ∩ [tn, tn + Δtn] |) × contactWeight(P, P') × σ(P, Χi) × ι(P',Χk) × ω(Τi,j,k)
+  return pEdge->duration * pEdge->weight * pEdge->pTarget->susceptibility
+         * pEdge->pSource->infectivity * pTransmission->getTransmissibility();
+}
 
 CTransmission::CTransmission()
   : CAnnotation()
+  , CCustomMethod(&CTransmission::defaultMethod)
   , mId()
   , mpEntryState(NULL)
   , mpExitState(NULL)
@@ -43,6 +53,7 @@ CTransmission::CTransmission()
 
 CTransmission::CTransmission(const CTransmission & src)
   : CAnnotation(src)
+  , CCustomMethod(src)
   , mId(src.mId)
   , mpEntryState(src.mpEntryState)
   , mpExitState(src.mpExitState)
@@ -206,4 +217,9 @@ void CTransmission::updateSusceptibilityFactor(double & factor) const
 void CTransmission::updateInfectivityFactor(double & factor) const
 {
   mInfectivityFactorOperation.apply(factor);
+}
+
+double CTransmission::propensity(const CEdge * pEdge) const
+{
+  return mpCustomMethod(this, pEdge);
 }

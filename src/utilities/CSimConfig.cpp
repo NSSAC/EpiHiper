@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -127,15 +126,21 @@ const std::string & CSimConfig::getIntervention()
 }
 
 // static 
-const std::string & CSimConfig::getPropensityPlugin()
+const std::vector< std::string > & CSimConfig::getPlugins()
 {
-  return CSimConfig::INSTANCE->mPropensityPlugin;
+  return CSimConfig::INSTANCE->mPlugins;
 }
   
 // static
 const size_t & CSimConfig::getSeed()
 {
   return CSimConfig::INSTANCE->mSeed;
+}
+
+// static
+const std::map< int, size_t > & CSimConfig::getReseed()
+{
+  return CSimConfig::INSTANCE->mReseed;
 }
 
 // static
@@ -187,8 +192,9 @@ CSimConfig::CSimConfig(const std::string & configFile)
   , mSummaryOutput()
   , mStatus()
   , mIntervention()
-  , mPropensityPlugin()
+  , mPlugins()
   , mSeed(-1)
+  , mReseed()
   , mReplicate(-1)
   , mPartitionEdgeLimit(100000000)
   , mDBConnection()
@@ -257,6 +263,23 @@ CSimConfig::CSimConfig(const std::string & configFile)
     "seed": {
       "description": "The seed for the random number generator",
       "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
+    },
+    "reseed": {
+      "type":"array",
+      "items": {
+        "type":"object",
+        "required": ["tick"],
+        "properties": {
+          "tick": {
+            "description": "The tick at which the seed should be changed",
+            "type": "integer"
+          },
+          "seed": {
+            "description": "The seed for the random number generator (default: auto generated)",
+            "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
+          }
+        }
+      }
     },
     "replicate": {
       "description": "The number of the replicate created with the job",
@@ -376,12 +399,18 @@ CSimConfig::CSimConfig(const std::string & configFile)
 
   valid &= !mModelScenario.empty();
 
-  pValue = json_object_get(pRoot, "propensityPlugin");
+  pValue = json_object_get(pRoot, "plugins");
 
-  if (json_is_string(pValue))
-    {
-      mPropensityPlugin = CDirEntry::resolve(json_string_value(pValue), mRunParameters);
-    }
+  if (json_is_array(pValue))
+    for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
+      {
+        json_t * pPlugin = json_array_get(pValue, i);
+
+        if (json_is_string(pPlugin))
+          {
+            mPlugins.push_back(CDirEntry::resolve(json_string_value(pPlugin), mRunParameters));
+          }
+      }
 
   std::string DefaultDir;
 
@@ -461,6 +490,33 @@ CSimConfig::CSimConfig(const std::string & configFile)
       mSeed = json_real_value(pValue);
     }
 
+  pValue = json_object_get(pRoot, "reseed");
+
+  if (json_is_array(pValue))
+    for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
+      {
+        json_t * pReseed = json_array_get(pValue, i);
+
+        if (json_is_object(pReseed))
+          {
+            json_t * pTick = json_object_get(pReseed, "tick");
+
+            if (!json_is_real(pTick))
+              continue;
+
+            size_t Seed = -1;
+
+            json_t * pSeed = json_object_get(pReseed, "seed");
+
+            if (json_is_real(pSeed))
+              {
+                Seed = json_real_value(pSeed);
+              }
+
+            mReseed[json_real_value(pTick)] = Seed;
+          }
+      }
+    
   pValue = json_object_get(pRoot, "replicate");
 
   if (json_is_real(pValue))
@@ -772,3 +828,19 @@ json_t * CSimConfig::loadJson(const std::string & jsonFile, int flags)
 
   return pRoot;
 }
+
+// static
+std::string CSimConfig::jsonToString(const json_t * pJson)
+{
+  std::string JSON;
+
+  if (pJson != nullptr)
+    {
+      char * str = json_dumps(pJson, JSON_COMPACT | JSON_INDENT(0));
+      JSON = str;
+      free(str);
+    }
+
+  return JSON;
+}
+

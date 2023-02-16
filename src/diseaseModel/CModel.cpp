@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -32,7 +31,6 @@
 #include "diseaseModel/CHealthState.h"
 #include "diseaseModel/CProgression.h"
 #include "diseaseModel/CTransmission.h"
-#include "diseaseModel/CTransmissionPropensity.h"
 #include "actions/CActionQueue.h"
 #include "actions/CProgressionAction.h"
 #include "actions/CTransmissionAction.h"
@@ -71,7 +69,6 @@ CModel::CModel(const std::string & modelFile)
   , mTransmissions()
   , mProgressions()
   , mPossibleTransmissions(NULL)
-  , mPossibleProgressions(NULL)
   , mpTransmissibility(NULL)
   , mValid(false)
 {
@@ -90,12 +87,7 @@ CModel::CModel(const std::string & modelFile)
 
 // virtual
 CModel::~CModel()
-{
-  if (mStates != NULL)
-    {
-      delete[] mStates;
-    }
-}
+{}
 
 void CModel::fromJSON(const json_t * json)
 {
@@ -147,23 +139,21 @@ void CModel::fromJSON(const json_t * json)
   json_t * pValue = json_object_get(json, "states");
 
   mStateCount = json_array_size(pValue);
-  mStates = new CHealthState[mStateCount];
+  mStates.resize(mStateCount);
   mPossibleTransmissions = new PossibleTransmissions[mStateCount];
-  mPossibleProgressions = new PossibleProgressions[mStateCount];
-
+  
   PossibleTransmissions * pTransmissions = mPossibleTransmissions;
-  PossibleProgressions * pProgressions = mPossibleProgressions;
-  CHealthState * pState = mStates;
+  std::vector< CHealthState >::iterator pState = mStates.begin();
 
-  for (size_t i = 0; i < mStateCount; ++i, ++pState, ++pTransmissions, ++pProgressions)
+  for (size_t i = 0; i < mStateCount; ++i, ++pState, ++pTransmissions)
     {
       pState->fromJSON(json_array_get(pValue, i));
       pTransmissions->Transmissions = NULL;
-      pProgressions->A0 = 0.0;
 
       if (pState->isValid())
         {
-          mId2State[pState->getId()] = pState;
+          pState->setIndex(i);
+          mId2State[pState->getId()] = &*pState;
         }
       else
         {
@@ -203,13 +193,15 @@ void CModel::fromJSON(const json_t * json)
 
       if (itTrans->isValid())
         {
-          if (mPossibleTransmissions[itTrans->getEntryState() - mStates].Transmissions == NULL)
+          state_t StateType =itTrans->getEntryState()->getIndex();
+
+          if (mPossibleTransmissions[StateType].Transmissions == NULL)
             {
-              mPossibleTransmissions[itTrans->getEntryState() - mStates].Transmissions = new CTransmission*[mStateCount];
-              memset(mPossibleTransmissions[itTrans->getEntryState() - mStates].Transmissions, 0, sizeof(void *) * mStateCount);
+              mPossibleTransmissions[StateType].Transmissions = new CTransmission*[mStateCount];
+              memset(mPossibleTransmissions[StateType].Transmissions, 0, sizeof(void *) * mStateCount);
             }
 
-          mPossibleTransmissions[itTrans->getEntryState() - mStates].Transmissions[itTrans->getContactState() - mStates] = &*itTrans;
+          mPossibleTransmissions[StateType].Transmissions[itTrans->getContactState()->getIndex()] = &*itTrans;
         }
       else
         {
@@ -230,8 +222,7 @@ void CModel::fromJSON(const json_t * json)
 
       if (itProg->isValid())
         {
-          mPossibleProgressions[itProg->getEntryState() - mStates].A0 += itProg->getPropability();
-          mPossibleProgressions[itProg->getEntryState() - mStates].Progressions.push_back(&*itProg);
+          const_cast< CHealthState * >(itProg->getEntryState())->addProgression(&*itProg);
         }
       else
         {
@@ -266,12 +257,6 @@ CHealthState * CModel::GetState(const std::string & id)
     return found->second;
 
   return NULL;
-}
-
-// static
-CModel::state_t CModel::StateToType(const CHealthState * pState)
-{
-  return INSTANCE->stateToType(pState);
 }
 
 // static
@@ -331,7 +316,7 @@ bool CModel::processTransmissions() const
                 Candidate Candidate;
                 Candidate.pEdge = pEdge;
                 Candidate.pTransmission = pTransmission;
-                Candidate.Propensity = (*CTransmissionPropensity::pPROPENSITY)(pEdge, pTransmission);
+                Candidate.Propensity = pTransmission->propensity(pEdge);
 
                 if (Candidate.Propensity > 0.0)
                   {
@@ -381,13 +366,13 @@ void CModel::StateChanged(CNode * pNode)
 void CModel::stateChanged(CNode * pNode) const
 {
   // std::cout << pNode->id << ": " << pNode->Edges << ", " << pNode->Edges + pNode->EdgesSize << ", " << pNode->EdgesSize << std::endl;
-  const CProgression * pProgression = nextProgression(pNode->healthState);
+  const CProgression * pProgression = pNode->getHealthState()->nextProgression(pNode);
 
   if (pProgression != NULL)
     {
       try
         {
-          CActionQueue::addAction(pProgression->getDwellTime(), new CProgressionAction(pProgression, pNode));
+          CActionQueue::addAction(pProgression->dwellTime(pNode), new CProgressionAction(pProgression, pNode));
         }
       catch (...)
         {
@@ -396,38 +381,7 @@ void CModel::stateChanged(CNode * pNode) const
     }
 }
 
-// static
-const CProgression * CModel::NextProgression(const CModel::state_t & state)
-{
-  return INSTANCE->nextProgression(state);
-}
-
-const CProgression * CModel::nextProgression(const CModel::state_t & state) const
-{
-  PossibleProgressions & Progressions = mPossibleProgressions[state];
-
-  if (Progressions.A0 > 0.0)
-    {
-      double alpha = CRandom::uniform_real(0.0, Progressions.A0)(CRandom::G.Active());
-
-      std::vector< const CProgression * >::const_iterator it = Progressions.Progressions.begin();
-      std::vector< const CProgression * >::const_iterator end = Progressions.Progressions.end();
-
-      for (; it != end; ++it)
-        {
-          alpha -= (*it)->getPropability();
-
-          if (alpha < 0.0)
-            break;
-        }
-
-      return (it != end) ? *it : *Progressions.Progressions.rbegin();
-    }
-
-  return NULL;
-}
-
-const CHealthState * CModel::getStates() const
+const std::vector< CHealthState > & CModel::getStates() const
 {
   return mStates;
 }
@@ -442,14 +396,13 @@ const std::vector< CTransmission > &  CModel::getTransmissions() const
   return mTransmissions;
 }
 
-CModel::state_t CModel::stateToType(const CHealthState * pState) const
+const std::vector< CProgression > & CModel::getProgressions() const
 {
-  return  pState - mStates;
+  return mProgressions;
 }
 
-CHealthState * CModel::stateFromType(const CModel::state_t & type) const
-{
-  return mStates + type;
+CHealthState * CModel::stateFromType(const CModel::state_t & type) {
+  return &mStates[type];
 }
 
 // static
@@ -458,14 +411,26 @@ const std::vector< CTransmission > & CModel::GetTransmissions()
   return INSTANCE->getTransmissions();
 }
 
+// static 
+const std::vector< CHealthState > & CModel::GetStates()
+{
+  return CModel::INSTANCE->getStates();
+}
+
+// static 
+const std::vector< CProgression > & CModel::GetProgressions()
+{
+  return CModel::INSTANCE->getProgressions();
+}
+
 // static
 int CModel::UpdateGlobalStateCounts()
 {
   size_t Size = INSTANCE->mStateCount;
   CHealthState::Counts LocalStateCounts[Size];
 
-  CHealthState * pState = INSTANCE->mStates;
-  CHealthState * pStateEnd = pState + Size;
+  std::vector< CHealthState >::iterator pState = INSTANCE->mStates.begin();
+  std::vector< CHealthState >::iterator pStateEnd = INSTANCE->mStates.end();
   CHealthState::Counts * pLocalCount = LocalStateCounts;
 
   for (; pState != pStateEnd; ++pState, ++pLocalCount)
@@ -498,11 +463,9 @@ int CModel::UpdateGlobalStateCounts()
 // static
 CCommunicate::ErrorCode CModel::ReceiveGlobalStateCounts(std::istream & is, int /* sender */)
 {
-  size_t Size = INSTANCE->mStateCount;
-
   CHealthState::Counts Increment;
-  CHealthState * pState = INSTANCE->mStates;
-  CHealthState * pStateEnd = pState + Size;
+  std::vector< CHealthState >::iterator pState = INSTANCE->mStates.begin();
+  std::vector< CHealthState >::iterator pStateEnd = INSTANCE->mStates.end();
 
   for (; pState != pStateEnd; ++pState)
     {
@@ -524,9 +487,8 @@ void CModel::InitGlobalStateCountOutput()
 
       if (out.good())
         {
-          size_t Size = INSTANCE->mStateCount;
-          CHealthState * pState = INSTANCE->mStates;
-          CHealthState * pStateEnd = pState + Size;
+          std::vector< CHealthState >::iterator pState = INSTANCE->mStates.begin();
+          std::vector< CHealthState >::iterator pStateEnd = INSTANCE->mStates.end();
           bool first = true;
 
           // Loop through all states
@@ -546,9 +508,9 @@ void CModel::InitGlobalStateCountOutput()
           CVariableList::const_iterator end = CVariableList::INSTANCE.end();
 
           for (; it != end; ++it)
-            out << "," << (*it)->getId() << (((*it)->getType() == CVariable::Type::global) ? "(g)" : "(l)");
+            out << "," << (*it)->getId() << (((*it)->getScope() == CVariable::Scope::global) ? "(g)" : "(l)");
 
-          out << std::endl;
+          out << ",seed" << std::endl;
         }
       else
         {
@@ -571,9 +533,8 @@ void CModel::WriteGlobalStateCounts()
 
       if (out.good())
         {
-          size_t Size = INSTANCE->mStateCount;
-          CHealthState * pState = INSTANCE->mStates;
-          CHealthState * pStateEnd = pState + Size;
+          std::vector< CHealthState >::iterator pState = INSTANCE->mStates.begin();
+          std::vector< CHealthState >::iterator pStateEnd = INSTANCE->mStates.end();
 
           out << CActionQueue::getCurrentTick();
 
@@ -595,7 +556,7 @@ void CModel::WriteGlobalStateCounts()
               out << "," << (*it)->toNumber();
             }
 
-          out << std::endl;
+          out << "," << CRandom::getSeed() << std::endl;
         }
       else
         {

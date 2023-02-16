@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2020 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2020 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -304,7 +303,7 @@ void CAnalyzer::run()
 
   for (; itExposed != endExposed; ++itExposed)
     {
-      CModel::state_t ExposedType = mpModel->stateToType(*itExposed);
+      CModel::state_t ExposedType = (*itExposed)->getIndex();
 
       for (size_t i = 0; i != mSampleSize; ++i)
         {
@@ -314,7 +313,7 @@ void CAnalyzer::run()
           while (pState != NULL && Tick <= mMaxTick)
             {
               // Record the current state and time
-              CModel::state_t StateType = mpModel->stateToType(pState);
+              CModel::state_t StateType = pState->getIndex();
              
               StateStatistics & Statistics = mData[StateType];
               Statistics.exposedState.insert(ExposedType);
@@ -326,12 +325,11 @@ void CAnalyzer::run()
               Statistics.entryTickSD += delta * (Tick - Statistics.entryTickMean);
 
               // Advance the state according to the possible progressions.
-              const CProgression * pProgression = mpModel->nextProgression(StateType);
-
+              const CProgression * pProgression = pState->nextProgression(nullptr);
               if (pProgression != NULL)
                 {
                   pState = pProgression->getExitState();
-                  unsigned int Duration = pProgression->getDwellTime();
+                  unsigned int Duration = pProgression->dwellTime(nullptr);
                   Tick += Duration;
                   
                   if (Tick <= mMaxTick)

@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -29,8 +28,15 @@
 #include "diseaseModel/CHealthState.h"
 #include "utilities/CLogger.h"
 
+// static
+unsigned int CProgression::defaultMethod(const CProgression * pProgression, const CNode * /* pNode */)
+{
+  return pProgression->mDwellTime.sample();
+}
+
 CProgression::CProgression()
   : CAnnotation()
+  , CCustomMethod(&CProgression::defaultMethod)
   , mId()
   , mpEntryState(NULL)
   , mpExitState(NULL)
@@ -43,6 +49,7 @@ CProgression::CProgression()
 
 CProgression::CProgression(const CProgression & src)
   : CAnnotation(src)
+  , CCustomMethod(src)
   , mId(src.mId)
   , mpEntryState(src.mpEntryState)
   , mpExitState(src.mpExitState)
@@ -179,14 +186,14 @@ const CHealthState * CProgression::getExitState() const
   return mpExitState;
 }
 
-const double & CProgression::getPropability() const
+const double & CProgression::getProbability() const
 {
   return mProbability;
 }
 
-unsigned int CProgression::getDwellTime() const
+unsigned int CProgression::dwellTime(const CNode * pNode) const
 {
-  return mDwellTime.sample();
+  return mpCustomMethod(this, pNode);
 }
 
 void CProgression::updateSusceptibilityFactor(double & factor) const

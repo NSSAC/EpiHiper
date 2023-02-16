@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -74,8 +73,6 @@ public:
 
   static CHealthState * GetState(const std::string & id);
 
-  static state_t StateToType(const CHealthState * pState);
-
   static CHealthState * StateFromType(const state_t & type);
 
   static const bool & isValid();
@@ -86,6 +83,10 @@ public:
 
   static const std::vector< CTransmission > & GetTransmissions();
 
+  static const std::vector< CHealthState > & GetStates();
+
+  static const std::vector< CProgression > & GetProgressions();
+
   static int UpdateGlobalStateCounts();
 
   static CCommunicate::ErrorCode ReceiveGlobalStateCounts(std::istream & is, int sender);
@@ -94,42 +95,33 @@ public:
 
   static void WriteGlobalStateCounts();
 
-  static const CProgression * NextProgression(const CModel::state_t & state); 
-
-  const CProgression * nextProgression(const CModel::state_t & state) const; 
-
-  const CHealthState * getStates() const;
+  const std::vector< CHealthState > & getStates() const;
 
   const size_t & getStateCount() const;
 
   const std::vector< CTransmission > & getTransmissions() const;
 
-  state_t stateToType(const CHealthState * pState) const;
+  const std::vector< CProgression > & getProgressions() const;
 
-  CHealthState * stateFromType(const state_t & type) const;
+  CHealthState * stateFromType(const state_t & type);
+
 private:
   struct PossibleTransmissions
   {
-    CTransmission ** Transmissions;
-  };
-
-  struct PossibleProgressions
-  {
-    double A0;
-    std::vector< const CProgression * > Progressions;
+    CTransmission ** Transmissions = nullptr;
   };
 
   bool processTransmissions() const;
   void stateChanged(CNode * pNode) const;
 
-  CHealthState * mStates;
+  std::vector< CHealthState > mStates;
   size_t mStateCount;
   std::map< std::string, CHealthState * > mId2State;
   CHealthState const * mpInitialState;
   std::vector< CTransmission > mTransmissions;
   std::vector< CProgression > mProgressions;
   PossibleTransmissions * mPossibleTransmissions;
-  PossibleProgressions * mPossibleProgressions;
+
   const double * mpTransmissibility;
   bool mValid;
 };

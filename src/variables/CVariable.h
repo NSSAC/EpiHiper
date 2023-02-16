@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -35,7 +34,7 @@ class CMetadata;
 class CVariable: public CValue, public CAnnotation
 {
 public:
-  enum struct Type
+  enum struct Scope
   {
     global,
     local
@@ -64,7 +63,7 @@ public:
 
   const bool & isValid() const;
 
-  const Type & getType() const;
+  const Scope & getScope() const;
   
   void reset(const bool & force = false);
 
@@ -86,7 +85,7 @@ public:
 
 private:
   std::string mId;
-  Type mType;
+  Scope mScope;
   double mInitialValue;
   double * mpLocalValue;
   int mResetValue;

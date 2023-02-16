@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -30,13 +29,16 @@
 
 #include "utilities/CAnnotation.h"
 #include "diseaseModel/CFactorOperation.h"
+#include "plugins/CCustomMethod.h"
 
 struct json_t;
 class CHealthState;
 
-class CTransmission: public CAnnotation
+class CTransmission: public CAnnotation, public CCustomMethod< CCustomMethodType::transmission_propensity >
 {
 public:
+  static double defaultMethod(const CTransmission * pTransmission, const CEdge * pEdge);
+
   CTransmission();
 
   CTransmission(const CTransmission & src);
@@ -60,6 +62,8 @@ public:
   void updateSusceptibilityFactor(double & factor) const;
 
   void updateInfectivityFactor(double & factor) const;
+
+  double propensity(const CEdge * pEdge) const;
 
 private:
   std::string mId;

@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -27,21 +26,33 @@
 #define SRC_DISEASEMODEL_CHEALTHSTATE_H_
 
 #include <string>
+#include <vector>
 
 #include "utilities/CAnnotation.h"
 #include "utilities/CContext.h"
+#include "plugins/CCustomMethod.h"
 
+class CProgression;
+class pNode;
 struct json_t;
 
-class CHealthState: public CAnnotation
+class CHealthState: public CAnnotation, public CCustomMethod< CCustomMethodType::state_progression >
 {
 public:
+  struct PossibleProgressions
+  {
+    double A0 = 0.0;
+    std::vector< const CProgression * > Progressions;
+  };
+
   struct Counts
   {
     size_t Current;
     size_t In;
     size_t Out;
   };
+
+  static const CProgression * defaultMethod(const CHealthState * pHealthState, const CNode * pNode);
 
   CHealthState();
 
@@ -51,13 +62,23 @@ public:
 
   virtual void fromJSON(const json_t * json) override;
 
+  const bool & isValid() const;
+
   const std::string & getId() const;
+
+  void setIndex(const size_t & index);
+
+  const size_t & getIndex() const;
 
   const double & getSusceptibility() const;
 
   const double & getInfectivity() const;
 
-  const bool & isValid() const;
+  const PossibleProgressions & getPossibleProgressions() const;
+
+  void addProgression(const CProgression * pProgression);
+
+  const CProgression * nextProgression(const CNode * pNode) const;
 
   const CContext< Counts > & getLocalCounts() const;
 
@@ -83,11 +104,14 @@ public:
 
 private:
   std::string mId;
+  size_t mIndex;
   double mSusceptibility;
   double mInfectivity;
   bool mValid;
   mutable CContext< Counts > mLocalCounts;
   Counts mGlobalCounts;
+  PossibleProgressions mProgressions;
+
 };
 
 #endif /* SRC_DISEASEMODEL_CHEALTHSTATE_H_ */

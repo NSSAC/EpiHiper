@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -70,7 +69,7 @@ public:
   
   static void seed(result_t seed);
   static void init(size_t seed);
-
+  static result_t getSeed();
   class CContext : public ::CContext< generator_t >
   {
   public:
@@ -80,7 +79,8 @@ public:
   static CContext G;
 
 private:
-  static bool haveSeed;
+  static bool mHaveSeed;
+  static result_t mSeed;
 };
 
 #endif /* SRC_UTILITIES_CRANDOM_H_ */

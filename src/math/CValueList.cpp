@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -29,6 +28,7 @@
 
 #include "traits/CTrait.h"
 #include "utilities/CLogger.h"
+#include "diseaseModel/CHealthState.h"
 
 CValueList::CValueList(const Type & type)
   : std::set< CValue >()
@@ -357,7 +357,7 @@ void CValueList::fromJSON(const json_t * json)
                   return;
                 }
 
-              std::set< CValue >::insert(CModel::StateToType(pHealthState));
+              std::set< CValue >::insert(pHealthState->getIndex());
             }
           else if (json_is_real(pValue) &&
                    abs(json_real_value(pValue) - (size_t) json_real_value(pValue)) <= abs(json_real_value(pValue)) * 100.0 * std::numeric_limits< double >::epsilon())

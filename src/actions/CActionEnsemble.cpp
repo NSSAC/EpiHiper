@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -26,6 +25,7 @@
 #include <jansson.h>
 
 #include "utilities/CLogger.h"
+#include "utilities/CSimConfig.h"
 #include "actions/CActionEnsemble.h"
 #include "sets/CSetContent.h"
 
@@ -155,11 +155,7 @@ void CActionEnsemble::fromJSON(const json_t * json)
 
   if (!mSampling.isValid())
     {
-      char * str = json_dumps(json, JSON_COMPACT | JSON_INDENT(0));
-      std::string JSON = str;
-      free(str);
-
-      CLogger::error() << "Action ensemble: Invalid value for 'sampling': " << JSON;
+      CLogger::error() << "Action ensemble: Invalid value for 'sampling': " << CSimConfig::jsonToString(json);
       return;
     }
 

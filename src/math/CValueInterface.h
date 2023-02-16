@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -120,6 +119,8 @@ public:
 
   static void divide(double & lhs, const double & rhs);
 
+  static bool compatible(const CValueInterface::Type & lhs, const CValueInterface::Type & rhs);
+  
   static std::string operatorToString(CValueInterface::pOperator pOperator);
   
 protected:

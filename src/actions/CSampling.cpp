@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -62,6 +61,7 @@ void CSampling::CSampled::fromJSON(const json_t * /* json */)
 CSampling::CSampling()
   : mType()
   , mpVariable(NULL)
+  , mConversionFactor(100.0)
   , mPercentage()
   , mCount()
   , mpSampled(NULL)
@@ -79,6 +79,7 @@ CSampling::CSampling()
 CSampling::CSampling(const CSampling & src)
   : mType(src.mType)
   , mpVariable(src.mpVariable)
+  , mConversionFactor(src.mConversionFactor)
   , mPercentage(src.mPercentage)
   , mCount(src.mCount)
   , mpSampled(src.mpSampled != NULL ? new CActionEnsemble(*src.mpSampled) : NULL)
@@ -132,19 +133,45 @@ void CSampling::fromJSON(const json_t * json)
       "$id": "#sampling",
       "description": "Sampling within a set with actions for sampled and non-sampled individuals.",
       "allOf": [
-        {"$ref": "#/definitions/annotation"},
+        {
+          "$ref": "#/definitions/annotation"
+        },
         {
           "oneOf": [
             {
               "$id": "#relativeSampling",
               "description": "",
               "type": "object",
-              "required": [
-                "type",
-                "number"
+              "oneOf": [
+                {
+                  "required": [
+                    "type",
+                    "number",
+                    "sampled"
+                  ]
+                },
+                {
+                  "required": [
+                    "type",
+                    "variable",
+                    "sampled"
+                  ]
+                },
+                {
+                  "required": [
+                    "type",
+                    "number",
+                    "nonSampled"
+                  ]
+                },
+                {
+                  "required": [
+                    "type",
+                    "variable",
+                    "nonSampled"
+                  ]
+                }
               ],
-              "minProperties": 3,
-              "additionalProperties": false,
               "properties": {
                 "type": {
                   "type": "string",
@@ -158,39 +185,250 @@ void CSampling::fromJSON(const json_t * json)
                   "minimum": 0,
                   "maximum": 100
                 },
-                "sampled": {"$ref": "#/definitions/actionEnsemble"},
-                "nonsampled": {"$ref": "#/definitions/actionEnsemble"}
+                "variable": {
+                  "type": "object",
+                  "required": [
+                    "idRef"
+                  ],
+                  "properties": {
+                    "idRef": {
+                      "$ref": "#/definitions/uniqueIdRef"
+                    }
+                  }
+                },
+                "sampled": {
+                  "$ref": "#/definitions/actionEnsemble"
+                },
+                "nonsampled": {
+                  "$ref": "#/definitions/actionEnsemble"
+                },
+                "patternProperties": {
+                  "^ann:": {}
+                },
+                "additionalProperties": false
               }
             },
             {
               "$id": "#absoluteSampling",
               "description": "",
               "type": "object",
-              "required": [
-                "type",
-                "number"
+              "oneOf": [
+                {
+                  "required": [
+                    "type",
+                    "number",
+                    "sampled"
+                  ]
+                },
+                {
+                  "required": [
+                    "type",
+                    "variable",
+                    "sampled"
+                  ]
+                },
+                {
+                  "required": [
+                    "type",
+                    "number",
+                    "nonSampled"
+                  ]
+                },
+                {
+                  "required": [
+                    "type",
+                    "variable",
+                    "nonSampled"
+                  ]
+                }
               ],
-              "minProperties": 3,
-              "additionalProperties": false,
               "properties": {
                 "type": {
                   "type": "string",
-                  "enum": ["absolute"]
+                  "enum": [
+                    "absolute"
+                  ]
                 },
                 "number": {
                   "type": "number",
                   "minimum": 0,
                   "multipleOf": 1.0
                 },
-                "sampled": {"$ref": "#/definitions/actionEnsemble"},
-                "nonsampled": {"$ref": "#/definitions/actionEnsemble"}
+                "variable": {
+                  "type": "object",
+                  "required": [
+                    "idRef"
+                  ],
+                  "properties": {
+                    "idRef": {
+                      "$ref": "#/definitions/uniqueIdRef"
+                    }
+                  }
+                },
+                "sampled": {
+                  "$ref": "#/definitions/actionEnsemble"
+                },
+                "nonsampled": {
+                  "$ref": "#/definitions/actionEnsemble"
+                },
+                "patternProperties": {
+                  "^ann:": {}
+                },
+                "additionalProperties": false
+              }
+            },
+            {
+              "$id": "#relativeSamplingProbability",
+              "description": "Sampling by given probability",
+              "oneOf": [
+                {
+                  "required": [
+                    "type",
+                    "probability",
+                    "sampled"
+                  ]
+                },
+                {
+                  "required": [
+                    "type",
+                    "probability",
+                    "nonsampled"
+                  ]
+                }
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "individual",
+                    "group"
+                  ]
+                },
+                "probability": {
+                  "type": "object",
+                  "oneOf": [
+                    {
+                      "required": [
+                        "number"
+                      ],
+                      "properties": {
+                        "number": {
+                          "type": "number",
+                          "minimum": 0.0,
+                          "maximum": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "required": [
+                        "variable"
+                      ],
+                      "properties": {
+                        "variable": {
+                          "type": "object",
+                          "required": [
+                            "idRef"
+                          ],
+                          "properties": {
+                            "idRef": {
+                              "$ref": "#/definitions/uniqueIdRef"
+                            }
+                          }
+                        }
+                      },
+                      "sampled": {
+                        "$ref": "#/definitions/actionEnsemble"
+                      },
+                      "nonsampled": {
+                        "$ref": "#/definitions/actionEnsemble"
+                      },
+                      "patternProperties": {
+                        "^ann:": {}
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "$id": "#absoluteSamplingProbability",
+              "description": "Sampling by given count",
+              "oneOf": [
+                {
+                  "required": [
+                    "type",
+                    "count",
+                    "sampled"
+                  ]
+                },
+                {
+                  "required": [
+                    "type",
+                    "count",
+                    "nonsampled"
+                  ]
+                }
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "absolute"
+                  ]
+                }
+              },
+              "count": {
+                "type": "object",
+                "oneOf": [
+                  {
+                    "required": [
+                      "number"
+                    ],
+                    "properties": {
+                      "number": {
+                        "type": "number",
+                        "minimum": 0.0,
+                        "multipleOf": 1
+                      }
+                    }
+                  },
+                  {
+                    "required": [
+                      "variable"
+                    ],
+                    "properties": {
+                      "variable": {
+                        "type": "object",
+                        "required": [
+                          "idRef"
+                        ],
+                        "properties": {
+                          "idRef": {
+                            "$ref": "#/definitions/uniqueIdRef"
+                          }
+                        }
+                      },
+                      "sampled": {
+                        "$ref": "#/definitions/actionEnsemble"
+                      },
+                      "nonsampled": {
+                        "$ref": "#/definitions/actionEnsemble"
+                      },
+                      "patternProperties": {
+                        "^ann:": {}
+                      },
+                      "additionalProperties": false
+                    }
+                  }
+                ]
               }
             }
           ]
         }
       ]
     },
-   */
+  */
 
   mValid = false; // DONE
 
@@ -227,11 +465,39 @@ void CSampling::fromJSON(const json_t * json)
       return;
     }
 
-  mpVariable = &CVariableList::INSTANCE[json];
+  const json_t * pSampleValue = NULL;
+  mConversionFactor = 1.0;
+
+  switch (mType)
+  {
+    case Type::relativeGroup:
+    case Type::relativeIndividual:
+      pSampleValue = json_object_get(json, "probability");
+
+      if (pSampleValue != NULL)
+        mConversionFactor = 100.0;
+      else
+        pSampleValue = json_object_get(json, "percent");
+
+      break;
+
+    case Type::absolute:
+      pSampleValue = json_object_get(json, "count");
+      break;
+  }
+
+  // Fall back to deprecated format
+  if (pSampleValue == NULL)
+    {
+      pSampleValue = json;
+      mConversionFactor = 1.0;
+    }
+
+  mpVariable = &CVariableList::INSTANCE[pSampleValue];
 
   if (mpVariable->isValid())
     {
-      if (mpVariable->getType() == CVariable::Type::global)
+      if (mpVariable->getScope() == CVariable::Scope::global)
         {
           CLogger::error() << "Sampling: The variable '" << mpVariable->getId() << "' must have scope local.";
           return;
@@ -241,7 +507,7 @@ void CSampling::fromJSON(const json_t * json)
     {
       mpVariable = NULL;
 
-      pValue = json_object_get(json, "number");
+      pValue = json_object_get(pSampleValue, "number");
 
       if (!json_is_real(pValue))
         {
@@ -253,7 +519,7 @@ void CSampling::fromJSON(const json_t * json)
         {
         case Type::relativeIndividual:
         case Type::relativeGroup:
-          mPercentage = json_real_value(pValue);
+          mPercentage = json_real_value(pValue) * mConversionFactor;
           break;
 
         case Type::absolute:
@@ -305,7 +571,7 @@ void CSampling::process(const CSetContent & targets)
     }
 
   mpTargets = &targets;
-  // For types relativeGroup and absolute we need to communcate with the other comput nodes to determine the local number
+  // For types relativeGroup and absolute we need to communicate with the other compute nodes to determine the local number
   // even if targets are empty;
 
   if (mType == Type::relativeGroup || mType == Type::absolute)
@@ -326,7 +592,7 @@ void CSampling::process(const CSetContent & targets)
   else
     {
       if (mpVariable != NULL)
-        mPercentage = mpVariable->toNumber();
+        mPercentage = mpVariable->toNumber() * mConversionFactor;
 
       if (std::isnan(mPercentage))
         {
@@ -448,7 +714,7 @@ void CSampling::determineThreadLimits()
   if (mType == Type::relativeGroup)
     {
       if (mpVariable != NULL)
-        mPercentage = mpVariable->toNumber();
+        mPercentage = mpVariable->toNumber() * mConversionFactor;
 
       Available = std::round(Requested * mPercentage / 100.0);
     }

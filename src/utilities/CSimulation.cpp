@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2020 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2020 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -175,6 +174,13 @@ bool CSimulation::run()
       CNetwork::dumpActiveNetwork();
 
       CStatus::update("running", (100.0 * std::max((CActionQueue::getCurrentTick() - CSimConfig::getStartTick() + 1), 0)) / (CSimConfig::getEndTick() - CSimConfig::getStartTick() + 1));
+
+      std::map< int, size_t >::const_iterator found = CSimConfig::getReseed().find(CActionQueue::getCurrentTick());
+
+      if (found != CSimConfig::getReseed().end())
+#pragma omp master
+        CRandom::init(found->second);
+
     }
 
   return success;

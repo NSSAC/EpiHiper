@@ -1,8 +1,7 @@
 # BEGIN: Copyright 
 # MIT License 
 #  
-# Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-# All rights reserved 
+# Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 #  
 # Permission is hereby granted, free of charge, to any person obtaining a copy 
 # of this software and associated documentation files (the "Software"), to deal 
@@ -33,6 +32,7 @@ include(diseaseModel/CMakeLists.txt)
 include(intervention/CMakeLists.txt)
 include(math/CMakeLists.txt)
 include(network/CMakeLists.txt)
+include(plugins/CMakeLists.txt)
 include(sets/CMakeLists.txt)
 include(traits/CMakeLists.txt)
 include(utilities/CMakeLists.txt)
@@ -65,6 +65,7 @@ else(CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
 add_library (EpiHiperLib SHARED $<TARGET_OBJECTS:EpiHiperLib-core>)
+add_dependencies(EpiHiperLib jansson libpqxx spdlog)
 
 add_executable (EpiHiper EpiHiper.cpp EpiHiperConfig.h)
 add_dependencies(EpiHiper EpiHiperLib GIT_COMMIT)
@@ -86,7 +87,6 @@ else ()
 		${PGSQL_LIBRARY} 
 		${CMAKE_BINARY_DIR}/lib/libjansson.a 
 		${CMAKE_BINARY_DIR}/lib/libpqxx.a
-		-lpthread
 		-ldl
 	)
 
@@ -106,5 +106,3 @@ target_link_libraries (EpiHiperR0 PUBLIC ${EPIHIPER_LIBARIES})
 add_executable (EpiHiperModelAnalyzer EpiHiperModelAnalyzer.cpp EpiHiperConfig.h)
 add_dependencies(EpiHiperModelAnalyzer EpiHiperLib GIT_COMMIT)
 target_link_libraries (EpiHiperModelAnalyzer PUBLIC ${EPIHIPER_LIBARIES})
-
-add_subdirectory(propensity)

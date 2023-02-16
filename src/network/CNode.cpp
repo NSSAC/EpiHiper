@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -40,7 +39,7 @@ CNode CNode::getDefault()
   CNode Default;
 
   Default.pHealthState = &CModel::GetInitialState();
-  Default.healthState = CModel::StateToType(Default.pHealthState);
+  Default.healthState = Default.pHealthState->getIndex();
   Default.susceptibility = Default.pHealthState->getSusceptibility();
   Default.infectivity = Default.pHealthState->getInfectivity();
   Default.nodeTrait = CTrait::NodeTrait->getDefault();
@@ -316,7 +315,7 @@ void CNode::setHealthState(const CHealthState * pNewHealthState)
   if (CNetwork::Context.Active().isRemoteNode(this))
     {
       pHealthState = pNewHealthState;
-      healthState = CModel::StateToType(pHealthState);
+      healthState = pHealthState->getIndex();
       return;
     }
 
@@ -328,7 +327,7 @@ void CNode::setHealthState(const CHealthState * pNewHealthState)
   if (pHealthState != NULL)
     pHealthState->increment();
 
-  healthState = CModel::StateToType(pHealthState);
+  healthState = pHealthState->getIndex();
 }
 
 

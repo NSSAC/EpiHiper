@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -136,6 +135,7 @@ CNetwork::CNetwork()
   , mExternalNodes(NULL)
   , mExternalNodesSize(0)
   , mRemoteNodes()
+  , mSourceOnlyNodes()
   , mEdges(NULL)
   , mEdgesSize(0)
   , mTotalNodesSize(0)
@@ -199,7 +199,7 @@ CNetwork::~CNetwork()
 void CNetwork::fromJSON(const json_t * json)
 {
   /*
-  {
+{
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Schema title",
   "description": "Description of the schema",
@@ -222,7 +222,7 @@ void CNetwork::fromJSON(const json_t * json)
   "properties": {
     "epiHiperSchema": {
       "type": "string",
-      "enum": ["https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/networkSchema.json"]
+      "pattern": "^./networkSchema.json$"
     },
     "encoding": {
       "description": "Encoding used for the network edges",
@@ -331,13 +331,19 @@ void CNetwork::fromJSON(const json_t * json)
           "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
         }
       }
+    },
+    "sourceOnlyNodes": {
+      "type": "array",
+      "items": {
+        "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
+      }
     }
   }
 }
   */
 
   mValid = false;
-
+  
   json_t * pValue = json_object_get(json, "encoding");
 
   if (json_is_string(pValue))
@@ -502,6 +508,14 @@ void CNetwork::fromJSON(const json_t * json)
       CEdge::HasWeightField = json_boolean_value(pValue);
     }
 
+  pValue = json_object_get(json, "sourceOnlyNodes");
+
+  if (json_is_array(pValue))
+    {
+      for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
+        mSourceOnlyNodes.insert(json_integer_value(json_array_get(pValue, i)));
+    }
+
   CAnnotation::fromJSON(json);
   mValid = true;
 }
@@ -647,6 +661,7 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
       size_t LastNodeEdgeCount = 0;
 
       size_t PartitionIndex(1);
+      std::set< size_t >::const_iterator itSourceOnlyNode = mSourceOnlyNodes.begin();
 
       CEdge Edge = CEdge::getDefault();
 
@@ -692,6 +707,15 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
                     }
                   else
                     {
+                      // Account for source only nodes. 
+                      // Note: this assures that we always append nodes at the end of the partition.
+                      while (itSourceOnlyNode != mSourceOnlyNodes.end()
+                            && *itSourceOnlyNode < Node)
+                        {
+                          ++*pNodes;
+                          ++itSourceOnlyNode;
+                        }
+
                       *(pPartition + 3) = Node;
                       *(pNodes + 3) = 0;
                       *(pEdges + 3) = 0;
@@ -723,6 +747,14 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
 
               ++*pNodes;
 
+              // Account for source only nodes. 
+              while (itSourceOnlyNode != mSourceOnlyNodes.end()
+                     && *itSourceOnlyNode < Node)
+                {
+                  ++*pNodes;
+                  ++itSourceOnlyNode;
+                }
+
               LastNodeEdgeCount = PartitionEdgeCount;
 
               CurrentNode = Node;
@@ -739,6 +771,13 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
       if (CLogger::hasErrors())
         {
           return;
+        }
+
+      // Account for remaining source only nodes
+      while (itSourceOnlyNode != mSourceOnlyNodes.end())
+        {
+          ++*pNodes;
+          Node = *++itSourceOnlyNode;
         }
 
       *(pPartition + 3) = Node + 1;
@@ -959,6 +998,15 @@ void CNetwork::load()
     // Skip Column Header
     std::getline(is, Line);
 
+    std::set< size_t >::const_iterator itSourceOnlyNode;
+
+    if (Context.globalIndex(&Active) == 0)
+      itSourceOnlyNode = mSourceOnlyNodes.begin();
+    else
+      itSourceOnlyNode = mSourceOnlyNodes.lower_bound(Active.mFirstLocalNode);
+
+    std::set< size_t >::const_iterator endSourceOnlyNode = mSourceOnlyNodes.upper_bound(Active.mBeyondLocalNode);
+
     CNode * pNode = Active.mLocalNodes;
     CNode * pNodeEnd = pNode + Active.mLocalNodesSize;
     *pNode = DefaultNode;
@@ -988,22 +1036,49 @@ void CNetwork::load()
 
         if (FirstTime)
           {
+            // Account for source only nodes at the beginning
+            while (itSourceOnlyNode != endSourceOnlyNode
+                   && *itSourceOnlyNode < pEdge->targetId
+                   && pNode < pNodeEnd - 1) 
+              {
+                pNode->id = *itSourceOnlyNode;
+                pNode->Edges = pEdge;
+                pNode->EdgesSize = 0;
+                ++itSourceOnlyNode;
+
+                ++pNode;
+                *pNode = DefaultNode;
+              }
+
             pNode->id = pEdge->targetId;
             pNode->Edges = pEdge;
             Active.mFirstLocalNode = pNode->id;
 
             FirstTime = false;
           }
-
-        if (pNode->id != pEdge->targetId)
+        else if (pNode->id != pEdge->targetId)
           {
             pNode->EdgesSize = pEdge - pNode->Edges;
-
             ++pNode;
 
             if (pNode < pNodeEnd)
               {
                 *pNode = DefaultNode;
+
+                // Account for source only nodes
+                while (itSourceOnlyNode != endSourceOnlyNode
+                       && *itSourceOnlyNode < pEdge->targetId
+                       && pNode < pNodeEnd - 1)
+                  {
+                    pNode->id = *itSourceOnlyNode;
+                    pNode->Edges = pEdge;
+                    pNode->EdgesSize = 0;
+                    ++itSourceOnlyNode;
+
+                    ++pNode;
+                    *pNode = DefaultNode;
+                  }
+
                 pNode->id = pEdge->targetId;
                 pNode->Edges = pEdge;
               }
@@ -1027,6 +1102,21 @@ void CNetwork::load()
     if (Active.mValid)
       {
         pNode->EdgesSize = pEdge - pNode->Edges;
+
+        // Account for source only nodes
+        while (itSourceOnlyNode != endSourceOnlyNode
+                && *itSourceOnlyNode < pEdge->targetId
+                && pNode < pNodeEnd - 1)
+          {
+            ++pNode;
+            *pNode = DefaultNode;
+
+            pNode->id = *itSourceOnlyNode;
+            pNode->Edges = pEdge;
+            pNode->EdgesSize = 0;
+            ++itSourceOnlyNode;
+          }
+
         assert(Active.mBeyondLocalNode > pNode->id);
       }
 
@@ -1106,12 +1196,12 @@ void CNetwork::initOutgoingEdges()
             if (pEdge->pSource == NULL)
               {
                 CLogger::error() << "Network file: '" << Active.mFile << "' Source not found "
-                                 << pEdge << ", " << pEdge->targetId << ", " << pEdge->sourceId << std::endl;
+                                 << pEdge << ", " << pEdge->targetId << ", " << pEdge->sourceId << ".";
                 mValid = false; // DONE
               }
           }
-
-        OutgoingEdges[pEdge->pSource].push_back(pEdge);
+        else
+          OutgoingEdges[pEdge->pSource].push_back(pEdge);
       }
 
     std::map< CNode *, std::vector< CEdge * > >::const_iterator it = OutgoingEdges.begin();
@@ -1136,9 +1226,7 @@ void CNetwork::initOutgoingEdges()
 
 void CNetwork::writePreamble(std::ostream & os) const
 {
-  char * str = json_dumps(mpJson, JSON_COMPACT | JSON_INDENT(0));
-  os << str << std::endl;
-  free(str);
+  os << CSimConfig::jsonToString(mpJson) << std::endl;
 
   os << "targetPID,targetActivity,sourcePID,sourceActivity,duration";
 
@@ -1229,9 +1317,7 @@ bool CNetwork::openPartition(const size_t & partition,
       return false;
     }
 
-  char * str = json_dumps(pJson, JSON_COMPACT | JSON_INDENT(0));
-  os << str << std::endl;
-  free(str);
+  os << CSimConfig::jsonToString(pJson) << std::endl;
 
   if (CEdge::HasLocationId)
     os << "targetPID,targetActivity,sourcePID,sourceActivity,duration,LID,edgeTrait,active,weight";

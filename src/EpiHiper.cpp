@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -29,7 +28,7 @@
 #include "utilities/CArgs.h"
 
 #include "diseaseModel/CModel.h"
-#include "diseaseModel/CTransmissionPropensity.h"
+#include "plugins/CPlugin.h"
 #include "utilities/CSimulation.h"
 #include "network/CNetwork.h"
 #include "traits/CTrait.h"
@@ -96,12 +95,6 @@ int main(int argc, char * argv[])
     }
 
   CStatus::load("epihiper", CArgs::getName(), CSimConfig::getStatus());
-  CTransmissionPropensity::Init();
-
-  if (CLogger::hasErrors())
-    {
-      goto failed;
-    }
 
   CActionQueue::init();
   CRandom::init(CSimConfig::getSeed());
@@ -127,6 +120,13 @@ int main(int argc, char * argv[])
     }
 
   CModel::Load(CSimConfig::getDiseaseModel());
+
+  if (CLogger::hasErrors())
+    {
+      goto failed;
+    }
+
+  CPlugin::Init();
 
   if (CLogger::hasErrors())
     {
@@ -202,7 +202,7 @@ failed:
   CCommunicate::abort((CCommunicate::ErrorCode) MPI_ERR_UNKNOWN);
 
 success:
-  CTransmissionPropensity::Release();
+  CPlugin::Release();
   CModel::Release();
   CInitialization::release();
   CIntervention::release();

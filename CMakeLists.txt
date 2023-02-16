@@ -1,8 +1,7 @@
 # BEGIN: Copyright 
 # MIT License 
 #  
-# Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-# All rights reserved 
+# Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 #  
 # Permission is hereby granted, free of charge, to any person obtaining a copy 
 # of this software and associated documentation files (the "Software"), to deal 
@@ -62,6 +61,7 @@ include_directories(BEFORE ${PROJECT_BINARY_DIR}/include)
 
 add_subdirectory(dependencies)
 add_subdirectory(src)
+add_subdirectory(plugin)
 
 message(STATUS "-----------------------------------------------------------
 

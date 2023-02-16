@@ -1,8 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
-// All rights reserved 
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -40,7 +39,7 @@ CVariable * CVariable::transmissibility()
   CVariable * pTransmissibility = new CVariable();
 
   pTransmissibility->mId = "%transmissibility%";
-  pTransmissibility->mType = Type::local;
+  pTransmissibility->mScope = Scope::local;
   pTransmissibility->mInitialValue = 1.0;
   pTransmissibility->mValid = true;
 
@@ -51,7 +50,7 @@ CVariable::CVariable()
   : CValue(std::numeric_limits< double >::quiet_NaN())
   , CAnnotation()
   , mId()
-  , mType()
+  , mScope()
   , mInitialValue(std::numeric_limits< double >::quiet_NaN())
   , mpLocalValue(static_cast< double * >(mpValue))
   , mResetValue(0)
@@ -63,7 +62,7 @@ CVariable::CVariable(const CVariable & src)
   : CValue(src)
   , CAnnotation(src)
   , mId(src.mId)
-  , mType(src.mType)
+  , mScope(src.mScope)
   , mInitialValue(src.mInitialValue)
   , mpLocalValue(static_cast< double * >(mpValue))
   , mResetValue(src.mResetValue)
@@ -75,7 +74,7 @@ CVariable::CVariable(const json_t * json)
   : CValue(std::numeric_limits< double >::quiet_NaN())
   , CAnnotation()
   , mId()
-  , mType()
+  , mScope()
   , mInitialValue(std::numeric_limits< double >::quiet_NaN())
   , mpLocalValue(static_cast< double * >(mpValue))
   , mResetValue(0)
@@ -85,7 +84,7 @@ CVariable::CVariable(const json_t * json)
   fromJSON(json);
 
   if (mValid
-      && mType == Type::global)
+      && mScope == Scope::global)
     {
       mIndex = CCommunicate::getRMAIndex();
     }
@@ -168,7 +167,7 @@ void CVariable::fromJSON(const json_t * json)
   if (json_is_string(pValue))
     {
       std::string(json_string_value(pValue));
-      mType = std::string(json_string_value(pValue)) == "global" ? Type::global : Type::local;
+      mScope = std::string(json_string_value(pValue)) == "global" ? Scope::global : Scope::local;
     }
   else
     {
@@ -210,9 +209,9 @@ const bool & CVariable::isValid() const
   return mValid;
 }
 
-const CVariable::Type & CVariable::getType() const
+const CVariable::Scope & CVariable::getScope() const
 {
-  return mType;
+  return mScope;
 }
 
 void CVariable::reset(const bool & force)
@@ -225,7 +224,7 @@ void CVariable::reset(const bool & force)
       *mpLocalValue = mInitialValue;
 
       if (CCommunicate::MPIRank == 0
-          && mType == Type::global
+          && mScope == Scope::global
           && CCommunicate::MPIProcesses > 1)
         {
           CCommunicate::updateRMA(mIndex, &CValueInterface::equal, *mpLocalValue);
@@ -235,7 +234,7 @@ void CVariable::reset(const bool & force)
 
 void CVariable::getValue()
 {
-  if (mType == Type::global &&
+  if (mScope == Scope::global &&
       CCommunicate::MPIProcesses > 1)
     {
       double Value = CCommunicate::getRMA(mIndex);
@@ -258,7 +257,7 @@ bool CVariable::setValue(double value, CValueInterface::pOperator pOperator, con
 
   double Value = *mpLocalValue;
 
-  if (mType == Type::global
+  if (mScope == Scope::global
       && CCommunicate::MPIProcesses > 1)
     Value = CCommunicate::updateRMA(mIndex, pOperator, value);
   else
