@@ -42,6 +42,10 @@ if [ ! -e EpiHiper ]; then
     scp rivanna:/project/biocomplexity/nssac/EpiHiper/build/src/libEpiHiper* . 
 fi
 
+# Assure that the files are readable and executable by all
+chmod 775 EpiHiper*
+chmod 775 libEpiHiper*
+
 # Intel Runtime Libraries
 [ -e l_comp_lib_2018.5.274_comp.cpp_redist.tgz ] || \
     wget https://software.intel.com/sites/default/files/managed/b0/e9/l_comp_lib_2018.5.274_comp.cpp_redist.tgz
