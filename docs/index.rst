@@ -23,6 +23,17 @@ Welcome to EpiHiper's documentation!
    :maxdepth: 2
    :caption: Configuration
 
+   configuration/disease-model.rst
+   configuration/traits.rst
+   configuration/intervention.rst
+   configuration/initialization.rst
+   configuration/trigger.rst
+   configuration/sets.rst
+   configuration/variables.rst
+   configuration/network.rst
+   configuration/person-db.rst
+   configuration/location-db.rst
+
 .. toctree::
    :maxdepth: 2
    :caption: Examples
