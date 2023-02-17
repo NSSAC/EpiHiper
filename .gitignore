@@ -22,3 +22,5 @@ example/output.csv
 example/stateTransistions.csv
 
 example/status.json
+
+docs/_build/
