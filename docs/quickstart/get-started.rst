@@ -17,10 +17,9 @@ Obtain Code
 Dependencies
 ^^^^^^^^^^^^^^^
 Requirements for building EpiHiper:
-  - C++ 11 compatible compiler, e.g. gcc 7.1.0
-  - Cmake version 3.11 or above
-  - PostgreSQL library (provided by package: libpq5) 
-  - PostgreSQL header  (provided by package: postgresql-devel)
+  - C++ 11 compatible compiler (`Microsoft Visual C++ <https://visualstudio.microsoft.com/vs/features/cplusplus/>`_, `XCode <https://developer.apple.com/xcode/>`_, `Clang <https://clang.llvm.org/>`_, or `gcc <https://gcc.gnu.org/>`_)
+  - `Cmake <https://cmake.org/download/>`_ version 3.11 or above
+  - `PostgreSQL <https://www.postgresql.org/download/>`_ library and header (provided by packages: libpq5, postgresql-devel)
 
 All other dependencies are provided through git submodules, which are automatically retrieved during configuration and compiled during make. These dependencies are:
   - `jansson <https://github.com/akheron/jansson.git>`_
@@ -43,8 +42,7 @@ Building an MPI (multi-process) executable
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Additional dependencies:
-  - OpenMPI version 3.14 and above (provided by package: openmpi3)
-  - OpenMPI header files (provided by package: openmpi3-devel)
+  - `OpenMPI version 3.14 <https://www.open-mpi.org/software/ompi/v3.1/>`_ and above (provided by packages: openmpi3, openmpi3-devel)
 
 From the root directory of the repository execute:
 
@@ -59,7 +57,8 @@ Building an OpenMP (multi-threaded) executable
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Additional dependencies:
-  - OpenMP run time library (provided by package: libgomp1)
+  - OpenMP is provided by the compiler and optionally additional run time libraries (provided by package: libgomp1)
+  - Microsoft Visual C++ support of OpenMP is outdated please see `Getting started with OpenMP on Windows <https://stackoverflow.com/questions/11079586/getting-started-with-openmp-install-on-windows>`_ for help.
 
 From the root directory of the repository execute:
 
@@ -68,7 +67,7 @@ From the root directory of the repository execute:
   mkdir build
   cd build
   cmake -G "Unix Makefiles" -DENABLE_MPI=OFF -DENABLE_OMP=ON -DENABLE_LOCATION_ID=OFF ..
-  make -l
+  make -j
 
 *Note*: It is possible to combine OpenMP and MPI
 
