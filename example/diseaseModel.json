@@ -1,0 +1,119 @@
+{
+  "$schema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/diseaseModelSchema.json",
+  "epiHiperSchema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/diseaseModelSchema.json",
+  "states": [
+    {
+      "id": "S",
+      "ann:label": "Susceptible",
+      "infectivity": 0,
+      "susceptibility": 1
+    },
+    {
+      "id": "I",
+      "ann:label": "Infectious",
+      "infectivity": 1,
+      "susceptibility": 0
+    },
+    {
+      "id": "R",
+      "ann:label": "Recovered",
+      "infectivity": 0,
+      "susceptibility": 0
+    },
+    {
+      "id": "V",
+      "ann:label": "Vaccinated Susceptible",
+      "infectivity": 0,
+      "susceptibility": 0.1
+    },
+    {
+      "id": "wanedS",
+      "ann:label": "Susceptible with waned natural immunity",
+      "infectivity": 0,
+      "susceptibility": 0.7
+    },
+    {
+      "id": "wanedV",
+      "ann:label": "Susceptible with waned prior vax immunity",
+      "infectivity": 0,
+      "susceptibility": 0.5
+    }
+  ],
+  "initialState": "S",
+  "transmissions": [
+    {
+      "id": "infection_I_S",
+      "ann:label": "I infects S",
+      "entryState": "S",
+      "exitState": "I",
+      "contactState": "I",
+      "transmissibility": 1.0
+    },
+    {
+      "id": "infection_I_V",
+      "ann:label": "I infects V",
+      "entryState": "V",
+      "exitState": "I",
+      "contactState": "I",
+      "transmissibility": 1.0
+    },
+    {
+      "id": "infection_I_wanedS",
+      "ann:label": "I infects wanedS",
+      "entryState": "wanedS",
+      "exitState": "I",
+      "contactState": "I",
+      "transmissibility": 1.0
+    },
+    {
+      "id": "infection_I_wanedV",
+      "ann:label": "I infects wanedV",
+      "entryState": "wanedV",
+      "exitState": "I",
+      "contactState": "I",
+      "transmissibility": 1.0
+    }
+  ],
+  "transitions": [
+    {
+      "id": "I_to_R",
+      "ann:label": "Infectious to recovered",
+      "entryState": "I",
+      "exitState": "R",
+      "probability": 1,
+      "dwellTime": {
+        "gamma": {
+          "alpha": 1.0,
+          "beta": 5.0
+        }
+      }
+    },
+    {
+      "id": "R_to_wanedS",
+      "ann:label": "Recovered to susceptible with waned natural immunity",
+      "entryState": "R",
+      "exitState": "wanedS",
+      "probability": 1,
+      "dwellTime": {
+        "gamma": {
+          "alpha": 1.0,
+          "beta": 183.0
+        }
+      }
+    },
+    {
+      "id": "V_to_wanedV",
+      "ann:label": "Prior vax to susceptible with waned prior vax immunity",
+      "entryState": "V",
+      "exitState": "wanedV",
+      "probability": 1,
+      "dwellTime": {
+        "gamma": {
+          "alpha": 1.0,
+          "beta": 122.0
+        }
+      }
+    }
+  ],
+  "transmissibility": 1
+}
