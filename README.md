@@ -1,3 +1,5 @@
+[![Documentation Status](https://readthedocs.org/projects/epihiper/badge/?version=latest)](https://epihiper.readthedocs.io/en/latest/?badge=latest)
+
 # EpiHiper
 
 EpiHiper version 2.0.0. Is an agent based epidemic simulator
