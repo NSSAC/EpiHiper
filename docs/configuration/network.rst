@@ -11,7 +11,7 @@ We point out that there is **no aggregation of edges in the construction of the 
 
 **Remark:** Isolated vertices have no bearing on the disease dynamics and are not represented in the EpiHiper networks.
 
-**Network formats:** EpiHiper supports a binary format and an ASCII format, both of which have a a common JSON header. This header appears as the first line of the file in both formats; it is a standardized JSON object with all newline characters and redundant whitespace characters omitted.
+**Network formats:** EpiHiper supports a binary format and an ASCII format, both of which have a a common JSON header. This header appears as the first line of the file in both formats; it is a standardized JSON `object <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/networkSchema.json>`_ with all newline characters and redundant whitespace characters omitted.
 
 Graph header format
 -------------------
@@ -24,14 +24,16 @@ The elements of the JSON header are described in :numref:`network-json-header`
   
   * - | JSON property
     - | Description
-  * - | annotation 
-    - | An annotation string for the network
+  * - | ann:* 
+    - | `Annotation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L96>`_ for the network
+  * - | encoding
+    - | binary or text
   * - | accumulationTime 
     - | An annotation string specifying the duration of network accumulation
       | (default 24 hours)
   * - | timeResolution 
     - | The maximal value of the duration field of the network edges; captures
-      | the resolution used in the network accumulation (currently 86,400)
+      | the resolution used in the network accumulation per tick.
   * - | numberOfNodes 
     - | The number of nodes in the network
   * - | numberOfEdges 
@@ -41,11 +43,11 @@ The elements of the JSON header are described in :numref:`network-json-header`
   * - | sizeofActivity 
     - | The size of the activities measured in bytes (currently 4)
   * - | activityEncoding 
-    - | JSON schema for encoding of activity type
+    - | JSON `trait object <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L2141>`_ for encoding of activity type
   * - | sizeofEdgeTrait  
     - | The size of the edgeTrait measured in bytes  (currently 0 or 4)
   * - | traitEncoding 
-    - | JSON encoding of edge trait specification
+    - | JSON `trait object <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L2141>`_ for encoding of edge features
   * - | hasActiveField 
     - | Boolean flag stating if active is included as edge field
   * - | hasWeightField 
@@ -58,34 +60,34 @@ The elements of the JSON header are described in :numref:`network-json-header`
   :header-rows: 1
   
   * - | Name
-    - | Type
+    - | Type (binary \| text)
     - | Description
   * - | targetPID
-    - | size_t
+    - | size_t \| :math:`\mathbb{N}_0`
     - | The PID of the target node
   * - | targetActivity
-    - | bitset<32>
+    - | bitset<32> \| :ref:`encoding <traits-text-encoding>`
     - | The activity of the target node at time of contact
   * - | sourcePID
-    - | size_t
+    - | size_t \| :math:`\mathbb{N}_0`
     - | The PID of the source node
   * - | sourceActivity
-    - | bitset<32>
+    - | bitset<32> \| :ref:`encoding <traits-text-encoding>`
     - | The activity of the source node at time of contact
   * - | duration
-    - | double
+    - | double \| :math:`x \ge 0`
     - | Duration of contact in unit number-of-subticks
   * - | [locationID]
-    - | size_t
+    - | size_t \| :math:`\mathbb{N}_0`
     - | The location ID where the contact takes place
   * - | [edgeTrait]
-    - | bitset<32>
+    - | bitset<32> \| :ref:`encoding <traits-text-encoding>`
     - | A per-network customizable bit-field of edge parameters
   * - | [active]
-    - | 1 byte bool
+    - | 1 byte bool \| (0 or 1)
     - | A Boolean value specifying if the given edge is active
   * - | [weight]
-    - | double
+    - | double \| :math:`x \ge 0`
     - | A weight given to each edge.
 
 

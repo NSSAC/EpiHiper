@@ -13,7 +13,7 @@ Welcome to EpiHiper's documentation!
 .. image:: _static/epihiper-icon.png
    :alt: NSSAC-logo
 
-EpiHiper captures a discrete-time, contagion model evolving over a network. For given population and contact network, the model incorporates an **transmission process** (contagion) and a **within-host progression process**. Furthermore EpiHiper supports **programmable interventions**. Interventions are supported through a flexible and general framework for specifying intervention targets of sub-populations or contacts and a rich set of **actions** that can be associated to interventions to modify states. Additionally, it permits per-person or per-edge, customizable traits that can be used to influence when interventions trigger, or that can serve as conditions for actions to be executed.
+EpiHiper captures a discrete-time, contagion model evolving over a network. For given population and contact network, the model incorporates a **transmission process** (contagion) and a **within-host progression process**. Furthermore EpiHiper supports **programmable interventions**. Interventions are supported through a flexible and general framework for specifying intervention targets of sub-populations or contacts and a rich set of **actions** that can be associated to interventions to modify states. Additionally, it permits per-person or per-edge, customizable traits that can be used to influence when interventions trigger, or that can serve as conditions for actions to be executed.
 
 .. toctree::
    :maxdepth: 2
@@ -39,6 +39,9 @@ EpiHiper captures a discrete-time, contagion model evolving over a network. For 
 .. toctree::
    :maxdepth: 2
    :caption: Examples
+   
+   example/description.rst
+   example/result.rst
 
 
 Indices and tables
