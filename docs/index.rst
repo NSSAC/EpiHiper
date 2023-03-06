@@ -40,8 +40,8 @@ EpiHiper captures a discrete-time, contagion model evolving over a network. For 
    :maxdepth: 2
    :caption: Examples
    
-   example/description.rst
-   example/result.rst
+   examples/examples.rst
+   examples/result.rst
 
 
 Indices and tables
