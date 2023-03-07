@@ -16,6 +16,9 @@ Obtain Code
 
 Dependencies
 ^^^^^^^^^^^^^^^
+
+Installation of dependencies may require platform and system dependent tools such as for example zypper, yum or aptitude on Linux and brew for MacOS. Since specifics of such tools and package version may change with versions, we refer the user to the documentation accompanying these tools. All other dependencies are provided through git submodules, which are automatically retrieved during configuration and compiled during make.
+
 Requirements for building EpiHiper:
   - C++ 11 compatible compiler (`Microsoft Visual C++ <https://visualstudio.microsoft.com/vs/features/cplusplus/>`_, `XCode <https://developer.apple.com/xcode/>`_, `Clang <https://clang.llvm.org/>`_, or `gcc <https://gcc.gnu.org/>`_)
   - `Cmake <https://cmake.org/download/>`_ version 3.11 or above
