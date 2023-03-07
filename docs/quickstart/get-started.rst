@@ -3,19 +3,19 @@ Getting Started
 
 
 Installation
----------------
+------------
 
 EpiHiper code is available from `GitHub <https://github.com/NSSAC/EpiHiper/>`_
 
 Obtain Code
-^^^^^^^^^^^^^^^
+^^^^^^^^^^^
 
 .. code-block:: bash
 
   git clone https://github.com/NSSAC/EpiHiper.git
 
 Dependencies
-^^^^^^^^^^^^^^^
+^^^^^^^^^^^^
 
 Installation of dependencies may require platform and system dependent tools such as for example zypper, yum or aptitude on Linux and brew for MacOS. Since specifics of such tools and package version may change with versions, we refer the user to the documentation accompanying these tools. All other dependencies are provided through git submodules, which are automatically retrieved during configuration and compiled during make.
 

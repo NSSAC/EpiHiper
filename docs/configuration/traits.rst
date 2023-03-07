@@ -28,13 +28,23 @@ To define these trait collections, the following syntax is used:
 
 The trait collections can be specified in several locations (:doc:`network`, :doc:`initialization`, :doc:`intervention`, and :doc:`traits`). New features can be added to a trait in any of these locations. However, modifying a previously defined feature is not allowed and will cause an error. Identical definitions of the same feature in multiple places are allowed.
 
-Here featureName is the name of the trait within the specified trait collection; TypeDefinition is the definition of its type; value is an optional default value for this trait of the defined type, and annString is an optional description of the trait. Trait type definitions. Currently, the only supported TypeDefinition is a string enumeration; it is specified as follows:
+Here ``featureId`` is the unique id of a feature within the specified trait collection; ``enumId`` is a unique identifier within the scope of a feature; a ``default`` value must be provided for each feature so that the state will be well defined at the beginning of any simulation; furthermore optional `annotation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L96>`_ may be provided
 
-enum array< string > default [ <annotation>]
+The normative JSON schema can be found at:
 
-Here string is the enumeration element name and annotation is its optional annotation, the default annotation being string. An enumeration does not have a default value. Note. A likely future extension for TypeDefinition is an integer of a specified bit field precision. A particular example includes activity type. 
+  * `trait <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L2141>`_
+  * `feature <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L2102>`_
+  * `enum <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L2068>`_
 
 .. _traits-text-encoding:
 
 Text encoding
 -------------
+
+Text encoding of traits is is required for text format of the :doc:`network`.
+
+.. code-block:: bash
+
+  featureIndex_1:enumIndex_1|featureIndex_2|enumIndex_2, ..., featureIndex_n|enumIndex_n
+
+Here the index starts with 1 for the first feature or enum defined in JSON according to the `schema <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L2141>`_. If a feature is omitted in the encoding the default value is used.
