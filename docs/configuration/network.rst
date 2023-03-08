@@ -111,8 +111,12 @@ Binary format
 
 To avoid string interpretation and thus speed up loading of the network EpiHiper supports binary edge encoding. The order of the attributes is the same as in the csv file. Furthermore the binary encoded network must include the same 2 header lines as the ASCII encoding. The binary encoding can be found in :numref:`network-edge-spec`. 
 
+.. _network-examples:
 
-**Example JSON graph header** (first row) formatted for better readability:
+Examples
+--------
+
+**JSON graph header** (first row) formatted for better readability:
 
 .. code-block:: JSON
 
@@ -169,7 +173,7 @@ To avoid string interpretation and thus speed up loading of the network EpiHiper
     "hasWeightField": false
   }
 
-**Example lines** starting with row 2 (csv column headers) of text encoding:
+**Text encoding** starting with row 2 (csv column headers) of text encoding:
 
 .. code-block:: bash
 
