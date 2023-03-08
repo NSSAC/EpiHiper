@@ -7,7 +7,7 @@ The EpiHiper contact network :math:`G` is a graph that captures the contacts bet
 **Remark:** Note again that :math:`G` only captures contacts and their durations; it does not capture when these happen within an
 iteration. It is one of the assumptions of the model that order of contacts within an iteration does not matter.
 
-We point out that there is **no aggregation of edges in the construction of the contact network**. Whereas the may be pairs of individuals in contact at different times with precisely the same characteristics at those times (e.g., household members in contact at beginning and end of days), those contacts will be represented by separated edges; the contacts will not be combined to a single edge with the accumulated time of contact. The EpiHiper transmission process handles the two cases to make them equivalent.
+We point out that there is **no aggregation of edges in the construction of the contact network**. Whereas there may be pairs of individuals in contact at different times with precisely the same characteristics at those times (e.g., household members in contact at beginning and end of days), those contacts will be represented by separated edges; the contacts will not be combined to a single edge with the accumulated time of contact. The EpiHiper transmission process handles the two cases to make them equivalent.
 
 **Remark:** Isolated vertices have no bearing on the disease dynamics and are not represented in the EpiHiper networks.
 
@@ -54,6 +54,7 @@ The elements of the JSON header are described in :numref:`network-json-header`
     - | Boolean flag stating if weight is included as edge field
   * - | hasLocationIDField 
     - | Boolean flag stating if a location ID is included as edge field
+
 
 .. list-table:: Edge properties in the EpiHiper network format. In both ASCII and binary format the order of the fields is the same as the top-to-bottom order listed in the table
   :name: network-edge-spec
@@ -109,3 +110,71 @@ Binary format
 -------------
 
 To avoid string interpretation and thus speed up loading of the network EpiHiper supports binary edge encoding. The order of the attributes is the same as in the csv file. Furthermore the binary encoded network must include the same 2 header lines as the ASCII encoding. The binary encoding can be found in :numref:`network-edge-spec`. 
+
+
+**Example JSON graph header** (first row) formatted for better readability:
+
+.. code-block:: JSON
+
+  {
+    "$schema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/networkSchema.json",
+    "epiHiperSchema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/networkSchema.json",
+    "ann:label": "Wyoming(2017) - config_min_5_max_100_alpha_400 Wednesday network",
+    "encoding": "text",
+    "accumulationTime": "24 hours",
+    "timeResolution": 86400,
+    "numberOfNodes": 544276,
+    "numberOfEdges": 27747598,
+    "sizeofPID": 8,
+    "sizeofActivity": 4,
+    "activityEncoding": {
+      "id": "activityTrait",
+      "features": [
+        {
+          "id": "activityType",
+          "default": "other",
+          "enums": [
+            {
+              "id": "home"
+            },
+            {
+              "id": "work"
+            },
+            {
+              "id": "shop"
+            },
+            {
+              "id": "other"
+            },
+            {
+              "id": "school"
+            },
+            {
+              "id": "college"
+            },
+            {
+              "id": "religion"
+            }
+          ]
+        }
+      ]
+    },
+    "sizeofEdgeTrait": 0,
+    "edgeTraitEncoding": {
+      "id": "edgeTrait",
+      "features": []
+    },
+    "hasLocationIDField": true,
+    "hasActiveField": false,
+    "hasWeightField": false
+  }
+
+**Example lines** starting with row 2 (csv column headers) of text encoding:
+
+.. code-block:: bash
+
+  targetPID,targetActivity,sourcePID,sourceActivity,duration,LID
+  0,1:2,10105,1:2,900,7692
+  0,1:2,10905,1:2,1800,7692
+  0,1:2,11094,1:2,6840,7692
+  0,1:2,11134,1:2,1800,7692

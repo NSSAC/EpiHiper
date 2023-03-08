@@ -47,4 +47,4 @@ Text encoding of traits is is required for text format of the :doc:`network`.
 
   featureIndex_1:enumIndex_1|featureIndex_2|enumIndex_2, ..., featureIndex_n|enumIndex_n
 
-Here the index starts with 1 for the first feature or enum defined in JSON according to the `schema <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L2141>`_. If a feature is omitted in the encoding the default value is used.
+Here the index starts with ``1`` for the first feature or enum defined in JSON according to the `schema <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L2141>`_. If a feature is omitted in the encoding the default value is used.
