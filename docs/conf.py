@@ -57,6 +57,7 @@ release = '2.0.0'
 extensions = [
   "sphinx.ext.mathjax",
   "sphinx.ext.autosectionlabel",
+  "sphinxcontrib.bibtex",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -81,3 +82,5 @@ html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 
 numfig = True
+
+bibtex_bibfiles = ['refs.bib']

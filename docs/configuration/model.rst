@@ -1,2 +1,125 @@
 Contagion Model
 ===============
+
+The contagion model is fully programmable, and starts from a set :math:`\mathcal{X} = \{X_1, X_2, \ldots, X_m\}` of **states**. The **transition**, which captures the evolution of states whithin a person, is represented using a probabilistic timed transition system (PTTS) over :math:`\mathcal{X}`. These are an extension of finite state machines with the additional features that state transitions are probabilistic and timed. 
+
+A PTTS is a set of states, where each state has an ``id``, a common set of attributes values, and one or more labeled sets of weighted transitions with dwell time distributions to other states. The label on the transition sets is used to select the appropriate set of transitions, factoring in for example pharmaceutical treatments that have been applied to an individual. The attributes of a state describe the levels of infectivity, susceptibility, and symptoms an individual who is in that state possess. Once an individual enters a state, the amount of time that they will remain in that state is drawn from the dwell time distribution. Using the notion of **contact configurations**, one may succinctly specify the contact between individuals, factoring in the disease states that can cause a **transmission**.
+
+It includes distributions for dwell times as well as weights for transitions of out states for which there are multiple health state outcomes. 
+
+As an illustration we consider a hypothetical case of a classic influenza (or COVID-like) outbreak in Albemarle County, Virginia. 
+
+Here we use the set
+
+.. math::
+
+  \begin{equation*}
+    \mathcal{X} = \{S, E, Isymp, Iasymp, R\} %\;,
+  \end{equation*}
+
+to encode the five {health states}  susceptible (:math:`S`), exposed (:math:`E`), infectious and symptomatic (:math:`Isymp`), infectious and asymptomatic (:math:`Iasymp`), and recovered (:math:`R`) with the combined transmission and transition diagram as follows:
+
+.. _exdiagram:
+
+.. math::
+
+  \begin{align*}
+                    & \phantom{\underset{p = 0.33}{\searrow}} \; Isymp \\
+                    & \overset{p = 0.67}{\nearrow} \phantom{Iasymp} \searrow \\
+    S \Rightarrow E & \phantom{\underset{p = 0.33}{\searrow} Iasymp \nearrow} \; R \\
+                    & \underset{p = 0.33}{\searrow} \phantom{Iasymp} \nearrow \\
+                    & \phantom{\underset{p = 0.33}{\searrow}} \; Iasymp
+  \end{align*}
+
+Apart from the double arrow/edge :math:`S \Rightarrow E` which specifies transmission, each edge corresponds to a transition in the disease  transition model. We note that disease  transition from health state :math:`E` to :math:`Isymp` is twice as likely as  transition from :math:`E` to :math:`Iasymp` (or :math:`0.67/0.33` to be precise). The dwell time distribution for both transitions out of the state `E`, which we denote by edges :math:`(E, Isymp)` and :math:`(E, Iasymp)`, are
+
+.. math::
+
+  \begin{equation*}
+    \{0: 0.1; 1: 0.2; 2: 0.6; 3: 0.1\} \;,
+  \end{equation*}
+
+meaning that, e.g., the probability of a dwell time of duration 2 (days) is :math:`0.6`. Similarly, the dwell time distributions for the transitions :math:`(Isymp, R)` and :math:`(Iasymp, R)` out of states :math:`Isymp` and :math:`Iasymp` are both
+
+.. math::
+
+  \begin{equation*}
+    \{3: 0.3; 4: 0.4; 5: 0.2; 6: 0.1\} \;.
+  \end{equation*}
+
+Note that a dwell time distribution is associated with an edge (health state transition) and that the unit of time is one iteration, which in this example equals one day. 
+
+To describe the \emph{disease transmission model}, we refer to :numref:`epihiper-toy-network`, which
+
+.. figure:: /_images/epihiper-toy-network.png
+   :alt: epihiper-toy-network
+   :name: epihiper-toy-network
+   :align: center
+
+   An example network for EpiHiper with individuals :math:`P`, :math:`P'` and :math:`P''`. Here, the infectious person `P'` may infect the susceptible person :math:`P`, who as a result may transition from health state :math:`X` to an exposed state :math:`X'`.
+
+
+shows a network where a susceptible person :math:`P` is in contact with infectious persons :math:`P'` and :math:`P''`. Focusing on the the pair :math:`(P',P)`, we combine the {state susceptibility} and {state infectivity} of their respective health states :math:`X_k` and :math:`X_i` with the {infectivity scaling factor} of :math:`P'` and the {susceptibility scaling factor} of :math:`P` to form the propensity associated with the contact configuration :math:`T_{i,j,k} = T(X_i, X_j, X_k)` for the potential transition of the health state of person :math:`P` to :math:`X_j` as:
+
+.. math::
+  :label: propensity-main
+
+  \begin{equation*} 
+    \rho(P, P', T_{i,j,k},e) = \bigl[T \cdot \tau\bigr] \times w_e \times \alpha_e \times \bigl[\beta_s(P) \cdot \sigma(X_i)\bigr] \times \bigl[\beta_\iota(P') \cdot \iota(X_k) \bigr] \times \omega(T_{i,j,k})
+  \end{equation*}
+
+Here, :math:`T` is the duration of contact for the edge :math:`e = (P', P, w, \alpha, T)`, :math:`w` is an edge weight, and :math:`\alpha` is a Boolean value indicating whether or not the edge is active (e.g., not disabled because of an ongoing school closure). 
+
+In the example, there are two transmission configurations (1 susceptible state `\times` 2 infectious states) are
+
+.. math::
+
+  \begin{equation*}
+    T_s = T(S,E,Isymp) 
+    \text{ and } 
+    T_a = T(S,E,Iasymp) \;,
+  \end{equation*}
+
+both having the default weight of `\omega = 1.0`.
+
+Regarding infectivity, people in either of the states :math:`Isymp` and :math:`Iasymp` can transmit infections, with the asymptomatic reduction in infectivity being 60\% and thus :math:`\beta_\iota(Iasymp) = 0.40` while the susceptibility and infectivity values of all other health states have the default value of :math:`1.0`. In addition, the user may define a collection of \emph{edge traits} to associate with each edge or node, see Section :doc:`traits` for full details. 
+
+For each time step, and for each person :math:`P`, the propensities :math:`\rho` from :eq:`propensity-main` are collected across all edges :math:`e` and contact configurations `T` as the sequence :math:`\rho_P = (\rho(P, P', T, e)_{P', T, e})`. To determine if :math:`P` becomes infected is modeled using a Gillespie process :cite:p:`Gillespie:76,Gillespie:77` the person :math:`P'` to whom one attributes :math:`P` becoming infected is also determined as part of this step. The full details are given in the supplementary material. 
+
+To determine if an infection takes place, and also to whom we attribute the infection (e.g., :math:`P'` or :math:`P''` in  :numref:`epihiper-toy-network`, we use the Direct Gillespie Method. 
+
+**Contagion model assumptions**. It is assumed that (i) propensities for a person are independent across contact configurations, and (ii) that during any time step no person can change their health state. The first assumption is quite common and not unreasonable for the contact networks that are used. The second assumption can always be accommodated by reducing the size of the time step. Its real purpose is to ensure \emph{order invariance} of contacts within a time step, thus providing the required guarantee for algorithm correctness.
+
+.. list-table:: EpiHiper core model parameters
+  :name: core-model-parameters
+  :header-rows: 1
+
+  * - | Parameter
+    - | Description
+  * - | :math:`P`, :math:`P'`
+    - | Persons/agents/nodes
+  * - | :math:`X_i`
+    - | Health state :math:`i`
+  * - | :math:`\sigma(X_i)`
+    - |  Susceptibility of health state :math:`X_i`
+  * - | :math:`\iota(X_i)`
+    - | Infectivity of health state :math:`X_i`
+  * - | :math:`\beta_\sigma(P)`
+    - | Susceptibility scaling factor for person :math:`P`
+  * - | :math:`\beta_\iota(P)`
+    - | Infectivity scaling factor for person :math:`P`
+  * - | :math:`w_e`
+    - | Weight of edge :math:`e = (P, P')`
+  * - | :math:`\alpha_e`
+    - | Flag indicating whether the edge :math:`e` is active
+  * - | :math:`T(X_i,X_j,X_k)`
+    - | Contact configuration for a susceptible transition from :math:`X_i` to :math:`X_j`
+      | in the presence of state :math:`X_k`
+  * - | :math:`\omega_{i,j,k}`
+    - | Transmission weight of contact configuration :math:`T(X_i, X_j, X_k)`
+  * - | :math:`\tau`
+    - | Transmissibility
+  * - | :math:`\rho(P, P', T_{i,j,k},e)`
+    - | Contact propensity
+
+.. bibliography:: 

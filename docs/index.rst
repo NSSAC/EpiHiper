@@ -10,8 +10,8 @@ Welcome to EpiHiper's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-.. image:: _static/epihiper-icon.png
-   :alt: NSSAC-logo
+.. image:: /_images/epihiper-icon.png
+   :alt: epihiper-icon
 
 EpiHiper captures a discrete-time, contagion model evolving over a network. For given population and contact network, the model incorporates a **transmission process** (contagion) and a **within-host progression process**. Furthermore EpiHiper supports **programmable interventions**. Interventions are supported through a flexible and general framework for specifying intervention targets of sub-populations or contacts and a rich set of **actions** that can be associated to interventions to modify states. Additionally, it permits per-person or per-edge, customizable traits that can be used to influence when interventions trigger, or that can serve as conditions for actions to be executed.
 
