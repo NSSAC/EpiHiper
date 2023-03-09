@@ -5,7 +5,7 @@ The contagion model is fully programmable, and starts from a set :math:`\mathcal
 
 A PTTS is a set of states, where each state has an ``id``, a common set of attributes values, and one or more labeled sets of weighted transitions with dwell time distributions to other states. The label on the transition sets is used to select the appropriate set of transitions, factoring in for example pharmaceutical treatments that have been applied to an individual. The attributes of a state describe the levels of infectivity, susceptibility, and symptoms an individual who is in that state possess. Once an individual enters a state, the amount of time that they will remain in that state is drawn from the dwell time distribution. Using the notion of **contact configurations**, one may succinctly specify the contact between individuals, factoring in the disease states that can cause a **transmission**.
 
-It includes distributions for dwell times as well as weights for transitions of out states for which there are multiple health state outcomes. 
+It includes distributions for dwell times as well as weights for transitions out of states for which there are multiple health state outcomes. 
 
 As an illustration we consider a hypothetical case of a classic influenza (or COVID-like) outbreak in Albemarle County, Virginia. 
 
@@ -121,5 +121,308 @@ To determine if an infection takes place, and also to whom we attribute the infe
     - | Transmissibility
   * - | :math:`\rho(P, P', T_{i,j,k},e)`
     - | Contact propensity
+
+States
+------
+
+.. _model-states-specification:
+
+Specification
+^^^^^^^^^^^^^
+
+To define the states of the contagion model, the following syntax is used:
+
+.. code-block:: bash
+
+  states:       list(state)
+  state:        id susceptibility infectivity [annotation]
+  initialState: idRef
+
+.. list-table:: List of state attributes
+  :name: model-states-attributes
+  :header-rows: 1
+  
+  * - | Name
+    - | Type 
+    - | Description
+  * - | id
+    - | `unique id <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L6>`_ 
+    - | An id which has to be unique within the list of states
+  * - | susceptibility
+    - | :math:`x \ge 0` 
+    - | The susceptibility of the state
+  * - | infectivity
+    - | :math:`x \ge 0` 
+    - | The infectivity of the state
+  * - | ann:* 
+    - | `annotation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L96>`_
+    - | Optional annotation of the state
+
+The ``idRef`` property of the ``initalState`` must refer to an existing id in the list of the states. The normative JSON schema can be found at:  `states <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/diseaseModelSchema.json#L19>`_
+
+.. _model-states-examples:
+
+Examples
+^^^^^^^^
+
+.. code-block:: JSON
+
+  "states": [
+    {
+      "id": "susceptible",
+      "ann:label": "Susceptible",
+      "susceptibility": 1.0,
+      "infectivity": 0
+    },
+    {
+      "id": "exposed",
+      "ann:label": "Exposed",
+      "susceptibility": 0,
+      "infectivity": 0
+    },
+    {
+      "id": "infectious",
+      "ann:label": "Infectious",
+      "susceptibility": 0,
+      "infectivity": 0.1
+    },
+    {
+      "id": "hospitalized",
+      "ann:label": "Hospitalized",
+      "susceptibility": 0,
+      "infectivity": 0.2
+    },
+    {
+      "id": "funeral",
+      "ann:label": "Funeral",
+      "susceptibility": 0,
+      "infectivity": 0.2
+    },
+    {
+      "id": "removed",
+      "ann:label": "Removed",
+      "susceptibility": 0,
+      "infectivity": 0
+    }
+  ],
+  "initialState": "susceptible",
+
+Transitions
+-----------
+
+.. _model-transitions-specification:
+
+Specification
+^^^^^^^^^^^^^
+
+To define the transitions between states of the contagion model, the following syntax is used:
+
+.. code-block:: bash
+
+  transitions:  list(transition)
+  transition:   id entryState exitState probability dwellTime 
+                [susceptibilityFactorOperation] [infectivityFactorOperation] [annotation]
+
+.. list-table:: List of state attributes
+  :name: model-transitions-attributes
+  :header-rows: 1
+
+  * - | Name
+    - | Type 
+    - | Description
+  * - | id
+    - | `unique id <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L6>`_ 
+    - | An id which has to be unique within the list 
+      | of transitions
+  * - | entryState
+    - | idRef 
+    - | The entryState must refer to an existing id in the list 
+      | of states.
+  * - | exitState
+    - | idRef 
+    - | The exitState must refer to an existing id in the list 
+      | of states.
+  * - | probability
+    - | :math:`0 \le x \le 1` 
+    - | The probability that the entry state changes to the 
+      | exit state 
+  * - | dwellTime
+    - | `distribution <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L133>`_ 
+    - | The time before the state change occurs
+  * - | susceptibilityFactorOperation
+    - | `operation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L111>`_ 
+    - | The numeric operation to be performed on an  
+      | individuals susceptibility factor when the 
+      | state transition occurs
+  * - | infectivityFactorOperation
+    - | `operation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L111>`_ 
+    - | The numeric operation to be performed on an  
+      | individuals infectivity factor when the 
+      | state transition occurs
+  * - | ann:* 
+    - | `annotation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L96>`_
+    - | Optional annotation of the state
+
+If the optional ``susceptibilityFactorOperation`` or ``infectivityFactorOperation`` are missing no operation will be exectuted, i.e., the current factor will be preserved. The normative JSON schema can be found at:  `transitions <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/diseaseModelSchema.json#L80>`_
+
+.. _model-transitions-examples:
+
+Examples
+^^^^^^^^
+
+.. code-block:: JSON
+
+  "transitions": [
+    {
+      "id": "exposed2infectious",
+      "ann:label": "Exposed->Infectious",
+      "entryState": "exposed",
+      "exitState": "infectious",
+      "probability": 1,
+      "dwellTime": {"fixed": 3}
+    },
+    {
+      "id": "infectious2hospitalized",
+      "ann:label": "Infectious->Hospitalized",
+      "entryState": "infectious",
+      "exitState": "hospitalized",
+      "probability": 0.1111,
+      "dwellTime": {"fixed": 2}
+    },
+    {
+      "id": "infectious2funeral",
+      "ann:label": "Infectious->Funeral",
+      "entryState": "infectious",
+      "exitState": "funeral",
+      "probability": 0.6667,
+      "dwellTime": {"fixed": 10}
+    },
+    {
+      "id": "infectious2removed",
+      "ann:label": "Infectious->Removed",
+      "entryState": "infectious",
+      "exitState": "removed",
+      "probability": 0.2222,
+      "dwellTime": {"fixed": 12}
+    },
+    {
+      "id": "hospitalized2funeral",
+      "ann:label": "Hospitalized->Funeral",
+      "entryState": "hospitalized",
+      "exitState": "funeral",
+      "probability": 0.1111,
+      "dwellTime": {"fixed": 15}
+    },
+    {
+      "id": "hospitalized2removed",
+      "ann:label": "Hospitalized->Removed",
+      "entryState": "hospitalized",
+      "exitState": "removed",
+      "probability": 0.8889,
+      "dwellTime": {"fixed": 15}
+    },
+    {
+      "id": "funeral2removed",
+      "ann:slabel": "Funeral->Removed",
+      "entryState": "funeral",
+      "exitState": "removed",
+      "probability": 1,
+      "dwellTime": {"fixed": 1}
+    }
+  ]
+
+Transmissions
+-------------
+
+.. _model-transmissions-specification:
+
+Specification
+^^^^^^^^^^^^^
+
+To define the transitions between states of the contagion model, the following syntax is used:
+
+.. code-block:: bash
+
+  transmissions:    list(transmission) [transmissibility]
+  transmission:     id entryState exitState probability transmissibility 
+                    [susceptibilityFactorOperation] [infectivityFactorOperation] [annotation]
+  transmissibility: x >= 0
+
+.. list-table:: List of state attributes
+  :name: model-transmissions-attributes
+  :header-rows: 1
+
+  * - | Name
+    - | Type 
+    - | Description
+  * - | id
+    - | `unique id <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L6>`_ 
+    - | An id which has to be unique within the list 
+      | of transmissions
+  * - | entryState
+    - | idRef 
+    - | The entryState must refer to an existing id in the list 
+      | of states.
+  * - | exitState
+    - | idRef 
+    - | The exitState must refer to an existing id in the list 
+      | of states.
+  * - | contactState
+    - | idRef 
+    - | The contactState must refer to an existing id in the list 
+      | of states.
+  * - | transmissibility
+    - | :math:`0 \le x` 
+    - | The transmissibility of the for each contact. 
+  * - | susceptibilityFactorOperation
+    - | `operation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L111>`_ 
+    - | The numeric operation to be performed on an  
+      | individuals susceptibility factor when the 
+      | state transition occurs
+  * - | infectivityFactorOperation
+    - | `operation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L111>`_ 
+    - | The numeric operation to be performed on an  
+      | individuals infectivity factor when the 
+      | state transition occurs
+  * - | ann:* 
+    - | `annotation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L96>`_
+    - | Optional annotation of the state
+
+If the optional ``susceptibilityFactorOperation`` or ``infectivityFactorOperation`` are missing no operation will be executed, i.e., the current factor will be preserved. The normative JSON schema can be found at:  `transmissions <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/diseaseModelSchema.json#L47>`_. The optional model attribute `transmissibility` is used to scale all individual transmissibilities. Its default value is :math:`1.0`
+
+Examples
+^^^^^^^^
+
+.. code-block:: JSON
+
+  "transmissions": [
+    {
+      "id": "contactWithInfectious",
+      "ann:label": "Susceptible -> Exposed {Infectious}",
+      "entryState": "susceptible",
+      "exitState": "exposed",
+      "contactState": "infectious",
+      "transmissibility": 1
+    },
+    {
+      "id": "contactWithHospitalized",
+      "ann:label": "Susceptible -> Exposed {Hospitalized}",
+      "entryState": "susceptible",
+      "exitState": "exposed",
+      "contactState": "hospitalized",
+      "transmissibility": 1
+    },
+    {
+      "id": "contactWithFuneral",
+      "ann:label": "Susceptible -> Exposed {Funeral}",
+      "entryState": "susceptible",
+      "exitState": "exposed",
+      "contactState": "funeral",
+      "transmissibility": 1
+    }
+  ],
+
+Bibliography
+------------
 
 .. bibliography:: 

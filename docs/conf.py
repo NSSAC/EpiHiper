@@ -81,6 +81,8 @@ html_theme = 'sphinx_rtd_theme'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-numfig = True
-
 bibtex_bibfiles = ['refs.bib']
+
+numfig = True
+autosectionlabel_prefix_document = True
+autosectionlabel_maxdepth = 2
