@@ -80,11 +80,11 @@ In the example, there are two transmission configurations (1 susceptible state `
     T_a = T(S,E,Iasymp) \;,
   \end{equation*}
 
-both having the default weight of `\omega = 1.0`.
+both having the default weight of :math:`\omega = 1.0`.
 
 Regarding infectivity, people in either of the states :math:`Isymp` and :math:`Iasymp` can transmit infections, with the asymptomatic reduction in infectivity being 60\% and thus :math:`\beta_\iota(Iasymp) = 0.40` while the susceptibility and infectivity values of all other health states have the default value of :math:`1.0`. In addition, the user may define a collection of **traits** to associate with each edge or node, see Section :doc:`traits` for full details. 
 
-For each time step, and for each person :math:`P`, the propensities :math:`\rho` from :eq:`propensity-main` are collected across all edges :math:`e` and contact configurations `T` as the sequence :math:`\rho_P = (\rho(P, P', T, e)_{P', T, e})`. To determine if :math:`P` becomes infected is modeled using a Gillespie process :cite:p:`Gillespie:76,Gillespie:77` the person :math:`P'` to whom one attributes :math:`P` becoming infected is also determined as part of this step. The full details are given in the supplementary material. 
+For each time step, and for each person :math:`P`, the propensities :math:`\rho` from :eq:`propensity-main` are collected across all edges :math:`e` and contact configurations `T` as the sequence :math:`\rho_P = (\rho(P, P', T, e)_{P', T, e})`. To determine if :math:`P` becomes infected is modeled using a Gillespie process :cite:p:`Gillespie:76,Gillespie:77` the person :math:`P'` to whom one attributes :math:`P` becoming infected is also determined as part of this step. 
 
 To determine if an infection takes place, and also to whom we attribute the infection (e.g., :math:`P'` or :math:`P''` in  :numref:`epihiper-toy-network`, we use the Direct Gillespie Method. 
 
