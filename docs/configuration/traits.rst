@@ -1,6 +1,10 @@
 Traits
 ======
 
+.. contents:: Contents:
+  :depth: 1
+  :local: 
+
 In EpiHiper the notion of configurable trait collections allows one to associate a custom list of dynamically changing attributes to certain model components. Currently EpiHiper allows trait collections for: 
 
 * **Nodes:** The attribute ``nodeTrait`` provides for custom extension of each node's state.

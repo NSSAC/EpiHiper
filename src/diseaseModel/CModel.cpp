@@ -280,6 +280,7 @@ bool CModel::ProcessTransmissions()
 bool CModel::processTransmissions() const
 {
   bool success = true;
+  double resolutionPerTick = 1.0 / CNetwork::timeResolution();
 
   CRandom::uniform_real Uniform01(0.0, 1.0);
 
@@ -327,7 +328,7 @@ bool CModel::processTransmissions() const
           }
 
         if (A0 > 0.0
-            && -log(Uniform01(CRandom::G.Active())) < A0 * *mpTransmissibility / 86400.0)
+            && -log(Uniform01(CRandom::G.Active())) < A0 * *mpTransmissibility * resolutionPerTick)
           {
             double alpha = Uniform01(CRandom::G.Active()) * A0;
 

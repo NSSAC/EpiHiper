@@ -1,11 +1,20 @@
 Contagion Model
 ===============
 
-The contagion model is fully programmable, and starts from a set :math:`\mathcal{X} = \{X_1, X_2, \ldots, X_m\}` of **states**. The **transition**, which captures the evolution of states whithin a person, is represented using a probabilistic timed transition system (PTTS) over :math:`\mathcal{X}`. These are an extension of finite state machines with the additional features that state transitions are probabilistic and timed. 
+**Contents:**
 
-A PTTS is a set of states, where each state has an ``id``, a common set of attributes values, and one or more labeled sets of weighted transitions with dwell time distributions to other states. The label on the transition sets is used to select the appropriate set of transitions, factoring in for example pharmaceutical treatments that have been applied to an individual. The attributes of a state describe the levels of infectivity, susceptibility, and symptoms an individual who is in that state possess. Once an individual enters a state, the amount of time that they will remain in that state is drawn from the dwell time distribution. Using the notion of **contact configurations**, one may succinctly specify the contact between individuals, factoring in the disease states that can cause a **transmission**.
+* |model-states-synopsis|_
+* |model-progressions-synopsis|_
+* |model-transmissions-synopsis|_
 
-It includes distributions for dwell times as well as weights for transitions out of states for which there are multiple health state outcomes. 
+Introduction
+------------
+
+The contagion model is fully programmable, and starts from a set :math:`\mathcal{X} = \{X_1, X_2, \ldots, X_m\}` of **states**. The **progression**, which captures the evolution of states whithin a person, is represented using a probabilistic timed transition system (PTTS) over :math:`\mathcal{X}`. These are an extension of finite state machines with the additional features that state progressions are probabilistic and timed. 
+
+A PTTS is a set of states, where each state has an ``id``, a common set of attributes values, and one or more labeled sets of weighted progressions with dwell time distributions to other states. The label on the progression sets is used to select the appropriate set of progressions, factoring in for example pharmaceutical treatments that have been applied to an individual. The attributes of a state describe the levels of infectivity, susceptibility, and symptoms an individual who is in that state possess. Once an individual enters a state, the amount of time that they will remain in that state is drawn from the dwell time distribution. Using the notion of **contact configurations**, one may succinctly specify the contact between individuals, factoring in the disease states that can cause a **transmission**.
+
+It includes distributions for dwell times as well as weights for progressions out of states for which there are multiple health state outcomes. 
 
 As an illustration we consider a hypothetical case of a classic influenza (or COVID-like) outbreak in Albemarle County, Virginia. 
 
@@ -17,7 +26,7 @@ Here we use the set
     \mathcal{X} = \{S, E, Isymp, Iasymp, R\} %\;,
   \end{equation*}
 
-to encode the five {health states}  susceptible (:math:`S`), exposed (:math:`E`), infectious and symptomatic (:math:`Isymp`), infectious and asymptomatic (:math:`Iasymp`), and recovered (:math:`R`) with the combined transmission and transition diagram as follows:
+to encode the five {health states}  susceptible (:math:`S`), exposed (:math:`E`), infectious and symptomatic (:math:`Isymp`), infectious and asymptomatic (:math:`Iasymp`), and recovered (:math:`R`) with the combined transmission and progression diagram as follows:
 
 .. _exdiagram:
 
@@ -31,7 +40,7 @@ to encode the five {health states}  susceptible (:math:`S`), exposed (:math:`E`)
                     & \phantom{\underset{p = 0.33}{\searrow}} \; Iasymp
   \end{align*}
 
-Apart from the double arrow/edge :math:`S \Rightarrow E` which specifies transmission, each edge corresponds to a transition in the disease  transition model. We note that disease  transition from health state :math:`E` to :math:`Isymp` is twice as likely as  transition from :math:`E` to :math:`Iasymp` (or :math:`0.67/0.33` to be precise). The dwell time distribution for both transitions out of the state `E`, which we denote by edges :math:`(E, Isymp)` and :math:`(E, Iasymp)`, are
+Apart from the double arrow/edge :math:`S \Rightarrow E` which specifies transmission, each edge corresponds to a progression in the disease  progression model. We note that disease  progression from health state :math:`E` to :math:`Isymp` is twice as likely as  progression from :math:`E` to :math:`Iasymp` (or :math:`0.67/0.33` to be precise). The dwell time distribution for both progressions out of the state `E`, which we denote by edges :math:`(E, Isymp)` and :math:`(E, Iasymp)`, are
 
 .. math::
 
@@ -39,7 +48,7 @@ Apart from the double arrow/edge :math:`S \Rightarrow E` which specifies transmi
     \{0: 0.1; 1: 0.2; 2: 0.6; 3: 0.1\} \;,
   \end{equation*}
 
-meaning that, e.g., the probability of a dwell time of duration 2 (days) is :math:`0.6`. Similarly, the dwell time distributions for the transitions :math:`(Isymp, R)` and :math:`(Iasymp, R)` out of states :math:`Isymp` and :math:`Iasymp` are both
+meaning that, e.g., the probability of a dwell time of duration 2 (days) is :math:`0.6`. Similarly, the dwell time distributions for the progressions :math:`(Isymp, R)` and :math:`(Iasymp, R)` out of states :math:`Isymp` and :math:`Iasymp` are both
 
 .. math::
 
@@ -47,7 +56,7 @@ meaning that, e.g., the probability of a dwell time of duration 2 (days) is :mat
     \{3: 0.3; 4: 0.4; 5: 0.2; 6: 0.1\} \;.
   \end{equation*}
 
-Note that a dwell time distribution is associated with an edge (health state transition) and that the unit of time is one iteration, which in this example equals one day. 
+Note that a dwell time distribution is associated with an edge (health state progression) and that the unit of time is one iteration, which in this example equals one day. 
 
 To describe the **transmission process**, we refer to :numref:`epihiper-toy-network`, which
 
@@ -56,10 +65,10 @@ To describe the **transmission process**, we refer to :numref:`epihiper-toy-netw
    :name: epihiper-toy-network
    :align: center
 
-   An example network for EpiHiper with individuals :math:`P`, :math:`P'` and :math:`P''`. Here, the infectious person `P'` may infect the susceptible person :math:`P`, who as a result may transition from health state :math:`X` to an exposed state :math:`X'`.
+   An example network for EpiHiper with individuals :math:`P`, :math:`P'` and :math:`P''`. Here, the infectious person `P'` may infect the susceptible person :math:`P`, who as a result may progression from health state :math:`X` to an exposed state :math:`X'`.
 
 
-shows a network where a susceptible person :math:`P` is in contact with infectious persons :math:`P'` and :math:`P''`. Focusing on the the pair :math:`(P',P)`, we combine the {state susceptibility} and {state infectivity} of their respective health states :math:`X_k` and :math:`X_i` with the {infectivity scaling factor} of :math:`P'` and the {susceptibility scaling factor} of :math:`P` to form the propensity associated with the contact configuration :math:`T_{i,j,k} = T(X_i, X_j, X_k)` for the potential transition of the health state of person :math:`P` to :math:`X_j` as:
+shows a network where a susceptible person :math:`P` is in contact with infectious persons :math:`P'` and :math:`P''`. Focusing on the the pair :math:`(P',P)`, we combine the {state susceptibility} and {state infectivity} of their respective health states :math:`X_k` and :math:`X_i` with the {infectivity scaling factor} of :math:`P'` and the {susceptibility scaling factor} of :math:`P` to form the propensity associated with the contact configuration :math:`T_{i,j,k} = T(X_i, X_j, X_k)` for the potential progression of the health state of person :math:`P` to :math:`X_j` as:
 
 .. math::
   :label: propensity-main
@@ -113,7 +122,7 @@ To determine if an infection takes place, and also to whom we attribute the infe
   * - | :math:`\alpha_e`
     - | Flag indicating whether the edge :math:`e` is active
   * - | :math:`T(X_i,X_j,X_k)`
-    - | Contact configuration for a susceptible transition from :math:`X_i` to :math:`X_j`
+    - | Contact configuration for a susceptible progression from :math:`X_i` to :math:`X_j`
       | in the presence of state :math:`X_k`
   * - | :math:`\omega_{i,j,k}`
     - | Transmission weight of contact configuration :math:`T(X_i, X_j, X_k)`
@@ -122,8 +131,17 @@ To determine if an infection takes place, and also to whom we attribute the infe
   * - | :math:`\rho(P, P', T_{i,j,k},e)`
     - | Contact propensity
 
+.. |model-states-synopsis| replace:: States: a declaration of states of the contagion model
+.. _`model-states-synopsis`: `model-states`_
+
+.. _model-states:
+
 States
 ------
+
+.. admonition:: Synopsis
+
+   |model-states-synopsis|
 
 .. _model-states-specification:
 
@@ -149,10 +167,10 @@ To define the states of the contagion model, the following syntax is used:
     - | `unique id <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L6>`_ 
     - | An id which has to be unique within the list of states
   * - | susceptibility
-    - | :math:`x \ge 0` 
+    - | :math:`0 \le x` 
     - | The susceptibility of the state
   * - | infectivity
-    - | :math:`x \ge 0` 
+    - | :math:`0 \le x` 
     - | The infectivity of the state
   * - | ann:* 
     - | `annotation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L96>`_
@@ -207,15 +225,24 @@ Examples
   ],
   "initialState": "susceptible",
 
-Transitions
------------
+.. |model-progressions-synopsis| replace:: Progression: the description of all progressions from entry states to exit state, including dwell-time distributions and probabilities.
+.. _`model-progressions-synopsis`: `model-progressions`_
 
-.. _model-transitions-specification:
+.. _model-progressions:
+
+Progressions
+------------
+
+.. admonition:: Synopsis
+
+   |model-progressions-synopsis|
+
+.. _model-progressions-specification:
 
 Specification
 ^^^^^^^^^^^^^
 
-To define the transitions between states of the contagion model, the following syntax is used:
+To define the progressions between states of the contagion model, the following syntax is used:
 
 .. code-block:: bash
 
@@ -224,7 +251,7 @@ To define the transitions between states of the contagion model, the following s
                 [susceptibilityFactorOperation] [infectivityFactorOperation] [annotation]
 
 .. list-table:: List of state attributes
-  :name: model-transitions-attributes
+  :name: model-progressions-attributes
   :header-rows: 1
 
   * - | Name
@@ -253,19 +280,19 @@ To define the transitions between states of the contagion model, the following s
     - | `operation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L111>`_ 
     - | The numeric operation to be performed on an  
       | individuals susceptibility factor when the 
-      | state transition occurs
+      | state change occurs
   * - | infectivityFactorOperation
     - | `operation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L111>`_ 
     - | The numeric operation to be performed on an  
       | individuals infectivity factor when the 
-      | state transition occurs
+      | state change occurs
   * - | ann:* 
     - | `annotation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L96>`_
     - | Optional annotation of the state
 
 If the optional ``susceptibilityFactorOperation`` or ``infectivityFactorOperation`` are missing no operation will be exectuted, i.e., the current factor will be preserved. The normative JSON schema can be found at:  `transitions <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/diseaseModelSchema.json#L80>`_
 
-.. _model-transitions-examples:
+.. _model-progressions-examples:
 
 Examples
 ^^^^^^^^
@@ -331,15 +358,25 @@ Examples
     }
   ]
 
+.. |model-transmissions-synopsis| replace:: Transmissions: the description of the contact configurations :math:`T(X_i, X_j, X_k)`  for individuals causing a state change.
+
+.. _`model-transmissions-synopsis`: `model-transmissions`_
+
+.. _model-transmissions:
+
 Transmissions
 -------------
+
+.. admonition:: Synopsis
+
+   |model-transmissions-synopsis|
 
 .. _model-transmissions-specification:
 
 Specification
 ^^^^^^^^^^^^^
 
-To define the transitions between states of the contagion model, the following syntax is used:
+To define possible transmission between occurring between individuals in the contagion model, the following syntax is used:
 
 .. code-block:: bash
 
@@ -378,12 +415,12 @@ To define the transitions between states of the contagion model, the following s
     - | `operation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L111>`_ 
     - | The numeric operation to be performed on an  
       | individuals susceptibility factor when the 
-      | state transition occurs
+      | state change occurs
   * - | infectivityFactorOperation
     - | `operation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L111>`_ 
     - | The numeric operation to be performed on an  
       | individuals infectivity factor when the 
-      | state transition occurs
+      | state change occurs
   * - | ann:* 
     - | `annotation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L96>`_
     - | Optional annotation of the state

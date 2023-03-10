@@ -1,6 +1,10 @@
 Contact Network
 ===============
 
+.. contents:: Contents:
+  :depth: 1
+  :local: 
+
 The EpiHiper contact network :math:`G` is a graph that captures the contacts between individuals. It captures the specifics of those contacts as listed in :numref:`network-edge-spec`. Edges are directed and endpoints are referred to as sources and targets.
 
 

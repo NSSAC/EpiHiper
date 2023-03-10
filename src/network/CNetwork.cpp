@@ -125,6 +125,12 @@ int CNetwork::index(const size_t & id)
   return -1;
 }
 
+// static 
+double  CNetwork::timeResolution()
+{
+  return Context.Master().mTimeResolution;
+}
+  
 CNetwork::CNetwork()
   : CAnnotation()
   , mFile()
@@ -245,7 +251,7 @@ void CNetwork::fromJSON(const json_t * json)
       "$ref": "./typeRegistry.json#/definitions/nonNegativeInteger"
     },
     "accumulationTime": {
-      "description": "An annotaion string describing the accumulation time for the contact",
+      "description": "An annotation string describing the accumulation time for the contact",
       "type": "string"
     },
     "timeResolution": {
@@ -404,14 +410,18 @@ void CNetwork::fromJSON(const json_t * json)
     }
 
   pValue = json_object_get(json, "timeResolution");
-  mTimeResolution = 0;
+  mTimeResolution = 0.0;
 
   if (json_is_integer(pValue))
     {
       mTimeResolution = json_integer_value(pValue);
     }
+  else if (json_is_real(pValue))
+    {
+      mTimeResolution = json_real_value(pValue);
+    }
 
-  if (mTimeResolution == 0)
+  if (mTimeResolution == 0.0)
     {
       CLogger::error("Network: Invalid or missing 'timeResolution'.");
       return;

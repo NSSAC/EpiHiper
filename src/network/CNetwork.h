@@ -77,7 +77,7 @@ public:
   static int index(const CNode * pNode);
   static int index(const size_t & id);
   static bool dumpActiveNetwork();
-
+  static double timeResolution();
   /**
    * Default construnctor
    * @param const std::string & networkFile
@@ -161,7 +161,7 @@ private:
   size_t mTotalEdgesSize;
   size_t mSizeOfPid;
   std::string mAccumulationTime;
-  size_t mTimeResolution;
+  double mTimeResolution;
   bool mIsBinary;
   bool mValid;
   size_t mTotalPendingActions;
