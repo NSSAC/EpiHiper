@@ -3,16 +3,26 @@ Contagion Model
 
 **Contents:**
 
+* |model-introduction-synopsis|_
 * |model-states-synopsis|_
 * |model-progressions-synopsis|_
 * |model-transmissions-synopsis|_
 
+.. |model-introduction-synopsis| replace:: Contagion Model: a fully programmable model comprised from a set :math:`\mathcal{X} = \{X_1, X_2, \ldots, X_m\}` of **states**.
+.. _`model-introduction-synopsis`: `model-introduction`_
+
 Introduction
 ------------
 
+.. admonition:: Synopsis
+
+   |model-introduction-synopsis|
+
+.. _model-introduction:
+
 The contagion model is fully programmable, and starts from a set :math:`\mathcal{X} = \{X_1, X_2, \ldots, X_m\}` of **states**. The **progression**, which captures the evolution of states whithin a person, is represented using a probabilistic timed transition system (PTTS) over :math:`\mathcal{X}`. These are an extension of finite state machines with the additional features that state progressions are probabilistic and timed. 
 
-A PTTS is a set of states, where each state has an ``id``, a common set of attributes values, and one or more labeled sets of weighted progressions with dwell time distributions to other states. The label on the progression sets is used to select the appropriate set of progressions, factoring in for example pharmaceutical treatments that have been applied to an individual. The attributes of a state describe the levels of infectivity, susceptibility, and symptoms an individual who is in that state possess. Once an individual enters a state, the amount of time that they will remain in that state is drawn from the dwell time distribution. Using the notion of **contact configurations**, one may succinctly specify the contact between individuals, factoring in the disease states that can cause a **transmission**.
+A PTTS is a set of states, where each state has an :math:`id`, a common set of attributes values, and one or more labeled sets of weighted progressions with dwell time distributions to other states. The label on the progression sets is used to select the appropriate set of progressions, factoring in for example pharmaceutical treatments that have been applied to an individual. The attributes of a state describe the levels of infectivity, susceptibility, and symptoms an individual who is in that state possess. Once an individual enters a state, the amount of time that they will remain in that state is drawn from the dwell time distribution. Using the notion of **contact configurations**, one may succinctly specify the contact between individuals, factoring in the disease states that can cause a **transmission**.
 
 It includes distributions for dwell times as well as weights for progressions out of states for which there are multiple health state outcomes. 
 
@@ -26,7 +36,7 @@ Here we use the set
     \mathcal{X} = \{S, E, Isymp, Iasymp, R\} %\;,
   \end{equation*}
 
-to encode the five {health states}  susceptible (:math:`S`), exposed (:math:`E`), infectious and symptomatic (:math:`Isymp`), infectious and asymptomatic (:math:`Iasymp`), and recovered (:math:`R`) with the combined transmission and progression diagram as follows:
+to encode the five {health states}  susceptible :math:`S`, exposed :math:`E`, infectious and symptomatic :math:`Isymp`, infectious and asymptomatic :math:`Iasymp`, and recovered :math:`R` with the combined transmission and progression diagram as follows:
 
 .. _exdiagram:
 
@@ -225,7 +235,7 @@ Examples
   ],
   "initialState": "susceptible",
 
-.. |model-progressions-synopsis| replace:: Progression: the description of all progressions from entry states to exit state, including dwell-time distributions and probabilities.
+.. |model-progressions-synopsis| replace:: Progressions: the description of all progressions from entry states to exit state, including dwell-time distributions and probabilities.
 .. _`model-progressions-synopsis`: `model-progressions`_
 
 .. _model-progressions:
