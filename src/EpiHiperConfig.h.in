@@ -22,6 +22,9 @@
 // SOFTWARE 
 // END: Copyright 
 
+#ifndef SRC_EPIHIPERCONFIG_H_
+#define SRC_EPIHIPERCONFIG_H_
+
 #define EpiHiper_VERSION_MAJOR @EpiHiper_VERSION_MAJOR@
 #define EpiHiper_VERSION_MINOR @EpiHiper_VERSION_MINOR@
 #define EpiHiper_VERSION_PATCH @EpiHiper_VERSION_PATCH@
@@ -36,3 +39,5 @@
 
 // Enable multithreading by using of MPI
 #cmakedefine USE_MPI
+
+#endif // SRC_EPIHIPERCONFIG_H_
