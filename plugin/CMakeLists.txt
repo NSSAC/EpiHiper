@@ -29,3 +29,4 @@ file(GLOB HEADERS_EXAMPLE *.h)
 
 
 add_library(EpiHiperPlugin SHARED ${SOURCES_EXAMPLE} ${HEADERS_EXAMPLE})
+add_dependencies(EpiHiperPlugin jansson libpqxx spdlog)
