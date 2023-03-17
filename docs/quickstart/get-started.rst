@@ -76,7 +76,7 @@ From the root directory of the repository execute:
   mkdir build
   cd build
   cmake -G "Unix Makefiles" -DENABLE_MPI=OFF -DENABLE_OMP=OFF -DENABLE_LOCATION_ID=OFF ..
-  make -j
+  make -j4
 
 Building an MPI (multi-process) executable
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -91,7 +91,7 @@ From the root directory of the repository execute:
   mkdir build
   cd build
   cmake -G "Unix Makefiles" -DENABLE_MPI=ON -DENABLE_OMP=OFF -DENABLE_LOCATION_ID=OFF ..
-  make -j
+  make -j4
 
 Building an OpenMP (multi-threaded) executable
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -107,7 +107,7 @@ From the root directory of the repository execute:
   mkdir build
   cd build
   cmake -G "Unix Makefiles" -DENABLE_MPI=OFF -DENABLE_OMP=ON -DENABLE_LOCATION_ID=OFF ..
-  make -j
+  make -j4
 
 *Note*: It is possible to combine OpenMP and MPI
 
