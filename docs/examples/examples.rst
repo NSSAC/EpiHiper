@@ -97,7 +97,7 @@ We run 30 replicates for each scenario with ``config.json`` and visualize tempor
 
 :numref:`fig-example_1-2` is produced from individual level output data, by joining it with age column in the person database. It shows weekly new infections (normalized by age group size) in each of five age groups, in different scenarios. It seems the in-school NPIs mainly reduce infections in 0-4 and 5-17 age groups, as expected. They only slightly reduce infections among 18-49, and have little impact on older age groups.
 
-.. _fig-example-1-2:
+.. _fig-example_1-2:
 .. figure:: /examples/example_1/inc_by_ag.png
    :alt: Weekly new infections by age group.
    :align: center
