@@ -57,6 +57,8 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 add_library (EpiHiperLib-core OBJECT ${SOURCES_EPIHIPER} ${HEADERS_EPIHIPER})
 add_dependencies(EpiHiperLib-core jansson libpqxx spdlog)
+set_property(TARGET EpiHiperLib-core PROPERTY CXX_STANDARD 11)
+set_property(TARGET EpiHiperLib-core PROPERTY CXX_STANDARD_REQUIRED ON)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   target_compile_options(EpiHiperLib-core PRIVATE -Werror -Wall -Wextra ${OpenMP_CXX_FLAGS} -lpthread)
