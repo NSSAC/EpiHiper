@@ -6,7 +6,6 @@ Example 1: In-school NPIs
 
 Experiment design
 ^^^^^^^^^^^^^^^^^
-
 In this **hypothetical** example we study in-school nonpharmaceutical interventions (NPIs) to be implemented in all K-12 schools of a county (Montgomery county, Virginia) when a COVID-19-like disease starts to spread in the county from a few importations. It demonstrates how public health decision makers can use EpiHiper-based simulation experiments to evaluate different intervention policies for situation assessment and/or course-of-action analysis.
 
 Hypotheically, we are interested in the following NPIs.
@@ -24,15 +23,14 @@ We want to evaluate the effects of these NPIs and to compare the two testing str
 * Scenario C: hybrid learning from day 0; weekly PCR test + home isolation from day 30.
 
 Prepare simulation input files
-^^^
-
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 **Contact network**. The contact network file (``va_montgomery_contact_network_m5_M40_a1000.txt``) of Montgomery county, Virginia can be downloaded `here <https://net.science/files/resources/epihiper/examples/example_1/>`_.
 
 **Person database**. The personTrait database file (``va_montgomery_persontrait_epihiper.txt``) of Montgomery county, Virginia can be downloaded `here <https://net.science/files/resources/epihiper/examples/example_1/>`_.
 
 **Disease model**. This hypothetical example concerns the early stage of a COVID-19-like pandemic. We assume a single virus variant and ignore immunity waning. There is no vaccine yet. Therefore the disease model consists of ``S`` (susceptible), ``E`` (exposed but not yet infectious), ``Ipresymp`` (pre-symptomatic and infectious with a lower infectivity), ``Isymp`` (symptomatic with full infectivity), ``Iasymp`` (asymptomatic with full infectivity), and ``R`` (recovered) states. See the `disease model <https://github.com/NSSAC/EpiHiper/tree/main/docs/examples/example_1/disease.json>`_ file for parameterization of the states, the transmissions and the transitions.
 
-**Initialization**. At the beginning of the simulation, everyone is in ``S`` state. There are 5 infections every day for 10 days (tick 0 to tick 9) due to importations. See intervention ``seed`` in the `intervention <https://github.com/NSSAC/EpiHiper/tree/main/docs/examples/example_1/intervention.json>`_ file. Since it is implimented as an intervention, the `initialization <https://github.com/NSSAC/EpiHiper/tree/main/docs/examples/example_1/initialization.json`_ file is basically empty.
+**Initialization**. At the beginning of the simulation, everyone is in ``S`` state. There are 5 infections every day for 10 days (tick 0 to tick 9) due to importations. See intervention ``seed`` in the `intervention <https://github.com/NSSAC/EpiHiper/tree/main/docs/examples/example_1/intervention.json>`_ file. Since it is implimented as an intervention, the `initialization <https://github.com/NSSAC/EpiHiper/tree/main/docs/examples/example_1/initialization.json>`_ file is basically empty.
 
 **Intervention**. An `intervention <https://github.com/NSSAC/EpiHiper/tree/main/docs/examples/example_1/intervention.json>`_ file is prepared as a template and is customized for different scenarios. It includes ``close_schools`` intervention for *hybrid learning*, ``antigen_test`` intervention for *daily antigen test*, ``PCT_test`` intervention for *weekly PCR test*, and ``home_isolation`` intervention for *home isolation*. Target of testing interventions is a set ``inschool_nodes`` of all individuals studying or working at schools, and the set is defined as all nodes who have either an edge on which the node has a *school* activity type or an edge on which the node has a *work* activity type while the other node has a *school* activity type. We assume that a node may be found positive if tested in any of the infectious states (``Ipresymp``, ``Isymp``, ``Iasymp``). People tested positive are kept track of using nodeTrait ``to_start_isolation``. On remote learning days all ``school_edges`` are removed (edge weight being scaled by 1/1000000). Intervention ``home_isolation`` removes ``non_home_edges`` of the node for 14 days.
 
@@ -43,7 +41,7 @@ Other JSON files. The `scenario.json <https://github.com/NSSAC/EpiHiper/tree/mai
 Make a subdirectory for each scenario, eg. ``Scenario-A``. For scenario A, copy ``intervention-A.json`` (and rename it to ``intervention.json``) and the other JSON files (``disease.json, initialization.json, traits.json, scenario.json, config.json`` to its subdirectory. Similarly for scenarios B and C. Run the simulation with EpiHiper built with option ``-DENABLE_LOCATION_ID=OFF`` (since the provided contact network file does not have location id column).
 
 Run experiment and interpret output
-^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Usually one needs to run each scenario for multiple replicates. With the same model parameterization EpiHiper produces different outputs each time it runs due to the stochasticity of the simulation. From the output of many replicates, one can estimate interested epidemic measures (eg. total number of infections) with uncertainty quantification.
 
 We explain the output files using those generated by a simulation run of Scenario A with ``config-reproducible.json`` (where a random seed is specified). The EpiHiper executable used for the simulation was built with `instructions for a single threaded executable <https://epihiper.readthedocs.io/en/latest/quickstart/get-started.html#building-a-single-threaded-executable>`_. The output files generated with ``config-reproducible.json`` for the three scenarios are available `here <https://net.science/files/resources/epihiper/examples/example_1/>`_.
@@ -73,7 +71,6 @@ We explain the output files using those generated by a simulation run of Scenari
    299,3757852,R,-1
 
 Column ``tick`` is the time of the state change. Column ``pid`` is the person ID of the individual with this change. Column ``exit_state`` is the state of the individual after the change. Column ``contact_pid`` is the person ID of the individual that transmits the disease to the person with this state change. It is -1 if the change is not a transmission or if the infection is an importation (so the infector is out of this population). For example, line 2 to line 6 are infections of 5 people with outside infectors on day 0; line ``296,3766845,Iasymp,-1`` is a transition of health state of individual 3766845 to ``Iasymp`` on day 296.
-
 ::
    > grep 3778633 A-output.csv 
    13,3778633,E,3756952
@@ -90,6 +87,7 @@ Note that joining this output data with the person database allows us to compute
 Results
 ^^^^^^^
 We run 30 replicates for each scenario with ``config.json`` and visualize temporal evolution of new infection numbers in different scenarios. Figure 1 is produced from aggregate output data. It shows the cumulative infections, as a percentage of the county population, over time. The in-school NPIs reduce infections significantly: the overall attack rate (total number of infections normalized by population size) decreases from about 10% in Scenario A to less than 7.5% in Scenarios B and C.
+
 .. figure:: /examples/example_1/cumulative.png
    :alt: Cumulative infections over time
    :align: center
@@ -97,6 +95,7 @@ We run 30 replicates for each scenario with ``config.json`` and visualize tempor
    Figure 1. Cumulative infections over time. Lines are mean values; ribbons are 90% projection intervals.
 
 Figure 2 is produced from individual level output data, by joining it with age column in the person database. It shows weekly new infections (normalized by age group size) in each of five age groups, in different scenarios. It seems the in-school NPIs mainly reduce infections in 0-4 and 5-17 age groups, as expected. They only slightly reduce infections among 18-49, and have little impact on older age groups.
+
 .. figure:: /examples/example_1/inc_by_ag.png
    :alt: Weekly new infections by age group.
    :align: center
