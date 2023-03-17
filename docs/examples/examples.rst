@@ -2,13 +2,15 @@ Examples
 ===========
 
 Example 1: In-school NPIs
----
+-------------------------
 
 Experiment design
-^^^
+^^^^^^^^^^^^^^^^^
+
 In this **hypothetical** example we study in-school nonpharmaceutical interventions (NPIs) to be implemented in all K-12 schools of a county (Montgomery county, Virginia) when a COVID-19-like disease starts to spread in the county from a few importations. It demonstrates how public health decision makers can use EpiHiper-based simulation experiments to evaluate different intervention policies for situation assessment and/or course-of-action analysis.
 
 Hypotheically, we are interested in the following NPIs.
+
 * Hybrid learning: schools are open every Monday, Tuesday, and Wednesday for in-person learning, but closed every Thursday and Friday for remote learning.
 * In-school testing:
   * Daily antigen test: test everyone in school (including students and teachers) every in-person day; results come out on the same day with 80% sensitivity.
@@ -16,12 +18,14 @@ Hypotheically, we are interested in the following NPIs.
 * Home isolation: students and teachers with positive results are required to stay home for 14 days.
 
 We want to evaluate the effects of these NPIs and to compare the two testing strategies in terms of reducting infections. We consider a base scenario and two intervention scenarios.
+
 * Scenario A: base scenario, no NPIs.
 * Scenario B: hybrid learning from day 0; daily antigen test + home isolation from day 30.
 * Scenario C: hybrid learning from day 0; weekly PCR test + home isolation from day 30.
 
 Prepare simulation input files
 ^^^
+
 **Contact network**. The contact network file (``va_montgomery_contact_network_m5_M40_a1000.txt``) of Montgomery county, Virginia can be downloaded `here <https://net.science/files/resources/epihiper/examples/example_1/>`_.
 
 **Person database**. The personTrait database file (``va_montgomery_persontrait_epihiper.txt``) of Montgomery county, Virginia can be downloaded `here <https://net.science/files/resources/epihiper/examples/example_1/>`_.
@@ -84,7 +88,7 @@ Note that joining this output data with the person database allows us to compute
 **Aggregate output data** records number of individuals entering ``[in]``, exiting ``[out]``, and being in ``[current]`` each health state, as well as values of variables defined in intervention file, at each tick. If we do not need individual level details, we can run analytics using this file.
 
 Results
-^^^
+^^^^^^^
 We run 30 replicates for each scenario with ``config.json`` and visualize temporal evolution of new infection numbers in different scenarios. Figure 1 is produced from aggregate output data. It shows the cumulative infections, as a percentage of the county population, over time. The in-school NPIs reduce infections significantly: the overall attack rate (total number of infections normalized by population size) decreases from about 10% in Scenario A to less than 7.5% in Scenarios B and C.
 .. figure:: /examples/example_1/cumulative.png
    :alt: Cumulative infections over time
