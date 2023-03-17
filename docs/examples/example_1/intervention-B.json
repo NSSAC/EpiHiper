@@ -1,0 +1,643 @@
+{
+  "epiHiperSchema": "https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/interventionSchema.json",
+  "variables": [
+    {
+      "id": "week_day",
+      "initialValue": 0,
+      "scope": "local",
+      "reset": 7
+    }
+  ],
+  "sets": [
+    {
+      "id": "school_edges",
+      "scope": "local",
+      "content": {
+        "operation": "union",
+        "sets": [
+          {
+            "scope": "local",
+            "elementType": "edge",
+            "left": {
+              "edge": {
+                "property": "targetActivity",
+                "feature": "activityType"
+              }
+            },
+            "operator": "==",
+            "right": {
+              "value": {
+                "trait": "activityTrait",
+                "feature": "activityType",
+                "enum": "school"
+              }
+            }
+          },
+          {
+            "scope": "local",
+            "elementType": "edge",
+            "left": {
+              "edge": {
+                "property": "sourceActivity",
+                "feature": "activityType"
+              }
+            },
+            "operator": "==",
+            "right": {
+              "value": {
+                "trait": "activityTrait",
+                "feature": "activityType",
+                "enum": "school"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "student_edges",
+      "scope": "local",
+      "content": {
+        "elementType": "edge",
+        "scope": "local",
+        "left": {
+          "edge": {
+            "property": "targetActivity",
+            "feature": "activityType"
+          }
+        },
+        "operator": "==",
+        "right": {
+          "value": {
+            "trait": "activityTrait",
+            "feature": "activityType",
+            "enum": "school"
+          }
+        }
+      }
+    },
+    {
+      "id": "teacher_edges",
+      "scope": "local",
+      "content": {
+        "operation": "intersection",
+        "sets": [
+          {
+            "scope": "local",
+            "elementType": "edge",
+            "left": {
+              "edge": {
+                "property": "targetActivity",
+                "feature": "activityType"
+              }
+            },
+            "operator": "==",
+            "right": {
+              "value": {
+                "trait": "activityTrait",
+                "feature": "activityType",
+                "enum": "work"
+              }
+            }
+          },
+          {
+            "scope": "local",
+            "elementType": "edge",
+            "left": {
+              "edge": {
+                "property": "sourceActivity",
+                "feature": "activityType"
+              }
+            },
+            "operator": "==",
+            "right": {
+              "value": {
+                "trait": "activityTrait",
+                "feature": "activityType",
+                "enum": "school"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "students",
+      "ann:label": "nodes with student role",
+      "scope": "local",
+      "content": {
+        "elementType": "node",
+        "scope": "local",
+        "operator": "withIncomingEdgeIn",
+        "selector": {
+          "set": {"idRef": "student_edges"}
+        }
+      }
+    },
+    {
+      "id": "teachers",
+      "ann:label": "nodes with teacher role",
+      "scope": "local",
+      "content": {
+        "elementType": "node",
+        "scope": "local",
+        "operator": "withIncomingEdgeIn",
+        "selector": {
+          "set": {"idRef": "teacher_edges"}
+        }
+      }
+    },
+    {
+      "id": "inschool_nodes",
+      "scope": "local",
+      "content": {
+        "operation": "union",
+        "sets": [
+          {
+            "set": {"idRef": "students"}
+          },
+          {
+            "set": {"idRef": "teachers"}
+          }
+        ]
+      }
+    },
+    {
+      "id": "non_home_edges",
+      "scope": "local",
+      "content": {
+        "operation": "union",
+        "sets": [
+          {
+            "scope": "local",
+            "elementType": "edge",
+            "left": {
+              "edge": {
+                "property": "targetActivity",
+                "feature": "activityType"
+              }
+            },
+            "operator": "!=",
+            "right": {
+              "value": {
+                "trait": "activityTrait",
+                "feature": "activityType",
+                "enum": "home"
+              }
+            }
+          },
+          {
+            "scope": "local",
+            "elementType": "edge",
+            "left": {
+              "edge": {
+                "property": "sourceActivity",
+                "feature": "activityType"
+              }
+            },
+            "operator": "!=",
+            "right": {
+              "value": {
+                "trait": "activityTrait",
+                "feature": "activityType",
+                "enum": "home"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "susceptible",
+      "ann:label": "all susceptible individuals",
+      "scope": "local",
+      "content": {
+        "elementType": "node",
+        "scope": "local",
+        "left": {
+          "node": {"property": "healthState"}
+        },
+        "operator": "==",
+        "right": {
+          "value": {"healthState": "S"}
+        }
+      }
+    },
+    {
+      "id": "positive",
+      "ann:label": "truly positive individuals",
+      "scope": "local",
+      "content": {
+        "elementType": "node",
+        "scope": "local",
+        "left": {
+          "node": {"property": "healthState"}
+        },
+        "operator": "withPropertyIn",
+        "right": {
+          "valueList": {
+            "healthState": [
+              "Ipresymp",
+              "Isymp",
+              "Iasymp"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "positive_inschool_nodes",
+      "scope": "local",
+      "content": {
+        "operation": "intersection",
+        "sets": [
+          {
+            "set": {"idRef": "inschool_nodes"}
+          },
+          {
+            "set": {"idRef": "positive"}
+          }
+        ]
+      }
+    },
+    {
+      "id": "nodes_in_isolation",
+      "ann:label": "nodes in voluntary home isolation",
+      "scope": "global",
+      "content": {
+        "elementType": "node",
+        "scope": "global",
+        "left": {
+          "node": {
+            "property": "nodeTrait",
+            "feature": "to_start_isolation"
+          }
+        },
+        "operator": "==",
+        "right": {
+          "value": {
+            "trait": "nodeTrait",
+            "feature": "to_start_isolation",
+            "enum": "true"
+          }
+        }
+      }
+    },
+    {
+      "id": "edges_of_isolation_nodes",
+      "scope": "local",
+      "content": {
+        "operation": "intersection",
+        "sets": [
+          {
+            "operation": "union",
+            "sets": [
+              {
+                "elementType": "edge",
+                "operator": "withTargetNodeIn",
+                "selector": {
+                  "set": {"idRef": "nodes_in_isolation"}
+                }
+              },
+              {
+                "elementType": "edge",
+                "operator": "withSourceNodeIn",
+                "selector": {
+                  "set": {"idRef": "nodes_in_isolation"}
+                }
+              }
+            ]
+          },
+          {
+            "set": {"idRef": "non_home_edges"}
+          }
+        ]
+      }
+    }
+  ],
+  "triggers": [
+    {
+      "ann:id": "t_seed",
+      "trigger": {
+        "left": {"observable": "time"},
+        "operator": "<",
+        "right": {
+          "value": {"number": 10}
+        }
+      },
+      "interventionIds": ["seed"]
+    },
+    {
+      "ann:id": "t_remote",
+      "trigger": {
+        "and": [
+          {
+            "left": {"observable": "time"},
+            "operator": ">=",
+            "right": {
+              "value": {"number": 0}
+            }
+          },
+          {
+            "left": {
+              "variable": {"idRef": "week_day"}
+            },
+            "operator": "==",
+            "right": {
+              "value": {"number": 3}
+            }
+          }
+        ]
+      },
+      "interventionIds": ["close_schools"]
+    },
+    {
+      "ann:id": "t_antigen_test",
+      "trigger": {
+        "and": [
+          {
+            "left": {"observable": "time"},
+            "operator": ">=",
+            "right": {
+              "value": {"number": 30}
+            }
+          },
+          {
+            "left": {
+              "variable": {"idRef": "week_day"}
+            },
+            "operator": ">=",
+            "right": {
+              "value": {"number": 1}
+            }
+          },
+          {
+            "left": {
+              "variable": {"idRef": "week_day"}
+            },
+            "operator": "<=",
+            "right": {
+              "value": {"number": 3}
+            }
+          }
+        ]
+      },
+      "interventionIds": ["antigen_test"]
+    },
+    {
+      "ann:id": "t_PCR_test",
+      "trigger": {
+        "and": [
+          {
+            "left": {"observable": "time"},
+            "operator": ">=",
+            "right": {
+              "value": {"number": 999}
+            }
+          },
+          {
+            "left": {
+              "variable": {"idRef": "week_day"}
+            },
+            "operator": "==",
+            "right": {
+              "value": {"number": 1}
+            }
+          }
+        ]
+      },
+      "interventionIds": ["PCR_test"]
+    },
+    {
+      "ann:id": "t_isolation",
+      "trigger": {
+        "left": {
+          "sizeof": {
+            "set": {"idRef": "edges_of_isolation_nodes"}
+          }
+        },
+        "operator": ">",
+        "right": {
+          "value": {"number": 0}
+        }
+      },
+      "interventionIds": ["home_isolation"]
+    }
+  ],
+  "interventions": [
+    {
+      "ann:id": "maintain_week_day",
+      "ann:label": "update the week_day",
+      "trigger": {"value": true},
+      "target": {
+        "set": {"idRef": "%empty%"}
+      },
+      "once": [
+        {
+          "operations": [
+            {
+              "target": {
+                "variable": {"idRef": "week_day"}
+              },
+              "operator": "+=",
+              "value": {"number": 1}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "seed",
+      "target": {
+        "set": {"idRef": "susceptible"}
+      },
+      "sampling": {
+        "type": "absolute",
+        "number": 5,
+        "sampled": {
+          "foreach": [
+            {
+              "operations": [
+                {
+                  "target": {
+                    "node": {"property": "healthState"}
+                  },
+                  "operator": "=",
+                  "value": {"healthState": "E"}
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "antigen_test",
+      "target": {
+        "set": {"idRef": "positive_inschool_nodes"}
+      },
+      "sampling": {
+        "type": "individual",
+        "number": 80,
+        "sampled": {
+          "foreach": [
+            {
+              "delay": 0,
+              "operations": [
+                {
+                  "target": {
+                    "node": {
+                      "property": "nodeTrait",
+                      "feature": "to_start_isolation"
+                    }
+                  },
+                  "operator": "=",
+                  "value": {
+                    "trait": "nodeTrait",
+                    "feature": "to_start_isolation",
+                    "enum": "true"
+                  }
+                }
+              ]
+            },
+            {
+              "delay": 1,
+              "operations": [
+                {
+                  "target": {
+                    "node": {
+                      "property": "nodeTrait",
+                      "feature": "to_start_isolation"
+                    }
+                  },
+                  "operator": "=",
+                  "value": {
+                    "trait": "nodeTrait",
+                    "feature": "to_start_isolation",
+                    "enum": "false"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "PCR_test",
+      "target": {
+        "set": {"idRef": "positive_inschool_nodes"}
+      },
+      "sampling": {
+        "type": "individual",
+        "number": 95,
+        "sampled": {
+          "foreach": [
+            {
+              "delay": 1,
+              "operations": [
+                {
+                  "target": {
+                    "node": {
+                      "property": "nodeTrait",
+                      "feature": "to_start_isolation"
+                    }
+                  },
+                  "operator": "=",
+                  "value": {
+                    "trait": "nodeTrait",
+                    "feature": "to_start_isolation",
+                    "enum": "true"
+                  }
+                }
+              ]
+            },
+            {
+              "delay": 2,
+              "operations": [
+                {
+                  "target": {
+                    "node": {
+                      "property": "nodeTrait",
+                      "feature": "to_start_isolation"
+                    }
+                  },
+                  "operator": "=",
+                  "value": {
+                    "trait": "nodeTrait",
+                    "feature": "to_start_isolation",
+                    "enum": "false"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "home_isolation",
+      "target": {
+        "set": {"idRef": "edges_of_isolation_nodes"}
+      },
+      "foreach": [
+        {
+          "delay": 0,
+          "operations": [
+            {
+              "target": {
+                "edge": {"property": "weight"}
+              },
+              "operator": "/=",
+              "value": {"number": 1000000}
+            }
+          ]
+        },
+        {
+          "delay": 14,
+          "operations": [
+            {
+              "target": {
+                "edge": {"property": "weight"}
+              },
+              "operator": "*=",
+              "value": {"number": 1000000}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "$comment": "disable in-school edges druing remote days",
+      "id": "close_schools",
+      "target": {
+        "set": {"idRef": "school_edges"}
+      },
+      "foreach": [
+        {
+          "operations": [
+            {
+              "target": {
+                "edge": {"property": "weight"}
+              },
+              "operator": "/=",
+              "value": {"number": 1000000}
+            }
+          ]
+        },
+        {
+          "delay": 4,
+          "operations": [
+            {
+              "target": {
+                "edge": {"property": "weight"}
+              },
+              "operator": "*=",
+              "value": {"number": 1000000}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
