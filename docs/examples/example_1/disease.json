@@ -1,0 +1,179 @@
+{
+  "epiHiperSchema": "https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/diseaseModelSchema.json",
+  "states": [
+    {
+      "id": "S",
+      "ann:label": "Susceptible",
+      "infectivity": 0,
+      "susceptibility": 1
+    },
+    {
+      "id": "E",
+      "ann:label": "Exposed",
+      "infectivity": 0,
+      "susceptibility": 0
+    },
+    {
+      "id": "Ipresymp",
+      "ann:label": "Infectious (pre-symptomatic)",
+      "infectivity": 0.8,
+      "susceptibility": 0
+    },
+    {
+      "id": "Isymp",
+      "ann:label": "Infectious (symptomatic)",
+      "infectivity": 1,
+      "susceptibility": 0
+    },
+    {
+      "id": "Iasymp",
+      "ann:label": "Infectious (asymptomatic)",
+      "infectivity": 1,
+      "susceptibility": 0
+    },
+    {
+      "id": "R",
+      "ann:label": "Recovered",
+      "infectivity": 0,
+      "susceptibility": 0
+    }
+  ],
+  "initialState": "S",
+  "transmissions": [
+    {
+      "id": "Ipresymp_infects_S",
+      "ann:label": "Infection (presymptomatic on susceptible)",
+      "entryState": "S",
+      "exitState": "E",
+      "contactState": "Ipresymp",
+      "transmissibility": 1.0
+    },
+    {
+      "id": "Isymp_infects_S",
+      "ann:label": "Infection (symptomatic on susceptible)",
+      "entryState": "S",
+      "exitState": "E",
+      "contactState": "Isymp",
+      "transmissibility": 1.0
+    },
+    {
+      "id": "Iasymp_infects_S",
+      "ann:label": "Infection (asymptomatic on susceptible)",
+      "entryState": "S",
+      "exitState": "E",
+      "contactState": "Iasymp",
+      "transmissibility": 1.0
+    }
+  ],
+  "transitions": [
+    {
+      "id": "E_to_Ipresymp",
+      "ann:label": "Exposed to Infectious and presymptomatic",
+      "entryState": "E",
+      "exitState": "Ipresymp",
+      "probability": 0.65,
+      "dwellTime": {
+        "discrete": [
+          {
+            "probability": 1,
+            "value": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "Ipresymp_to_Isymp",
+      "ann:label": "Exposed to Infectious and presymptomatic",
+      "entryState": "Ipresymp",
+      "exitState": "Isymp",
+      "probability": 1,
+      "dwellTime": {
+        "discrete": [
+          {
+            "probability": 1,
+            "value": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "E_to_Iasymp",
+      "ann:label": "Exposed to Infectious and asymptomatic",
+      "entryState": "E",
+      "exitState": "Iasymp",
+      "probability": 0.35,
+      "dwellTime": {
+        "normal": {
+          "mean": 5,
+          "standardDeviation": 1
+        }
+      }
+    },
+    {
+      "id": "Isymp_to_R",
+      "ann:label": "Symptomatic to Recovered",
+      "entryState": "Isymp",
+      "exitState": "R",
+      "probability": 1,
+      "dwellTime": {
+        "discrete": [
+          {
+            "probability": 0.175,
+            "value": 1
+          },
+          {
+            "probability": 0.175,
+            "value": 2
+          },
+          {
+            "probability": 0.1,
+            "value": 3
+          },
+          {
+            "probability": 0.1,
+            "value": 4
+          },
+          {
+            "probability": 0.1,
+            "value": 5
+          },
+          {
+            "probability": 0.1,
+            "value": 6
+          },
+          {
+            "probability": 0.1,
+            "value": 7
+          },
+          {
+            "probability": 0.05,
+            "value": 8
+          },
+          {
+            "probability": 0.05,
+            "value": 9
+          },
+          {
+            "probability": 0.05,
+            "value": 10
+          }
+        ]
+      }
+    },
+    {
+      "id": "Iasymp_to_R",
+      "ann:label": "Asymptomatic to Recovered",
+      "entryState": "Iasymp",
+      "exitState": "R",
+      "probability": 1,
+      "dwellTime": {
+        "normal": {
+          "mean": 5,
+          "standardDeviation": 1
+        }
+      }
+    }
+  ],
+  "transmissibility": 0.03,
+  "analysis": {"infectiousStates": "Isymp+Iasymp"}
+}

@@ -1,0 +1,9 @@
+{
+  "epiHiperSchema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/modelScenarioSchema.json",
+  "contactNetwork": "self://./va_montgomery_contact_network_m5_M40_a1000.txt",
+  "personTraitDB": ["self://./va_montgomery_persontrait_epihiper.txt"],
+  "traits": "self://./traits.json",
+  "diseaseModel": "self://./disease.json",
+  "initialization": "self://./initialization.json",
+  "intervention": "self://./intervention.json"
+}

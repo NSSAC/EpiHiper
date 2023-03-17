@@ -1,0 +1,26 @@
+{
+  "epiHiperSchema": "https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/traitsSchema.json",
+  "traits": [
+    {
+      "id": "nodeTrait",
+      "ann:label": "Node Trait",
+      "features": [
+        {
+          "id": "to_start_isolation",
+          "ann:label": "will stay home",
+          "enums": [
+            {
+              "id": "true",
+              "ann:label": "true"
+            },
+            {
+              "id": "false",
+              "ann:label": "false"
+            }
+          ],
+          "default": "false"
+        }
+      ]
+    }
+  ]
+}
