@@ -17,12 +17,49 @@ Obtain Code
 Dependencies
 ^^^^^^^^^^^^
 
-Installation of dependencies may require platform and system dependent tools such as for example zypper, yum or aptitude on Linux and brew for MacOS. Since specifics of such tools and package version may change with versions, we refer the user to the documentation accompanying these tools. All other dependencies are provided through git submodules, which are automatically retrieved during configuration and compiled during make.
+Installation of dependencies may require platform and system dependent tools such as for example zypper, yum or aptitude on Linux. Since specifics of such tools and package version may change with versions, we refer the user to the documentation accompanying these tools. All other dependencies are provided through git submodules, which are automatically retrieved during configuration and compiled during make.
+
+..
+  `Microsoft Visual C++ <https://visualstudio.microsoft.com/vs/features/cplusplus/>`_, `XCode <https://developer.apple.com/xcode/>`_,
 
 Requirements for building EpiHiper:
-  - C++ 11 compatible compiler (`Microsoft Visual C++ <https://visualstudio.microsoft.com/vs/features/cplusplus/>`_, `XCode <https://developer.apple.com/xcode/>`_, `Clang <https://clang.llvm.org/>`_, or `gcc <https://gcc.gnu.org/>`_)
+  - C++ 11 compatible compiler (`Clang <https://clang.llvm.org/>`_, or `gcc <https://gcc.gnu.org/>`_)
   - `Cmake <https://cmake.org/download/>`_ version 3.11 or above
   - `PostgreSQL <https://www.postgresql.org/download/>`_ library and header (provided by packages: libpq5, postgresql-devel)
+
+**Centos** (8)
+
+.. code-block:: bash
+
+  # required
+  sudo yum install cmake postgresql-libs postgresql-devel
+  # OpenMPI
+  sudo yum install openmpi openmpi-devel 
+  # OpenMP
+  sudo yum install libgomp1
+
+**Debian** (bullseye)
+
+.. code-block:: bash
+
+  # required
+  sudo apt-get install cmake libpq5 libpq-dev
+  # OpenMPI
+  sudo apt-get install libopenmpi libopenmpi-dev 
+  # OpenMP
+  sudo apt-get install libgomp1
+
+**openSUSE** (Leap 15.3)
+
+.. code-block:: bash
+
+  # required
+  sudo zypper install cmake libpq5 postgresql-devel
+  # OpenMPI (optional)
+  sudo zypper install openmpi3 openmpi3-devel 
+  # OpenMP (optional)
+  sudo zypper install libgomp1
+
 
 All other dependencies are provided through git submodules, which are automatically retrieved during configuration and compiled during make. These dependencies are:
   - `jansson <https://github.com/akheron/jansson.git>`_
