@@ -70,8 +70,8 @@ public:
 
     virtual ~Receive();
 
-    // override operator "()"
-    virtual ErrorCode operator()(std::istream & is, int sender) override;
+    // implement operator "()"
+    virtual ErrorCode operator()(std::istream & is, int sender);
 
   private:
     Type mMethod;
@@ -88,8 +88,8 @@ public:
 
     virtual ~ClassMemberReceive();
 
-    // override operator "()"
-    virtual ErrorCode operator()(std::istream & is, int sender) override;
+    // implement operator "()"
+    virtual ErrorCode operator()(std::istream & is, int sender);
 
   private:
     /**
@@ -117,8 +117,8 @@ public:
 
     virtual ~Send();
 
-    // override operator "()"
-    virtual ErrorCode operator()(std::ostream & os, int receiver) override;
+    // implement operator "()"
+    virtual ErrorCode operator()(std::ostream & os, int receiver);
 
   private:
     Type mMethod;
@@ -135,8 +135,8 @@ public:
 
     virtual ~ClassMemberSend();
 
-    // override operator "()"
-    virtual ErrorCode operator()(std::istream & os, int receiver) override;
+    // implement operator "()"
+    virtual ErrorCode operator()(std::istream & os, int receiver);
 
   private:
     /**
@@ -164,8 +164,8 @@ public:
 
     virtual ~SequentialProcess();
 
-    // override operator "()"
-    virtual ErrorCode operator()() override;
+    // implement operator "()"
+    virtual ErrorCode operator()();
 
   private:
     Type mMethod;
@@ -182,8 +182,8 @@ public:
 
     virtual ~ClassMemberSequentialProcess();
 
-    // override operator "()"
-    virtual ErrorCode operator()() override;
+    // implement operator "()"
+    virtual ErrorCode operator()();
 
   private:
     /**
@@ -313,7 +313,7 @@ template < class Receiver >
 CCommunicate::ClassMemberReceive< Receiver >::~ClassMemberReceive()
 {}
 
-// override operator "()"
+// implement operator "()"
 // virtual
 template < class Receiver >
 CCommunicate::ErrorCode CCommunicate::ClassMemberReceive< Receiver >::operator()(std::istream & is, int sender)
@@ -335,7 +335,7 @@ template < class Processor >
 CCommunicate::ClassMemberSequentialProcess< Processor >::~ClassMemberSequentialProcess()
 {}
 
-// override operator "()"
+// implement operator "()"
 // virtual
 template < class Processor >
 CCommunicate::ErrorCode CCommunicate::ClassMemberSequentialProcess< Processor >::operator()()
