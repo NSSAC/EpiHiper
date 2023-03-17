@@ -86,20 +86,22 @@ Note that joining this output data with the person database allows us to compute
 
 Results
 ^^^^^^^
-We run 30 replicates for each scenario with ``config.json`` and visualize temporal evolution of new infection numbers in different scenarios. Figure 1 is produced from aggregate output data. It shows the cumulative infections, as a percentage of the county population, over time. The in-school NPIs reduce infections significantly: the overall attack rate (total number of infections normalized by population size) decreases from about 10% in Scenario A to less than 7.5% in Scenarios B and C.
+We run 30 replicates for each scenario with ``config.json`` and visualize temporal evolution of new infection numbers in different scenarios. :numref:`fig-example_1-1` is produced from aggregate output data. It shows the cumulative infections, as a percentage of the county population, over time. The in-school NPIs reduce infections significantly: the overall attack rate (total number of infections normalized by population size) decreases from about 10% in Scenario A to less than 7.5% in Scenarios B and C.
 
+.. _fig-example_1-1:
 .. figure:: /examples/example_1/cumulative.png
    :alt: Cumulative infections over time
    :align: center
 
-   Figure 1. Cumulative infections over time. Lines are mean values; ribbons are 90% projection intervals.
+   Cumulative infections over time. Lines are mean values; ribbons are 90% projection intervals.
 
-Figure 2 is produced from individual level output data, by joining it with age column in the person database. It shows weekly new infections (normalized by age group size) in each of five age groups, in different scenarios. It seems the in-school NPIs mainly reduce infections in 0-4 and 5-17 age groups, as expected. They only slightly reduce infections among 18-49, and have little impact on older age groups.
+:numref:`fig-example_1-2` is produced from individual level output data, by joining it with age column in the person database. It shows weekly new infections (normalized by age group size) in each of five age groups, in different scenarios. It seems the in-school NPIs mainly reduce infections in 0-4 and 5-17 age groups, as expected. They only slightly reduce infections among 18-49, and have little impact on older age groups.
 
+.. _fig-example-1-2:
 .. figure:: /examples/example_1/inc_by_ag.png
    :alt: Weekly new infections by age group.
    :align: center
 
-   Figure 2. Weekly new infections by age group. Lines are mean values; ribbons are 90% projection intervals.
+   Weekly new infections by age group. Lines are mean values; ribbons are 90% projection intervals.
 
 The study suggests that in-school NPIs are effective in reducing infections, mainly in the younger population (< 18 years old). To further reduce infections in other age groups, the public health policy makers may consider implementing NPIs in the whole population, including social distancing, testing, and home isolation of positive cases. The effectiveness of these NPIs can be evaluated with an expanded simulation experiment by EpiHiper.
