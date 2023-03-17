@@ -1,0 +1,11 @@
+{
+  "epiHiperSchema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/runParametersSchema.json",
+  "modelScenario": "self://./scenario.json",
+  "output": "self://./output.csv",
+  "summaryOutput": "self://./outputSummary.csv",
+  "startTick": 0,
+  "endTick": 300,
+  "seed": 21983181632,
+  "logLevel": "info",
+  "status": "self://./sim.status.json"
+}
