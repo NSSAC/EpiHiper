@@ -34,7 +34,7 @@
 
 #include <string>
 
-class json_t;
+struct json_t;
 
 class CMetadata
 {
