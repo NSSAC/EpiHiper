@@ -30,7 +30,6 @@
 #include <vector>
 #include <cstdio>
 #include <cstring>
-#include <omp.h>
 
 #include <jansson.h>
 

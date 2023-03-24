@@ -71,7 +71,7 @@ public:
     virtual ~Receive();
 
     // implement operator "()"
-    virtual ErrorCode operator()(std::istream & is, int sender);
+    virtual ErrorCode operator()(std::istream & is, int sender) override;
 
   private:
     Type mMethod;
@@ -118,7 +118,7 @@ public:
     virtual ~Send();
 
     // implement operator "()"
-    virtual ErrorCode operator()(std::ostream & os, int receiver);
+    virtual ErrorCode operator()(std::ostream & os, int receiver) override;
 
   private:
     Type mMethod;
@@ -165,7 +165,7 @@ public:
     virtual ~SequentialProcess();
 
     // implement operator "()"
-    virtual ErrorCode operator()();
+    virtual ErrorCode operator()() override;
 
   private:
     Type mMethod;

@@ -40,4 +40,7 @@
 // Enable multithreading by using of MPI
 #cmakedefine USE_MPI
 
+// Target architecture is MACOSX
+#cmakedefine TARGET_MACOSX
+
 #endif // SRC_EPIHIPERCONFIG_H_

@@ -48,8 +48,11 @@ void CPlugin::Init()
             }
           else
             {
+#ifdef TARGET_MACOSX
+              pLibraryHandle = dlopen(PluginPath.c_str(), RTLD_NOW);
+#else
               pLibraryHandle = dlopen(PluginPath.c_str(), RTLD_NOW | RTLD_DEEPBIND);
-
+#endif // TARGET_MACOSX
               if (pLibraryHandle != nullptr)
                 {
                   Libraries.insert(std::make_pair(PluginPath, pLibraryHandle));

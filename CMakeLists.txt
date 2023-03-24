@@ -54,6 +54,10 @@ if (ENABLE_MPI)
   include_directories(BEFORE ${MPI_INCLUDE_PATH})
 endif(ENABLE_MPI)
 
+if (APPLE)
+  set(TARGET_MACOSX 1)
+endif(APPLE)
+
 find_package (PGSQL REQUIRED)
 include_directories(BEFORE ${PGSQL_INCLUDE_DIR})
 
