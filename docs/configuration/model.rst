@@ -11,14 +11,14 @@ Contagion Model
 .. |model-introduction-synopsis| replace:: Contagion Model: a fully programmable model comprised from a set :math:`\mathcal{X} = \{X_1, X_2, \ldots, X_m\}` of **states**.
 .. _`model-introduction-synopsis`: `model-introduction`_
 
+.. _model-introduction:
+
 Introduction
 ------------
 
 .. admonition:: Synopsis
 
    |model-introduction-synopsis|
-
-.. _model-introduction:
 
 The contagion model is fully programmable, and starts from a set :math:`\mathcal{X} = \{X_1, X_2, \ldots, X_m\}` of **states**. The **progression**, which captures the evolution of states whithin a person, is represented using a probabilistic timed transition system (PTTS) over :math:`\mathcal{X}`. These are an extension of finite state machines with the additional features that state progressions are probabilistic and timed. 
 
