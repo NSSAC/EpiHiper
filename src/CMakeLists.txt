@@ -69,6 +69,10 @@ endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
 add_library (EpiHiperLib SHARED $<TARGET_OBJECTS:EpiHiperLib-core>)
 add_dependencies(EpiHiperLib jansson libpqxx spdlog)
 
+if(APPLE)
+  set_target_properties(EpiHiperLib PROPERTIES LINK_FLAGS "-undefined dynamic_lookup -flat_namespace")
+endif(APPLE)
+
 add_executable (EpiHiper EpiHiper.cpp EpiHiperConfig.h)
 add_dependencies(EpiHiper EpiHiperLib GIT_COMMIT)
 
