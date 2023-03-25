@@ -177,10 +177,10 @@ To define the states of the contagion model, the following syntax is used:
     - | `unique id <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L6>`_ 
     - | An id which has to be unique within the list of states
   * - | susceptibility
-    - | :math:`0 \le x` 
+    - | :math:`0 \le x \in \mathbb{R}` 
     - | The susceptibility of the state
   * - | infectivity
-    - | :math:`0 \le x` 
+    - | :math:`0 \le x \in \mathbb{R}` 
     - | The infectivity of the state
   * - | ann:* 
     - | `annotation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L96>`_
@@ -280,7 +280,7 @@ To define the progressions between states of the contagion model, the following 
     - | The exitState must refer to an existing id in the list 
       | of states.
   * - | probability
-    - | :math:`0 \le x \le 1` 
+    - | :math:`0 \le x \in \mathbb{R} \le 1` 
     - | The probability that the entry state changes to the 
       | exit state 
   * - | dwellTime
@@ -419,7 +419,7 @@ To define possible transmission between occurring between individuals in the con
     - | The contactState must refer to an existing id in the list 
       | of states.
   * - | transmissibility
-    - | :math:`0 \le x` 
+    - | :math:`0 \le x \in \mathbb{R}` 
     - | The transmissibility of the for each contact. 
   * - | susceptibilityFactorOperation
     - | `operation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L111>`_ 

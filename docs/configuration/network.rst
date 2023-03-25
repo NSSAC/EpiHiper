@@ -59,22 +59,22 @@ Each edge in the contact network has the attributes given in :numref:`network-ed
     - | Type 
     - | Description
   * - | targetPID
-    - | :math:`\mathbb{N}_0`
+    - | :math:`n \in \mathbb{N}_0`
     - | The PID of the target node
   * - | targetActivity
     - | `activityTrait <traits>`_
     - | The activity of the target node at time of contact
   * - | sourcePID
-    - | :math:`\mathbb{N}_0`
+    - | :math:`n \in \mathbb{N}_0`
     - | The PID of the source node
   * - | sourceActivity
     - | `activityTrait <traits>`_
     - | The activity of the source node at time of contact
   * - | duration
-    - | :math:`\mathbb{N}_0`
+    - | :math:`n \in \mathbb{N}_0`
     - | Duration of contact in unit number-of-subticks
   * - | [locationID]
-    - | :math:`\mathbb{N}_0`
+    - | :math:`n \in \mathbb{N}_0`
     - | The location ID where the contact takes place
   * - | [edgeTrait]
     - | `edgeTrait <traits>`_
@@ -83,7 +83,7 @@ Each edge in the contact network has the attributes given in :numref:`network-ed
     - | Boolean
     - | A Boolean value specifying if the given edge is active
   * - | [weight]
-    - | :math:`0 \le x`
+    - | :math:`0 \le x \in \mathbb{R}`
     - | A weight given to each edge.
 
 .. |network-metadata-synopsis| replace:: Meta Data: information describing network specifics 
@@ -173,22 +173,22 @@ EpiHiper supports a binary format and an ASCII format, both of which have common
     - | Text
   * - | targetPID
     - | size_t 
-    - | :math:`\mathbb{N}_0`
+    - | :math:`n \in \mathbb{N}_0`
   * - | targetActivity
     - | bitset<32> 
     - | :ref:`trait encoding <traits-text-encoding>`
   * - | sourcePID
     - | size_t 
-    - | :math:`\mathbb{N}_0`
+    - | :math:`n \in \mathbb{N}_0`
   * - | sourceActivity
     - | bitset<32> 
     - | :ref:`trait encoding <traits-text-encoding>`
   * - | duration
     - | double 
-    - | :math:`0 \le x`
+    - | :math:`0 \le x \in \mathbb{R}`
   * - | [locationID]
     - | size_t 
-    - | :math:`\mathbb{N}_0`
+    - | :math:`n \in \mathbb{N}_0`
   * - | [edgeTrait]
     - | bitset<32> 
     - | :ref:`trait encoding <traits-text-encoding>`
@@ -197,7 +197,7 @@ EpiHiper supports a binary format and an ASCII format, both of which have common
     - | (0 or 1)
   * - | [weight]
     - | double 
-    - | :math:`0 \le x`
+    - | :math:`0 \le x \in \mathbb{R}`
 
 
 **ASCII format**

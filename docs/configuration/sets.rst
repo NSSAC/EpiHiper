@@ -8,7 +8,7 @@ Sets
 * |sets-content-synopsis|_
 * :ref:`sets-examples`
 
-.. |sets-introduction-synopsis| replace:: Sets: in EpiHiper set contain elements (nodes :math:`N` and/or edges :math:`E`) of the :doc:`network` or values :math:`V` selected from :doc:`person-db`.
+.. |sets-introduction-synopsis| replace:: Sets: in EpiHiper set contain elements (nodes :math:`N` and/or edges :math:`E`) of the :doc:`network` or values :math:`V` selected from the :doc:`person-db`.
 .. _`sets-introduction-synopsis`: `sets-introduction`_
 
 .. _sets-introduction:
@@ -95,7 +95,7 @@ Content
                | (id | susceptibilityFactor | infectivityFactor | healthState | nodeTrait)
   right:       value | valueList
   selector:    content
-  operations:  union | intersection
+  operation:   union | intersection
   sets:        list(content)
   set:         idRef
 
