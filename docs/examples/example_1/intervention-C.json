@@ -1,5 +1,6 @@
 {
-  "epiHiperSchema": "https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/interventionSchema.json",
+  "$schema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/interventionSchema.json",
+  "epiHiperSchema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/interventionSchema.json",
   "variables": [
     {
       "id": "week_day",
@@ -130,7 +131,9 @@
         "scope": "local",
         "operator": "withIncomingEdgeIn",
         "selector": {
-          "set": {"idRef": "student_edges"}
+          "set": {
+            "idRef": "student_edges"
+          }
         }
       }
     },
@@ -143,7 +146,9 @@
         "scope": "local",
         "operator": "withIncomingEdgeIn",
         "selector": {
-          "set": {"idRef": "teacher_edges"}
+          "set": {
+            "idRef": "teacher_edges"
+          }
         }
       }
     },
@@ -154,10 +159,14 @@
         "operation": "union",
         "sets": [
           {
-            "set": {"idRef": "students"}
+            "set": {
+              "idRef": "students"
+            }
           },
           {
-            "set": {"idRef": "teachers"}
+            "set": {
+              "idRef": "teachers"
+            }
           }
         ]
       }
@@ -215,11 +224,15 @@
         "elementType": "node",
         "scope": "local",
         "left": {
-          "node": {"property": "healthState"}
+          "node": {
+            "property": "healthState"
+          }
         },
         "operator": "==",
         "right": {
-          "value": {"healthState": "S"}
+          "value": {
+            "healthState": "S"
+          }
         }
       }
     },
@@ -231,7 +244,9 @@
         "elementType": "node",
         "scope": "local",
         "left": {
-          "node": {"property": "healthState"}
+          "node": {
+            "property": "healthState"
+          }
         },
         "operator": "withPropertyIn",
         "right": {
@@ -252,10 +267,14 @@
         "operation": "intersection",
         "sets": [
           {
-            "set": {"idRef": "inschool_nodes"}
+            "set": {
+              "idRef": "inschool_nodes"
+            }
           },
           {
-            "set": {"idRef": "positive"}
+            "set": {
+              "idRef": "positive"
+            }
           }
         ]
       }
@@ -296,20 +315,26 @@
                 "elementType": "edge",
                 "operator": "withTargetNodeIn",
                 "selector": {
-                  "set": {"idRef": "nodes_in_isolation"}
+                  "set": {
+                    "idRef": "nodes_in_isolation"
+                  }
                 }
               },
               {
                 "elementType": "edge",
                 "operator": "withSourceNodeIn",
                 "selector": {
-                  "set": {"idRef": "nodes_in_isolation"}
+                  "set": {
+                    "idRef": "nodes_in_isolation"
+                  }
                 }
               }
             ]
           },
           {
-            "set": {"idRef": "non_home_edges"}
+            "set": {
+              "idRef": "non_home_edges"
+            }
           }
         ]
       }
@@ -319,128 +344,182 @@
     {
       "ann:id": "t_seed",
       "trigger": {
-        "left": {"observable": "time"},
+        "left": {
+          "observable": "time"
+        },
         "operator": "<",
         "right": {
-          "value": {"number": 10}
+          "value": {
+            "number": 10
+          }
         }
       },
-      "interventionIds": ["seed"]
+      "interventionIds": [
+        "seed"
+      ]
     },
     {
       "ann:id": "t_remote",
       "trigger": {
         "and": [
           {
-            "left": {"observable": "time"},
+            "left": {
+              "observable": "time"
+            },
             "operator": ">=",
             "right": {
-              "value": {"number": 0}
+              "value": {
+                "number": 0
+              }
             }
           },
           {
             "left": {
-              "variable": {"idRef": "week_day"}
+              "variable": {
+                "idRef": "week_day"
+              }
             },
             "operator": "==",
             "right": {
-              "value": {"number": 3}
+              "value": {
+                "number": 3
+              }
             }
           }
         ]
       },
-      "interventionIds": ["close_schools"]
+      "interventionIds": [
+        "close_schools"
+      ]
     },
     {
       "ann:id": "t_antigen_test",
       "trigger": {
         "and": [
           {
-            "left": {"observable": "time"},
-            "operator": ">=",
-            "right": {
-              "value": {"number": 999}
-            }
-          },
-          {
             "left": {
-              "variable": {"idRef": "week_day"}
+              "observable": "time"
             },
             "operator": ">=",
             "right": {
-              "value": {"number": 1}
+              "value": {
+                "number": 999
+              }
             }
           },
           {
             "left": {
-              "variable": {"idRef": "week_day"}
+              "variable": {
+                "idRef": "week_day"
+              }
+            },
+            "operator": ">=",
+            "right": {
+              "value": {
+                "number": 1
+              }
+            }
+          },
+          {
+            "left": {
+              "variable": {
+                "idRef": "week_day"
+              }
             },
             "operator": "<=",
             "right": {
-              "value": {"number": 3}
+              "value": {
+                "number": 3
+              }
             }
           }
         ]
       },
-      "interventionIds": ["antigen_test"]
+      "interventionIds": [
+        "antigen_test"
+      ]
     },
     {
       "ann:id": "t_PCR_test",
       "trigger": {
         "and": [
           {
-            "left": {"observable": "time"},
+            "left": {
+              "observable": "time"
+            },
             "operator": ">=",
             "right": {
-              "value": {"number": 30}
+              "value": {
+                "number": 30
+              }
             }
           },
           {
             "left": {
-              "variable": {"idRef": "week_day"}
+              "variable": {
+                "idRef": "week_day"
+              }
             },
             "operator": "==",
             "right": {
-              "value": {"number": 1}
+              "value": {
+                "number": 1
+              }
             }
           }
         ]
       },
-      "interventionIds": ["PCR_test"]
+      "interventionIds": [
+        "PCR_test"
+      ]
     },
     {
       "ann:id": "t_isolation",
       "trigger": {
         "left": {
           "sizeof": {
-            "set": {"idRef": "edges_of_isolation_nodes"}
+            "set": {
+              "idRef": "edges_of_isolation_nodes"
+            }
           }
         },
         "operator": ">",
         "right": {
-          "value": {"number": 0}
+          "value": {
+            "number": 0
+          }
         }
       },
-      "interventionIds": ["home_isolation"]
+      "interventionIds": [
+        "home_isolation"
+      ]
     }
   ],
   "interventions": [
     {
       "ann:id": "maintain_week_day",
       "ann:label": "update the week_day",
-      "trigger": {"value": true},
+      "trigger": {
+        "value": true
+      },
       "target": {
-        "set": {"idRef": "%empty%"}
+        "set": {
+          "idRef": "%empty%"
+        }
       },
       "once": [
         {
           "operations": [
             {
               "target": {
-                "variable": {"idRef": "week_day"}
+                "variable": {
+                  "idRef": "week_day"
+                }
               },
               "operator": "+=",
-              "value": {"number": 1}
+              "value": {
+                "number": 1
+              }
             }
           ]
         }
@@ -449,21 +528,29 @@
     {
       "id": "seed",
       "target": {
-        "set": {"idRef": "susceptible"}
+        "set": {
+          "idRef": "susceptible"
+        }
       },
       "sampling": {
         "type": "absolute",
-        "number": 5,
+        "count": {
+          "number": 5
+        },
         "sampled": {
           "foreach": [
             {
               "operations": [
                 {
                   "target": {
-                    "node": {"property": "healthState"}
+                    "node": {
+                      "property": "healthState"
+                    }
                   },
                   "operator": "=",
-                  "value": {"healthState": "E"}
+                  "value": {
+                    "healthState": "E"
+                  }
                 }
               ]
             }
@@ -474,11 +561,15 @@
     {
       "id": "antigen_test",
       "target": {
-        "set": {"idRef": "positive_inschool_nodes"}
+        "set": {
+          "idRef": "positive_inschool_nodes"
+        }
       },
       "sampling": {
         "type": "individual",
-        "number": 80,
+        "percent": {
+          "number": 80
+        },
         "sampled": {
           "foreach": [
             {
@@ -526,11 +617,15 @@
     {
       "id": "PCR_test",
       "target": {
-        "set": {"idRef": "positive_inschool_nodes"}
+        "set": {
+          "idRef": "positive_inschool_nodes"
+        }
       },
       "sampling": {
         "type": "individual",
-        "number": 95,
+        "percent": {
+          "number": 95
+        },
         "sampled": {
           "foreach": [
             {
@@ -578,7 +673,9 @@
     {
       "id": "home_isolation",
       "target": {
-        "set": {"idRef": "edges_of_isolation_nodes"}
+        "set": {
+          "idRef": "edges_of_isolation_nodes"
+        }
       },
       "foreach": [
         {
@@ -586,10 +683,14 @@
           "operations": [
             {
               "target": {
-                "edge": {"property": "weight"}
+                "edge": {
+                  "property": "weight"
+                }
               },
               "operator": "/=",
-              "value": {"number": 1000000}
+              "value": {
+                "number": 1000000
+              }
             }
           ]
         },
@@ -598,10 +699,14 @@
           "operations": [
             {
               "target": {
-                "edge": {"property": "weight"}
+                "edge": {
+                  "property": "weight"
+                }
               },
               "operator": "*=",
-              "value": {"number": 1000000}
+              "value": {
+                "number": 1000000
+              }
             }
           ]
         }
@@ -611,17 +716,23 @@
       "$comment": "disable in-school edges druing remote days",
       "id": "close_schools",
       "target": {
-        "set": {"idRef": "school_edges"}
+        "set": {
+          "idRef": "school_edges"
+        }
       },
       "foreach": [
         {
           "operations": [
             {
               "target": {
-                "edge": {"property": "weight"}
+                "edge": {
+                  "property": "weight"
+                }
               },
               "operator": "/=",
-              "value": {"number": 1000000}
+              "value": {
+                "number": 1000000
+              }
             }
           ]
         },
@@ -630,10 +741,14 @@
           "operations": [
             {
               "target": {
-                "edge": {"property": "weight"}
+                "edge": {
+                  "property": "weight"
+                }
               },
               "operator": "*=",
-              "value": {"number": 1000000}
+              "value": {
+                "number": 1000000
+              }
             }
           ]
         }
