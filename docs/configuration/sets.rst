@@ -22,7 +22,7 @@ Introduction
 
 In EpiHiper sets of are the building blocks of :doc:`initialization` and :doc:`intervention` where they are used to specify the targets of an :doc:`actions`. Furthermore, the size (number of contained elements) can be used to define a :doc:`trigger`.
 
-.. |sets-definition-synopsis| replace:: Definition: syntax for the definition of sets
+.. |sets-definition-synopsis| replace:: Definition: Syntax for the definition of sets
 .. _`sets-definition-synopsis`: `sets-definition`_
 
 .. _sets-definition:
