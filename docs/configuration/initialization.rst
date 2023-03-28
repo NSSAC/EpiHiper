@@ -55,6 +55,7 @@ Definition
   * - | ann:* 
     - | `annotation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L96>`_
     - | Optional annotation of the initialization
+    
 .. _initialization-examples:
 
 Examples

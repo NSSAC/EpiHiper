@@ -91,9 +91,11 @@ Content
   left:          (property [feature])
                | (field [table])
   property:      (targetId | sourceId | locationId | duration | weight | active 
-                  | targetActivity | sourceActivity | edgeTrait)
-               | (id | susceptibilityFactor | infectivityFactor | healthState | nodeTrait)
+                  | (targetActivity | sourceActivity | edgeTrait) feature)
+               | (id | susceptibilityFactor | infectivityFactor | healthState | nodeTrait feature)
   right:       value | valueList
+  value:       (boolean | number | id | healthState | trait feature enum)
+  valueList:   (boolean | number | id | healthState | trait feature enum)
   selector:    content
   operation:   union | intersection
   sets:        list(content)

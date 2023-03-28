@@ -26,14 +26,14 @@ EpiHiper captures a discrete-time, contagion model evolving over a network. For 
    :caption: Configuration
 
    configuration/model.rst
+   configuration/network.rst
    configuration/traits.rst
-   configuration/intervention.rst
-   configuration/initialization.rst
-   configuration/trigger.rst
    configuration/sets.rst
    configuration/actions.rst
+   configuration/initialization.rst
+   configuration/intervention.rst
+   configuration/trigger.rst
    configuration/variables.rst
-   configuration/network.rst
    configuration/person-db.rst
    configuration/location-db.rst
    
@@ -42,8 +42,7 @@ EpiHiper captures a discrete-time, contagion model evolving over a network. For 
    :caption: Examples
    
    examples/examples.rst
-   examples/result.rst
-
+   
 
 Indices and tables
 ==================
