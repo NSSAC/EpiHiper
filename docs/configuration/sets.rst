@@ -8,7 +8,7 @@ Sets
 * |sets-content-synopsis|_
 * :ref:`sets-examples`
 
-.. |sets-introduction-synopsis| replace:: Sets: in EpiHiper set contain elements (nodes :math:`N` and/or edges :math:`E`) of the :doc:`network` or values :math:`V` selected from the :doc:`person-db`.
+.. |sets-introduction-synopsis| replace:: Sets: in EpiHiper set contain elements (nodes :math:`N` and/or edges :math:`E`) of the :doc:`network` or values :math:`V` selected from the :doc:`trait-db`.
 .. _`sets-introduction-synopsis`: `sets-introduction`_
 
 .. _sets-introduction:
@@ -101,7 +101,7 @@ Content
   sets:        list(content)
   set:         idRef
 
-We have several alternative syntaxes to specify the content. The third specifies either all nodes or all edges and the fourth specifies all nodes (PIDs) in a table. Here the attribute ``scope`` is only required if the ``elementType`` is ``node``. Furthermore, the valid values for ``feature``, ``field``, and ``table`` must be defined in :doc:`traits` or :doc:`person-db`.
+We have several alternative syntaxes to specify the content. The third specifies either all nodes or all edges and the fourth specifies all nodes (PIDs) in a table. Here the attribute ``scope`` is only required if the ``elementType`` is ``node``. Furthermore, the valid values for ``feature``, ``field``, and ``table`` must be defined in :doc:`traits` or :doc:`trait-db`.
 
 .. list-table:: Set content definition. 
   :name: sets-content-spec

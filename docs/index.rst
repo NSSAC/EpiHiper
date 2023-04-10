@@ -34,8 +34,7 @@ EpiHiper captures a discrete-time, contagion model evolving over a network. For 
    configuration/intervention.rst
    configuration/trigger.rst
    configuration/variables.rst
-   configuration/person-db.rst
-   configuration/location-db.rst
+   configuration/trait-db.rst
    
 .. toctree::
    :maxdepth: 2
