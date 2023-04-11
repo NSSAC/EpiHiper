@@ -43,8 +43,8 @@ Definition
   action:      operations [priority] [delay] [condition] [annotation]
   operations:  list(operation)
   operation:   target operator (value | observable | variable | sizeof)
-  target:        (type 
-                   (duration | weight | active | edgeTrait)
+  target:      (type 
+                 (duration | weight | active | edgeTrait)
                  | (susceptibilityFactor | infectivityFactor | healthState | nodeTrait))
                | (variable)
   type:        node | edge
