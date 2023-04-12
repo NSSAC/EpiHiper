@@ -44,7 +44,7 @@ Edges
 
 To define the edges of the contact network, the following syntax is used:
 
-.. code-block:: bash
+.. code-block:: text
 
   edge: targetPID targetActivity sourcePID sourceActivity duration
         [locationID] [edgeTrait] [active] [weight]
@@ -100,7 +100,7 @@ Meta Data
 
 To define the meta data of the contact network, the following syntax is used:
 
-.. code-block:: bash
+.. code-block:: text
 
   : encoding accumulationTime timeResolution numberOfNodes numberOfEdges
     sizeofPID sizeofActivity activityEncoding sizeofEdgeTrait traitEncoding
@@ -158,7 +158,7 @@ Encoding
 
 EpiHiper supports a binary format and an ASCII format, both of which have common meta data. This appears as the first line of the file in both formats; it is a standardized JSON `object <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/networkSchema.json>`_ with all newline characters and redundant whitespace characters omitted. Furthermore the second line contains the column headers in both format. Optional attributes ([...]) are omitted when encoding the contact network.
 
-.. code-block:: bash
+.. code-block:: text
 
   sourcePID,sourceActivity,targetPID,targetActivity,duration
   [,locationID][,edgeTrait][,active][,weight]
@@ -270,7 +270,7 @@ Examples
 
 **Text encoding** starting with row 2 (csv column headers) of text encoding:
 
-.. code-block:: bash
+.. code-block:: text
 
   targetPID,targetActivity,sourcePID,sourceActivity,duration,LID
   0,1:2,10105,1:2,900,7692

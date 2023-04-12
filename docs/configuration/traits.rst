@@ -54,7 +54,7 @@ Specification
 
 To define these trait collections, the following syntax is used:
 
-.. code-block:: bash
+.. code-block:: text
 
   trait:   traitId list(feature) [annotation]
   feature: featureId list(enum) default [annotation]
@@ -84,7 +84,7 @@ Text encoding
 
 Text encoding of traits is is required for text format of the :doc:`network`.
 
-.. code-block:: bash
+.. code-block:: text
 
   featureIndex_1:enumIndex_1|featureIndex_2|enumIndex_2, ..., featureIndex_n|enumIndex_n
 
@@ -137,6 +137,6 @@ Examples
 
 **Text encoding** of activity type ``work`` based on the above described activity trait:
 
-.. code-block:: bash
+.. code-block:: text
 
   1:2

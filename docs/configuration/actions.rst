@@ -35,7 +35,7 @@ Definition
 
   |actions-definition-synopsis|
 
-.. code-block:: bash
+.. code-block:: text
   
   :            [once] [foreach] [sampling] [annotation]
   once:        list(action)

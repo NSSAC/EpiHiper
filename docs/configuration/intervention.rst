@@ -33,7 +33,7 @@ Definition
 
   |intervention-definition-synopsis|
 
-.. code-block:: bash
+.. code-block:: text
 
   intervention: (id | trigger) target actionEnsemble [annotation]
   target:       setContent [annotation]

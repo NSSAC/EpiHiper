@@ -34,7 +34,7 @@ Definition
 
   |initialization-definition-synopsis|
 
-.. code-block:: bash
+.. code-block:: text
 
   intervention: target actionEnsemble [annotation]
   target:       setContent [annotation]

@@ -34,7 +34,7 @@ Definition
 
   |trigger-definition-synopsis|
 
-.. code-block:: bash
+.. code-block:: text
   
   :                trigger interventionIds [annotation]
   trigger:         boolean
@@ -73,7 +73,7 @@ Boolean Expression
 
 EpiHiper allows for the definition of complex Boolean expressions utilizing the current state of the simulation.
 
-.. code-block:: bash
+.. code-block:: text
   
   :              (not)
                | (and | or)

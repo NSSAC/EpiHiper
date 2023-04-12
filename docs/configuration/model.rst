@@ -160,7 +160,7 @@ Specification
 
 To define the states of the contagion model, the following syntax is used:
 
-.. code-block:: bash
+.. code-block:: text
 
   states:       list(state)
   state:        id susceptibility infectivity [annotation]
@@ -254,7 +254,7 @@ Specification
 
 To define the progressions between states of the contagion model, the following syntax is used:
 
-.. code-block:: bash
+.. code-block:: text
 
   transitions:  list(transition)
   transition:   id entryState exitState probability dwellTime 
@@ -388,7 +388,7 @@ Specification
 
 To define possible transmission between occurring between individuals in the contagion model, the following syntax is used:
 
-.. code-block:: bash
+.. code-block:: text
 
   transmissions:    list(transmission) [transmissibility]
   transmission:     id entryState exitState probability transmissibility 

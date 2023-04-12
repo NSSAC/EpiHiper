@@ -34,7 +34,7 @@ Definition
 
   |sets-definition-synopsis|
 
-.. code-block:: bash
+.. code-block:: text
   
   set:   id scope content [annotation]
   scope: local | global
@@ -75,7 +75,7 @@ Content
 
   |sets-content-synopsis|
 
-.. code-block:: bash
+.. code-block:: text
   
   :              (elementType [scope] operator left right)
                | (elementType [scope] operator selector)

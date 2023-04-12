@@ -35,7 +35,7 @@ Specification
 
 Variables can be defined in :doc:`initialization` and :doc:`intervention`
 
-.. code-block:: bash
+.. code-block:: text
 
   variables: list(variable) [annotation]
   variable:  id scope initialValue [reset] [annotation]
