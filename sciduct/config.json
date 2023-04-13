@@ -1,0 +1,323 @@
+{
+  "apps": [
+    {
+      "epiHiper": {
+        "binds": [
+          "input",
+          "output",
+          "job"
+        ],
+        "input_schema": {},
+        "input_files": [
+          {
+            "name": "runParameters.json",
+            "required": true,
+            "types": [
+              "epihiperRunParameters",
+              "json"
+            ]
+          },
+          {
+            "name": "scenario.json",
+            "required": true,
+            "types": [
+              "epihiperScenario",
+              "json"
+            ]
+          },
+          {
+            "name": "contactNetwork",
+            "required": true,
+            "types": [
+              "epihiperContactNetwork",
+              "json"
+            ]
+          },
+          {
+            "name": "diseaseModel.json",
+            "required": true,
+            "types": [
+              "epihiperDiseaseModel",
+              "json"
+            ]
+          },
+          {
+            "name": "traits.json",
+            "required": false,
+            "types": [
+              "epihiperTraits",
+              "json"
+            ]
+          },
+          {
+            "name": "initialization.json",
+            "required": false,
+            "types": [
+              "epihiperInitialization",
+              "json"
+            ]
+          },
+          {
+            "name": "intervention.json",
+            "required": false,
+            "types": [
+              "epihiperIntervention",
+              "json"
+            ]
+          },
+          {
+            "name": "personTraitDB.json",
+            "required": false,
+            "types": [
+              "epihiperPersonTraitDB",
+              "json"
+            ],
+            "match": "personTraitDB.json"
+          }
+        ],
+        "output_schema": {},
+        "output_files": {
+          "type": "epihiperOutput",
+          "associateJobMeta": true,
+          "contents": [
+            {
+              "file": "output.csv",
+              "name": "output.csv",
+              "associateJobMeta": true,
+              "type": "csv"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "validateSchema": {
+        "binds": [
+          "input",
+          "output",
+          "job"
+        ],
+        "input_schema": {},
+        "input_files": [
+          {
+            "name": "runParameters.json",
+            "required": true,
+            "types": [
+              "epihiperRunParameters",
+              "json"
+            ]
+          },
+          {
+            "name": "scenario.json",
+            "required": true,
+            "types": [
+              "epihiperScenario",
+              "json"
+            ]
+          },
+          {
+            "name": "contactNetwork",
+            "required": true,
+            "types": [
+              "epihiperContactNetwork",
+              "json"
+            ]
+          },
+          {
+            "name": "diseaseModel.json",
+            "required": true,
+            "types": [
+              "epihiperDiseaseModel",
+              "json"
+            ]
+          },
+          {
+            "name": "traits.json",
+            "required": false,
+            "types": [
+              "epihiperTraits",
+              "json"
+            ]
+          },
+          {
+            "name": "initialization.json",
+            "required": false,
+            "types": [
+              "epihiperInitialization",
+              "json"
+            ]
+          },
+          {
+            "name": "intervention.json",
+            "required": false,
+            "types": [
+              "epihiperIntervention",
+              "json"
+            ]
+          },
+          {
+            "name": "personTraitDB.json",
+            "required": false,
+            "types": [
+              "epihiperPersonTraitDB",
+              "json"
+            ],
+            "match": "personTraitDB.json"
+          }
+        ],
+        "output_schema": {},
+        "output_files": {}
+      }
+    },
+    {
+      "validateRules": {
+        "binds": [
+          "input",
+          "output",
+          "job"
+        ],
+        "input_schema": {},
+        "input_files": [
+          {
+            "name": "runParameters.json",
+            "required": true,
+            "types": [
+              "epihiperRunParameters",
+              "json"
+            ]
+          },
+          {
+            "name": "scenario.json",
+            "required": true,
+            "types": [
+              "epihiperScenario",
+              "json"
+            ]
+          },
+          {
+            "name": "contactNetwork",
+            "required": true,
+            "types": [
+              "epihiperContactNetwork",
+              "json"
+            ]
+          },
+          {
+            "name": "diseaseModel.json",
+            "required": true,
+            "types": [
+              "epihiperDiseaseModel",
+              "json"
+            ]
+          },
+          {
+            "name": "traits.json",
+            "required": false,
+            "types": [
+              "epihiperTraits",
+              "json"
+            ]
+          },
+          {
+            "name": "initialization.json",
+            "required": false,
+            "types": [
+              "epihiperInitialization",
+              "json"
+            ]
+          },
+          {
+            "name": "intervention.json",
+            "required": false,
+            "types": [
+              "epihiperIntervention",
+              "json"
+            ]
+          },
+          {
+            "name": "personTraitDB.json",
+            "required": false,
+            "types": [
+              "epihiperPersonTraitDB",
+              "json"
+            ],
+            "match": "personTraitDB.json"
+          }
+        ],
+        "output_schema": {},
+        "output_files": {}
+      }
+    },
+    {
+      "partition": {
+        "binds": [
+          "input",
+          "output",
+          "job"
+        ],
+        "input_schema": {},
+        "input_files": [
+          {
+            "name": "partition.json",
+            "required": true,
+            "types": [
+              "epihiperPartition",
+              "json"
+            ]
+          },
+          {
+            "name": "contactNetwork",
+            "required": true,
+            "types": [
+              "epihiperContactNetwork",
+              "json"
+            ]
+          }
+        ],
+        "output_schema": {},
+        "output_files": {}
+      }
+    },
+    {
+      "analyze": {
+        "binds": [
+          "input",
+          "output",
+          "job"
+        ],
+        "input_schema": {},
+        "input_files": [
+          {
+            "name": "analyze.json",
+            "required": true,
+            "types": [
+              "epihiperAnalyze",
+              "json"
+            ]
+          },
+          {
+            "name": "diseaseModel.json",
+            "required": true,
+            "types": [
+              "epihiperDiseaseModel",
+              "json"
+            ]
+          }
+        ],
+        "output_schema": {},
+        "output_files": {
+          "type": "epiHiperModelAnalyzer",
+          "associateJobMeta": true,
+          "contents": [
+            {
+              "file": "output.csv",
+              "name": "output.csv",
+              "associateJobMeta": true,
+              "type": "csv"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
