@@ -1,6 +1,8 @@
 Initialization
 ==============
 
+.. include:: _schema_links.rst
+
 **Contents:**
 
 * |initialization-introduction-synopsis|_
@@ -53,7 +55,7 @@ Definition
     - | object
     - | The :doc:`actions` applied to the target set .
   * - | ann:* 
-    - | `annotation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L96>`_
+    - | |schema_annotation|_
     - | Optional annotation of the initialization
     
 .. _initialization-examples:

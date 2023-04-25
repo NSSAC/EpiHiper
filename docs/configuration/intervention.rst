@@ -1,6 +1,8 @@
 Interventions
 =============
 
+.. include:: _schema_links.rst
+
 **Contents:**
 
 * |intervention-introduction-synopsis|_
@@ -48,7 +50,7 @@ An intervention mus either have unique id so that it can be referenced by an ext
     - | Type 
     - | Description
   * - | id
-    - | `unique id <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L6>`_ 
+    - | |schema_unique_id|_ 
     - | An id which has to be unique within the list of interventions
   * - | trigger
     - | object
@@ -61,7 +63,7 @@ An intervention mus either have unique id so that it can be referenced by an ext
     - | object
     - | The :doc:`actions` applied to the target set .
   * - | ann:* 
-    - | `annotation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L96>`_
+    - | |schema_annotation|_
     - | Optional annotation of the intervention
 
 .. _intervention-examples:

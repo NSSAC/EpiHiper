@@ -1,6 +1,8 @@
 Action Ensemble
 ===============
 
+.. include:: _schema_links.rst
+
 **Contents:**
 
 * |actions-introduction-synopsis|_
@@ -80,7 +82,7 @@ Definition
     - | An action to be performed.
   * - | target
     - | object
-    - | Writable properties of `edges <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L680>`_  or `nodes <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L637>`_ or a variable.
+    - | Writable properties of |schema_edges|_ or |schema_nodes|_ or a variable.
   * - | operator
     - | string
     - | The operator used for calculating the assigned value:
@@ -123,7 +125,7 @@ Definition
     - | object
     - | Action ensemble for the non-sampled subset of the target set.
   * - | ann:* 
-    - | `annotation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L96>`_
+    - | |schema_annotation|_
     - | Optional annotation of the set.
 
 .. _actions-examples:

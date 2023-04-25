@@ -1,6 +1,8 @@
 Variables
 =========
 
+.. include:: _schema_links.rst
+
 **Contents:**
 
 * |variables-introduction-synopsis|_
@@ -49,7 +51,7 @@ Variables can be defined in :doc:`initialization` and :doc:`intervention`
     - | Type 
     - | Description
   * - | id
-    - | `unique id <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L6>`_ 
+    - | |schema_unique_id|_ 
     - | An id which has to be unique within the list of variables
   * - | scope
     - | local|global
@@ -62,11 +64,11 @@ Variables can be defined in :doc:`initialization` and :doc:`intervention`
     - | Optionally the variable may be reset to the initial value ever :math:`n` 
       | simulation steps
   * - | ann:* 
-    - | `annotation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L96>`_
+    - | |schema_annotation|_
     - | Optional annotation of the variable
 
 
-The normative JSON schema can be found at:  `variables <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L784>`_ 
+The normative JSON schema can be found at:  |schema_variables|_ 
 
 .. _variables-examples:
 

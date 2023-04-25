@@ -1,6 +1,8 @@
 Contagion Model
 ===============
 
+.. include:: _schema_links.rst
+
 **Contents:**
 
 * |model-introduction-synopsis|_
@@ -174,7 +176,7 @@ To define the states of the contagion model, the following syntax is used:
     - | Type 
     - | Description
   * - | id
-    - | `unique id <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L6>`_ 
+    - | |schema_unique_id|_ 
     - | An id which has to be unique within the list of states
   * - | susceptibility
     - | :math:`0 \le x \in \mathbb{R}` 
@@ -183,10 +185,10 @@ To define the states of the contagion model, the following syntax is used:
     - | :math:`0 \le x \in \mathbb{R}` 
     - | The infectivity of the state
   * - | ann:* 
-    - | `annotation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L96>`_
+    - | |schema_annotation|_
     - | Optional annotation of the state
 
-The ``idRef`` property of the ``initalState`` must refer to an existing id in the list of the states. The normative JSON schema can be found at:  `states <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/diseaseModelSchema.json#L19>`_
+The ``idRef`` property of the ``initalState`` must refer to an existing id in the list of the states. The normative JSON schema can be found at:  |schema_states|_
 
 .. _model-states-examples:
 
@@ -268,7 +270,7 @@ To define the progressions between states of the contagion model, the following 
     - | Type 
     - | Description
   * - | id
-    - | `unique id <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L6>`_ 
+    - | |schema_unique_id|_ 
     - | An id which has to be unique within the list 
       | of transitions
   * - | entryState
@@ -284,23 +286,23 @@ To define the progressions between states of the contagion model, the following 
     - | The probability that the entry state changes to the 
       | exit state 
   * - | dwellTime
-    - | `distribution <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L133>`_ 
+    - | |schema_distribution|_ 
     - | The time before the state change occurs
   * - | susceptibilityFactorOperation
-    - | `operation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L111>`_ 
+    - | |schema_operation|_ 
     - | The numeric operation to be performed on an  
       | individuals susceptibility factor when the 
       | state change occurs
   * - | infectivityFactorOperation
-    - | `operation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L111>`_ 
+    - | |schema_operation|_ 
     - | The numeric operation to be performed on an  
       | individuals infectivity factor when the 
       | state change occurs
   * - | ann:* 
-    - | `annotation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L96>`_
+    - | |schema_annotation|_
     - | Optional annotation of the state
 
-If the optional ``susceptibilityFactorOperation`` or ``infectivityFactorOperation`` are missing no operation will be exectuted, i.e., the current factor will be preserved. The normative JSON schema can be found at:  `transitions <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/diseaseModelSchema.json#L80>`_
+If the optional ``susceptibilityFactorOperation`` or ``infectivityFactorOperation`` are missing no operation will be exectuted, i.e., the current factor will be preserved. The normative JSON schema can be found at:  |schema_transitions|_
 
 .. _model-progressions-examples:
 
@@ -403,7 +405,7 @@ To define possible transmission between occurring between individuals in the con
     - | Type 
     - | Description
   * - | id
-    - | `unique id <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L6>`_ 
+    - | |schema_unique_id|_ 
     - | An id which has to be unique within the list 
       | of transmissions
   * - | entryState
@@ -422,20 +424,20 @@ To define possible transmission between occurring between individuals in the con
     - | :math:`0 \le x \in \mathbb{R}` 
     - | The transmissibility of the for each contact. 
   * - | susceptibilityFactorOperation
-    - | `operation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L111>`_ 
+    - | |schema_operation|_ 
     - | The numeric operation to be performed on an  
       | individuals susceptibility factor when the 
       | state change occurs
   * - | infectivityFactorOperation
-    - | `operation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L111>`_ 
+    - | |schema_operation|_ 
     - | The numeric operation to be performed on an  
       | individuals infectivity factor when the 
       | state change occurs
   * - | ann:* 
-    - | `annotation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L96>`_
+    - | |schema_annotation|_
     - | Optional annotation of the state
 
-If the optional ``susceptibilityFactorOperation`` or ``infectivityFactorOperation`` are missing no operation will be executed, i.e., the current factor will be preserved. The normative JSON schema can be found at:  `transmissions <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/diseaseModelSchema.json#L47>`_. The optional model attribute `transmissibility` is used to scale all individual transmissibilities. Its default value is :math:`1.0`
+If the optional ``susceptibilityFactorOperation`` or ``infectivityFactorOperation`` are missing no operation will be executed, i.e., the current factor will be preserved. The normative JSON schema can be found at:  |schema_transmissions|_. The optional model attribute `transmissibility` is used to scale all individual transmissibilities. Its default value is :math:`1.0`
 
 Examples
 ^^^^^^^^
