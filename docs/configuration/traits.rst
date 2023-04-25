@@ -7,6 +7,8 @@
 Traits
 ======
 
+.. include:: _schema_links.rst
+
 **Contents:**
 
 * |traits-introduction-synopsis|_
@@ -62,13 +64,13 @@ To define these trait collections, the following syntax is used:
 
 The trait collections can be specified in several locations (:doc:`network`, :doc:`initialization`, :doc:`intervention`, and :doc:`traits`). New features can be added to a trait in any of these locations. However, modifying a previously defined feature is not allowed and will cause an error. Identical definitions of the same feature in multiple places are allowed.
 
-Here ``featureId`` is the unique id of a feature within the specified trait collection; ``enumId`` is a unique identifier within the scope of a feature; a ``default`` value must be provided for each feature so that the state will be well defined at the beginning of any simulation; furthermore optional `annotation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L96>`_ may be provided
+Here ``featureId`` is the unique id of a feature within the specified trait collection; ``enumId`` is a unique identifier within the scope of a feature; a ``default`` value must be provided for each feature so that the state will be well defined at the beginning of any simulation; furthermore optional |schema_annotation|_ may be provided
 
 The normative JSON schema can be found at:
 
-  * `trait <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L2141>`_
-  * `feature <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L2102>`_
-  * `enum <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L2068>`_
+  * |schema_trait|_
+  * |schema_feature|_
+  * |schema_enum|_
 
 .. |traits-text-encoding-synopsis| replace:: Text encoding: format of traits utilized in csv files.
 .. _`traits-text-encoding-synopsis`: `traits-text-encoding`_
@@ -88,7 +90,7 @@ Text encoding of traits is is required for text format of the :doc:`network`.
 
   featureIndex_1:enumIndex_1|featureIndex_2|enumIndex_2, ..., featureIndex_n|enumIndex_n
 
-Here the index starts with ``1`` for the first feature or enum defined in JSON according to the `schema <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L2141>`_. If a feature is omitted in the encoding the default value is used.
+Here the index starts with ``1`` for the first feature or enum defined in JSON according to the |schema_trait_schema|_. If a feature is omitted in the encoding the default value is used.
 
 
 .. _traits-examples:

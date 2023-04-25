@@ -1,6 +1,8 @@
 Sets
 ====
 
+.. include:: _schema_links.rst
+
 **Contents:**
 
 * |sets-introduction-synopsis|_
@@ -47,7 +49,7 @@ Definition
     - | Type 
     - | Description
   * - | id
-    - | `unique id <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L6>`_ 
+    - | |schema_unique_id|_ 
     - | An id which has to be unique within the list of sets
   * - | scope
     - | local|global
@@ -56,11 +58,11 @@ Definition
     - | :ref:`sets-content`
     - | The content of the set
   * - | ann:* 
-    - | `annotation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L96>`_
+    - | |schema_annotation|_
     - | Optional annotation of the set
 
 The attribute ``scope`` is used to enhance performance. Local content is faster to compute and suffices in most situations.
-The normative JSON schema can be found at:  `set <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L1875>`_ 
+The normative JSON schema can be found at:  |schema_set|_ 
 
 .. |sets-content-synopsis| replace:: Content: specification of the elements contained in a set.
 
@@ -127,13 +129,13 @@ We have several alternative syntaxes to specify the content. The third specifies
     - | The left operant of the comparison
   * - | property
     - | string
-    - | Properties of `edges <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L680>`_ or `nodes <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L637>`_
+    - | Properties of |schema_edges|_ or |schema_nodes|_
   * - | right 
     - | object
-    - | A `value <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L277>`_ or `list of values <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L315>`_ depending on the operator
+    - | A |schema_value|_ or |schema_value_list|_ depending on the operator
   * - | selector 
     - | object
-    - | `Set content <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L1783>`_ used to filter nodes or edges based on attributes which are lists.
+    - | |schema_set_content|_ used to filter nodes or edges based on attributes which are lists.
   * - | operation
     - | string
     - | A set operation either union or intersection
@@ -147,7 +149,7 @@ We have several alternative syntaxes to specify the content. The third specifies
     - | string 
     - | A reference of an id of a existing set .
 
-The normative JSON schema can be found at:  `setContent <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L1783>`_ 
+The normative JSON schema can be found at:  |schema_setcontent|_ 
 
 .. _sets-examples:
 

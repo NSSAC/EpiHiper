@@ -1,6 +1,8 @@
 Trigger
 =======
 
+.. include:: _schema_links.rst
+
 **Contents:**
 
 * |trigger-introduction-synopsis|_
@@ -54,7 +56,7 @@ Definition
     - | list(id)
     - | A list of ids referencing :doc:`intervention` to be performed.
   * - | ann:* 
-    - | `annotation <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L96>`_
+    - | |schema_annotation|_
     - | Optional annotation of the trigger.
 
 
@@ -127,21 +129,21 @@ EpiHiper allows for the definition of complex Boolean expressions utilizing the 
       | this must be either a value or a valueList.
   * - | value
     - | object
-    - | A `value <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L277>`_
+    - | A |schema_value|_
   * - | valueList
     - | object
-    - | A `list of values <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L315>`_ 
+    - | A |schema_value_list|_ 
   * - | node 
     - | object
-    - | A `node property <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L637>`_
+    - | A |schema_node_property|_
   * - | edge 
     - | object
-    - | An `edge property <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L680>`_
+    - | An |schema_edge_property|_
   * - | sizeof
     - | object
     - | Function to determine the size of the given :ref:`set content <sets-content>`.
 
-The normative JSON schema can be found at:  `boolean <https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L836>`_ 
+The normative JSON schema can be found at:  |schema_boolean|_ 
 
 .. _trigger-examples:
 
