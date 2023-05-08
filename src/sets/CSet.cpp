@@ -43,12 +43,11 @@ CSet * CSet::empty()
 }
   
 CSet::CSet()
-  : CSetContent()
+  : CSetContent(CSetContent::Type::set)
   , CAnnotation()
   , mId()
   , mType()
   , mpSetContent(NULL)
-  , mValid(true)
 {}
 
 CSet::CSet(const CSet & src)
@@ -56,45 +55,30 @@ CSet::CSet(const CSet & src)
   , CAnnotation(src)
   , mId(src.mId)
   , mType(src.mType)
-  , mpSetContent(src.mpSetContent != NULL ? src.mpSetContent->copy() : NULL)
-  , mValid(src.mValid)
+  , mpSetContent(src.mpSetContent)
 {}
 
 CSet::CSet(const json_t * json)
-  : CSetContent()
+  : CSetContent(CSetContent::Type::set)
   , CAnnotation()
   , mId()
   , mType()
   , mpSetContent(NULL)
-  , mValid(true)
 {
-  fromJSON(json);
+  CSetContent::fromJSON(json);
 }
 
 // virtual
 CSet::~CSet()
-{
-  CSetContent::destroy(mpSetContent);
-}
-
-// virtual
-CSetContent * CSet::copy() const
-{
-  return new CSet(*this);
-}
+{}
 
 const std::string & CSet::getId() const
 {
   return mId;
 }
 
-const bool & CSet::isValid() const
-{
-  return mValid;
-}
-
 // virtual
-void CSet::fromJSON(const json_t * json)
+void CSet::fromJSONProtected(const json_t * json)
 {
   /*
     {"$ref": "#/definitions/annotation"},
@@ -152,23 +136,32 @@ void CSet::fromJSON(const json_t * json)
     {
       mpSetContent = CSetContent::create(pValue);
 
-      if (mpSetContent != NULL
+      if (mpSetContent
           && mpSetContent->isValid())
         {
-          mPrerequisites.insert(mpSetContent);
-          mStatic = mpSetContent->isStatic();
+          mPrerequisites.insert(mpSetContent.get()); // DONE
           mValid = true;
           return;
         }
 
-      if (mpSetContent != NULL)
-        {
-          delete mpSetContent;
-          mpSetContent = NULL;
-        }
+      mpSetContent.reset();
     }
 
   CLogger::error("Set: Invalid or missing value for 'content'.");
+}
+
+// virtual 
+bool CSet::lessThanProtected(const CSetContent & rhs) const
+{
+  const CSet * pRhs = static_cast< const CSet * >(&rhs);
+
+  if (mId != pRhs->mId)  
+    return mId < pRhs->mId;
+
+  if (mType != pRhs->mType)  
+    return mType < pRhs->mType;
+
+  return mpSetContent < pRhs->mpSetContent;
 }
 
 // virtual

@@ -142,6 +142,15 @@ public:
                            bool ignoreCircularDependecies);
 
   /**
+   * Build the sequence of objects which need to be updated to calculate the object value.
+   * @param std::vector < std::vector < CComputable * > > & processGroups
+   * @param bool ignoreCircularDependecies
+   * @return bool success
+   */
+  bool buildProcessGroups(std::vector < std::vector < CComputable * > > & processGroups,
+                          bool ignoreCircularDependecies);
+
+  /**
    * Set whether the current node has changed its value
    * @param const bool & changed
    */
@@ -174,6 +183,8 @@ public:
 
   void updateEdges(const std::map< CDependencyNode *, CDependencyNode * > & map);
 
+  void updateMaxChildGroupIndex(const int & childIndex);
+
   // Attributes
 private:
   bool createMessage(bool ignoreCircularDependecies);
@@ -183,6 +194,12 @@ private:
   std::vector< CDependencyNode * > mDependents;
   bool mChanged;
   bool mRequested;
+
+  /**
+   * The index of the process group in which the CComputable associated with the node can be computed.
+   * 
+   */
+  int mMaxChildGroupIndex;
 };
 
 #endif /* SRC_MATH_CDEPENDENCYNODE_H_ */

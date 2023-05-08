@@ -38,9 +38,10 @@
 #include "actions/CActionQueue.h"
 #include "utilities/CLogger.h"
 #include "utilities/CSimConfig.h"
+#include "variables/CVariableList.h"
 
 CEdgeElementSelector::CEdgeElementSelector()
-  : CSetContent()
+  : CSetContent(CSetContent::Type::edgeElementSelector)
   , mEdgeProperty()
   , mpValue(NULL)
   , mpValueList(NULL)
@@ -48,6 +49,7 @@ CEdgeElementSelector::CEdgeElementSelector()
   , mDBTable()
   , mDBField()
   , mpObservable(NULL)
+  , mpVariable(NULL)
   , mpDBFieldValue(NULL)
   , mpDBFieldValueList(NULL)
   , mpComparison(NULL)
@@ -59,10 +61,11 @@ CEdgeElementSelector::CEdgeElementSelector(const CEdgeElementSelector & src)
   , mEdgeProperty(src.mEdgeProperty)
   , mpValue(src.mpValue != NULL ? new CValue(*src.mpValue) : NULL)
   , mpValueList(src.mpValueList != NULL ? new CValueList(*src.mpValueList) : NULL)
-  , mpSelector(src.mpSelector != NULL ? src.mpSelector->copy() : NULL)
+  , mpSelector(src.mpSelector)
   , mDBTable(src.mDBTable)
   , mDBField(src.mDBField)
-  , mpObservable(src.mpObservable != NULL ? new CObservable(*src.mpObservable) : NULL)
+  , mpObservable(src.mpObservable)
+  , mpVariable(src.mpVariable)
   , mpDBFieldValue(src.mpDBFieldValue != NULL ? new CFieldValue(*src.mpDBFieldValue) : NULL)
   , mpDBFieldValueList(src.mpDBFieldValueList != NULL ? new CFieldValueList(*src.mpDBFieldValueList) : NULL)
   , mpComparison(src.mpComparison)
@@ -70,7 +73,7 @@ CEdgeElementSelector::CEdgeElementSelector(const CEdgeElementSelector & src)
 {}
 
 CEdgeElementSelector::CEdgeElementSelector(const json_t * json)
-  : CSetContent()
+  : CSetContent(CSetContent::Type::edgeElementSelector)
   , mEdgeProperty()
   , mpValue(NULL)
   , mpValueList(NULL)
@@ -78,6 +81,7 @@ CEdgeElementSelector::CEdgeElementSelector(const json_t * json)
   , mDBTable()
   , mDBField()
   , mpObservable(NULL)
+  , mpVariable(NULL)
   , mpDBFieldValue(NULL)
   , mpDBFieldValueList(NULL)
   , mpComparison(NULL)
@@ -94,8 +98,6 @@ CEdgeElementSelector::~CEdgeElementSelector()
   if (mpValueList != NULL)
     delete mpValueList;
 
-  CSetContent::destroy(mpSelector);
-
   if (mpDBFieldValue != NULL)
     delete mpDBFieldValue;
     
@@ -104,13 +106,7 @@ CEdgeElementSelector::~CEdgeElementSelector()
 }
 
 // virtual
-CSetContent * CEdgeElementSelector::copy() const
-{
-  return new CEdgeElementSelector(*this);
-}
-
-// virtual
-void CEdgeElementSelector::fromJSON(const json_t * json)
+void CEdgeElementSelector::fromJSONProtected(const json_t * json)
 {
   /*
   "edgeElementSelector": {
@@ -203,7 +199,6 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
   */
 
   mValid = false; // DONE
-  mStatic = true;
   mPrerequisites.clear();
   json_t * pValue = json_object_get(json, "elementType");
 
@@ -214,7 +209,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
       return;
     }
 
-  mPrerequisites.insert(&CActionQueue::getCurrentTick());
+  // mPrerequisites.insert(&CActionQueue::getCurrentTick());
 
   pValue = json_object_get(json, "operator");
 
@@ -255,7 +250,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
       else if (strcmp(Operator, "withPropertyIn") == 0
                || strcmp(Operator, "in") == 0
                || strcmp(Operator, "not in") == 0)
-         {
+        {
           /*
          {
            "description": "",
@@ -304,7 +299,9 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
               else
                 mpCompute = &CEdgeElementSelector::propertyIn;
 
-              mStatic &= mEdgeProperty.isReadOnly();
+              if (!mEdgeProperty.isReadOnly())
+                mPrerequisites.insert(&CActionQueue::getCurrentTick()); // DONE
+
               mValid = true;
               return;
             }
@@ -312,12 +309,12 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
           if (strcmp(Operator, "in") == 0)
             {
               CConnection::setRequired(true);
-              mpCompute = &CEdgeElementSelector::withDBFieldWithin;
+              mpCompute = &CEdgeElementSelector::dbIn;
             }
           else if (strcmp(Operator, "not in") == 0)
             {
               CConnection::setRequired(true);
-              mpCompute = &CEdgeElementSelector::withDBFieldNotWithin;
+              mpCompute = &CEdgeElementSelector::dbNotIn;
             }
           else
             {
@@ -337,7 +334,6 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
   else
     {
       // We do not have an operator, i.e., we have either all edges or all edges with a table.
-      mStatic = true;
       pValue = json_object_get(json, "table");
 
       if (json_is_string(pValue))
@@ -358,7 +354,7 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
             },
            */
           CConnection::setRequired(true);
-          mpCompute = &CEdgeElementSelector::inDBTable;
+          mpCompute = &CEdgeElementSelector::dbAll;
           mValid = true;
           return;
         }
@@ -373,8 +369,8 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
       return;
     }
 
-  if (mpCompute == &CEdgeElementSelector::withDBFieldWithin
-      || mpCompute == &CEdgeElementSelector::withDBFieldNotWithin)
+  if (mpCompute == &CEdgeElementSelector::dbIn
+      || mpCompute == &CEdgeElementSelector::dbNotIn)
     {
       /*
         {
@@ -453,27 +449,21 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
       if (FieldValueList.isValid())
         {
           mpDBFieldValueList = new CFieldValueList(FieldValueList);
-          mStatic &= true;
           mValid = true;
           return;
         }
 
       mpSelector = CSetContent::create(json_object_get(json, "right"));
 
-      if (mpSelector != NULL
+      if (mpSelector
           && mpSelector->isValid())
         {
-          mPrerequisites.insert(mpSelector);
-          mStatic &= mpSelector->isStatic();
+          mPrerequisites.insert(mpSelector.get()); // DONE
           mValid = true;
           return;
         }
 
-      if (mpSelector != NULL)
-        {
-          delete mpSelector;
-          mpSelector = NULL;
-        }
+      mpSelector.reset();
 
       CLogger::error() << "Edge selector: Invalid or missing value 'right' for " << CSimConfig::jsonToString(json);
       return;
@@ -484,20 +474,15 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
     {
       mpSelector = CSetContent::create(json_object_get(json, "selector"));
 
-      if (mpSelector != NULL
+      if (mpSelector
           && mpSelector->isValid())
         {
-          mPrerequisites.insert(mpSelector);
-          mStatic &= mpSelector->isStatic();
+          mPrerequisites.insert(mpSelector.get()); // DONE
           mValid = true;
           return;
         }
 
-      if (mpSelector != NULL)
-        {
-          delete mpSelector;
-          mpSelector = NULL;
-        }
+      mpSelector.reset();
 
       CLogger::error() << "Edge selector: Invalid or missing value 'selector' for " << CSimConfig::jsonToString(json);
       return;
@@ -537,7 +522,10 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
               && mpValue->isValid())
             {
               mpCompute = &CEdgeElementSelector::propertySelection;
-              mStatic &= mEdgeProperty.isReadOnly();
+
+              if (!mEdgeProperty.isReadOnly())
+                mPrerequisites.insert(&CActionQueue::getCurrentTick()); // DONE
+
               mValid = true;
               return;
             }
@@ -608,17 +596,34 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
 
 
       CConnection::setRequired(true);
-      mpCompute = &CEdgeElementSelector::withDBFieldSelection;
+      mpCompute = &CEdgeElementSelector::dbSelection;
 
       mpObservable = CObservable::get(json_object_get(json, "right"));
 
       if (mpObservable != NULL
           && mpObservable->isValid())
         {
-          mPrerequisites.insert(mpObservable);
-          mStatic &= mpObservable->isStatic();
+          mPrerequisites.insert(mpObservable); // DONE
           mValid = true;
           return;
+        }
+      else
+        {
+          mpObservable = NULL;
+        }
+
+      mpVariable = &CVariableList::INSTANCE[json_object_get(json, "right")];
+
+      if (mpVariable != NULL
+          && mpVariable->isValid())
+        {
+          mPrerequisites.insert(mpVariable); // DONE
+          mValid = true;
+          return;
+        }
+      else
+        {
+          mpVariable = NULL;
         }
 
       CFieldValue FieldValue(json_object_get(json, "right"), Field.getType());
@@ -626,7 +631,6 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
       if (FieldValue.isValid())
         {
           mpDBFieldValue = new CFieldValue(FieldValue);
-          mStatic = true;
           mValid = true;
           return;
         }
@@ -634,6 +638,105 @@ void CEdgeElementSelector::fromJSON(const json_t * json)
 
   CLogger::error() << "Edge selector: Invalid or missing value 'operator' for " << CSimConfig::jsonToString(json);
   return;
+}
+
+// virtual 
+bool CEdgeElementSelector::lessThanProtected(const CSetContent & rhs) const
+{
+  const CEdgeElementSelector * pRhs = static_cast< const CEdgeElementSelector * >(&rhs);
+
+  if (mEdgeProperty != pRhs->mEdgeProperty)  
+    return mEdgeProperty < pRhs->mEdgeProperty;
+
+  switch (comparePointer(mpValue, pRhs->mpValue))
+  {
+    case -1:
+      return true;
+      break;
+
+    case 1:
+      return false;
+      break;
+  }
+
+  switch (comparePointer(mpValueList, pRhs->mpValueList))
+  {
+    case -1:
+      return true;
+      break;
+
+    case 1:
+      return false;
+      break;
+  }
+
+  if (mpSelector != pRhs->mpSelector)  
+    return mpSelector < pRhs->mpSelector;
+
+  if (mDBTable != pRhs->mDBTable)  
+    return mDBTable < pRhs->mDBTable;
+
+  if (mDBField != pRhs->mDBField)  
+    return mDBField < pRhs->mDBField;
+
+  switch (comparePointer(mpObservable, pRhs->mpObservable))
+  {
+    case -1:
+      return true;
+      break;
+
+    case 1:
+      return false;
+      break;
+  }
+
+  switch (comparePointer(mpVariable, pRhs->mpVariable))
+  {
+    case -1:
+      return true;
+      break;
+
+    case 1:
+      return false;
+      break;
+  }
+
+  switch (comparePointer(mpDBFieldValue, pRhs->mpDBFieldValue))
+  {
+    case -1:
+      return true;
+      break;
+
+    case 1:
+      return false;
+      break;
+  }
+
+  switch (comparePointer(mpDBFieldValueList, pRhs->mpDBFieldValueList))
+  {
+    case -1:
+      return true;
+      break;
+
+    case 1:
+      return false;
+      break;
+  }
+
+  if (mSQLComparison != pRhs->mSQLComparison)  
+    return mSQLComparison < pRhs->mSQLComparison;
+
+
+  return reinterpret_cast< const void * >(mpCompute) < reinterpret_cast< const void * >(pRhs->mpCompute);
+}
+
+// virtual 
+void CEdgeElementSelector::determineIsStatic()
+{
+  CComputable::determineIsStatic();
+
+  if (mEdgeProperty.isValid())
+    mStatic &= mEdgeProperty.isReadOnly();
 }
 
 // virtual
@@ -781,7 +884,7 @@ bool CEdgeElementSelector::withSourceNodeIn()
   return true;
 }
 
-bool CEdgeElementSelector::inDBTable()
+bool CEdgeElementSelector::dbAll()
 {
   bool success = false;
   std::vector< CEdge * > & Edges = getEdges();
@@ -798,13 +901,13 @@ bool CEdgeElementSelector::inDBTable()
     if (FieldValueList.contains(pEdge->locationId))
       Edges.push_back(pEdge);
 
-  CLogger::debug() << "CEdgeElementSelector: inDBTable returned " << Edges.size() << " edges.";
+  CLogger::debug() << "CEdgeElementSelector: dbAll returned " << Edges.size() << " edges.";
 #endif
 
   return success;
 }
 
-bool CEdgeElementSelector::withDBFieldSelection()
+bool CEdgeElementSelector::dbSelection()
 {
   bool success = false;
   std::vector< CEdge * > & Edges = getEdges();
@@ -815,6 +918,8 @@ bool CEdgeElementSelector::withDBFieldSelection()
 
   if (mpObservable)
     success = CQuery::where(mDBTable, "lid", FieldValueList, false, mDBField, *mpObservable, mSQLComparison);
+  else if (mpVariable)
+    success = CQuery::where(mDBTable, "lid", FieldValueList, false, mDBField, *mpVariable, mSQLComparison);
   else
     success = CQuery::where(mDBTable, "lid", FieldValueList, false, mDBField, *mpDBFieldValue, mSQLComparison);
 
@@ -825,13 +930,13 @@ bool CEdgeElementSelector::withDBFieldSelection()
     if (FieldValueList.contains(pEdge->locationId))
       Edges.push_back(pEdge);
 
-  CLogger::debug() << "CEdgeElementSelector: withDBFieldSelection returned '" << Edges.size() << "' edges.";
+  CLogger::debug() << "CEdgeElementSelector: dbSelection returned '" << Edges.size() << "' edges.";
 #endif
 
   return success;
 }
 
-bool CEdgeElementSelector::withDBFieldWithin()
+bool CEdgeElementSelector::dbIn()
 {
   bool success = false;
 
@@ -860,13 +965,13 @@ bool CEdgeElementSelector::withDBFieldWithin()
     if (FieldValueList.contains(pEdge->locationId))
       Edges.push_back(pEdge);
 
-  CLogger::debug() << "CEdgeElementSelector: withDBFieldWithin returned '" << Edges.size() << "' edges.";
+  CLogger::debug() << "CEdgeElementSelector: dbIn returned '" << Edges.size() << "' edges.";
 #endif
 
   return success;
 }
 
-bool CEdgeElementSelector::withDBFieldNotWithin()
+bool CEdgeElementSelector::dbNotIn()
 {
   bool success = false;
   std::vector< CEdge * > & Edges = getEdges();
@@ -894,7 +999,7 @@ bool CEdgeElementSelector::withDBFieldNotWithin()
     if (FieldValueList.contains(pEdge->locationId))
       Edges.push_back(pEdge);
 
-  CLogger::debug() << "CEdgeElementSelector: withDBFieldNotWithin returned '" << Edges.size() << "' edges.";
+  CLogger::debug() << "CEdgeElementSelector: dbNotIn returned '" << Edges.size() << "' edges.";
 #endif
 
   return success;

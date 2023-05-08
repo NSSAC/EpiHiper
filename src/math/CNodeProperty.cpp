@@ -123,6 +123,16 @@ void CNodeProperty::fromJSON(const json_t * json)
   return;
 }
 
+bool CNodeProperty::operator != (const CNodeProperty & rhs) const
+{
+  return reinterpret_cast< const void * >(mpPropertyOf) != reinterpret_cast< const void * >(rhs.mpPropertyOf);
+}
+
+bool CNodeProperty::operator < (const CNodeProperty & rhs) const
+{
+  return reinterpret_cast< const void * >(mpPropertyOf) < reinterpret_cast< const void * >(rhs.mpPropertyOf);
+}
+
 const bool & CNodeProperty::isValid() const
 {
   return mValid;
@@ -136,6 +146,11 @@ CValue CNodeProperty::propertyOf(const CNode * pNode)
 COperation * CNodeProperty::createOperation(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
   return (this->*mpCreateOperation)(pNode, value, pOperator, info);
+}
+
+bool CNodeProperty::isReadOnly() const
+{
+  return mpPropertyOf == &CNodeProperty::id;
 }
 
 // static

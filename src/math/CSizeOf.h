@@ -37,8 +37,8 @@
 #include "math/CValue.h"
 #include "math/CComputable.h"
 #include "utilities/CCommunicate.h"
+#include "sets/CSetContent.h"
 
-class CSetContent;
 struct json_t;
 
 class CSizeOf : public CValue, public CComputable
@@ -61,6 +61,8 @@ public:
 
   virtual void fromJSON(const json_t * json) override;
 
+  virtual bool isValid() const override;
+  
 private:
   static std::vector< CSizeOf * > INSTANCES;
 
@@ -68,7 +70,7 @@ private:
 
   CCommunicate::ErrorCode receiveSize(std::istream & is, int sender);
 
-  CSetContent * mpSetContent;
+  CSetContent::CSetContentPtr mpSetContent;
   size_t mIndex;
   std::string mIdentifier;
 };

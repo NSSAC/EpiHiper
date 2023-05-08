@@ -43,9 +43,10 @@ class CSampling
 
     virtual ~CSampled();
 
-    virtual CSetContent * copy() const override;
+  protected:
+    virtual void fromJSONProtected(const json_t * json) override;
 
-    virtual void fromJSON(const json_t *json) override;
+    virtual bool lessThanProtected(const CSetContent & rhs) const override;
   };
 
 public:

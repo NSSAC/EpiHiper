@@ -40,9 +40,10 @@
 #include "actions/CActionQueue.h"
 #include "utilities/CLogger.h"
 #include "utilities/CSimConfig.h"
+#include "variables/CVariableList.h"
 
 CNodeElementSelector::CNodeElementSelector()
-  : CSetContent()
+  : CSetContent(CSetContent::Type::nodeElementSelector)
   , mNodeProperty()
   , mpValue(NULL)
   , mpValueList(NULL)
@@ -50,6 +51,7 @@ CNodeElementSelector::CNodeElementSelector()
   , mDBTable()
   , mDBField()
   , mpObservable(NULL)
+  , mpVariable(NULL)
   , mpDBFieldValue(NULL)
   , mpDBFieldValueList(NULL)
   , mpComparison(NULL)
@@ -63,10 +65,11 @@ CNodeElementSelector::CNodeElementSelector(const CNodeElementSelector & src)
   , mNodeProperty(src.mNodeProperty)
   , mpValue(src.mpValue != NULL ? new CValue(*src.mpValue) : NULL)
   , mpValueList(src.mpValueList != NULL ? new CValueList(*src.mpValueList) : NULL)
-  , mpSelector(src.mpSelector != NULL ? src.mpSelector->copy() : NULL)
+  , mpSelector(src.mpSelector)
   , mDBTable(src.mDBTable)
   , mDBField(src.mDBField)
-  , mpObservable(src.mpObservable != NULL ? new CObservable(*src.mpObservable) : NULL)
+  , mpObservable(src.mpObservable)
+  , mpVariable(src.mpVariable)
   , mpDBFieldValue(src.mpDBFieldValue != NULL ? new CFieldValue(*src.mpDBFieldValue) : NULL)
   , mpDBFieldValueList(src.mpDBFieldValueList != NULL ? new CFieldValueList(*src.mpDBFieldValueList) : NULL)
   , mpComparison(src.mpComparison)
@@ -76,7 +79,7 @@ CNodeElementSelector::CNodeElementSelector(const CNodeElementSelector & src)
 {}
 
 CNodeElementSelector::CNodeElementSelector(const json_t * json)
-  : CSetContent()
+  : CSetContent(CSetContent::Type::nodeElementSelector)
   , mNodeProperty()
   , mpValue(NULL)
   , mpValueList(NULL)
@@ -84,6 +87,7 @@ CNodeElementSelector::CNodeElementSelector(const json_t * json)
   , mDBTable()
   , mDBField()
   , mpObservable(NULL)
+  , mpVariable(NULL)
   , mpDBFieldValue(NULL)
   , mpDBFieldValueList(NULL)
   , mpComparison(NULL)
@@ -102,8 +106,6 @@ CNodeElementSelector::~CNodeElementSelector()
   if (mpValueList != NULL)
     delete mpValueList;
 
-  CSetContent::destroy(mpSelector);
-
   if (mpDBFieldValue != NULL)
     delete mpDBFieldValue;
 
@@ -112,13 +114,7 @@ CNodeElementSelector::~CNodeElementSelector()
 }
 
 // virtual
-CSetContent * CNodeElementSelector::copy() const
-{
-  return new CNodeElementSelector(*this);
-}
-
-// virtual
-void CNodeElementSelector::fromJSON(const json_t * json)
+void CNodeElementSelector::fromJSONProtected(const json_t * json)
 {
   /*
   "nodeElementSelector": {
@@ -285,7 +281,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
       return;
     }
 
-  mPrerequisites.insert(&CActionQueue::getCurrentTick());
+  // mPrerequisites.insert(&CActionQueue::getCurrentTick());
   pValue = json_object_get(json, "scope");
 
   if (pValue != NULL
@@ -392,18 +388,22 @@ void CNodeElementSelector::fromJSON(const json_t * json)
               else
                 mpCompute = &CNodeElementSelector::propertyIn;
 
+              if (!mNodeProperty.isReadOnly())
+                mPrerequisites.insert(&CActionQueue::getCurrentTick()); // DONE
+
               mValid = true;
               return;
             }
+
           if (strcmp(Operator, "in") == 0)
             {
               CConnection::setRequired(true);
-              mpCompute = &CNodeElementSelector::withDBFieldWithin;
+              mpCompute = &CNodeElementSelector::dbIn;
             }
           else if (strcmp(Operator, "not in") == 0)
             {
               CConnection::setRequired(true);
-              mpCompute = &CNodeElementSelector::withDBFieldNotWithin;
+              mpCompute = &CNodeElementSelector::dbNotIn;
             }
           else
             {
@@ -439,21 +439,16 @@ void CNodeElementSelector::fromJSON(const json_t * json)
           // We need to identify that we have this case
           mpSelector = CSetContent::create(json_object_get(json, "selector"));
 
-          if (mpSelector != NULL
+          if (mpSelector
               && mpSelector->isValid())
             {
-              mPrerequisites.insert(mpSelector);
-              mStatic = mpSelector->isStatic();
+              mPrerequisites.insert(mpSelector.get()); // DONE
               mpCompute = &CNodeElementSelector::withIncomingEdge;
               mValid = true;
               return;
             }
 
-          if (mpSelector != NULL)
-            {
-              delete mpSelector;
-              mpSelector = NULL;
-            }
+          mpSelector.reset();
 
           CLogger::error() << "Node selector: Invalid or missing value 'selector' for " << CSimConfig::jsonToString(json);
           return;
@@ -462,7 +457,6 @@ void CNodeElementSelector::fromJSON(const json_t * json)
   else
     {
       // We do not have an operator, i.e., we have either all nodes or all nodes with a table.
-      mStatic = true;
       pValue = json_object_get(json, "table");
 
       if (json_is_string(pValue))
@@ -483,7 +477,7 @@ void CNodeElementSelector::fromJSON(const json_t * json)
             },
            */
           CConnection::setRequired(true);
-          mpCompute = &CNodeElementSelector::inDBTable;
+          mpCompute = &CNodeElementSelector::dbAll;
           mValid = true;
           return;
         }
@@ -504,8 +498,8 @@ void CNodeElementSelector::fromJSON(const json_t * json)
       return;
     }
 
-  if (mpCompute == &CNodeElementSelector::withDBFieldWithin
-      || mpCompute == &CNodeElementSelector::withDBFieldNotWithin)
+  if (mpCompute == &CNodeElementSelector::dbIn
+      || mpCompute == &CNodeElementSelector::dbNotIn)
     {
       /*
         {
@@ -584,27 +578,21 @@ void CNodeElementSelector::fromJSON(const json_t * json)
       if (FieldValueList.isValid())
         {
           mpDBFieldValueList = new CFieldValueList(FieldValueList);
-          mStatic = true;
           mValid = true;
           return;
         }
 
       mpSelector = CSetContent::create(json_object_get(json, "right"));
 
-      if (mpSelector != NULL
+      if (mpSelector
           && mpSelector->isValid())
         {
-          mPrerequisites.insert(mpSelector);
-          mStatic = mpSelector->isStatic();
+          mPrerequisites.insert(mpSelector.get()); // DONE
           mValid = true;
           return;
         }
 
-      if (mpSelector != NULL)
-        {
-          delete mpSelector;
-          mpSelector = NULL;
-        }
+      mpSelector.reset();
 
       CLogger::error() << "Node selector: Invalid or missing value 'right' for " << CSimConfig::jsonToString(json);
       return;
@@ -644,6 +632,10 @@ void CNodeElementSelector::fromJSON(const json_t * json)
               && mpValue->isValid())
             {
               mpCompute = &CNodeElementSelector::propertySelection;
+
+              if (!mNodeProperty.isReadOnly())
+                mPrerequisites.insert(&CActionQueue::getCurrentTick()); // DONE
+
               mValid = true;
               return;
             }
@@ -713,16 +705,34 @@ void CNodeElementSelector::fromJSON(const json_t * json)
         }
 
       CConnection::setRequired(true);
-      mpCompute = &CNodeElementSelector::withDBFieldSelection;
+      mpCompute = &CNodeElementSelector::dbSelection;
 
       mpObservable = CObservable::get(json_object_get(json, "right"));
 
       if (mpObservable != NULL
           && mpObservable->isValid())
         {
-          mPrerequisites.insert(mpObservable);
+          mPrerequisites.insert(mpObservable); // DONE
           mValid = true;
           return;
+        }
+      else
+        {
+          mpObservable = NULL;
+        }
+
+      mpVariable = &CVariableList::INSTANCE[json_object_get(json, "right")];
+
+      if (mpVariable != NULL
+          && mpVariable->isValid())
+        {
+          mPrerequisites.insert(mpVariable); // DONE
+          mValid = true;
+          return;
+        }
+      else
+        {
+          mpVariable = NULL;
         }
 
       CFieldValue FieldValue(json_object_get(json, "right"), Field.getType());
@@ -730,7 +740,6 @@ void CNodeElementSelector::fromJSON(const json_t * json)
       if (FieldValue.isValid())
         {
           mpDBFieldValue = new CFieldValue(FieldValue);
-          mStatic = true;
           mValid = true;
           return;
         }
@@ -738,6 +747,108 @@ void CNodeElementSelector::fromJSON(const json_t * json)
 
   CLogger::error() << "Node selector: Invalid or missing value 'operator' for " << CSimConfig::jsonToString(json);
 }
+
+// virtual 
+bool CNodeElementSelector::lessThanProtected(const CSetContent & rhs) const
+{
+  const CNodeElementSelector * pRhs = static_cast< const CNodeElementSelector * >(&rhs);
+
+  if (mNodeProperty != pRhs->mNodeProperty)  
+    return mNodeProperty < pRhs->mNodeProperty;
+
+  switch (comparePointer(mpValue, pRhs->mpValue))
+  {
+    case -1:
+      return true;
+      break;
+
+    case 1:
+      return false;
+      break;
+  }
+
+  switch (comparePointer(mpValueList, pRhs->mpValueList))
+  {
+    case -1:
+      return true;
+      break;
+
+    case 1:
+      return false;
+      break;
+  }
+
+  if (mpSelector != pRhs->mpSelector)  
+    return mpSelector < pRhs->mpSelector;
+
+  if (mDBTable != pRhs->mDBTable)  
+    return mDBTable < pRhs->mDBTable;
+
+  if (mDBField != pRhs->mDBField)  
+    return mDBField < pRhs->mDBField;
+
+  switch (comparePointer(mpObservable, pRhs->mpObservable))
+  {
+    case -1:
+      return true;
+      break;
+
+    case 1:
+      return false;
+      break;
+  }
+
+  switch (comparePointer(mpVariable, pRhs->mpVariable))
+  {
+    case -1:
+      return true;
+      break;
+
+    case 1:
+      return false;
+      break;
+  }
+
+  switch (comparePointer(mpDBFieldValue, pRhs->mpDBFieldValue))
+  {
+    case -1:
+      return true;
+      break;
+
+    case 1:
+      return false;
+      break;
+  }
+
+  switch (comparePointer(mpDBFieldValueList, pRhs->mpDBFieldValueList))
+  {
+    case -1:
+      return true;
+      break;
+
+    case 1:
+      return false;
+      break;
+  }
+
+  if (mSQLComparison != pRhs->mSQLComparison)  
+    return mSQLComparison < pRhs->mSQLComparison;
+
+  if (mLocalScope != pRhs->mLocalScope)  
+    return mLocalScope < pRhs->mLocalScope;
+
+  return reinterpret_cast< const void * >(mpCompute) < reinterpret_cast< const void * >(pRhs->mpCompute);
+}
+
+// virtual 
+void CNodeElementSelector::determineIsStatic()
+{
+  CComputable::determineIsStatic();
+
+  if (mNodeProperty.isValid())
+    mStatic &= mNodeProperty.isReadOnly();
+}
+
 
 // virtual
 bool CNodeElementSelector::computeProtected()
@@ -902,7 +1013,7 @@ bool CNodeElementSelector::withIncomingEdge()
   return true;
 }
 
-bool CNodeElementSelector::inDBTable()
+bool CNodeElementSelector::dbAll()
 {
   std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
@@ -923,11 +1034,11 @@ bool CNodeElementSelector::inDBTable()
   if (!mLocalScope)
     std::sort(Nodes.begin(), Nodes.end());
 
-  CLogger::debug() << "CNodeElementSelector: inDBTable returned '" << Nodes.size() << "' nodes.";
+  CLogger::debug() << "CNodeElementSelector: dbAll returned '" << Nodes.size() << "' nodes.";
   return success;
 }
 
-bool CNodeElementSelector::withDBFieldSelection()
+bool CNodeElementSelector::dbSelection()
 {
   bool success = false;
   std::vector< CNode * > & Nodes = getNodes();
@@ -937,6 +1048,8 @@ bool CNodeElementSelector::withDBFieldSelection()
 
   if (mpObservable)
     success = CQuery::where(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpObservable, mSQLComparison);
+  else if (mpVariable)
+    success = CQuery::where(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpVariable, mSQLComparison);
   else
     success = CQuery::where(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpDBFieldValue, mSQLComparison);
 
@@ -953,11 +1066,11 @@ bool CNodeElementSelector::withDBFieldSelection()
   if (!mLocalScope)
     std::sort(Nodes.begin(), Nodes.end());
 
-  CLogger::debug() << "CNodeElementSelector: withDBFieldSelection returned '" << Nodes.size() << "' nodes.";
+  CLogger::debug() << "CNodeElementSelector: dbSelection returned '" << Nodes.size() << "' nodes.";
   return success;
 }
 
-bool CNodeElementSelector::withDBFieldWithin()
+bool CNodeElementSelector::dbIn()
 {
   bool success = false;
   std::vector< CNode * > & Nodes = getNodes();
@@ -990,11 +1103,11 @@ bool CNodeElementSelector::withDBFieldWithin()
   if (!mLocalScope)
     std::sort(Nodes.begin(), Nodes.end());
 
-  CLogger::debug() << "CNodeElementSelector: withDBFieldWithin returned '" << Nodes.size() << "' nodes.";
+  CLogger::debug() << "CNodeElementSelector: dbIn returned '" << Nodes.size() << "' nodes.";
   return success;
 }
 
-bool CNodeElementSelector::withDBFieldNotWithin()
+bool CNodeElementSelector::dbNotIn()
 {
   bool success = false;
   std::vector< CNode * > & Nodes = getNodes();
@@ -1027,6 +1140,6 @@ bool CNodeElementSelector::withDBFieldNotWithin()
   if (!mLocalScope)
     std::sort(Nodes.begin(), Nodes.end());
 
-  CLogger::debug() << "CNodeElementSelector: withDBFieldNotWithin returned '" << Nodes.size() << "' nodes.";
+  CLogger::debug() << "CNodeElementSelector: dbNotIn returned '" << Nodes.size() << "' nodes.";
   return success;
 }

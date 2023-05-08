@@ -36,7 +36,6 @@ CEdgeProperty::CEdgeProperty()
   : CValueInterface(Type::boolean, NULL)
   , mpPropertyOf(NULL)
   , mpCreateOperation(NULL)
-  , mNodeProperty()
   , mValid(true)
 {}
 
@@ -44,7 +43,6 @@ CEdgeProperty::CEdgeProperty(const CEdgeProperty & src)
   : CValueInterface(src)
   , mpPropertyOf(src.mpPropertyOf)
   , mpCreateOperation(src.mpCreateOperation)
-  , mNodeProperty(src.mNodeProperty)
   , mValid(src.mValid)
 {}
 
@@ -52,7 +50,6 @@ CEdgeProperty::CEdgeProperty(const json_t * json)
   : CValueInterface(Type::boolean, NULL)
   , mpPropertyOf(NULL)
   , mpCreateOperation(NULL)
-  , mNodeProperty()
   , mValid(true)
 {
   fromJSON(json);
@@ -146,6 +143,16 @@ void CEdgeProperty::fromJSON(const json_t * json)
       mValid = true;
       return;
     }
+}
+
+bool CEdgeProperty::operator != (const CEdgeProperty & rhs) const
+{
+  return reinterpret_cast< const void * >(mpPropertyOf) != reinterpret_cast< const void * >(rhs.mpPropertyOf);
+}
+
+bool CEdgeProperty::operator < (const CEdgeProperty & rhs) const
+{
+  return reinterpret_cast< const void * >(mpPropertyOf) < reinterpret_cast< const void * >(rhs.mpPropertyOf);
 }
 
 const bool & CEdgeProperty::isValid() const

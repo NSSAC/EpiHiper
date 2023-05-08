@@ -29,7 +29,7 @@
 
 #include "math/CValue.h"
 
-class CValueList : protected std::set< CValue >
+class CValueList : public std::set< CValue >
 {
 public:
   typedef CValueInterface::Type Type;

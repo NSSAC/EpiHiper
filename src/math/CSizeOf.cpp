@@ -48,7 +48,7 @@ CSizeOf::CSizeOf()
 CSizeOf::CSizeOf(const CSizeOf & src)
   : CValue(src)
   , CComputable(src)
-  , mpSetContent(src.mpSetContent != NULL ? src.mpSetContent->copy() : NULL)
+  , mpSetContent(src.mpSetContent)
   , mIndex(src.mIndex)
   , mIdentifier(src.mIdentifier)
 {}
@@ -62,7 +62,7 @@ CSizeOf::CSizeOf(const json_t * json)
 {
   fromJSON(json);
 
-  if (mValid)
+  if (isValid())
     {
       mIndex = INSTANCES.size();
       INSTANCES.push_back(this);
@@ -71,9 +71,7 @@ CSizeOf::CSizeOf(const json_t * json)
 
 // virtual
 CSizeOf::~CSizeOf()
-{
-  CSetContent::destroy(mpSetContent);
-}
+{}
 
 // virtual
 CValueInterface * CSizeOf::copy() const
@@ -84,7 +82,7 @@ CValueInterface * CSizeOf::copy() const
 //  virtual
 bool CSizeOf::computeProtected()
 {
-  if (mValid)
+  if (isValid())
     {
       return broadcastSize() == (int) CCommunicate::ErrorCode::Success;
     }
@@ -135,25 +133,27 @@ void CSizeOf::fromJSON(const json_t * json)
     },
   */
 
-  mValid = false; // DONE
+  CComputable::mValid = false; // DONE
   mpSetContent = CSetContent::create(json_object_get(json, "sizeof"));
 
   if (mpSetContent != NULL && mpSetContent->isValid())
     {
-      mPrerequisites.insert(mpSetContent);
-      mStatic = mpSetContent->isStatic();
-      mValid = true;
+      mPrerequisites.insert(mpSetContent.get()); // DONE
+      CComputable::mValid = true;
 
       mIdentifier = CSimConfig::jsonToString(json_object_get(json, "sizeof"));
 
       return;
     }
 
-  if (mpSetContent != NULL)
-    {
-      delete mpSetContent;
-      mpSetContent = NULL;
-    }
+  mpSetContent.reset();
 
   CLogger::error("sizeof: Missing or invalid set content.");
 }
+
+// virtual 
+bool CSizeOf::isValid() const
+{
+  return CValue::mValid && CComputable::mValid;
+}
+

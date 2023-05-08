@@ -78,9 +78,14 @@ bool CSimulation::run()
   CChanges::initDefaultOutput();
   CModel::InitGlobalStateCountOutput();
   CDependencyGraph::buildGraph();
+  CVariableList::INSTANCE.resetAll(true);
 
 #pragma omp parallel
   {
+    if (!CDependencyGraph::applyComputeOnceSequence())
+#pragma omp atomic
+      success &= false;
+
     if (!CDependencyGraph::applyUpdateSequence())
 #pragma omp atomic
       success &= false;
@@ -91,12 +96,17 @@ bool CSimulation::run()
 
     CCommunicate::memUsage(CActionQueue::getCurrentTick());
 
+    CVariableList::INSTANCE.resetAll();
+
     if (!CActionQueue::processCurrentActions())
 #pragma omp atomic
       success &= false;
+
+    CVariableList::INSTANCE.synchronizeChangedVariables();
   }
 
   CLogger::info() << "CSimulation::initialization: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+
   Start = std::chrono::steady_clock::now();
 
   CActionQueue::incrementTick();
@@ -122,7 +132,6 @@ bool CSimulation::run()
 #pragma omp parallel
       {
         std::chrono::time_point<std::chrono::steady_clock> Start = std::chrono::steady_clock::now();
-        CVariableList::INSTANCE.resetAll();
 
         if (!CDependencyGraph::applyUpdateSequence())
 #pragma omp atomic
@@ -149,13 +158,18 @@ bool CSimulation::run()
 
         CCommunicate::memUsage(CActionQueue::getCurrentTick());
 
+        CVariableList::INSTANCE.resetAll();
+
         if (!CActionQueue::processCurrentActions())
 #pragma omp atomic
           success &= false;
-
+        
         CLogger::info() << "CSimulation::processCurrentActions: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+
+        CVariableList::INSTANCE.synchronizeChangedVariables();
       }
 
+      
       Start = std::chrono::steady_clock::now();
       CActionQueue::incrementTick();
       CChanges::incrementTick();

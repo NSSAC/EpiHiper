@@ -29,12 +29,17 @@
 #include "math/CComputable.h"
 #include "utilities/CContext.h"
 
+#include <memory>
+#include <set>
+
 class CNode;
 class CEdge;
 
 class CSetContent: public CComputable
 {
 public:
+  typedef std::shared_ptr< CSetContent > CSetContentPtr;
+
   class CDBFieldValues : public std::map< CValueList::Type, CValueList >
   {
   public:
@@ -49,25 +54,40 @@ public:
   };
 
 public:
-  static CSetContent * create(const json_t * json);
-  // static CSetContent * copy(const CSetContent * pSetContent);
-  static void destroy(CSetContent *& pSetContent);
+  static CSetContentPtr create(const json_t * json);
+
+  struct Compare
+  {
+    bool operator()(const CSetContentPtr & lhs, const CSetContentPtr & rhs);
+  };
+
+  static std::set< CSetContentPtr, Compare > UniqueSetContent;
 
 protected:
-  CSetContent();
+  enum struct Type {
+    sampled,
+    edgeElementSelector,
+    nodeElementSelector,
+    dbFieldSelector,
+    set,
+    setReference,
+    operation,
+    __SIZE
+  };
+
+  template< class CType >
+  static int comparePointer(const CType * pLhs, const CType * pRhs);
+
+  CSetContent(const Type & type = Type::__SIZE);
 
   CSetContent(const CSetContent & src);
 
 public:
   virtual ~CSetContent();
 
-  virtual CSetContent * copy() const = 0;
+  bool lessThan(const CSetContent & rhs) const;
 
-  virtual bool computeProtected() override;
-
-  virtual void fromJSON(const json_t * json) = 0;
-
-  const bool & isValid() const;
+  void fromJSON(const json_t * json);
 
   bool contains(CNode * pNode) const;
 
@@ -115,11 +135,39 @@ public:
 
   CContext< size_t > sizes() const;
 
+protected:
+  virtual bool computeProtected() override;
+
+  virtual void fromJSONProtected(const json_t * json) = 0;
+
+  virtual bool lessThanProtected(const CSetContent & rhs) const = 0;
+
 private:
+  static std::set< CSetContentPtr > SetContents;
+
+  Type mType;
+  
   CContext< SetContent > mContext;
 
-protected:
-  bool mValid;
+  std::string mJSON;
 };
+
+template < class CType >
+int CSetContent::comparePointer(const CType * pLhs, const CType * pRhs)
+{
+  if (pLhs != NULL
+      && pRhs != NULL)
+    {
+      if (*pLhs != *pRhs)
+        return *pLhs < *pRhs ? -1 : 1;
+      else
+        return 0;
+    }
+
+  if (pLhs != pRhs)
+    return pLhs < pRhs ? -1 : 1;
+
+  return 0;
+}
 
 #endif /* SRC_INTERVENTION_CSETCONTENT_H_ */

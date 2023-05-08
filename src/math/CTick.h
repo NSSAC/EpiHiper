@@ -37,13 +37,16 @@ public:
 
   virtual ~CTick();
 
-  virtual bool computeProtected() override;
-
   operator int() const;
 
   CTick & operator++();
 
   CTick & operator = (const int & value);
+
+  virtual void determineIsStatic() override;
+
+protected:
+  virtual bool computeProtected() override;
 
 private:
   int mValue;

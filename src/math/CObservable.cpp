@@ -85,9 +85,7 @@ CObservable::CObservable()
   , mObservableSubset(ObservableSubset::current)
   , mId(-1)
   , mpCompute(NULL)
-{
-  mValid = false; // DONE
-}
+{}
 
 CObservable::CObservable(const CObservable & src)
   : CValue(src)
@@ -107,21 +105,28 @@ CObservable::CObservable(const json_t * json)
   , mpCompute(NULL)
 {
   fromJSON(json);
-
-  if (mValid)
-    {
-      mPrerequisites.insert(&CActionQueue::getCurrentTick());
-    }
 }
 
 // virtual
 CObservable::~CObservable()
 {}
 
+// virtual 
+bool CObservable::isValid() const
+{
+  return CValue::mValid && CComputable::mValid;
+}
+
+// virtual 
+void CObservable::determineIsStatic()
+{
+  mStatic = (mObservableType == ObservableType::totalPopulation);
+}
+
 // virtual
 bool CObservable::computeProtected()
 {
-  if (mValid
+  if (isValid()
       && mpCompute != NULL)
     {
       bool success = true;
@@ -145,16 +150,22 @@ bool CObservable::operator<(const CObservable & rhs) const
 
 bool CObservable::computeTime()
 {
-  double Time = CActionQueue::getCurrentTick();
-  assignValue(&Time);
+#pragma omp single
+  {
+    double Time = CActionQueue::getCurrentTick();
+    assignValue(&Time);
+  }
 
   return true;
 }
 
 bool CObservable::computeTotalPopulation()
 {
-  double TotalPopulation = CNetwork::Context.Active().getGlobalNodeCount();
-  assignValue(&TotalPopulation);
+#pragma omp single
+  {
+    double TotalPopulation = CNetwork::Context.Master().getGlobalNodeCount();
+    assignValue(&TotalPopulation);
+  }
 
   return true;
 }
@@ -165,28 +176,31 @@ bool CObservable::computeHealthStateAbsolute()
 
   if (pHealthState != NULL)
     {
-      double Absolute = std::numeric_limits< double >::quiet_NaN();
+#pragma omp single
+      {
+        double Absolute = std::numeric_limits< double >::quiet_NaN();
 
-      switch (mObservableSubset)
-        {
-        case ObservableSubset::current:
-          Absolute = (double) pHealthState->getGlobalCounts().Current;
-          break;
+        switch (mObservableSubset)
+          {
+          case ObservableSubset::current:
+            Absolute = (double) pHealthState->getGlobalCounts().Current;
+            break;
 
-        case ObservableSubset::in:
-          Absolute = (double) pHealthState->getGlobalCounts().In;
-          break;
+          case ObservableSubset::in:
+            Absolute = (double) pHealthState->getGlobalCounts().In;
+            break;
 
-        case ObservableSubset::out:
-          Absolute = (double) pHealthState->getGlobalCounts().Out;
-          break;
-        }
+          case ObservableSubset::out:
+            Absolute = (double) pHealthState->getGlobalCounts().Out;
+            break;
+          }
 
-      assignValue(&Absolute);
+        assignValue(&Absolute);
+      }
 
       return true;
     }
-  
+
   return false;
 }
 
@@ -273,7 +287,7 @@ void CObservable::fromJSON(const json_t * json)
     },
   */
 
-  mValid = false; // DONE
+  CComputable::mValid = false; // DONE
   json_t * pObservable = json_object_get(json, "observable");
 
   if (json_is_object(pObservable))
@@ -348,7 +362,9 @@ void CObservable::fromJSON(const json_t * json)
         }
 
       mId = pHealthState->getIndex();
-      mValid = true;
+      mPrerequisites.insert(&CActionQueue::getCurrentTick()); // DONE
+      CComputable::mValid = true;
+
       return;
     }
   else if (json_is_string(pObservable))
@@ -363,7 +379,9 @@ void CObservable::fromJSON(const json_t * json)
           mType = Type::number;
           mpValue = createValue(mType);
 
-          mValid = true;
+          mPrerequisites.insert(&CActionQueue::getCurrentTick()); // DONE
+          CComputable::mValid = true;
+
           return;
         }
       else if (strcmp(json_string_value(pObservable), "totalPopulation") == 0)
@@ -371,13 +389,14 @@ void CObservable::fromJSON(const json_t * json)
           mObservableType = ObservableType::totalPopulation;
           mpCompute = &CObservable::computeTotalPopulation;
           mId = 0;
-          mStatic = true;
 
           destroyValue();
           mType = Type::number;
           mpValue = createValue(mType);
 
-          mValid = true;
+          // The total population is a constant and has no prerequisites
+          CComputable::mValid = true;
+
           return;
         }
       else

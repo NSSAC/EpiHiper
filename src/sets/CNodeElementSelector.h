@@ -34,6 +34,7 @@
 class CFieldValue;
 class CFieldValueList;
 class CObservable;
+class CVariable;
 
 class CNodeElementSelector: public CSetContent
 {
@@ -46,30 +47,36 @@ public:
 
   virtual ~CNodeElementSelector();
 
-  virtual CSetContent * copy() const override;
+  virtual void determineIsStatic() override;
 
-  virtual void fromJSON(const json_t * json) override;
-
+protected:
   virtual bool computeProtected() override;
 
+  virtual void fromJSONProtected(const json_t * json) override;
+
+  virtual bool lessThanProtected(const CSetContent & rhs) const override;
+
 private:
+  static CNodeElementSelector * pALL;
+  
   bool all();
   bool propertySelection();
   bool propertyIn();
   bool propertyNotIn();
   bool withIncomingEdge();
-  bool inDBTable();
-  bool withDBFieldSelection();
-  bool withDBFieldWithin();
-  bool withDBFieldNotWithin();
+  bool dbAll();
+  bool dbSelection();
+  bool dbIn();
+  bool dbNotIn();
 
   CNodeProperty mNodeProperty;
   CValue * mpValue;
   CValueList * mpValueList;
-  CSetContent * mpSelector;
+  CSetContent::CSetContentPtr mpSelector;
   std::string mDBTable;
   std::string mDBField;
   CObservable * mpObservable;
+  CVariable * mpVariable;
   CFieldValue * mpDBFieldValue;
   CFieldValueList * mpDBFieldValueList;
   CValueInterface::pComparison mpComparison;

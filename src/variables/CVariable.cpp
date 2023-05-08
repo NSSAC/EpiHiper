@@ -29,6 +29,7 @@
 
 #include "utilities/CCommunicate.h"
 #include "variables/CVariable.h"
+#include "variables/CVariableList.h"
 #include "actions/CActionQueue.h"
 #include "utilities/CMetadata.h"
 #include "utilities/CLogger.h"
@@ -41,13 +42,14 @@ CVariable * CVariable::transmissibility()
   pTransmissibility->mId = "%transmissibility%";
   pTransmissibility->mScope = Scope::local;
   pTransmissibility->mInitialValue = 1.0;
-  pTransmissibility->mValid = true;
+  pTransmissibility->CComputable::mValid = true;
 
   return pTransmissibility;
 }
 
 CVariable::CVariable()
   : CValue(std::numeric_limits< double >::quiet_NaN())
+  , CComputable()
   , CAnnotation()
   , mId()
   , mScope()
@@ -55,11 +57,11 @@ CVariable::CVariable()
   , mpLocalValue(static_cast< double * >(mpValue))
   , mResetValue(0)
   , mIndex(-1)
-  , mValid(false)
 {}
 
 CVariable::CVariable(const CVariable & src)
   : CValue(src)
+  , CComputable(src)
   , CAnnotation(src)
   , mId(src.mId)
   , mScope(src.mScope)
@@ -67,11 +69,11 @@ CVariable::CVariable(const CVariable & src)
   , mpLocalValue(static_cast< double * >(mpValue))
   , mResetValue(src.mResetValue)
   , mIndex(src.mIndex)
-  , mValid(src.mValid)
 {}
 
 CVariable::CVariable(const json_t * json)
   : CValue(std::numeric_limits< double >::quiet_NaN())
+  , CComputable()
   , CAnnotation()
   , mId()
   , mScope()
@@ -79,11 +81,10 @@ CVariable::CVariable(const json_t * json)
   , mpLocalValue(static_cast< double * >(mpValue))
   , mResetValue(0)
   , mIndex(-1)
-  , mValid(true)
 {
   fromJSON(json);
 
-  if (mValid
+  if (isValid()
       && mScope == Scope::global)
     {
       mIndex = CCommunicate::getRMAIndex();
@@ -133,7 +134,7 @@ void CVariable::fromJSON(const json_t * json)
   if (json == NULL)
     return;
     
-  mValid = false; // DONE
+  CComputable::mValid = false; // DONE
   json_t * pValue = json_object_get(json, "id");
 
   if (json_is_string(pValue))
@@ -186,7 +187,7 @@ void CVariable::fromJSON(const json_t * json)
       mResetValue = 0;
     }
 
-  mValid = true;
+  CComputable::mValid = true;
 }
 
 void CVariable::toBinary(std::ostream & os) const
@@ -204,9 +205,9 @@ const std::string & CVariable::getId() const
   return mId;
 }
 
-const bool & CVariable::isValid() const
+bool CVariable::isValid() const
 {
-  return mValid;
+  return CValue::mValid && CComputable::mValid;
 }
 
 const CVariable::Scope & CVariable::getScope() const
@@ -214,13 +215,22 @@ const CVariable::Scope & CVariable::getScope() const
   return mScope;
 }
 
-void CVariable::reset(const bool & force)
+// virtual 
+void CVariable::determineIsStatic()
 {
+  mStatic = false;
+}
+
+bool CVariable::reset(const bool & force)
+{
+  bool changed = false;
+
   if ((mResetValue != 0
        && CActionQueue::getCurrentTick() % mResetValue == 0)
       || force)
     {
-#pragma omp atomic write
+      changed = (*mpLocalValue != mInitialValue) || force;
+
       *mpLocalValue = mInitialValue;
 
       if (CCommunicate::MPIRank == 0
@@ -230,18 +240,26 @@ void CVariable::reset(const bool & force)
           CCommunicate::updateRMA(mIndex, &CValueInterface::equal, *mpLocalValue);
         }
     }
+
+  return changed;
 }
 
-void CVariable::getValue()
+bool CVariable::getValue()
 {
+  bool changed = false;
+
   if (mScope == Scope::global &&
       CCommunicate::MPIProcesses > 1)
     {
       double Value = CCommunicate::getRMA(mIndex);
 
+      changed = (*mpLocalValue != Value);
+
 #pragma omp atomic write
       *mpLocalValue = Value;
     }
+
+  return changed;
 }
 
 bool CVariable::setValue(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
@@ -263,10 +281,21 @@ bool CVariable::setValue(double value, CValueInterface::pOperator pOperator, con
   else
     (*pOperator)(Value, value);
 
+  bool changed = (*mpLocalValue != Value);
+
 #pragma omp atomic write
   *mpLocalValue = Value;
 
-  return true;
+  if (changed)
+    {
+      if (mScope == Scope::global
+          && CCommunicate::MPIProcesses > 1)
+        CVariableList::INSTANCE.changedVariables().Active().insert(this);
+      else
+        CVariableList::INSTANCE.changedVariables().Master().insert(this);
+    }
+
+  return changed;
 }
 
 bool CVariable::setValue(const CValue value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
@@ -279,3 +308,14 @@ void CVariable::setInitialValue(const double & initialValue)
   mInitialValue = initialValue;
 }
 
+// virtual 
+std::string CVariable::getComputableId() const
+{
+  return "CVariable:" + mId;
+}
+
+// virtual 
+bool CVariable::computeProtected()
+{
+  return true;
+}

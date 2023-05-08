@@ -50,6 +50,10 @@ public:
 
   virtual void fromJSON(const json_t * json);
 
+  bool operator != (const CEdgeProperty & rhs) const;
+
+  bool operator < (const CEdgeProperty & rhs) const;
+
   const bool & isValid() const;
 
   CValue propertyOf(const CEdge * pEdge);
@@ -85,7 +89,6 @@ private:
 
   CValue (CEdgeProperty::*mpPropertyOf)(CEdge *);
   COperation * (CEdgeProperty::*mpCreateOperation)(CEdge *, const CValueInterface &, CValueInterface::pOperator pOperator, const CMetadata & info);
-  CNodeProperty mNodeProperty;
   bool mValid;
 };
 

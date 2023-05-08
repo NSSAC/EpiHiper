@@ -30,6 +30,7 @@ size_t CComputable::UniqueId(0);
 
 CComputable::CComputable()
   : mComputableId(UniqueId++)
+  , mValid(false)
   , mStatic(false)
   , mComputedOnce()
   , mPrerequisites()
@@ -49,6 +50,7 @@ CComputable::CComputable()
 
 CComputable::CComputable(const CComputable & src)
   : mComputableId(UniqueId++)
+  , mValid(src.mValid)
   , mStatic(src.mStatic)
   , mComputedOnce(src.mComputedOnce)
   , mPrerequisites(src.mPrerequisites)
@@ -77,11 +79,19 @@ bool CComputable::compute()
   return computeProtected();
 }
 
+// virtual 
+bool CComputable::isValid() const
+{
+  return mValid;
+}
+
+
 bool CComputable::isStatic() const
 {
   return mStatic;
 }
 
+// virtual
 void CComputable::determineIsStatic()
 {
   mStatic = true;

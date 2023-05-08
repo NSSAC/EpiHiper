@@ -29,6 +29,7 @@
 #include "actions/CActionQueue.h"
 #include "actions/CConditionDefinition.h"
 #include "utilities/CLogger.h"
+#include "variables/CVariableList.h"
 
 // Uncomment this line below to get debug print out.
 // #define DEBUG_OUTPUT 1
@@ -37,29 +38,37 @@
 void CDependencyGraph::buildGraph()
 {
   INSTANCE.clear();
+  ComputeOnceSequence.clear();
 
   // We need to be smarter and not compute all.
   // Target sets should only be computed if the intervention fires.
   // Everything else which is used in a trigger or action condition needs to be computed
 
   CComputableSet Changed;
-  Changed.insert(&CActionQueue::getCurrentTick());
-
-  CComputableSet Requested;
+  
   CComputableSet::const_iterator it = CComputable::Instances.begin();
   CComputableSet::const_iterator end = CComputable::Instances.end();
 
   for (; it != end; ++it)
     {
-      INSTANCE.addComputable(it->second);
+      CComputable * pComputable = const_cast< CComputable * >(it->second);
 
-      if (it->second->getPrerequisites().empty())
-        Changed.insert(it->second);
-      else
-        Requested.insert(it->second);
+      INSTANCE.addComputable(pComputable);
+
+      if (pComputable->getPrerequisites().empty())
+        {
+          ComputeOnceSequence.push_back(pComputable);
+          Changed.insert(pComputable);
+        }
+      else if (pComputable->isStatic())
+        {
+          CConditionDefinition::RequiredComputables.insert(pComputable);
+        }
     }
 
+  // CConditionDefinition::RequiredComputables already includes all computables for trigger and action conditions.
   INSTANCE.getUpdateSequence(UpdateSequence, Changed, CConditionDefinition::RequiredComputables);
+  INSTANCE.getProcessGroups(ProcessGroups, Changed, CConditionDefinition::RequiredComputables);
 
   UpToDate.clear();
 
@@ -74,6 +83,12 @@ void CDependencyGraph::buildGraph()
 bool CDependencyGraph::applyUpdateSequence()
 {
   return applyUpdateSequence(UpdateSequence);
+}
+
+// static
+bool CDependencyGraph::applyComputeOnceSequence()
+{
+  return applyUpdateSequence(ComputeOnceSequence);
 }
 
 // static
@@ -93,10 +108,39 @@ bool CDependencyGraph::applyUpdateSequence(CComputable::Sequence & updateSequenc
 bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
                                          const CComputableSet & requestedComputables)
 {
-  CComputableSet Changed;
+  CComputableSet & Changed = CVariableList::INSTANCE.changedVariables().Master();
   Changed.insert(&CActionQueue::getCurrentTick());
 
   return INSTANCE.getUpdateSequence(updateSequence, Changed, requestedComputables, UpToDate);
+}
+
+// static
+bool CDependencyGraph::applyProcessGroups()
+{
+  return applyProcessGroups(ProcessGroups);
+}
+
+// static
+bool CDependencyGraph::applyProcessGroups(std::vector< CComputable::Sequence > & processGroups)
+{
+  bool success = true;
+  std::vector< CComputable::Sequence >::iterator it = processGroups.begin();
+  std::vector< CComputable::Sequence >::iterator end = processGroups.end();
+
+  for (; it != end && success; ++it)
+    success &= applyUpdateSequence(*it);
+
+  return success;
+}
+
+// static
+bool CDependencyGraph::getProcessGroups(std::vector< CComputable::Sequence > & processGroups,
+                                        const CComputableSet & requestedComputables)
+{
+  CComputableSet & Changed = CVariableList::INSTANCE.changedVariables().Master();
+  Changed.insert(&CActionQueue::getCurrentTick());
+
+  return INSTANCE.getProcessGroups(processGroups, Changed, requestedComputables, UpToDate);
 }
 
 CDependencyGraph::CDependencyGraph()
@@ -171,6 +215,9 @@ CDependencyGraph::iterator CDependencyGraph::addComputable(const CComputable * p
           foundPrerequisite->second->addDependent(found->second);
           found->second->addPrerequisite(foundPrerequisite->second);
         }
+      
+      // This can only be done after all prerequisites are added;
+      const_cast< CComputable * >(pComputable)->determineIsStatic();
     }
 
   return found;
@@ -381,6 +428,191 @@ finish:
     }
 
   updateSequence = UpdateSequence;
+
+#ifdef DEBUG_OUTPUT
+  CComputable::Sequence::const_iterator itSeq = updateSequence.begin();
+  CComputable::Sequence::const_iterator endSeq = updateSequence.end();
+
+  std::cout << std::endl <<  "Start" << std::endl;
+
+  for (; itSeq != endSeq; ++itSeq)
+    {
+      if (dynamic_cast< const CMathComputable * >(*itSeq))
+        {
+          std::cout << *static_cast< const CMathComputable * >(*itSeq);
+        }
+      else
+        {
+          std::cout << (*itSeq)->getCN() << std::endl;
+        }
+    }
+
+  std::cout << "End" << std::endl;
+#endif // DEBUG_OUTPUT
+
+  return success;
+}
+
+bool CDependencyGraph::getProcessGroups(std::vector< CComputable::Sequence > & processGroups,
+                                        const CComputableSet & changedComputables,
+                                        const CComputableSet & requestedComputables,
+                                        const CComputableSet & calculatedComputables) const
+{
+  bool success = true;
+
+  const_iterator found;
+  const_iterator notFound = mComputables2Nodes.end();
+
+  std::vector< CComputable::Sequence > ProcessGroups;
+
+#ifdef DEBUG_OUTPUT
+  std::cout << "Changed:" << std::endl;
+#endif // DEBUG_OUTPUT
+
+  CComputableSet::const_iterator it = changedComputables.begin();
+  CComputableSet::const_iterator end = changedComputables.end();
+
+  // Mark all nodes which are changed or need to be calculated
+  for (; it != end && success; ++it)
+    {
+      // Issue 1170: We need to add elements of the stoichiometry, reduced stoichiometry,
+      // and link matrices, i.e., we have data objects which may change
+#ifdef DEBUG_OUTPUT
+      if (it->second->getDataComputable() != it->second)
+        {
+          std::cout << *static_cast< const CMathComputable * >(it->second) << std::endl;
+        }
+      else
+        {
+          std::cout << *static_cast< const CDataComputable * >(it->second) << std::endl;
+        }
+
+#endif // DEBUG_OUTPUT
+
+      found = mComputables2Nodes.find(it->second);
+
+      if (found != notFound)
+        {
+          success &= found->second->updateDependentState(changedComputables, true);
+        }
+    }
+
+  if (!success) goto finish;
+
+  // Mark all nodes which have already been calculated and its prerequisites as not changed.
+  it = calculatedComputables.begin();
+  end = calculatedComputables.end();
+
+#ifdef DEBUG_OUTPUT
+  std::cout << "Up To Date:" << std::endl;
+#endif // DEBUG_OUTPUT
+
+  // Mark all nodes which are requested and its prerequisites.
+  for (; it != end && success; ++it)
+    {
+#ifdef DEBUG_OUTPUT
+
+      // Issue 1170: We need to add elements of the stoichiometry, reduced stoichiometry,
+      // and link matrices, i.e., we have data objects which may change
+      if (it->second->getDataComputable() != it->second)
+        {
+          std::cout << *static_cast< const CMathComputable * >(it->second) << std::endl;
+        }
+      else
+        {
+          std::cout << *static_cast< const CDataComputable * >(it->second) << std::endl;
+        }
+
+      std::cout << *static_cast< const CMathComputable * >(it->second) << std::endl;
+#endif // DEBUG_OUTPUT
+
+      found = mComputables2Nodes.find(it->second);
+
+      if (found != notFound)
+        {
+          found->second->setChanged(false);
+          success &= found->second->updateCalculatedState(changedComputables, true);
+        }
+    }
+
+  it = requestedComputables.begin();
+  end = requestedComputables.end();
+
+#ifdef DEBUG_OUTPUT
+  std::cout << "Requested:" << std::endl;
+#endif // DEBUG_OUTPUT
+
+  // Mark all nodes which are requested and its prerequisites.
+  for (; it != end && success; ++it)
+    {
+#ifdef DEBUG_OUTPUT
+      std::cout << it->second << std::endl;
+#endif // DEBUG_OUTPUT
+
+      if (it->second == NULL)
+        {
+          success = false; // we should not have NULL elements here
+          break;
+        }
+
+#ifdef DEBUG_OUTPUT
+      std::cout << *static_cast< const CMathComputable * >(it->second) << std::endl;
+#endif // DEBUG_OUTPUT
+
+      found = mComputables2Nodes.find(it->second);
+
+      if (found != notFound)
+        {
+          found->second->setRequested(true);
+          success &= found->second->updatePrerequisiteState(changedComputables, true);
+        }
+    }
+
+  if (!success) goto finish;
+
+#ifdef DEBUG_OUTPUT
+  {
+    std::ofstream GetUpdateSequence("GetUpdateSequence.dot");
+    exportDOTFormat(GetUpdateSequence, "GetUpdateSequence");
+    GetUpdateSequence.close();
+  }
+#endif // DEBUG_OUTPUT
+
+  it = requestedComputables.begin();
+  end = requestedComputables.end();
+
+  for (; it != end; ++it)
+    {
+      found = mComputables2Nodes.find(it->second);
+
+      if (found != notFound)
+        {
+          success &= found->second->buildProcessGroups(ProcessGroups, false);
+          continue;
+        }
+
+      // This is not an error we may have objects which are not part of the dependency tree
+      // success = false;
+    }
+
+  if (!success) goto finish;
+
+finish:
+  const_iterator itCheck = mComputables2Nodes.begin();
+  const_iterator endCheck = mComputables2Nodes.end();
+
+  for (; itCheck != endCheck; ++itCheck)
+    {
+      // Reset the dependency nodes for the next call.
+      itCheck->second->reset();
+    }
+
+  if (!success)
+    {
+      UpdateSequence.clear();
+    }
+
+  processGroups = ProcessGroups;
 
 #ifdef DEBUG_OUTPUT
   CComputable::Sequence::const_iterator itSeq = updateSequence.begin();

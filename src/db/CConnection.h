@@ -25,6 +25,10 @@
 #ifndef SRC_DB_CCONNECTION_H_
 #define SRC_DB_CCONNECTION_H_
 
+#ifdef HAVE_SYS_TYPES_H
+# undef HAVE_SYS_TYPES_H
+#endif
+
 #include <pqxx/pqxx>
 
 class CConnection

@@ -68,9 +68,14 @@ public:
 
   virtual ~CObservable();
 
-  virtual bool computeProtected() override;
-
   bool operator < (const CObservable & rhs) const;
+
+  virtual bool isValid() const override;
+
+  virtual void determineIsStatic() override;
+
+protected:
+  virtual bool computeProtected() override;
 
 private:
   typedef std::map< ObservableKey, CObservable * > ObservableMap;

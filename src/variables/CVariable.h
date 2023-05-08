@@ -28,10 +28,11 @@
 #include "math/CComputable.h"
 #include "utilities/CAnnotation.h"
 #include "math/CValue.h"
+#include "math/CComputable.h"
 
 class CMetadata;
 
-class CVariable: public CValue, public CAnnotation
+class CVariable: public CValue, public CComputable, public CAnnotation
 {
 public:
   enum struct Scope
@@ -61,19 +62,26 @@ public:
 
   const std::string & getId() const;
 
-  const bool & isValid() const;
-
   const Scope & getScope() const;
   
-  void reset(const bool & force = false);
+  bool reset(const bool & force = false);
 
-  void getValue();
+  bool getValue();
 
   bool setValue(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
 
   bool setValue(const CValue value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
 
   void setInitialValue(const double & initialValue);
+
+  virtual std::string getComputableId() const override;
+
+  virtual bool isValid() const override;
+
+  virtual void determineIsStatic() override;
+
+protected:
+  virtual bool computeProtected() override;
 
   /*
     "=",
@@ -90,7 +98,6 @@ private:
   double * mpLocalValue;
   int mResetValue;
   size_t mIndex;
-  bool mValid;
 };
 
 #endif /* SRC_VARIABLES_CVARIABLE_H_ */

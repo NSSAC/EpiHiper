@@ -32,17 +32,28 @@ CVariableList::CVariableList()
   : base()
   , mId2Index()
   , mValid(true)
-{}
+  , mChangedVariables()
+  , mInvalidVariable()
+{
+  CComputable::Instances.erase(&mInvalidVariable);
+  mChangedVariables.init();
+}
 
 CVariableList::CVariableList(const CVariableList & src)
   : base(src)
   , mId2Index(src.mId2Index)
   , mValid(src.mValid)
-{}
+  , mChangedVariables(src.mChangedVariables)
+  , mInvalidVariable(src.mInvalidVariable)
+{
+  CComputable::Instances.erase(&mInvalidVariable);
+}
 
 // virtual
 CVariableList::~CVariableList()
-{}
+{
+  mChangedVariables.release();
+}
 
 void CVariableList::fromJSON(const json_t * json)
 {
@@ -115,24 +126,20 @@ void CVariableList::fromBinary(std::istream & is)
 
 CVariable & CVariableList::operator[](const size_t & index)
 {
-  static CVariable Invalid;
-
   if (index < size())
     return *base::operator[](index);
 
-  return Invalid;
+  return mInvalidVariable;
 }
 
 CVariable & CVariableList::operator[](const std::string & id)
 {
-  static CVariable Invalid;
-
   std::map< std::string, size_t >::iterator found = mId2Index.find(id);
 
   if (found != mId2Index.end())
     return operator[](found->second);
 
-  return Invalid;
+  return mInvalidVariable;
 }
 
 CVariable & CVariableList::operator[](const json_t * json)
@@ -155,37 +162,81 @@ CVariable & CVariableList::operator[](const json_t * json)
     },
   */
 
-  static CVariable Invalid;
   json_t * pVariable = json_object_get(json, "variable");
 
   if (!json_is_object(pVariable))
-    return Invalid;
+    return mInvalidVariable;
 
   json_t * pIdRef = json_object_get(pVariable, "idRef");
 
   if (!json_is_string(pIdRef))
-    return Invalid;
+    return mInvalidVariable;
 
   return operator[](json_string_value(pIdRef));
 }
 
 void CVariableList::resetAll(const bool & force)
 {
-  base::iterator it;
-  base::iterator itEnd = base::end();
-
-  for (it = base::begin(); it != itEnd; ++it)
-    {
-      (*it)->reset(force);
-    }
-
-  CCommunicate::barrierRMA();
-
 #pragma omp single
-  for (it = base::begin(); it != itEnd; ++it)
-    {
-      (*it)->getValue();
-    }
+  {
+    INSTANCE.mChangedVariables.Master().clear();
+
+    base::iterator it;
+    base::iterator itEnd = base::end();
+
+    for (it = base::begin(); it != itEnd; ++it)
+      {
+        if ((*it)->reset(force))
+          INSTANCE.mChangedVariables.Master().insert(*it);
+      }
+
+    CCommunicate::barrierRMA();
+
+    for (it = base::begin(); it != itEnd; ++it)
+      {
+        if ((*it)->getValue())
+          INSTANCE.mChangedVariables.Master().insert(*it);
+      }
+  }
+
+  CComputableSet & Active = INSTANCE.mChangedVariables.Active();
+
+  if (INSTANCE.mChangedVariables.isThread(&Active))
+    Active.clear();
+}
+
+void CVariableList::synchronizeChangedVariables()
+{
+#pragma omp single
+  {
+    // Consolidate local changes from all threads.
+    CComputableSet * pSet = INSTANCE.mChangedVariables.beginThread();
+    CComputableSet * pSetEnd = INSTANCE.mChangedVariables.endThread();
+
+    for (; pSet != pSetEnd; ++pSet)
+      if (INSTANCE.mChangedVariables.isThread(pSet))
+        {
+          CComputableSet::const_iterator it = pSet->begin();
+          CComputableSet::const_iterator end = pSet->end();
+
+          for (; it != end; ++it)
+            INSTANCE.mChangedVariables.Master().insert(it->second);
+
+          pSet->clear();
+        }
+
+    // Consolidate changes to global variables
+    CCommunicate::barrierRMA();
+
+    base::iterator it = base::begin();
+    base::iterator end = base::end();
+
+    for (; it != end; ++it)
+      {
+        if ((*it)->getValue())
+          INSTANCE.mChangedVariables.Master().insert(*it);
+      }
+  }
 }
 
 bool CVariableList::append(CVariable * pVariable)
@@ -207,4 +258,9 @@ CVariableList::const_iterator CVariableList::begin() const
 CVariableList::const_iterator CVariableList::end() const
 {
   return base::end();
+}
+
+CContext< CComputableSet > & CVariableList::changedVariables()
+{
+  return mChangedVariables;
 }

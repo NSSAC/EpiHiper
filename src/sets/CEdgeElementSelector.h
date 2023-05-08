@@ -32,6 +32,7 @@
 class CFieldValue;
 class CFieldValueList;
 class CObservable;
+class CVariable;
 
 class CEdgeElementSelector: public CSetContent
 {
@@ -44,11 +45,14 @@ public:
 
   virtual ~CEdgeElementSelector();
 
-  virtual CSetContent * copy() const override;
+  virtual void fromJSONProtected(const json_t * json) override;
 
-  virtual void fromJSON(const json_t * json) override;
+  virtual void determineIsStatic() override;
 
+protected:
   virtual bool computeProtected() override;
+
+  virtual bool lessThanProtected(const CSetContent & rhs) const override;
 
 private:
   bool all();
@@ -57,18 +61,19 @@ private:
   bool propertyNotIn();
   bool withTargetNodeIn();
   bool withSourceNodeIn();
-  bool inDBTable();
-  bool withDBFieldSelection();
-  bool withDBFieldWithin();
-  bool withDBFieldNotWithin();
+  bool dbAll();
+  bool dbSelection();
+  bool dbIn();
+  bool dbNotIn();
 
   CEdgeProperty mEdgeProperty;
   CValue * mpValue;
   CValueList * mpValueList;
-  CSetContent * mpSelector;
+  CSetContent::CSetContentPtr mpSelector;
   std::string mDBTable;
   std::string mDBField;
   CObservable * mpObservable;
+  CVariable * mpVariable;
   CFieldValue * mpDBFieldValue;
   CFieldValueList * mpDBFieldValueList;
   CValueInterface::pComparison mpComparison;

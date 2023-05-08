@@ -49,10 +49,17 @@ public:
 
   virtual void fromJSON(const json_t * json);
 
+  bool operator != (const CNodeProperty & rhs) const;
+
+  bool operator < (const CNodeProperty & rhs) const;
+
   const bool & isValid() const;
 
   CValue propertyOf(const CNode * pNode);
+  
   COperation * createOperation(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+
+  bool isReadOnly() const;
 
   static std::pair< CEdge *, CEdge * > edges(CNode * pNode);
 

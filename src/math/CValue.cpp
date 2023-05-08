@@ -236,7 +236,7 @@ void CValue::fromJSON(const json_t * json)
   mValid = true;
 }
 
-const bool & CValue::isValid() const
+bool CValue::isValid() const
 {
   return mValid;
 }

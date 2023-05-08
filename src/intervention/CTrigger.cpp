@@ -178,7 +178,8 @@ void CTrigger::process()
   mIsLocalTrue = pCondition->isTrue();
   delete pCondition;
 
-  CLogger::info() << "CTrigger: Trigger '" << getAnnId() << "' condition is '" << (mIsLocalTrue ? "true" : "false") << "'."; 
+  if (mIsLocalTrue)
+    CLogger::info() << "CTrigger: Trigger '" << getAnnId() << "' condition is 'true'."; 
 }
 
 void CTrigger::trigger(const bool & triggers)

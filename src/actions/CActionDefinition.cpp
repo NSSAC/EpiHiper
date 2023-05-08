@@ -316,7 +316,7 @@ bool CActionDefinition::execute() const
           for (; it != end; ++it)
             {
               COperation * pOperation = it->createOperation(mInfo); 
-              success &= pOperation->execute();
+              pOperation->execute();
               delete pOperation;
             }
         }
@@ -351,7 +351,7 @@ bool CActionDefinition::execute(CEdge * pEdge) const
           for (; it != end; ++it)
             {
               COperation * pOperation = it->createOperation(pEdge, mInfo); 
-              success &= pOperation->execute();
+              pOperation->execute();
               delete pOperation;
             }
         }
@@ -386,7 +386,7 @@ bool CActionDefinition::execute(CNode * pNode) const
           for (; it != end; ++it)
             {
               COperation * pOperation = it->createOperation(pNode, mInfo); 
-              success &= pOperation->execute();
+              pOperation->execute();
               delete pOperation;
             }
         }

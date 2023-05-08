@@ -116,7 +116,13 @@ CDependencyGraph CDependencyGraph::INSTANCE;
 CComputable::Sequence CDependencyGraph::UpdateSequence;
 
 // static
+std::vector< CComputable::Sequence > CDependencyGraph::ProcessGroups;
+
+// static
 CComputableSet CDependencyGraph::UpToDate;
+
+// static
+CComputable::Sequence CDependencyGraph::ComputeOnceSequence;
 
 // static
 CObservable::ObservableMap CObservable::Observables;
@@ -143,7 +149,7 @@ CContext< CNetwork > CNetwork::Context = CContext< CNetwork >();
 CSetList CSetList::INSTANCE;
 
 // static
-std::vector< CSetReference * > CSetReference::UnResolved;
+std::set< CSetReference * > CSetReference::UnResolved;
 
 // static
 std::map< std::string, CTrait > CTrait::INSTANCES;

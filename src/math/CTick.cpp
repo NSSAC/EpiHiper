@@ -70,3 +70,9 @@ CTick & CTick::operator = (const int & value)
   return *this;
 }
 
+// virtual 
+void CTick::determineIsStatic()
+{
+  mStatic = false;
+}
+

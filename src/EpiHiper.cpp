@@ -171,8 +171,6 @@ int main(int argc, char * argv[])
       goto failed;
     }
 
-  CVariableList::INSTANCE.resetAll(true);
-
   CNetwork::Context.Master().load();
 
   if (CLogger::hasErrors())

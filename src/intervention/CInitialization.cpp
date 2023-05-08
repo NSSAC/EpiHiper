@@ -146,7 +146,7 @@ CInitialization::CInitialization()
 
 CInitialization::CInitialization(const CInitialization & src)
   : CAnnotation(src)
-  , mpTarget(src.mpTarget != NULL ? src.mpTarget->copy() : NULL)
+  , mpTarget(src.mpTarget)
   , mActionEnsemble(src.mActionEnsemble)
   , mValid(src.mValid)
 {}
@@ -162,10 +162,7 @@ CInitialization::CInitialization(const json_t * json)
 
 // virtual
 CInitialization::~CInitialization()
-{
-  if (mpTarget != NULL)
-    delete mpTarget;
-}
+{}
 
 void CInitialization::fromJSON(const json_t * json)
 {
@@ -219,7 +216,7 @@ bool CInitialization::process()
 
 CSetContent * CInitialization::getTarget()
 {
-  return mpTarget;
+  return mpTarget.get();
 }
 
 const bool & CInitialization::isValid() const

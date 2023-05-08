@@ -45,10 +45,19 @@ public:
 
   static bool applyUpdateSequence();
 
+  static bool applyComputeOnceSequence();
+
   static bool applyUpdateSequence(CComputable::Sequence & updateSequence);
 
   static bool getUpdateSequence(CComputable::Sequence & updateSequence,
                                 const CComputableSet & requestedComputables);
+
+  static bool applyProcessGroups();
+
+  static bool applyProcessGroups(std::vector< CComputable::Sequence > & processGroups);
+
+  static bool getProcessGroups(std::vector< CComputable::Sequence > & processGroups,
+                               const CComputableSet & requestedComputables);
 
   // Operations
   /**
@@ -113,6 +122,20 @@ public:
                          const CComputableSet & calculatedComputables = CComputableSet()) const;
 
   /**
+   * Construct a vector of process groups. Please note the calculated objects
+   * must be calculated based on the same changed values and context.
+   * @param std::vector < CComputable::Sequence > & processGroups
+   * @param const CComputableSet & changedComputables
+   * @param const CComputableSet & requestedComputables
+   * @param const CComputableSet & calculatedComputables (default: none)
+   * @return bool success
+   */
+  bool getProcessGroups(std::vector < CComputable::Sequence > & processGroups,
+                        const CComputableSet & changedComputables,
+                        const CComputableSet & requestedComputables,
+                        const CComputableSet & calculatedComputables = CComputableSet()) const;
+
+  /**
    * Check whether the given object depends on the changed object in given context
    * @param const CComputable * pComputable
    * @param const CComputable * pChangedComputable
@@ -162,8 +185,10 @@ public:
 private:
   static CDependencyGraph INSTANCE;
   static CComputable::Sequence UpdateSequence;
+  static std::vector< CComputable::Sequence > ProcessGroups;
   static CComputableSet UpToDate;
-
+  static CComputable::Sequence ComputeOnceSequence;
+  
   std::string getDOTNodeId(const CComputable * pComputable) const;
 
   // Attributes
