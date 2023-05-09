@@ -51,9 +51,7 @@ CSetOperation::CSetOperation(const json_t * json)
 }
 
 CSetOperation::~CSetOperation()
-{
-  mSets.clear();
-}
+{}
 
 // virtual
 void CSetOperation::fromJSONProtected(const json_t * json)
@@ -116,7 +114,7 @@ void CSetOperation::fromJSONProtected(const json_t * json)
       if (pSetContent
           && pSetContent->isValid())
         {
-          mSets.insert(pSetContent);
+          mSets.insert(pSetContent.get());
           mPrerequisites.insert(pSetContent.get()); // DONE
         }
       else
@@ -172,31 +170,31 @@ bool CSetOperation::computeUnion()
   std::vector< CNode * > * pOutNodes = &Nodes;
   std::vector< CEdge * > * pOutEdges = &Edges;
 
-  std::set< CSetContent::CSetContentPtr >::const_iterator it = mSets.begin();
-  std::set< CSetContent::CSetContentPtr >::const_iterator end = mSets.end();
+  std::set< CSetContent * >::const_iterator it = mSets.begin();
+  std::set< CSetContent * >::const_iterator end = mSets.end();
 
   for (; it != end; ++it)
     {
       if (first)
         {
-          *pInEdges = it->get()->getEdges();
-          *pInNodes = it->get()->getNodes();
-          DBFieldValues = it->get()->getDBFieldValues();
+          *pInEdges = (*it)->getEdges();
+          *pInNodes = (*it)->getNodes();
+          DBFieldValues = (*it)->getDBFieldValues();
 
           first = false;
         }
       else
         {
           pOutEdges->clear();
-          std::set_union(it->get()->beginEdges(), it->get()->endEdges(), pInEdges->begin(), pInEdges->end(), std::back_inserter(*pOutEdges));
+          std::set_union((*it)->beginEdges(), (*it)->endEdges(), pInEdges->begin(), pInEdges->end(), std::back_inserter(*pOutEdges));
           std::swap(pInEdges, pOutEdges);
 
           pOutNodes->clear();
-          std::set_union(it->get()->beginNodes(), it->get()->endNodes(), pInNodes->begin(), pInNodes->end(), std::back_inserter(*pOutNodes));
+          std::set_union((*it)->beginNodes(), (*it)->endNodes(), pInNodes->begin(), pInNodes->end(), std::back_inserter(*pOutNodes));
           std::swap(pInNodes, pOutNodes);
 
-          CDBFieldValues::const_iterator itDB = it->get()->getDBFieldValues().begin();
-          CDBFieldValues::const_iterator endDB = it->get()->getDBFieldValues().end();
+          CDBFieldValues::const_iterator itDB = (*it)->getDBFieldValues().begin();
+          CDBFieldValues::const_iterator endDB = (*it)->getDBFieldValues().end();
 
           for (; itDB != endDB; ++itDB)
             DBFieldValues[itDB->first].insert(itDB->second.begin(), itDB->second.end());
@@ -219,7 +217,7 @@ bool CSetOperation::computeUnion()
 
   for (it = mSets.begin(); it != end; ++it)
     {
-      Debug << Separator << it->get()->getComputableId() << ": " << it->get()->size();
+      Debug << Separator << (*it)->getComputableId() << ": " << (*it)->size();
 
       if (Separator.empty())
         Separator = ", ";
@@ -245,16 +243,16 @@ bool CSetOperation::computeIntersection()
 
   bool first = true;
 
-  std::set< CSetContent::CSetContentPtr >::const_iterator it = mSets.begin();
-  std::set< CSetContent::CSetContentPtr >::const_iterator end = mSets.end();
+  std::set< CSetContent * >::const_iterator it = mSets.begin();
+  std::set< CSetContent * >::const_iterator end = mSets.end();
 
   for (; it != end; ++it)
     {
       if (first)
         {
-          *pEout = it->get()->getEdges();
-          *pNout = it->get()->getNodes();
-          *pDBout = it->get()->getDBFieldValues();
+          *pEout = (*it)->getEdges();
+          *pNout = (*it)->getNodes();
+          *pDBout = (*it)->getDBFieldValues();
 
           first = false;
         }
@@ -264,11 +262,11 @@ bool CSetOperation::computeIntersection()
           pNout->clear();
           pDBout->clear();
 
-          std::set_intersection(pEin->begin(), pEin->end(), it->get()->beginEdges(), it->get()->endEdges(), std::inserter(*pEout, pEout->begin()));
-          std::set_intersection(pNin->begin(), pNin->end(), it->get()->beginNodes(), it->get()->endNodes(), std::inserter(*pNout, pNout->begin()));
+          std::set_intersection(pEin->begin(), pEin->end(), (*it)->beginEdges(), (*it)->endEdges(), std::inserter(*pEout, pEout->begin()));
+          std::set_intersection(pNin->begin(), pNin->end(), (*it)->beginNodes(), (*it)->endNodes(), std::inserter(*pNout, pNout->begin()));
 
-          CDBFieldValues::const_iterator itDB = it->get()->getDBFieldValues().begin();
-          CDBFieldValues::const_iterator endDB = it->get()->getDBFieldValues().end();
+          CDBFieldValues::const_iterator itDB = (*it)->getDBFieldValues().begin();
+          CDBFieldValues::const_iterator endDB = (*it)->getDBFieldValues().end();
 
           for (; itDB != endDB; ++itDB)
             {
@@ -297,7 +295,7 @@ bool CSetOperation::computeIntersection()
 
   for (it = mSets.begin(); it != end; ++it)
     {
-      Debug << Separator << it->get()->getComputableId() << ": " << it->get()->size();
+      Debug << Separator << (*it)->getComputableId() << ": " << (*it)->size();
 
       if (Separator.empty())
         Separator = ", ";

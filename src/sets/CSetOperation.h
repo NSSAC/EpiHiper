@@ -52,7 +52,7 @@ private:
 
   bool (CSetOperation::*mpCompute)();
 
-  std::set< CSetContent::CSetContentPtr > mSets;
+  std::set< CSetContent * > mSets;
 };
 
 #endif /* SRC_SETS_CSETOPERATION_H_ */

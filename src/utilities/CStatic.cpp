@@ -151,6 +151,9 @@ CSetList CSetList::INSTANCE;
 // static
 std::set< CSetReference * > CSetReference::UnResolved;
 
+// static 
+std::set< CSetContent::CSetContentPtr, CSetContent::Compare > CSetContent::UniqueSetContent;
+
 // static
 std::map< std::string, CTrait > CTrait::INSTANCES;
 

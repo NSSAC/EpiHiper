@@ -43,10 +43,6 @@ bool CSetContent::Compare::operator()(const CSetContentPtr & lhs, const CSetCont
   return lhs->lessThan(*rhs);
 }
 
-// static 
-std::set< CSetContent::CSetContentPtr, CSetContent::Compare > CSetContent::UniqueSetContent;
-
-
 size_t CSetContent::CDBFieldValues::size() const
 {
   size_t Size = 0;
