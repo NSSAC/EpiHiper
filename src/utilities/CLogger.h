@@ -154,33 +154,38 @@ void CLogger::CStream< level >::flush(const std::string & msg)
     }
 
   for (; pIt != pEnd; ++pIt)
-    switch (static_cast< LogLevel >(level))
-      {
-      case spdlog::level::trace:
-        pIt->pLogger->trace(pIt->task + " " + msg);
-        break;
-      case spdlog::level::debug:
-        pIt->pLogger->debug(pIt->task + " " + msg);
-        break;
-      case spdlog::level::info:
-        pIt->pLogger->info(pIt->task + " " + msg);
-        break;
-      case spdlog::level::warn:
-        pIt->pLogger->warn(pIt->task + " " + msg);
-        break;
-      case spdlog::level::err:
-  #pragma omp atomic
-        haveErrors |= true;
-        pIt->pLogger->error(pIt->task + " " + msg);
-        break;
-      case spdlog::level::critical:
-  #pragma omp atomic
-        haveErrors |= true;
-        pIt->pLogger->critical(pIt->task + " " + msg);
-        break;
-      case spdlog::level::off:
-        break;
-      }
+    {
+      switch (static_cast< LogLevel >(level))
+        {
+        case spdlog::level::trace:
+          pIt->pLogger->trace(pIt->task + " " + msg);
+          break;
+        case spdlog::level::debug:
+          pIt->pLogger->debug(pIt->task + " " + msg);
+          break;
+        case spdlog::level::info:
+          pIt->pLogger->info(pIt->task + " " + msg);
+          break;
+        case spdlog::level::warn:
+          pIt->pLogger->warn(pIt->task + " " + msg);
+          break;
+        case spdlog::level::err:
+#pragma omp atomic
+          haveErrors |= true;
+          pIt->pLogger->error(pIt->task + " " + msg);
+          break;
+        case spdlog::level::critical:
+#pragma omp atomic
+          haveErrors |= true;
+          pIt->pLogger->critical(pIt->task + " " + msg);
+          break;
+        case spdlog::level::off:
+          break;
+        }
+
+      if (Context.Active().levels.top() == spdlog::level::trace)
+        pIt->pLogger->flush();
+    }
 }
 
 #endif // UTILITIES_CLOGGER_H

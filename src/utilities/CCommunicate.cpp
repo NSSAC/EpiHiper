@@ -466,16 +466,17 @@ int CCommunicate::roundRobinFixed(const void * buffer,
 
   initRoundRobin();
 
-  while (true)
+  bool Proceed = true;
+
+  while (Proceed)
     {
       switch (nextRoundRobin(other))
         {
         case Schedule::finished:
-          return (int) Result;
+          Proceed = false;
           break;
 
         case Schedule::skip:
-          continue;
           break;
 
         case Schedule::proceed:
@@ -544,16 +545,17 @@ int CCommunicate::roundRobin(const void * buffer,
 
   initRoundRobin();
 
-  while (true)
+  bool Proceed = true;
+
+  while (Proceed)
     {
       switch (nextRoundRobin(other))
         {
         case Schedule::finished:
-          return (int) Result;
+          Proceed = false;
           break;
 
         case Schedule::skip:
-          continue;
           break;
 
         case Schedule::proceed:

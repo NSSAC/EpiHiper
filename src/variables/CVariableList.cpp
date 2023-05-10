@@ -177,6 +177,8 @@ CVariable & CVariableList::operator[](const json_t * json)
 
 void CVariableList::resetAll(const bool & force)
 {
+  CCommunicate::barrierRMA();
+
 #pragma omp single
   {
     INSTANCE.mChangedVariables.Master().clear();
@@ -190,23 +192,23 @@ void CVariableList::resetAll(const bool & force)
           INSTANCE.mChangedVariables.Master().insert(*it);
       }
 
-    CCommunicate::barrierRMA();
-
     for (it = base::begin(); it != itEnd; ++it)
       {
         if ((*it)->getValue())
           INSTANCE.mChangedVariables.Master().insert(*it);
       }
+
+    CComputableSet & Active = INSTANCE.mChangedVariables.Active();
+
+    if (INSTANCE.mChangedVariables.isThread(&Active))
+      Active.clear();
   }
-
-  CComputableSet & Active = INSTANCE.mChangedVariables.Active();
-
-  if (INSTANCE.mChangedVariables.isThread(&Active))
-    Active.clear();
 }
 
 void CVariableList::synchronizeChangedVariables()
 {
+  CCommunicate::barrierRMA();
+
 #pragma omp single
   {
     // Consolidate local changes from all threads.
@@ -226,8 +228,6 @@ void CVariableList::synchronizeChangedVariables()
         }
 
     // Consolidate changes to global variables
-    CCommunicate::barrierRMA();
-
     base::iterator it = base::begin();
     base::iterator end = base::end();
 

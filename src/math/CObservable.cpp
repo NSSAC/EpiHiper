@@ -32,7 +32,7 @@
 #include "network/CNetwork.h"
 #include "utilities/CLogger.h"
 
-bool CObservable::ObservableKey::operator < (const CObservable::ObservableKey & rhs) const
+bool CObservable::ObservableKey::operator<(const CObservable::ObservableKey & rhs) const
 {
   if (id != rhs.id)
     return id < rhs.id;
@@ -111,13 +111,13 @@ CObservable::CObservable(const json_t * json)
 CObservable::~CObservable()
 {}
 
-// virtual 
+// virtual
 bool CObservable::isValid() const
 {
   return CValue::mValid && CComputable::mValid;
 }
 
-// virtual 
+// virtual
 void CObservable::determineIsStatic()
 {
   mStatic = (mObservableType == ObservableType::totalPopulation);
@@ -131,7 +131,7 @@ bool CObservable::computeProtected()
     {
       bool success = true;
 
-#pragma omp single      
+#pragma omp single
       success = (this->*mpCompute)();
 
       return success;
@@ -150,22 +150,16 @@ bool CObservable::operator<(const CObservable & rhs) const
 
 bool CObservable::computeTime()
 {
-#pragma omp single
-  {
-    double Time = CActionQueue::getCurrentTick();
-    assignValue(&Time);
-  }
+  double Time = CActionQueue::getCurrentTick();
+  assignValue(&Time);
 
   return true;
 }
 
 bool CObservable::computeTotalPopulation()
 {
-#pragma omp single
-  {
-    double TotalPopulation = CNetwork::Context.Master().getGlobalNodeCount();
-    assignValue(&TotalPopulation);
-  }
+  double TotalPopulation = CNetwork::Context.Active().getGlobalNodeCount();
+  assignValue(&TotalPopulation);
 
   return true;
 }
@@ -176,27 +170,24 @@ bool CObservable::computeHealthStateAbsolute()
 
   if (pHealthState != NULL)
     {
-#pragma omp single
-      {
-        double Absolute = std::numeric_limits< double >::quiet_NaN();
+      double Absolute = std::numeric_limits< double >::quiet_NaN();
 
-        switch (mObservableSubset)
-          {
-          case ObservableSubset::current:
-            Absolute = (double) pHealthState->getGlobalCounts().Current;
-            break;
+      switch (mObservableSubset)
+        {
+        case ObservableSubset::current:
+          Absolute = (double) pHealthState->getGlobalCounts().Current;
+          break;
 
-          case ObservableSubset::in:
-            Absolute = (double) pHealthState->getGlobalCounts().In;
-            break;
+        case ObservableSubset::in:
+          Absolute = (double) pHealthState->getGlobalCounts().In;
+          break;
 
-          case ObservableSubset::out:
-            Absolute = (double) pHealthState->getGlobalCounts().Out;
-            break;
-          }
+        case ObservableSubset::out:
+          Absolute = (double) pHealthState->getGlobalCounts().Out;
+          break;
+        }
 
-        assignValue(&Absolute);
-      }
+      assignValue(&Absolute);
 
       return true;
     }

@@ -169,7 +169,6 @@ bool CSimulation::run()
         CVariableList::INSTANCE.synchronizeChangedVariables();
       }
 
-      
       Start = std::chrono::steady_clock::now();
       CActionQueue::incrementTick();
       CChanges::incrementTick();

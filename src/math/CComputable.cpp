@@ -76,6 +76,7 @@ bool CComputable::compute()
   mComputedOnce.Active() = true;
 
   CLogger::debug() << "CComputable: Computing '" << getComputableId() << "'" <<  (mStatic ? " (static)" : "") << ".";
+
   return computeProtected();
 }
 
