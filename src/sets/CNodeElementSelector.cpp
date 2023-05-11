@@ -1049,7 +1049,7 @@ bool CNodeElementSelector::dbSelection()
   if (mpObservable)
     success = CQuery::where(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpObservable, mSQLComparison);
   else if (mpVariable)
-    success = CQuery::where(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpVariable, mSQLComparison);
+    success = CQuery::where(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, mpVariable->toValue(), mSQLComparison);
   else
     success = CQuery::where(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpDBFieldValue, mSQLComparison);
 

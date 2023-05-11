@@ -37,6 +37,7 @@ class CHealthState;
 class CTransmission;
 class CProgression;
 class CNode;
+class CVariable;
 
 struct json_t;
 
@@ -122,7 +123,7 @@ private:
   std::vector< CProgression > mProgressions;
   PossibleTransmissions * mPossibleTransmissions;
 
-  const double * mpTransmissibility;
+  CVariable * mpTransmissibility;
   bool mValid;
 };
 

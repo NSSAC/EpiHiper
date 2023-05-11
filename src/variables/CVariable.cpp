@@ -33,6 +33,7 @@
 #include "actions/CActionQueue.h"
 #include "utilities/CMetadata.h"
 #include "utilities/CLogger.h"
+#include "math/CValue.h"
 
 // static 
 CVariable * CVariable::transmissibility()
@@ -48,40 +49,45 @@ CVariable * CVariable::transmissibility()
 }
 
 CVariable::CVariable()
-  : CValue(std::numeric_limits< double >::quiet_NaN())
+  : CValueInterface(CValueInterface::Type::number, NULL)
   , CComputable()
   , CAnnotation()
   , mId()
   , mScope()
   , mInitialValue(std::numeric_limits< double >::quiet_NaN())
-  , mpLocalValue(static_cast< double * >(mpValue))
+  , mLocalValue()
   , mResetValue(0)
   , mIndex(-1)
-{}
+{
+  mLocalValue.init();
+}
+
 
 CVariable::CVariable(const CVariable & src)
-  : CValue(src)
+  : CValueInterface(src)
   , CComputable(src)
   , CAnnotation(src)
   , mId(src.mId)
   , mScope(src.mScope)
   , mInitialValue(src.mInitialValue)
-  , mpLocalValue(static_cast< double * >(mpValue))
+  , mLocalValue(src.mLocalValue)
   , mResetValue(src.mResetValue)
   , mIndex(src.mIndex)
 {}
 
 CVariable::CVariable(const json_t * json)
-  : CValue(std::numeric_limits< double >::quiet_NaN())
+  : CValueInterface(CValueInterface::Type::number, NULL)
   , CComputable()
   , CAnnotation()
   , mId()
   , mScope()
   , mInitialValue(std::numeric_limits< double >::quiet_NaN())
-  , mpLocalValue(static_cast< double * >(mpValue))
+  , mLocalValue()
   , mResetValue(0)
   , mIndex(-1)
 {
+  mLocalValue.init();
+
   fromJSON(json);
 
   if (isValid()
@@ -94,12 +100,6 @@ CVariable::CVariable(const json_t * json)
 // virtual
 CVariable::~CVariable()
 {}
-
-// virtual
-CValueInterface * CVariable::copy() const
-{
-  return new CVariable(*this);
-}
 
 void CVariable::fromJSON(const json_t * json)
 {
@@ -155,7 +155,14 @@ void CVariable::fromJSON(const json_t * json)
   if (json_is_real(pValue))
     {
       mInitialValue = json_real_value(pValue);
-      *mpLocalValue = mInitialValue;
+
+      mLocalValue.Master() = mInitialValue;
+
+      double * pIt = mLocalValue.beginThread();
+      double * pEnd = mLocalValue.endThread();
+
+      for (; pIt != pEnd; ++pIt)
+        *pIt = mInitialValue;
     }
   else
     {
@@ -207,7 +214,7 @@ const std::string & CVariable::getId() const
 
 bool CVariable::isValid() const
 {
-  return CValue::mValid && CComputable::mValid;
+  return CComputable::mValid;
 }
 
 const CVariable::Scope & CVariable::getScope() const
@@ -229,16 +236,22 @@ bool CVariable::reset(const bool & force)
        && CActionQueue::getCurrentTick() % mResetValue == 0)
       || force)
     {
-      changed = (*mpLocalValue != mInitialValue) || force;
 
-      *mpLocalValue = mInitialValue;
-
+#pragma omp single
+      {
+        changed = (mLocalValue.Master() != mInitialValue) || force;
+        mLocalValue.Master() = mInitialValue;
+      }
+      
       if (CCommunicate::MPIRank == 0
           && mScope == Scope::global
           && CCommunicate::MPIProcesses > 1)
         {
-          CCommunicate::updateRMA(mIndex, &CValueInterface::equal, *mpLocalValue);
-        }
+          CCommunicate::updateRMA(mIndex, &CValueInterface::equal, mLocalValue.Master());
+    }
+
+      if (mLocalValue.isThread(&mLocalValue.Active()))
+        mLocalValue.Active() = mLocalValue.Master();
     }
 
   return changed;
@@ -253,10 +266,9 @@ bool CVariable::getValue()
     {
       double Value = CCommunicate::getRMA(mIndex);
 
-      changed = (*mpLocalValue != Value);
+      changed = (mLocalValue.Active() != Value);
 
-#pragma omp atomic write
-      *mpLocalValue = Value;
+      mLocalValue.Active() = Value;
     }
 
   return changed;
@@ -273,27 +285,18 @@ bool CVariable::setValue(double value, CValueInterface::pOperator pOperator, con
                    << " "
                    << value;
 
-  double Value = *mpLocalValue;
+  const double Value = mLocalValue.Active();
 
   if (mScope == Scope::global
       && CCommunicate::MPIProcesses > 1)
-    Value = CCommunicate::updateRMA(mIndex, pOperator, value);
+    mLocalValue.Active() = CCommunicate::updateRMA(mIndex, pOperator, value);
   else
-    (*pOperator)(Value, value);
+    (*pOperator)(mLocalValue.Active(), value);
 
-  bool changed = (*mpLocalValue != Value);
-
-#pragma omp atomic write
-  *mpLocalValue = Value;
+  bool changed = (mLocalValue.Active() != Value);
 
   if (changed)
-    {
-      if (mScope == Scope::global
-          && CCommunicate::MPIProcesses > 1)
-        CVariableList::INSTANCE.changedVariables().Active().insert(this);
-      else
-        CVariableList::INSTANCE.changedVariables().Master().insert(this);
-    }
+    CVariableList::INSTANCE.changedVariables().Active().insert(this);
 
   return changed;
 }
@@ -303,9 +306,20 @@ bool CVariable::setValue(const CValue value, CValueInterface::pOperator pOperato
   return setValue(value.toNumber(), pOperator, metadata);
 }
 
+void CVariable::updateMaster()
+{
+  mLocalValue.Master() = mLocalValue.Active();
+}
+
 void CVariable::setInitialValue(const double & initialValue)
 {
   mInitialValue = initialValue;
+}
+
+CValue CVariable::toValue() 
+{
+  getValue();
+  return CValue(mLocalValue.Active());
 }
 
 // virtual 

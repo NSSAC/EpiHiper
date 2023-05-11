@@ -323,7 +323,7 @@ COperation * COperationDefinition::createOperation(CNode * pNode, const CMetadat
     return createOperation(info);
 
   if (mpSourceVariable != NULL)
-    return mpNodeProperty->createOperation(pNode, *mpSourceVariable, mpOperator, info);
+    return mpNodeProperty->createOperation(pNode, mpSourceVariable->toValue(), mpOperator, info);
 
   if (mpObservable != NULL)
     return mpNodeProperty->createOperation(pNode, *mpObservable, mpOperator, info);
@@ -341,7 +341,7 @@ COperation * COperationDefinition::createOperation(CEdge * pEdge, const CMetadat
     return createOperation(info);
 
   if (mpSourceVariable != NULL)
-    return mpEdgeProperty->createOperation(pEdge, *mpSourceVariable, mpOperator, info);
+    return mpEdgeProperty->createOperation(pEdge, mpSourceVariable->toValue(), mpOperator, info);
 
   if (mpObservable != NULL)
     return mpEdgeProperty->createOperation(pEdge, *mpObservable, mpOperator, info);
@@ -355,7 +355,7 @@ COperation * COperationDefinition::createOperation(CEdge * pEdge, const CMetadat
 COperation * COperationDefinition::createOperation(const CMetadata & info) const
 {
   if (mpSourceVariable != NULL)
-    return new COperationInstance< CVariable, CValue >(mpTargetVariable, *mpSourceVariable, mpOperator, &CVariable::setValue, info);
+    return new COperationInstance< CVariable, CValue >(mpTargetVariable, mpSourceVariable->toValue(), mpOperator, &CVariable::setValue, info);
 
   if (mpObservable != NULL)
     return new COperationInstance< CVariable, CValue >(mpTargetVariable, *mpObservable, mpOperator, &CVariable::setValue, info);

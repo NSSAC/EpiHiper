@@ -592,7 +592,7 @@ void CSampling::process(const CSetContent & targets)
   else
     {
       if (mpVariable != NULL)
-        mPercentage = mpVariable->toNumber() * mConversionFactor;
+        mPercentage = mpVariable->toValue().toNumber() * mConversionFactor;
 
       if (std::isnan(mPercentage))
         {
@@ -714,14 +714,14 @@ void CSampling::determineThreadLimits()
   if (mType == Type::relativeGroup)
     {
       if (mpVariable != NULL)
-        mPercentage = mpVariable->toNumber() * mConversionFactor;
+        mPercentage = mpVariable->toValue().toNumber() * mConversionFactor;
 
       Available = std::round(Requested * mPercentage / 100.0);
     }
   else
     {
       if (mpVariable != NULL)
-        Available = std::round(mpVariable->toNumber());
+        Available = std::round(mpVariable->toValue().toNumber());
       else  
         Available = mCount;
     }

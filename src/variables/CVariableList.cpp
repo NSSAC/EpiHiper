@@ -177,6 +177,11 @@ CVariable & CVariableList::operator[](const json_t * json)
 
 void CVariableList::resetAll(const bool & force)
 {
+  CComputableSet & Active = INSTANCE.mChangedVariables.Active();
+
+  if (INSTANCE.mChangedVariables.isThread(&Active))
+    Active.clear();
+
   CCommunicate::barrierRMA();
 
 #pragma omp single
@@ -188,20 +193,10 @@ void CVariableList::resetAll(const bool & force)
 
     for (it = base::begin(); it != itEnd; ++it)
       {
-        if ((*it)->reset(force))
+        if ((*it)->reset(force)
+            || (*it)->getValue())
           INSTANCE.mChangedVariables.Master().insert(*it);
       }
-
-    for (it = base::begin(); it != itEnd; ++it)
-      {
-        if ((*it)->getValue())
-          INSTANCE.mChangedVariables.Master().insert(*it);
-      }
-
-    CComputableSet & Active = INSTANCE.mChangedVariables.Active();
-
-    if (INSTANCE.mChangedVariables.isThread(&Active))
-      Active.clear();
   }
 }
 
@@ -209,23 +204,22 @@ void CVariableList::synchronizeChangedVariables()
 {
   CCommunicate::barrierRMA();
 
+  CComputableSet * pSet = INSTANCE.mChangedVariables.beginThread();
+
 #pragma omp single
   {
     // Consolidate local changes from all threads.
-    CComputableSet * pSet = INSTANCE.mChangedVariables.beginThread();
-    CComputableSet * pSetEnd = INSTANCE.mChangedVariables.endThread();
+    if (INSTANCE.mChangedVariables.isThread(pSet))
+      {
+        CComputableSet::const_iterator it = pSet->begin();
+        CComputableSet::const_iterator end = pSet->end();
 
-    for (; pSet != pSetEnd; ++pSet)
-      if (INSTANCE.mChangedVariables.isThread(pSet))
-        {
-          CComputableSet::const_iterator it = pSet->begin();
-          CComputableSet::const_iterator end = pSet->end();
-
-          for (; it != end; ++it)
+        for (; it != end; ++it)
+          {
             INSTANCE.mChangedVariables.Master().insert(it->second);
-
-          pSet->clear();
-        }
+            const_cast< CVariable *>(static_cast< const CVariable * >(it->second))->updateMaster();
+          }
+      }
 
     // Consolidate changes to global variables
     base::iterator it = base::begin();
@@ -234,7 +228,10 @@ void CVariableList::synchronizeChangedVariables()
     for (; it != end; ++it)
       {
         if ((*it)->getValue())
-          INSTANCE.mChangedVariables.Master().insert(*it);
+          {
+            INSTANCE.mChangedVariables.Master().insert(*it);
+            (*it)->updateMaster();
+          }
       }
   }
 }

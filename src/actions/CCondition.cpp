@@ -22,6 +22,8 @@
 // SOFTWARE 
 // END: Copyright 
 
+#include <memory>
+
 #include <jansson.h>
 
 #include "actions/CCondition.h"
@@ -75,18 +77,26 @@ CComparison::~CComparison()
 // virtual
 bool CComparison::isTrue() const
 {
+  const CValueInterface * pLeft = mpLeft;
+  const CValueInterface * pRight = mpRight;
+
+  std::shared_ptr< CValue > VariableLeft;
+  std::shared_ptr< CValue > VariableRight;
+
   if (dynamic_cast< const CVariable * >(mpLeft))
     {
-      const_cast< CVariable * >(static_cast< const CVariable * >(mpLeft))->getValue();
+      VariableLeft = std::make_shared< CValue >(const_cast< CVariable * >(static_cast< const CVariable * >(mpLeft))->toValue()); // TODO VARIABLE
+      pLeft = VariableLeft.get();
     }
 
   if (dynamic_cast< const CVariable * >(mpRight))
     {
-      const_cast< CVariable * >(static_cast< const CVariable * >(mpRight))->getValue();
+      VariableRight = std::make_shared< CValue >(const_cast< CVariable * >(static_cast< const CVariable * >(mpRight))->toValue()); // TODO VARIABLE
+      pRight = VariableRight.get();
     }
 
 
-  return (*mpComparison)(*mpLeft, *mpRight);
+  return (*mpComparison)(*pLeft, *pRight);
 }
 
 void CComparison::selectComparison(CConditionDefinition::ComparisonType operation)
@@ -175,7 +185,17 @@ bool CContainedIn::notWithin(const CValueInterface & value, const CValueList & v
 // virtual
 bool CContainedIn::isTrue() const
 {
-  return (*mpWithin)(*mpLeft, mValueList);
+  const CValueInterface * pLeft = mpLeft;
+
+  std::shared_ptr< CValue > VariableLeft;
+
+  if (dynamic_cast< const CVariable * >(mpLeft))
+    {
+      VariableLeft = std::make_shared< CValue >(const_cast< CVariable * >(static_cast< const CVariable * >(mpLeft))->toValue()); // TODO VARIABLE
+      pLeft = VariableLeft.get();
+    }
+
+  return (*mpWithin)(*pLeft, mValueList);
 }
 
 bool CBooleanOperation::_and() const

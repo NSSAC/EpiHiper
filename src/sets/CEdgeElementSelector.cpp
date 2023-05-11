@@ -919,7 +919,7 @@ bool CEdgeElementSelector::dbSelection()
   if (mpObservable)
     success = CQuery::where(mDBTable, "lid", FieldValueList, false, mDBField, *mpObservable, mSQLComparison);
   else if (mpVariable)
-    success = CQuery::where(mDBTable, "lid", FieldValueList, false, mDBField, *mpVariable, mSQLComparison);
+    success = CQuery::where(mDBTable, "lid", FieldValueList, false, mDBField, mpVariable->toValue(), mSQLComparison);
   else
     success = CQuery::where(mDBTable, "lid", FieldValueList, false, mDBField, *mpDBFieldValue, mSQLComparison);
 

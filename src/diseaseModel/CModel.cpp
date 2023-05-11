@@ -73,7 +73,7 @@ CModel::CModel(const std::string & modelFile)
   , mValid(false)
 {
   CVariableList::INSTANCE.append(CVariable::transmissibility());
-  mpTransmissibility = &CVariableList::INSTANCE["%transmissibility%"].toNumber();
+  mpTransmissibility = &CVariableList::INSTANCE["%transmissibility%"];
 
   json_t * pRoot = CSimConfig::loadJson(modelFile, JSON_DECODE_INT_AS_REAL);
 
@@ -288,6 +288,7 @@ bool CModel::processTransmissions() const
   CNode * pNodeEnd = CNetwork::Context.Active().endNode();
 
   CTransmission ** pPossibleTransmissions = NULL;
+  double Transmissibility = mpTransmissibility->toValue().toNumber();
   
   for (pNode = CNetwork::Context.Active().beginNode(); pNode != pNodeEnd; ++pNode)
     if (pNode->susceptibility > 0.0
@@ -328,7 +329,7 @@ bool CModel::processTransmissions() const
           }
 
         if (A0 > 0.0
-            && -log(Uniform01(CRandom::G.Active())) < A0 * *mpTransmissibility * resolutionPerTick)
+            && -log(Uniform01(CRandom::G.Active())) < A0 * Transmissibility * resolutionPerTick)
           {
             double alpha = Uniform01(CRandom::G.Active()) * A0;
 
@@ -553,8 +554,7 @@ void CModel::WriteGlobalStateCounts()
 
           for (; it != end; ++it)
             {
-              (*it)->getValue();
-              out << "," << (*it)->toNumber();
+              out << "," << (*it)->toValue().toNumber();
             }
 
           out << "," << CRandom::getSeed() << std::endl;
