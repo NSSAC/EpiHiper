@@ -32,40 +32,67 @@
 class CRandom
 {
 public:
-  class CGenerator : public std::mt19937_64
+  class debug_generator : public std::mt19937_64
   {
   public:
     std::mt19937_64::result_type operator()();
   };
 
+  // Change to CGe
   typedef std::mt19937_64 generator_t;
+  typedef generator_t::result_type result_t;
 
-  class CNormal : public std::normal_distribution< double >
+  template < class CType > struct DistributionContext
   {
-  public:
-    CNormal(double mean = 0.0, double stddev = 1.0);
-
-    double operator()(generator_t & generator);
-
-  private: 
-    struct state 
-    {
-      bool haveValue;
-      double value;  
-    };
-
-    ::CContext< state > mState;
+    mutable CType distribution;
+    mutable generator_t * pGenerator;
   };
 
-  typedef generator_t::result_type result_t;
+  template < class CType > class Distribution : private ::CContext< DistributionContext< CType > >
+  {
+    typedef DistributionContext< CType > context_type;
+    typedef ::CContext< context_type > base;
+
+  public:
+    typedef typename CType::result_type result_type;
+
+    Distribution()
+      : base()
+    {}
+
+    Distribution(const result_type & a, const result_type & b)
+      : base()
+    {
+      init(a, b);
+    }
+
+    void init(const result_type & a, const result_type & b)
+    {
+      base::init();
+
+      base::Master() = context_type({CType(a, b), &CRandom::G.Master()});
+
+      context_type * pIt = base::beginThread();
+      context_type * pEnd = base::endThread();
+      generator_t * pG = CRandom::G.beginThread();
+
+      for (; pIt != pEnd; ++pIt, ++pG)
+        if (base::isThread(pIt))
+          *pIt = context_type({CType(a, b), pG});
+    }
+
+    result_type sample() const
+    {
+      const context_type & Active = base::Active();
+      
+      return Active.distribution.operator()(*Active.pGenerator);
+    }
+  };
+
   typedef std::uniform_int_distribution< result_t > uniform_int;
-  typedef uniform_int::param_type uniform_int_p;
   typedef std::uniform_real_distribution< double > uniform_real;
-  typedef uniform_real::param_type uniform_real_p;
-  typedef CNormal normal;
-  typedef normal::param_type normal_p;
+  typedef std::normal_distribution< double > normal;
   typedef std::gamma_distribution<double> gamma;
-  typedef std::gamma_distribution<double>::param_type gamma_p;
   
   static void seed(result_t seed);
   static void init(size_t seed);

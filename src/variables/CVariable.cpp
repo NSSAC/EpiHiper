@@ -230,28 +230,29 @@ void CVariable::determineIsStatic()
 
 bool CVariable::reset(const bool & force)
 {
+  // We are guaranteed to be called only by one thread per family.
   bool changed = false;
 
   if ((mResetValue != 0
        && CActionQueue::getCurrentTick() % mResetValue == 0)
       || force)
     {
+      changed = (mLocalValue.Master() != mInitialValue) || force;
+      mLocalValue.Master() = mInitialValue;
 
-#pragma omp single
-      {
-        changed = (mLocalValue.Master() != mInitialValue) || force;
-        mLocalValue.Master() = mInitialValue;
-      }
-      
       if (CCommunicate::MPIRank == 0
           && mScope == Scope::global
           && CCommunicate::MPIProcesses > 1)
         {
           CCommunicate::updateRMA(mIndex, &CValueInterface::equal, mLocalValue.Master());
-    }
+        }
 
-      if (mLocalValue.isThread(&mLocalValue.Active()))
-        mLocalValue.Active() = mLocalValue.Master();
+      double * pIt = mLocalValue.beginThread();
+      double * pEnd = mLocalValue.endThread();
+      
+      if (mLocalValue.isThread(pIt))
+        for (; pIt != pEnd; ++pIt)
+          *pIt = mLocalValue.Master();
     }
 
   return changed;

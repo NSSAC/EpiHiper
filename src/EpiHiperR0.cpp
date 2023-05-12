@@ -168,7 +168,7 @@ int main(int argc, char * argv[])
       goto failed;
     }
 
-  CCommunicate::memUsage(-2);
+  CCommunicate::memUsage();
 
   {
     CSimulation sim;

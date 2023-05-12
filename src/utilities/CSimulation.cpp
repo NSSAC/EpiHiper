@@ -75,13 +75,17 @@ bool CSimulation::run()
 
   CActionQueue::setCurrentTick(startTick - 1);
   CChanges::setCurrentTick(startTick - 1);
+  CLogger::updateTick();
+
   CChanges::initDefaultOutput();
   CModel::InitGlobalStateCountOutput();
+
   CDependencyGraph::buildGraph();
-  CVariableList::INSTANCE.resetAll(true);
 
 #pragma omp parallel
   {
+    CVariableList::INSTANCE.resetAll(true);
+
     if (!CDependencyGraph::applyComputeOnceSequence())
 #pragma omp atomic
       success &= false;
@@ -94,7 +98,7 @@ bool CSimulation::run()
 #pragma omp atomic
       success &= false;
 
-    CCommunicate::memUsage(CActionQueue::getCurrentTick());
+    CCommunicate::memUsage();
 
     CVariableList::INSTANCE.resetAll();
 
@@ -111,6 +115,7 @@ bool CSimulation::run()
 
   CActionQueue::incrementTick();
   CChanges::incrementTick();
+  CLogger::updateTick();
 
   CChanges::writeDefaultOutput();
   CModel::UpdateGlobalStateCounts();
@@ -138,11 +143,13 @@ bool CSimulation::run()
           success &= false;
 
         CLogger::info() << "CSimulation::applyUpdateSequence: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+
         Start = std::chrono::steady_clock::now();
 
         CModel::ProcessTransmissions();
 
         CLogger::info() << "CSimulation::ProcessTransmissions: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+
         Start = std::chrono::steady_clock::now();
 
         if (!CTrigger::processAll())
@@ -154,9 +161,8 @@ bool CSimulation::run()
           success &= false;
 
         CLogger::info() << "CSimulation::ProcessIntervention: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
-        Start = std::chrono::steady_clock::now();
 
-        CCommunicate::memUsage(CActionQueue::getCurrentTick());
+        Start = std::chrono::steady_clock::now();
 
         CVariableList::INSTANCE.resetAll();
 
@@ -172,6 +178,7 @@ bool CSimulation::run()
       Start = std::chrono::steady_clock::now();
       CActionQueue::incrementTick();
       CChanges::incrementTick();
+      CLogger::updateTick();
 
       CChanges::writeDefaultOutput();
       CModel::UpdateGlobalStateCounts();

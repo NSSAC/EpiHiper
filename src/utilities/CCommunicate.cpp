@@ -819,7 +819,7 @@ size_t CCommunicate::getRMAIndex()
 }
 
 // static
-void CCommunicate::memUsage(const int & tick)
+void CCommunicate::memUsage()
 {
   double vm_usage = 0.0;
   double resident_set = 0.0;
@@ -839,7 +839,7 @@ void CCommunicate::memUsage(const int & tick)
   vm_usage = vsize / 1024.0;
   resident_set = rss * page_size_kb;
 
-  CLogger::info() << "Tick: " << tick + 1 << "; VM: " << (size_t) vm_usage << "; RSS: " << (size_t) resident_set;
+  CLogger::info() << "VM: " << (size_t) vm_usage << "; RSS: " << (size_t) resident_set;
 }
 
 CCommunicate::~CCommunicate()

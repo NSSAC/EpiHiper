@@ -34,6 +34,7 @@ struct json_t;
 
 class CDistribution
 {
+
 public:
   enum struct Type {
    fixed,
@@ -63,10 +64,10 @@ private:
   unsigned int (CDistribution::*mpSample)() const;
 
   unsigned int mFixed;
-  CRandom::uniform_int * mpUniformInt;
-  CRandom::uniform_real * mpUniformReal;
-  CRandom::normal * mpNormal;
-  CRandom::gamma * mpGamma;
+  CRandom::Distribution< CRandom::uniform_int > mUniformInt;
+  CRandom::Distribution< CRandom::uniform_real > mUniformReal;
+  CRandom::Distribution< CRandom::normal > mNormal;
+  CRandom::Distribution< CRandom::gamma > mGamma;
 
   bool mValid;
 

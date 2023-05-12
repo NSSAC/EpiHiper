@@ -246,7 +246,7 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
   NotSampled.nodes.clear();
   NotSampled.dBFieldValues.clear();
 
-  CRandom::uniform_real Percent(0.0, 1.0);
+  CRandom::uniform_real Probability(0.0, 1.0);
 
   // Sampling is only supported if we have either only nodes or only edges;
   if (size() == Nodes.size())
@@ -261,7 +261,7 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
         {
           if (Available <= Requested
               || (Requested > 0.5
-                  && Percent(CRandom::G.Active()) < Requested / Available))
+                  && Probability(CRandom::G.Active()) < Requested / Available))
             {
               Sampled.nodes.push_back(*it);
               Requested -= 1.0;
@@ -284,7 +284,7 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
         {
           if (Available <= Requested
               || (Requested > 0.5
-                  && Percent(CRandom::G.Active()) < Requested / Available))
+                  && Probability(CRandom::G.Active()) < Requested / Available))
             {
               Sampled.edges.push_back(*it);
               Requested -= 1.0;

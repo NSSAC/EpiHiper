@@ -57,6 +57,7 @@ public :
     std::shared_ptr< spdlog::sinks::sink > pConsole;
     std::shared_ptr< spdlog::sinks::sink > pFile;
     std::string task;
+    std::string tick;
     std::stack< spdlog::level::level_enum > levels;
   };
 
@@ -79,6 +80,8 @@ public :
   static bool hasErrors();
 
   static void setSingle(bool single);
+
+  static void updateTick();
 
   typedef CStream< spdlog::level::trace > trace;
   typedef CStream< spdlog::level::debug > debug;
@@ -158,26 +161,26 @@ void CLogger::CStream< level >::flush(const std::string & msg)
       switch (static_cast< LogLevel >(level))
         {
         case spdlog::level::trace:
-          pIt->pLogger->trace(pIt->task + " " + msg);
+          pIt->pLogger->trace(pIt->task + " " + pIt->tick + " " + msg);
           break;
         case spdlog::level::debug:
-          pIt->pLogger->debug(pIt->task + " " + msg);
+          pIt->pLogger->debug(pIt->task + " " + pIt->tick + " " + msg);
           break;
         case spdlog::level::info:
-          pIt->pLogger->info(pIt->task + " " + msg);
+          pIt->pLogger->info(pIt->task + " " + pIt->tick + " " + msg);
           break;
         case spdlog::level::warn:
-          pIt->pLogger->warn(pIt->task + " " + msg);
+          pIt->pLogger->warn(pIt->task + " " + pIt->tick + " " + msg);
           break;
         case spdlog::level::err:
 #pragma omp atomic
           haveErrors |= true;
-          pIt->pLogger->error(pIt->task + " " + msg);
+          pIt->pLogger->error(pIt->task + " " + pIt->tick + " " + msg);
           break;
         case spdlog::level::critical:
 #pragma omp atomic
           haveErrors |= true;
-          pIt->pLogger->critical(pIt->task + " " + msg);
+          pIt->pLogger->critical(pIt->task + " " + pIt->tick + " " + msg);
           break;
         case spdlog::level::off:
           break;

@@ -70,6 +70,7 @@ void CConnection::init()
     {
       if (dbConnection.connectionMaxDelay > 0)
         {
+          // We must not use CRandom::G as this is not simulation relevant and prone to race conditions. 
           std::random_device rd;
           std::this_thread::sleep_for(std::chrono::milliseconds(CRandom::uniform_int(0, dbConnection.connectionMaxDelay)(rd)));
         }

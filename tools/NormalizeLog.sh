@@ -24,16 +24,22 @@
 # SOFTWARE 
 # END: Copyright 
 
+# set -o xtrace
+
 Base=normalized
 Start=-10
+End=10000
 
-while getopts "o:s:" opt; do
+while getopts "o:s:e:" opt; do
   case ${opt} in
     o ) # process option o
       Base="$OPTARG"
       ;;
-    s )  # process option o
+    s )  # process option s
       Start="$OPTARG"
+      ;;
+    e )  # process option e
+      End="$OPTARG"
       ;;
     \? ) echo "Usage: cmd [-o] [-a]"
       ;;
@@ -53,22 +59,20 @@ ThreadInfo=($(echo $ThreadInfo))
 out="${Base}.${Thread}.${extension}"
 
 gawk -- '
-BEGIN {
-  Tick = 0
-}
-
 function printRow()
 {
-  printf "[%d] [%d] ", '${Thread}', Tick
+  printf "[%d] ", '${Thread}'
   for (i=5; i <= NF; i++) printf "%s ", $i
   printf "\n"
 }
 
-$0 ~ "Tick:" {
-  Tick = $6 + 0
-}
-
 {
-  if (Tick >= '${Start}')
+  Tick = $5
+  gsub(/[\[\]]/, "", Tick)
+
+  if (strtonum(Tick) >= strtonum('${Start}') && strtonum(Tick) <= strtonum('${End}') && $6 != "CNetwork:")
     printRow()
+
+  if (strtonum(Tick) > strtonum('${End}'))
+    exit 0
 }' "${1}" > $out

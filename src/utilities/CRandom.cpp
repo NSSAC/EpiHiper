@@ -27,7 +27,7 @@
 #include "CSimConfig.h"
 #include "utilities/CCommunicate.h"
 
-CRandom::result_t CRandom::CGenerator::operator()()
+CRandom::result_t CRandom::debug_generator::operator()()
 {
   result_t r = std::mt19937_64::operator()();
 
@@ -35,44 +35,6 @@ CRandom::result_t CRandom::CGenerator::operator()()
 
   return r;
 }
-
-CRandom::CNormal::CNormal(double mean, double stddev)
-  : std::normal_distribution< double >(mean, stddev)
-  , mState()
-{
-  mState.init();
-
-  state * pIt = mState.beginThread();
-  state * pEnd = mState.endThread();
-
-  for (; pIt != pEnd; ++pIt)
-    {
-      pIt->haveValue = false;
-      pIt->value = 0.0;
-    }
-}
-
-double CRandom::CNormal::operator()(generator_t & generator)
-{
-  state & State = mState.Active();
-
-  State.haveValue = !State.haveValue;
-
-  if (!State.haveValue)
-    return State.value;
-
-  double Value;
-
-#pragma omp critical
-  {
-    Value = std::normal_distribution< double >::operator()(generator);
-    State.value = std::normal_distribution< double >::operator()(generator);
-  }
-
-  return Value;
-}
-
-
 
 CRandom::generator_t & CRandom::CContext::Active()
 {

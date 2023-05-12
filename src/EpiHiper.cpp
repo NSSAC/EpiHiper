@@ -179,7 +179,7 @@ int main(int argc, char * argv[])
     }
 
   CChanges::determineNodesRequested();
-  CCommunicate::memUsage(-2);
+  CCommunicate::memUsage();
 
   {
     CSimulation sim;
