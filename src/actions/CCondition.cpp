@@ -85,13 +85,13 @@ bool CComparison::isTrue() const
 
   if (dynamic_cast< const CVariable * >(mpLeft))
     {
-      VariableLeft = std::make_shared< CValue >(const_cast< CVariable * >(static_cast< const CVariable * >(mpLeft))->toValue()); // TODO VARIABLE
+      VariableLeft = std::make_shared< CValue >(const_cast< CVariable * >(static_cast< const CVariable * >(mpLeft))->toValue());
       pLeft = VariableLeft.get();
     }
 
   if (dynamic_cast< const CVariable * >(mpRight))
     {
-      VariableRight = std::make_shared< CValue >(const_cast< CVariable * >(static_cast< const CVariable * >(mpRight))->toValue()); // TODO VARIABLE
+      VariableRight = std::make_shared< CValue >(const_cast< CVariable * >(static_cast< const CVariable * >(mpRight))->toValue());
       pRight = VariableRight.get();
     }
 
@@ -191,7 +191,7 @@ bool CContainedIn::isTrue() const
 
   if (dynamic_cast< const CVariable * >(mpLeft))
     {
-      VariableLeft = std::make_shared< CValue >(const_cast< CVariable * >(static_cast< const CVariable * >(mpLeft))->toValue()); // TODO VARIABLE
+      VariableLeft = std::make_shared< CValue >(const_cast< CVariable * >(static_cast< const CVariable * >(mpLeft))->toValue());
       pLeft = VariableLeft.get();
     }
 

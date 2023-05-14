@@ -35,6 +35,7 @@ class CFieldValue;
 class CFieldValueList;
 class CObservable;
 class CVariable;
+class CSetCollectorInterface;
 
 class CNodeElementSelector: public CSetContent
 {
@@ -48,6 +49,8 @@ public:
   virtual ~CNodeElementSelector();
 
   virtual void determineIsStatic() override;
+
+  bool filter(const CNode * pNode);
 
 protected:
   virtual bool computeProtected() override;
@@ -69,6 +72,10 @@ private:
   bool dbIn();
   bool dbNotIn();
 
+  bool filterPropertySelection(const CNode * pNode);
+  bool filterPropertyIn(const CNode * pNode);
+  bool filterPropertyNotIn(const CNode * pNode);
+  
   CNodeProperty mNodeProperty;
   CValue * mpValue;
   CValueList * mpValueList;
@@ -83,6 +90,8 @@ private:
   std::string mSQLComparison;
   bool mLocalScope;
   bool (CNodeElementSelector::*mpCompute)();
+  bool (CNodeElementSelector::*mpFilter)(const CNode *);
+  std::shared_ptr< CSetCollectorInterface > mpCollector;
 };
 
 #endif /* SRC_SETS_CNODEELEMENTSELECTOR_H_ */

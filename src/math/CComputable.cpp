@@ -73,11 +73,12 @@ bool CComputable::compute()
   if (mStatic && mComputedOnce.Active())
     return true;
 
+  CLogger::debug() << "CComputable: Computing '" << getComputableId() << "'" <<  (mStatic ? " (static)" : "") << ".";
+  bool success = computeProtected();
+
   mComputedOnce.Active() = true;
 
-  CLogger::debug() << "CComputable: Computing '" << getComputableId() << "'" <<  (mStatic ? " (static)" : "") << ".";
-
-  return computeProtected();
+  return success;
 }
 
 // virtual 

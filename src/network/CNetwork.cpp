@@ -1742,6 +1742,7 @@ CCommunicate::ErrorCode CNetwork::receiveNodes(std::istream & is, int sender)
       ++i;
       CNode * pNode = lookupNode(Node.id, false);
 
+      // TODO CSetCollector for non local nodes
       if (pNode != NULL)
         {
           CLogger::trace() << "CNetwork: Updating node '" << pNode->id << "'.";

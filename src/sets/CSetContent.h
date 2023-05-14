@@ -75,8 +75,8 @@ protected:
     __SIZE
   };
 
-  template< class CType >
-  static int comparePointer(const CType * pLhs, const CType * pRhs);
+  template< class element_type >
+  static int comparePointer(const element_type * pLhs, const element_type * pRhs);
 
   CSetContent(const Type & type = Type::__SIZE);
 
@@ -152,8 +152,8 @@ private:
   std::string mJSON;
 };
 
-template < class CType >
-int CSetContent::comparePointer(const CType * pLhs, const CType * pRhs)
+template < class element_type >
+int CSetContent::comparePointer(const element_type * pLhs, const element_type * pRhs)
 {
   if (pLhs != NULL
       && pRhs != NULL)

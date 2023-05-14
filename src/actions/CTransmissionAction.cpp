@@ -86,7 +86,7 @@ bool CTransmissionAction::execute() const
             }
 #endif
 
-          success &= COperationInstance< CNode, const CTransmission * >(pTarget, mpTransmission, NULL, &CNode::set, Info).execute();
+          success &= COperationWithCollector< CNode, const CTransmission * >(pTarget, mpTransmission, NULL, &CNode::set, CNodeProperty:: Collectors[(size_t) CNodeProperty::Property::healthState], Info).execute();
         }
     }
   catch (...)

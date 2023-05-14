@@ -32,15 +32,20 @@
 #include "actions/COperation.h"
 #include "utilities/CLogger.h"
 
+// static 
+std::vector< std::set< std::shared_ptr< CSetCollectorInterface > > > CEdgeProperty::Collectors((size_t) CEdgeProperty::Property::__SIZE);
+
 CEdgeProperty::CEdgeProperty()
   : CValueInterface(Type::boolean, NULL)
+  , mProperty(Property::__SIZE)
   , mpPropertyOf(NULL)
   , mpCreateOperation(NULL)
-  , mValid(true)
+  , mValid(false)
 {}
 
 CEdgeProperty::CEdgeProperty(const CEdgeProperty & src)
   : CValueInterface(src)
+  , mProperty(src.mProperty)
   , mpPropertyOf(src.mpPropertyOf)
   , mpCreateOperation(src.mpCreateOperation)
   , mValid(src.mValid)
@@ -48,9 +53,10 @@ CEdgeProperty::CEdgeProperty(const CEdgeProperty & src)
 
 CEdgeProperty::CEdgeProperty(const json_t * json)
   : CValueInterface(Type::boolean, NULL)
+  , mProperty(Property::__SIZE)
   , mpPropertyOf(NULL)
   , mpCreateOperation(NULL)
-  , mValid(true)
+  , mValid(false)
 {
   fromJSON(json);
 }
@@ -82,54 +88,63 @@ void CEdgeProperty::fromJSON(const json_t * json)
 
       if (strcmp(Property, "duration") == 0)
         {
+          mProperty = Property::duration;
           mType = Type::number;
           mpPropertyOf = &CEdgeProperty::duration;
           mpCreateOperation = &CEdgeProperty::setDuration;
         }
       else if (strcmp(Property, "weight") == 0)
         {
+          mProperty = Property::weight;
           mType = Type::number;
           mpPropertyOf = &CEdgeProperty::weight;
           mpCreateOperation = &CEdgeProperty::setWeight;
         }
       else if (strcmp(Property, "active") == 0)
         {
+          mProperty = Property::active;
           mType = Type::boolean;
           mpPropertyOf = &CEdgeProperty::active;
           mpCreateOperation = &CEdgeProperty::setActive;
         }
       else if (strcmp(Property, "targetId") == 0)
         {
+          mProperty = Property::targetId;
           mType = Type::id;
           mpPropertyOf = &CEdgeProperty::targetId;
           mpCreateOperation = &CEdgeProperty::setTargetId;
         }
       else if (strcmp(Property, "sourceId") == 0)
         {
+          mProperty = Property::sourceId;
           mType = Type::id;
           mpPropertyOf = &CEdgeProperty::sourceId;
           mpCreateOperation = &CEdgeProperty::setSourceId;
         }
       else if (strcmp(Property, "targetActivity") == 0)
         {
+          mProperty = Property::targetActivity;
           mType = Type::traitData;
           mpPropertyOf = &CEdgeProperty::targetActivity;
           mpCreateOperation = &CEdgeProperty::setTargetActivity;
         }
       else if (strcmp(Property, "sourceActivity") == 0)
         {
+          mProperty = Property::sourceActivity;
           mType = Type::traitData;
           mpPropertyOf = &CEdgeProperty::sourceActivity;
           mpCreateOperation = &CEdgeProperty::setSourceActivity;
         }
       else if (strcmp(Property, "locationId") == 0)
         {
+          mProperty = Property::locationId;
           mType = Type::id;
           mpPropertyOf = &CEdgeProperty::locationId;
           mpCreateOperation = &CEdgeProperty::setLocationId;
         }
       else if (strcmp(Property, "edgeTrait") == 0)
         {
+          mProperty = Property::edgeTrait;
           mType = Type::traitData;
           mpPropertyOf = &CEdgeProperty::edgeTrait;
           mpCreateOperation = &CEdgeProperty::setEdgeTrait;
@@ -147,12 +162,12 @@ void CEdgeProperty::fromJSON(const json_t * json)
 
 bool CEdgeProperty::operator != (const CEdgeProperty & rhs) const
 {
-  return reinterpret_cast< const void * >(mpPropertyOf) != reinterpret_cast< const void * >(rhs.mpPropertyOf);
+  return mProperty != rhs.mProperty;
 }
 
 bool CEdgeProperty::operator < (const CEdgeProperty & rhs) const
 {
-  return reinterpret_cast< const void * >(mpPropertyOf) < reinterpret_cast< const void * >(rhs.mpPropertyOf);
+  return mProperty < rhs.mProperty;
 }
 
 const bool & CEdgeProperty::isValid() const
@@ -258,12 +273,18 @@ COperation * CEdgeProperty::setSourceId(CEdge * pEdge, const CValueInterface & /
 
 COperation * CEdgeProperty::setTargetActivity(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
-  return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), pOperator, &CEdge::setTargetActivity, info);
+  if (Collectors[(size_t) mProperty].empty())
+    return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), pOperator, &CEdge::setTargetActivity, info);
+  else
+    return new COperationWithCollector< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), pOperator, &CEdge::setTargetActivity, Collectors[(size_t) mProperty], info);
 }
 
 COperation * CEdgeProperty::setSourceActivity(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
-  return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), pOperator, &CEdge::setSourceActivity, info);
+  if (Collectors[(size_t) mProperty].empty())
+    return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), pOperator, &CEdge::setSourceActivity, info);
+  else
+    return new COperationWithCollector< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), pOperator, &CEdge::setSourceActivity, Collectors[(size_t) mProperty], info);
 }
 
 COperation * CEdgeProperty::setLocationId(CEdge * pEdge, const CValueInterface & /* value */, CValueInterface::pOperator /* pOperator */, const CMetadata & /* info */)
@@ -274,22 +295,46 @@ COperation * CEdgeProperty::setLocationId(CEdge * pEdge, const CValueInterface &
 
 COperation * CEdgeProperty::setEdgeTrait(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
-  return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), pOperator, &CEdge::setEdgeTrait, info);
+  if (Collectors[(size_t) mProperty].empty())
+    return new COperationInstance< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), pOperator, &CEdge::setEdgeTrait, info);
+  else
+    return new COperationWithCollector< CEdge, CTraitData::value >(pEdge, value.toTraitValue(), pOperator, &CEdge::setEdgeTrait, Collectors[(size_t) mProperty], info);
 }
 
 COperation * CEdgeProperty::setActive(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
-  return new COperationInstance< CEdge, bool >(pEdge, value.toBoolean(), pOperator, &CEdge::setActive, info);
+  if (Collectors[(size_t) mProperty].empty())
+    return new COperationInstance< CEdge, bool >(pEdge, value.toBoolean(), pOperator, &CEdge::setActive, info);
+  else
+    return new COperationWithCollector< CEdge, bool >(pEdge, value.toBoolean(), pOperator, &CEdge::setActive, Collectors[(size_t) mProperty], info);
 }
 
 COperation * CEdgeProperty::setWeight(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
-  return new COperationInstance< CEdge, double >(pEdge, value.toNumber(), pOperator, &CEdge::setWeight, info);
+  if (Collectors[(size_t) mProperty].empty())
+    return new COperationInstance< CEdge, double >(pEdge, value.toNumber(), pOperator, &CEdge::setWeight, info);
+  else
+    return new COperationWithCollector< CEdge, double >(pEdge, value.toNumber(), pOperator, &CEdge::setWeight, Collectors[(size_t) mProperty], info);
 }
 
 COperation * CEdgeProperty::setDuration(CEdge * pEdge, const CValueInterface & /* value */, CValueInterface::pOperator /* pOperator */, const CMetadata & /* info */)
 {
   CLogger::critical() << "Invalid operation 'setDuration' for edge: " << pEdge->targetId << ", " << pEdge->sourceId;
   return NULL;
+}
+
+void CEdgeProperty::registerSetCollector(std::shared_ptr< CSetCollectorInterface > pCollector) const
+{
+  Collectors[(size_t) mProperty].insert(pCollector);
+  CLogger::debug() << "CEdgeProperty::registerSetCollector: property '" << (size_t) mProperty << "'. size '" << Collectors[(size_t) mProperty].size() << "'";
+}
+
+void CEdgeProperty::deregisterSetCollector(std::shared_ptr< CSetCollectorInterface > pCollector) const
+{
+  if (!Collectors[(size_t) mProperty].empty())
+    {
+      Collectors[(size_t) mProperty].erase(pCollector);
+      CLogger::debug() << "CEdgeProperty::deregisterSetCollector: property '" << (size_t) mProperty << "'. size '" << Collectors[(size_t) mProperty].size() << "'";
+    }
 }
 

@@ -25,6 +25,7 @@
 #ifndef SRC_SETS_CEDGEELEMENTSELECTOR_H_
 #define SRC_SETS_CEDGEELEMENTSELECTOR_H_
 
+#include <memory>
 #include "math/CEdgeProperty.h"
 #include "math/CValueList.h"
 #include "sets/CSetContent.h"
@@ -33,6 +34,7 @@ class CFieldValue;
 class CFieldValueList;
 class CObservable;
 class CVariable;
+class CSetCollectorInterface;
 
 class CEdgeElementSelector: public CSetContent
 {
@@ -48,6 +50,8 @@ public:
   virtual void fromJSONProtected(const json_t * json) override;
 
   virtual void determineIsStatic() override;
+
+  bool filter(const CEdge * pEdge);
 
 protected:
   virtual bool computeProtected() override;
@@ -66,6 +70,10 @@ private:
   bool dbIn();
   bool dbNotIn();
 
+  bool filterPropertySelection(const CEdge * pEdge);
+  bool filterPropertyIn(const CEdge * pEdge);
+  bool filterPropertyNotIn(const CEdge * pEdge);
+  
   CEdgeProperty mEdgeProperty;
   CValue * mpValue;
   CValueList * mpValueList;
@@ -79,6 +87,8 @@ private:
   CValueInterface::pComparison mpComparison;
   std::string mSQLComparison;
   bool (CEdgeElementSelector::*mpCompute)();
+  bool (CEdgeElementSelector::*mpFilter)(const CEdge *);
+  std::shared_ptr< CSetCollectorInterface > mpCollector;
 };
 
 #endif /* SRC_SETS_CEDGEELEMENTSELECTOR_H_ */

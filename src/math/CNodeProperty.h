@@ -25,6 +25,7 @@
 #ifndef SRC_MATH_CNODEPROPERTY_H_
 #define SRC_MATH_CNODEPROPERTY_H_
 
+#include <memory>
 #include "math/CValueInterface.h"
 
 class CValue;
@@ -33,10 +34,23 @@ class CEdge;
 class COperation;
 class CMetadata;
 struct json_t;
+class CSetCollectorInterface;
 
 class CNodeProperty: public CValueInterface
 {
 public:
+  enum struct Property {
+    id,
+    susceptibilityFactor,
+    infectivityFactor,
+    healthState,
+    nodeTrait,
+    edges,
+    __SIZE
+  };
+
+  static std::vector< std::set< std::shared_ptr< CSetCollectorInterface > > > Collectors;
+
   CNodeProperty();
 
   CNodeProperty(const CNodeProperty & src);
@@ -63,6 +77,10 @@ public:
 
   static std::pair< CEdge *, CEdge * > edges(CNode * pNode);
 
+  void registerSetCollector(std::shared_ptr< CSetCollectorInterface > pCollector) const;
+
+  void deregisterSetCollector(std::shared_ptr< CSetCollectorInterface > pCollector) const;
+
 private:
   CValue id(CNode * pNode);
   CValue susceptibilityFactor(CNode * pNode);
@@ -76,6 +94,7 @@ private:
   COperation * setHealthState(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
   COperation * setNodeTrait(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
 
+  Property mProperty;
   CValue (CNodeProperty::*mpPropertyOf)(CNode *);
   COperation * (CNodeProperty::*mpCreateOperation)(CNode *, const CValueInterface &, CValueInterface::pOperator pOperator, const CMetadata & info);
 

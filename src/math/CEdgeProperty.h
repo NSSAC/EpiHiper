@@ -25,6 +25,8 @@
 #ifndef SRC_MATH_CEDGEPROPERTY_H_
 #define SRC_MATH_CEDGEPROPERTY_H_
 
+#include <memory>
+
 #include "math/CValueInterface.h"
 #include "math/CNodeProperty.h"
 
@@ -32,11 +34,25 @@ class CEdge;
 class COperation;
 class CMetadata;
 struct json_t;
+class CSetCollectorInterface;
 
 class CEdgeProperty: public CValueInterface
 {
 public:
   typedef CNode * (*pGetNode)(CEdge *);
+
+  enum struct Property {
+    targetId,
+    sourceId,
+    targetActivity,
+    sourceActivity,
+    locationId,
+    edgeTrait,
+    active,
+    weight,
+    duration,
+    __SIZE
+  };
 
   CEdgeProperty();
 
@@ -66,7 +82,13 @@ public:
 
   static CNode * sourceNode(CEdge * pEdge);
 
+  void registerSetCollector(std::shared_ptr< CSetCollectorInterface > pCollector) const;
+
+  void deregisterSetCollector(std::shared_ptr< CSetCollectorInterface > pCollector) const;
+
 private:
+  static std::vector< std::set< std::shared_ptr< CSetCollectorInterface > > > Collectors;
+
   CValue targetId(CEdge * pEdge);
   CValue sourceId(CEdge * pEdge);
   CValue targetActivity(CEdge * pEdge);
@@ -87,6 +109,7 @@ private:
   COperation * setWeight(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
   COperation * setDuration(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
 
+  Property mProperty;
   CValue (CEdgeProperty::*mpPropertyOf)(CEdge *);
   COperation * (CEdgeProperty::*mpCreateOperation)(CEdge *, const CValueInterface &, CValueInterface::pOperator pOperator, const CMetadata & info);
   bool mValid;

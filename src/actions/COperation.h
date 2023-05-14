@@ -28,6 +28,7 @@
 #include "actions/CChanges.h"
 #include "utilities/CMetadata.h"
 #include "math/CValueInterface.h"
+#include "sets/CSetCollector.h"
 
 struct json_t;
 
@@ -92,6 +93,65 @@ public:
   virtual COperation * copy() const override
   {
     return new COperationInstance<Target, Value>(*this);
+  }
+};
+
+template <class Target, class Value> class COperationWithCollector : public COperation
+{
+private:
+  mutable Target  * mpTarget;
+  Value mValue;
+  CValueInterface::pOperator mpOperator;
+  bool(Target::*mMethod)(Value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+  CMetadata mMetadata;
+  std::set< std::shared_ptr< CSetCollectorInterface > > & mCollectors;
+
+public:
+  COperationWithCollector() = delete;
+
+  COperationWithCollector(Target * pTarget,
+                     Value value,
+                     CValueInterface::pOperator pOperator,
+                     bool (Target::*method)(Value, CValueInterface::pOperator, const CMetadata &),
+                     std::set< std::shared_ptr< CSetCollectorInterface > > & collectors,
+                     const CMetadata & metadata = CMetadata())
+    : mpTarget(pTarget)
+    , mValue(value)
+    , mpOperator(pOperator)
+    , mMethod(method)
+    , mMetadata(metadata)
+    , mCollectors(collectors)
+  {}
+
+  COperationWithCollector(const COperationWithCollector & src)
+    : mpTarget(src.mpTarget)
+    , mValue(src.mValue)
+    , mpOperator(src.mpOperator)
+    , mMethod(src.mMethod)
+    , mMetadata(src.mMetadata)
+    , mCollectors(src.mCollectors)
+  {}
+
+  virtual ~COperationWithCollector() {};
+
+  virtual bool execute() const override
+  {
+    bool changed = (mpTarget->*mMethod)(mValue, mpOperator, mMetadata);
+
+    if (changed)
+      {
+        CChanges::record(mpTarget, mMetadata);
+
+        for (const std::shared_ptr< CSetCollectorInterface > & collector: mCollectors)
+          collector->record(mpTarget);
+      }
+
+    return changed;
+  }
+
+  virtual COperation * copy() const override
+  {
+    return new COperationWithCollector<Target, Value>(*this);
   }
 };
 

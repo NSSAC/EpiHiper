@@ -29,6 +29,7 @@
 #include "network/CNode.h"
 #include "utilities/CMetadata.h"
 #include "utilities/CLogger.h"
+#include "math/CNodeProperty.h"
 
 CProgressionAction::CProgressionAction(const CProgression * pProgression, CNode * pTarget)
   : CAction()
@@ -64,7 +65,7 @@ bool CProgressionAction::execute() const
 
       if (CValueInterface(pTarget->healthState) == mStateAtScheduleTime)
         {
-          success &= COperationInstance< CNode, const CProgression * >(pTarget, mpProgression, NULL, &CNode::set, Info).execute();
+          success &= COperationWithCollector< CNode, const CProgression * >(pTarget, mpProgression, NULL, &CNode::set, CNodeProperty:: Collectors[(size_t) CNodeProperty::Property::healthState], Info).execute();
         }
     }
   catch (...)

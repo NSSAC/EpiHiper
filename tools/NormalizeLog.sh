@@ -70,9 +70,9 @@ function printRow()
   Tick = $5
   gsub(/[\[\]]/, "", Tick)
 
-  if (strtonum(Tick) >= strtonum('${Start}') && strtonum(Tick) <= strtonum('${End}') && $6 != "CNetwork:")
+  if (strtonum(Tick) >= '${Start}' && strtonum(Tick) <= '${End}' && $6 != "CNetwork:")
     printRow()
 
-  if (strtonum(Tick) > strtonum('${End}'))
+  if (strtonum(Tick) > '${End}')
     exit 0
 }' "${1}" > $out

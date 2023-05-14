@@ -83,9 +83,6 @@ bool CSetContent::computeProtected()
 // static
 CSetContent::CSetContentPtr CSetContent::create(const json_t * json)
 {
-  // TODO Assure that we do not create identical selectors utilizing std::shared_ptr< CSetContent >
-  //      We need a comparison operator for CSetContent to identify duplicates.
-
   CSetContent * pNew = NULL;
 
   json_t * pContentType = json_object_get(json, "elementType");
@@ -132,6 +129,7 @@ CSetContent::CSetContentPtr CSetContent::create(const json_t * json)
         CLogger::error() << "Set content: Invalid." << CSimConfig::jsonToString(json);
     }
 
+  // Assure unique CSetContent is returned
   if (pNew == NULL)
     return CSetContentPtr(NULL);
 

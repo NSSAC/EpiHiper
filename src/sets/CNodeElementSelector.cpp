@@ -27,6 +27,7 @@
 #include <jansson.h>
 
 #include "sets/CNodeElementSelector.h"
+#include "sets/CSetCollector.h"
 #include "math/CObservable.h"
 #include "db/CConnection.h"
 #include "db/CField.h"
@@ -41,6 +42,8 @@
 #include "utilities/CLogger.h"
 #include "utilities/CSimConfig.h"
 #include "variables/CVariableList.h"
+
+#define USE_CSETCOLLECTOR 1
 
 CNodeElementSelector::CNodeElementSelector()
   : CSetContent(CSetContent::Type::nodeElementSelector)
@@ -58,6 +61,8 @@ CNodeElementSelector::CNodeElementSelector()
   , mSQLComparison("")
   , mLocalScope(true)
   , mpCompute(NULL)
+  , mpFilter(NULL)
+  , mpCollector(NULL)
 {}
 
 CNodeElementSelector::CNodeElementSelector(const CNodeElementSelector & src)
@@ -76,6 +81,8 @@ CNodeElementSelector::CNodeElementSelector(const CNodeElementSelector & src)
   , mSQLComparison(src.mSQLComparison)
   , mLocalScope(src.mLocalScope)
   , mpCompute(src.mpCompute)
+  , mpFilter(src.mpFilter)
+  , mpCollector(src.mpCollector)
 {}
 
 CNodeElementSelector::CNodeElementSelector(const json_t * json)
@@ -94,6 +101,8 @@ CNodeElementSelector::CNodeElementSelector(const json_t * json)
   , mSQLComparison("")
   , mLocalScope(true)
   , mpCompute(NULL)
+  , mpFilter(NULL)
+  , mpCollector(NULL)
 {
   fromJSON(json);
 }
@@ -111,6 +120,9 @@ CNodeElementSelector::~CNodeElementSelector()
 
   if (mpDBFieldValueList != NULL)
     delete mpDBFieldValueList;
+
+  if (mpCollector)
+    mNodeProperty.deregisterSetCollector(mpCollector);
 }
 
 // virtual
@@ -384,12 +396,28 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
                 }
 
               if (strcmp(Operator, "not in") == 0)
-                mpCompute = &CNodeElementSelector::propertyNotIn;
+                {
+                  mpCompute = &CNodeElementSelector::propertyNotIn;
+                  mpFilter = &CNodeElementSelector::filterPropertyNotIn;
+                }
               else
-                mpCompute = &CNodeElementSelector::propertyIn;
+                {
+                  mpCompute = &CNodeElementSelector::propertyIn;
+                  mpFilter = &CNodeElementSelector::filterPropertyIn;
+                }
 
               if (!mNodeProperty.isReadOnly())
-                mPrerequisites.insert(&CActionQueue::getCurrentTick()); // DONE
+                {
+                  mPrerequisites.insert(&CActionQueue::getCurrentTick());
+
+#ifdef USE_CSETCOLLECTOR
+                  if (mLocalScope)
+                    {
+                      mpCollector = std::shared_ptr< CSetCollectorInterface >(new CSetCollector< CNode, CNodeElementSelector >(this));
+                      mNodeProperty.registerSetCollector(mpCollector);
+                    }
+#endif
+                }
 
               mValid = true;
               return;
@@ -632,9 +660,20 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
               && mpValue->isValid())
             {
               mpCompute = &CNodeElementSelector::propertySelection;
+              mpFilter = &CNodeElementSelector::filterPropertySelection;
 
               if (!mNodeProperty.isReadOnly())
-                mPrerequisites.insert(&CActionQueue::getCurrentTick()); // DONE
+                {
+                  mPrerequisites.insert(&CActionQueue::getCurrentTick());
+
+#ifdef USE_CSETCOLLECTOR
+                  if (mLocalScope)
+                    {
+                      mpCollector = std::shared_ptr< CSetCollectorInterface >(new CSetCollector< CNode, CNodeElementSelector >(this));
+                      mNodeProperty.registerSetCollector(mpCollector);
+                    }
+#endif
+                }
 
               mValid = true;
               return;
@@ -849,15 +888,28 @@ void CNodeElementSelector::determineIsStatic()
     mStatic &= mNodeProperty.isReadOnly();
 }
 
-
 // virtual
 bool CNodeElementSelector::computeProtected()
 {
-  if (mValid
-      && mpCompute != NULL)
-    return (this->*mpCompute)();
+  if (mValid)
+    {
+      if (mpCollector && mComputedOnce.Active())
+        return mpCollector->apply();
+      else if (mpCompute != NULL)
+        {
+          if (mpCollector)
+            mpCollector->enable();
+
+          return (this->*mpCompute)();
+        }
+    }
 
   return false;
+}
+
+bool CNodeElementSelector::filter(const CNode * pNode)
+{
+  return (this->*mpFilter)(pNode);
 }
 
 bool CNodeElementSelector::all()
@@ -888,7 +940,7 @@ bool CNodeElementSelector::propertySelection()
   CNode * pNodeEnd = CNetwork::Context.Active().endNode();
 
   for (; pNode != pNodeEnd; ++pNode)
-    if (mpComparison(mNodeProperty.propertyOf(pNode), *mpValue))
+    if (filterPropertySelection(pNode))
       Nodes.push_back(pNode);
 
   CLogger::debug() << "CNodeElementSelector: propertySelection returned '" << Nodes.size() << "' nodes.";
@@ -901,7 +953,7 @@ bool CNodeElementSelector::propertySelection()
       bool sort = false;
 
       for (; it != end; ++it)
-        if (mpComparison(mNodeProperty.propertyOf(it->second), *mpValue))
+        if (filterPropertySelection(it->second))
           {
             Nodes.push_back(const_cast< CNode * >(it->second));
             sort = true;
@@ -914,6 +966,11 @@ bool CNodeElementSelector::propertySelection()
     }
 
   return true;
+}
+
+bool CNodeElementSelector::filterPropertySelection(const CNode * pNode)
+{
+  return mpComparison(mNodeProperty.propertyOf(pNode), *mpValue);
 }
 
 bool CNodeElementSelector::propertyIn()
@@ -939,7 +996,7 @@ bool CNodeElementSelector::propertyIn()
       bool sort = false;
 
       for (; it != end; ++it)
-        if (mpValueList->contains(mNodeProperty.propertyOf(it->second)))
+        if (filterPropertyIn(it->second))
           {
             Nodes.push_back(const_cast< CNode * >(it->second));
             sort = true;
@@ -951,6 +1008,11 @@ bool CNodeElementSelector::propertyIn()
       CLogger::debug() << "CNodeElementSelector: propertyIn returned '" << Nodes.size() << "' nodes.";
     }
   return true;
+}
+
+bool CNodeElementSelector::filterPropertyIn(const CNode * pNode)
+{
+  return mpValueList->contains(mNodeProperty.propertyOf(pNode));
 }
 
 bool CNodeElementSelector::propertyNotIn()
@@ -976,7 +1038,7 @@ bool CNodeElementSelector::propertyNotIn()
       bool sort = false;
 
       for (; it != end; ++it)
-        if (!mpValueList->contains(mNodeProperty.propertyOf(it->second)))
+        if (filterPropertyNotIn(it->second))
           {
             Nodes.push_back(const_cast< CNode * >(it->second));
             sort = true;
@@ -989,6 +1051,11 @@ bool CNodeElementSelector::propertyNotIn()
     }
 
   return true;
+}
+
+bool CNodeElementSelector::filterPropertyNotIn(const CNode * pNode)
+{
+  return !mpValueList->contains(mNodeProperty.propertyOf(pNode));
 }
 
 bool CNodeElementSelector::withIncomingEdge()

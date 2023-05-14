@@ -33,15 +33,20 @@
 #include "actions/COperation.h"
 #include "utilities/CLogger.h"
 
+// static 
+std::vector< std::set< std::shared_ptr< CSetCollectorInterface > > > CNodeProperty::Collectors((size_t) CNodeProperty::Property::__SIZE);
+
 CNodeProperty::CNodeProperty()
   : CValueInterface(Type::boolean, NULL)
+  , mProperty(Property::__SIZE)
   , mpPropertyOf(NULL)
   , mpCreateOperation(NULL)
-  , mValid(true)
+  , mValid(false)
 {}
 
 CNodeProperty::CNodeProperty(const CNodeProperty & src)
   : CValueInterface(src)
+  , mProperty(src.mProperty)
   , mpPropertyOf(src.mpPropertyOf)
   , mpCreateOperation(src.mpCreateOperation)
   , mValid(src.mValid)
@@ -49,9 +54,10 @@ CNodeProperty::CNodeProperty(const CNodeProperty & src)
 
 CNodeProperty::CNodeProperty(const json_t * json)
   : CValueInterface(Type::boolean, NULL)
+  , mProperty(Property::__SIZE)
   , mpPropertyOf(NULL)
   , mpCreateOperation(NULL)
-  , mValid(true)
+  , mValid(false)
 {
   fromJSON(json);
 }
@@ -67,7 +73,7 @@ CValueInterface * CNodeProperty::copy() const
 
 void CNodeProperty::fromJSON(const json_t * json)
 {
-  mValid = false; // DONE
+  mValid = false; 
   json_t * pObject = json_object_get(json, "node");
 
   if (!json_is_object(pObject))
@@ -83,30 +89,35 @@ void CNodeProperty::fromJSON(const json_t * json)
 
       if (strcmp(Property, "id") == 0)
         {
+          mProperty = Property::id;
           mType = Type::id;
           mpPropertyOf = &CNodeProperty::id;
           mpCreateOperation = &CNodeProperty::setId;
         }
       else if (strcmp(Property, "susceptibilityFactor") == 0)
         {
+          mProperty = Property::susceptibilityFactor;
           mType = Type::number;
           mpPropertyOf = &CNodeProperty::susceptibilityFactor;
           mpCreateOperation = &CNodeProperty::setSusceptibilityFactor;
         }
       else if (strcmp(Property, "infectivityFactor") == 0)
         {
+          mProperty = Property::infectivityFactor;
           mType = Type::number;
           mpPropertyOf = &CNodeProperty::infectivityFactor;
           mpCreateOperation = &CNodeProperty::setInfectivityFactor;
         }
       else if (strcmp(Property, "healthState") == 0)
         {
+          mProperty = Property::healthState;
           mType = Type::id;
           mpPropertyOf = &CNodeProperty::healthState;
           mpCreateOperation = &CNodeProperty::setHealthState;
         }
       else if (strcmp(Property, "nodeTrait") == 0)
         {
+          mProperty = Property::nodeTrait;
           mType = Type::traitData;
           mpPropertyOf = &CNodeProperty::nodeTrait;
           mpCreateOperation = &CNodeProperty::setNodeTrait;
@@ -125,12 +136,12 @@ void CNodeProperty::fromJSON(const json_t * json)
 
 bool CNodeProperty::operator != (const CNodeProperty & rhs) const
 {
-  return reinterpret_cast< const void * >(mpPropertyOf) != reinterpret_cast< const void * >(rhs.mpPropertyOf);
+  return mProperty != rhs.mProperty;
 }
 
 bool CNodeProperty::operator < (const CNodeProperty & rhs) const
 {
-  return reinterpret_cast< const void * >(mpPropertyOf) < reinterpret_cast< const void * >(rhs.mpPropertyOf);
+  return mProperty < rhs.mProperty;
 }
 
 const bool & CNodeProperty::isValid() const
@@ -192,12 +203,12 @@ COperation * CNodeProperty::setId(CNode * pNode, const CValueInterface & /* valu
 
 COperation * CNodeProperty::setSusceptibilityFactor(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
-  return new COperationInstance< CNode, double >(pNode, value.toNumber(), pOperator, &CNode::setSusceptibilityFactor, info);
+  return new COperationWithCollector< CNode, double >(pNode, value.toNumber(), pOperator, &CNode::setSusceptibilityFactor, Collectors[(size_t) mProperty], info);
 }
 
 COperation * CNodeProperty::setInfectivityFactor(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
-  return new COperationInstance< CNode, double >(pNode, value.toNumber(), pOperator, &CNode::setInfectivityFactor, info);
+  return new COperationWithCollector< CNode, double >(pNode, value.toNumber(), pOperator, &CNode::setInfectivityFactor, Collectors[(size_t) mProperty], info);
 }
 
 COperation * CNodeProperty::setHealthState(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
@@ -205,10 +216,25 @@ COperation * CNodeProperty::setHealthState(CNode * pNode, const CValueInterface 
   CMetadata Info(info);
   Info.set("StateChange", true);
 
-  return new COperationInstance< CNode, size_t >(pNode, value.toId(), pOperator, &CNode::setHealthState, Info);
+  return new COperationWithCollector< CNode, size_t >(pNode, value.toId(), pOperator, &CNode::setHealthState, Collectors[(size_t) mProperty], Info);
 }
 
 COperation * CNodeProperty::setNodeTrait(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
 {
-  return new COperationInstance< CNode, CTraitData::value >(pNode, value.toTraitValue(), pOperator, &CNode::setNodeTrait, info);
+  return new COperationWithCollector< CNode, CTraitData::value >(pNode, value.toTraitValue(), pOperator, &CNode::setNodeTrait, Collectors[(size_t) mProperty], info);
 }
+
+void CNodeProperty::registerSetCollector(std::shared_ptr< CSetCollectorInterface > pCollector) const
+{
+  Collectors[(size_t) mProperty].insert(pCollector);
+  CLogger::debug() << "CNodeProperty::registerSetCollector: property '" << (size_t) mProperty << "'. size '" << Collectors[(size_t) mProperty].size() << "'";
+}    
+
+void CNodeProperty::deregisterSetCollector(std::shared_ptr< CSetCollectorInterface > pCollector) const
+{
+  if (!Collectors[(size_t) mProperty].empty())
+    {
+      Collectors[(size_t) mProperty].erase(pCollector);
+      CLogger::debug() << "CNodeProperty::deregisterSetCollector: property '" << (size_t) mProperty << "'. size '" << Collectors[(size_t) mProperty].size() << "'";
+    }
+}    

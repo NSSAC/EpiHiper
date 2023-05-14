@@ -26,6 +26,7 @@
 #include <jansson.h>
 
 #include "sets/CEdgeElementSelector.h"
+#include "sets/CSetCollector.h"
 #include "math/CObservable.h"
 #include "db/CConnection.h"
 #include "db/CFieldValue.h"
@@ -39,6 +40,8 @@
 #include "utilities/CLogger.h"
 #include "utilities/CSimConfig.h"
 #include "variables/CVariableList.h"
+
+#define USE_CSETCOLLECTOR 1
 
 CEdgeElementSelector::CEdgeElementSelector()
   : CSetContent(CSetContent::Type::edgeElementSelector)
@@ -54,6 +57,8 @@ CEdgeElementSelector::CEdgeElementSelector()
   , mpDBFieldValueList(NULL)
   , mpComparison(NULL)
   , mpCompute(NULL)
+  , mpFilter(NULL)
+  , mpCollector(NULL)
 {}
 
 CEdgeElementSelector::CEdgeElementSelector(const CEdgeElementSelector & src)
@@ -70,6 +75,8 @@ CEdgeElementSelector::CEdgeElementSelector(const CEdgeElementSelector & src)
   , mpDBFieldValueList(src.mpDBFieldValueList != NULL ? new CFieldValueList(*src.mpDBFieldValueList) : NULL)
   , mpComparison(src.mpComparison)
   , mpCompute(src.mpCompute)
+  , mpFilter(src.mpFilter)
+  , mpCollector(src.mpCollector)
 {}
 
 CEdgeElementSelector::CEdgeElementSelector(const json_t * json)
@@ -86,6 +93,8 @@ CEdgeElementSelector::CEdgeElementSelector(const json_t * json)
   , mpDBFieldValueList(NULL)
   , mpComparison(NULL)
   , mpCompute(NULL)
+  , mpFilter(NULL)
+  , mpCollector(NULL)
 {
   fromJSON(json);
 }
@@ -103,6 +112,9 @@ CEdgeElementSelector::~CEdgeElementSelector()
     
   if (mpDBFieldValueList != NULL)
     delete mpDBFieldValueList;
+
+  if (mpCollector)
+    mEdgeProperty.deregisterSetCollector(mpCollector);    
 }
 
 // virtual
@@ -295,12 +307,25 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
                 }
 
               if (strcmp(Operator, "not in") == 0)
-                mpCompute = &CEdgeElementSelector::propertyNotIn;
+                {
+                  mpCompute = &CEdgeElementSelector::propertyNotIn;
+                  mpFilter = &CEdgeElementSelector::filterPropertyNotIn;
+                }
               else
-                mpCompute = &CEdgeElementSelector::propertyIn;
+                {
+                  mpCompute = &CEdgeElementSelector::propertyIn;
+                  mpFilter = &CEdgeElementSelector::filterPropertyIn;
+                }
 
               if (!mEdgeProperty.isReadOnly())
-                mPrerequisites.insert(&CActionQueue::getCurrentTick()); // DONE
+                {
+                  mPrerequisites.insert(&CActionQueue::getCurrentTick()); // DONE
+
+#ifdef USE_CSETCOLLECTOR
+                  mpCollector = std::shared_ptr< CSetCollectorInterface >(new CSetCollector< CEdge, CEdgeElementSelector >(this));
+                  mEdgeProperty.registerSetCollector(mpCollector);
+#endif                  
+                }
 
               mValid = true;
               return;
@@ -522,9 +547,17 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
               && mpValue->isValid())
             {
               mpCompute = &CEdgeElementSelector::propertySelection;
+              mpFilter = &CEdgeElementSelector::filterPropertySelection;
 
               if (!mEdgeProperty.isReadOnly())
-                mPrerequisites.insert(&CActionQueue::getCurrentTick()); // DONE
+                {
+                  mPrerequisites.insert(&CActionQueue::getCurrentTick()); // DONE
+
+#ifdef USE_CSETCOLLECTOR
+                  mpCollector = std::shared_ptr< CSetCollectorInterface >(new CSetCollector< CEdge, CEdgeElementSelector >(this));
+                  mEdgeProperty.registerSetCollector(mpCollector);
+#endif
+                }
 
               mValid = true;
               return;
@@ -726,7 +759,6 @@ bool CEdgeElementSelector::lessThanProtected(const CSetContent & rhs) const
   if (mSQLComparison != pRhs->mSQLComparison)  
     return mSQLComparison < pRhs->mSQLComparison;
 
-
   return reinterpret_cast< const void * >(mpCompute) < reinterpret_cast< const void * >(pRhs->mpCompute);
 }
 
@@ -742,11 +774,25 @@ void CEdgeElementSelector::determineIsStatic()
 // virtual
 bool CEdgeElementSelector::computeProtected()
 {
-  if (mValid
-      && mpCompute != NULL)
-    return (this->*mpCompute)();
+  if (mValid)
+    {
+      if (mpCollector && mComputedOnce.Active())
+        return mpCollector->apply();
+      else if (mpCompute != NULL)
+        {
+          if (mpCollector)
+            mpCollector->enable();
+
+          return (this->*mpCompute)();
+        }
+    }
 
   return false;
+}
+
+bool CEdgeElementSelector::filter(const CEdge * pEdge)
+{
+  return (this->*mpFilter)(pEdge);
 }
 
 bool CEdgeElementSelector::all()
@@ -777,12 +823,17 @@ bool CEdgeElementSelector::propertySelection()
   CEdge * pEdgeEnd = CNetwork::Context.Active().endEdge();
 
   for (; pEdge != pEdgeEnd; ++pEdge)
-    if (mpComparison(mEdgeProperty.propertyOf(pEdge), *mpValue))
+    if (filterPropertySelection(pEdge))
       Edges.push_back(pEdge);
 
 
   CLogger::debug() << "CEdgeElementSelector: propertySelection returned '" << Edges.size() << "' edges.";
   return true;
+}
+
+bool CEdgeElementSelector::filterPropertySelection(const CEdge * pEdge)
+{
+  return mpComparison(mEdgeProperty.propertyOf(pEdge), *mpValue);
 }
 
 bool CEdgeElementSelector::propertyIn()
@@ -794,11 +845,16 @@ bool CEdgeElementSelector::propertyIn()
   CEdge * pEdgeEnd = CNetwork::Context.Active().endEdge();
 
   for (; pEdge != pEdgeEnd; ++pEdge)
-    if (mpValueList->contains(mEdgeProperty.propertyOf(pEdge)))
+    if (filterPropertyIn(pEdge))
       Edges.push_back(pEdge);
 
   CLogger::debug() << "CEdgeElementSelector: propertyIn returned '" << Edges.size() << "' edges.";
   return true;
+}
+
+bool CEdgeElementSelector::filterPropertyIn(const CEdge * pEdge)
+{
+  return mpValueList->contains(mEdgeProperty.propertyOf(pEdge));
 }
 
 bool CEdgeElementSelector::propertyNotIn()
@@ -810,11 +866,16 @@ bool CEdgeElementSelector::propertyNotIn()
   CEdge * pEdgeEnd = CNetwork::Context.Active().endEdge();
 
   for (; pEdge != pEdgeEnd; ++pEdge)
-    if (!mpValueList->contains(mEdgeProperty.propertyOf(pEdge)))
+    if (filterPropertyNotIn(pEdge))
       Edges.push_back(pEdge);
 
   CLogger::debug() << "CEdgeElementSelector: propertyNotIn returned '" << Edges.size() << "' edges.";
   return true;
+}
+
+bool CEdgeElementSelector::filterPropertyNotIn(const CEdge * pEdge)
+{
+  return !mpValueList->contains(mEdgeProperty.propertyOf(pEdge));
 }
 
 bool CEdgeElementSelector::withTargetNodeIn()
@@ -844,7 +905,7 @@ bool CEdgeElementSelector::withTargetNodeIn()
             Edges.push_back(pEdge);
         }
 
-      // Sorting is not necessarry since the nodes are sorted
+      // Sorting is not necessary since the nodes are sorted
       // std::sort(Edges.begin(), Edges.end());
     }
 
@@ -870,8 +931,6 @@ bool CEdgeElementSelector::withSourceNodeIn()
           CNode::sOutgoingEdges & OutgoingEdges = (*itNode)->OutgoingEdges.Active();
           CEdge ** pEdge = OutgoingEdges.pEdges;
           CEdge ** pEdgeEnd = pEdge + OutgoingEdges.Size;
-
-          CLogger::debug() << "CEdgeElementSelector::withSourceNodeIn: node " << (*itNode)->id << " edges " << OutgoingEdges.Size;
 
           for (;pEdge != pEdgeEnd; ++pEdge)
             Edges.push_back(*pEdge);
