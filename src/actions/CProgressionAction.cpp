@@ -37,10 +37,10 @@ CProgressionAction::CProgressionAction(const CProgression * pProgression, CNode 
   , mpTarget(pTarget)
   , mStateAtScheduleTime(pTarget->healthState)
 {
-  CLogger::trace() << "CProgressionAction: Add action Node "
-                   << mpTarget->id
-                   << " healthState = "
-                   << mpProgression->getExitState()->getId();
+  ENABLE_TRACE(CLogger::trace() << "CProgressionAction: Add action Node "
+                                << mpTarget->id
+                                << " healthState = "
+                                << mpProgression->getExitState()->getId();)
 }
 
 // virtual

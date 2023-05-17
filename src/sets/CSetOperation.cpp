@@ -295,7 +295,7 @@ bool CSetOperation::computeIntersection()
 
   for (it = mSets.begin(); it != end; ++it)
     {
-      Debug << Separator << (*it)->getComputableId() << ": " << (*it)->size();
+      Debug << Separator << (*it)->CComputable::getComputableId() << ": " << (*it)->size();
 
       if (Separator.empty())
         Separator = ", ";

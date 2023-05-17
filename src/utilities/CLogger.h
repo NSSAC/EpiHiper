@@ -32,6 +32,12 @@
 #include <spdlog/sinks/sink.h>
 #include "utilities/CContext.h"
 
+#ifdef SUPPORT_LOGLEVEL_TRACE
+#  define ENABLE_TRACE(trace...) trace
+#else
+#  define ENABLE_TRACE(trace...)
+#endif
+
 class CLogger
 {
 private:

@@ -118,6 +118,7 @@ bool CDependencyGraph::applyComputableSequence(CComputable::Sequence & updateSeq
 
   for (; it != end && success; ++it)
     {
+#ifdef USE_PROCESS_GROUPS
       if (dynamic_cast< CSetContent * >(*it))
         {
           CSetContent * pSetContent = static_cast< CSetContent * >(*it);
@@ -141,6 +142,9 @@ bool CDependencyGraph::applyComputableSequence(CComputable::Sequence & updateSeq
         }
       else
         success &= (*it)->compute();
+#else
+      success &= (*it)->compute();
+#endif
     }
 
   if (!EdgeFilter.empty())

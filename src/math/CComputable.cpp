@@ -103,7 +103,7 @@ void CComputable::determineIsStatic()
 
   for (; it != end && mStatic; ++it)
     {
-      mStatic = it->second->isStatic();
+      mStatic &= it->second->isStatic();
     }
 }
 

@@ -243,7 +243,7 @@ void CActionDefinition::process() const
 {
   try
     {
-      CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] node and edge independent action.";
+      ENABLE_TRACE(CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] node and edge independent action.";)
       CActionQueue::addAction(mDelay, new CVariableAction(this));
     }
   catch (...)
@@ -266,7 +266,7 @@ void CActionDefinition::process(const CEdge * pEdge) const
 
   try
     {
-      CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Add action for edge '" << pEdge->targetId << "," << pEdge->sourceId << "'.";
+      ENABLE_TRACE(CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Add action for edge '" << pEdge->targetId << "," << pEdge->sourceId << "'.";)
       CActionQueue::addAction(mDelay, new CEdgeAction(this, pEdge));
     }
   catch (...)
@@ -282,14 +282,14 @@ void CActionDefinition::process(const CNode * pNode) const
 
   if (CNetwork::Context.Active().isRemoteNode(pNode))
     {
-      CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Add remote action for node '" << pNode->id << "'.";
+      ENABLE_TRACE(CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Add remote action for node '" << pNode->id << "'.";)
       CActionQueue::addRemoteAction(mIndex, pNode);
       return;
     }
 
   try
     {
-      CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Add action for node '" << pNode->id << "'.";
+      ENABLE_TRACE(CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Add action for node '" << pNode->id << "'.";)
       CActionQueue::addAction(mDelay, new CNodeAction(this, pNode));
     }
   catch (...)

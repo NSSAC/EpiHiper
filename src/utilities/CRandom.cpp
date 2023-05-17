@@ -31,7 +31,7 @@ CRandom::result_t CRandom::debug_generator::operator()()
 {
   result_t r = std::mt19937_64::operator()();
 
-  CLogger::trace() << "CRandom::CGenerator::operator " << r;
+  ENABLE_TRACE(CLogger::trace() << "CRandom::CGenerator::operator " << r;)
 
   return r;
 }

@@ -275,16 +275,16 @@ bool CVariable::getValue()
   return changed;
 }
 
-bool CVariable::setValue(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
+bool CVariable::setValue(double value, CValueInterface::pOperator pOperator, const CMetadata & ENABLE_TRACE(metadata))
 {
-  CLogger::trace() << "CVariable [ActionDefinition:"
-                   << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
-                   << "]: Variable ("
-                   << mId
-                   << ") value "
-                   << CValueInterface::operatorToString(pOperator)
-                   << " "
-                   << value;
+  ENABLE_TRACE(CLogger::trace() << "CVariable [ActionDefinition:"
+                                << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
+                                << "]: Variable ("
+                                << mId
+                                << ") value "
+                                << CValueInterface::operatorToString(pOperator)
+                                << " "
+                                << value;)
 
   const double Value = mLocalValue.Active();
 

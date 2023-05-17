@@ -1745,7 +1745,7 @@ CCommunicate::ErrorCode CNetwork::receiveNodes(std::istream & is, int sender)
       // TODO CSetCollector for non local nodes
       if (pNode != NULL)
         {
-          CLogger::trace() << "CNetwork: Updating node '" << pNode->id << "'.";
+          ENABLE_TRACE(CLogger::trace() << "CNetwork: Updating node '" << pNode->id << "'.";)
 
           pNode->susceptibilityFactor = Node.susceptibilityFactor;
           pNode->susceptibility = Node.susceptibility;

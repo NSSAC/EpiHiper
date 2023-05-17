@@ -14,7 +14,7 @@
 #include "utilities/CLogger.h"
 
 
-// #define USE_CSETCOLLECTOR 1
+#define USE_CSETCOLLECTOR 1
 
 // #define USE_BITSET 1
 #define USE_HASH_MAP 1
@@ -138,7 +138,7 @@ inline bool CSetCollector< element_type, selector >::apply()
   sorted_vector Insert;
   sorted_vector Erase;
 
-  size_t count = 0;
+  ENABLE_TRACE(size_t count = 0;)
   
 #ifdef USE_BITSET
   if (Context.insert.any())
@@ -149,7 +149,7 @@ inline bool CSetCollector< element_type, selector >::apply()
       for (; index < 546356; ++index, ++pOffset)
         if (Context.insert[index])
           {
-            ++count;
+            ENABLE_TRACE(++count;)
             Insert.push_back(pOffset);
           }
 
@@ -164,14 +164,14 @@ inline bool CSetCollector< element_type, selector >::apply()
       for (; index < 546356; ++index, ++pOffset)
         if (Context.erase[index])
           {
-            ++count;
+            ENABLE_TRACE(++count;)
             Erase.push_back(pOffset);
           }
 
       Context.erase.reset();
     }
 #else
-  count = Context.Changes.size();
+  ENABLE_TRACE(count = Context.Changes.size();)
 
   for (const std::pair< element_type *, int > & change: Context.Changes)
     if (change.second > 0)
@@ -187,7 +187,7 @@ inline bool CSetCollector< element_type, selector >::apply()
   Context.Changes.clear();
 #endif
 
-  CLogger::trace() << "CSetCollector::apply: changes '" << count << "' => erase '" << Erase.size() << "' , insert '" << Insert.size() << "'.";
+  ENABLE_TRACE(CLogger::trace() << "CSetCollector::apply: changes '" << count << "' => erase '" << Erase.size() << "' , insert '" << Insert.size() << "'.";)
 
   sorted_vector temp;
   sorted_vector * pIn = &Set;
@@ -197,7 +197,7 @@ inline bool CSetCollector< element_type, selector >::apply()
   if (!Erase.empty())
     {
       std::set_difference(pIn->begin(), pIn->end(), Erase.begin(), Erase.end(), std::back_inserter(*pOut));
-      CLogger::trace() << "CSetCollector::apply: difference returned '" << pIn->size() << "' - '" << Erase.size() << "' = '" << pOut->size() << "'.";
+      ENABLE_TRACE(CLogger::trace() << "CSetCollector::apply: difference returned '" << pIn->size() << "' - '" << Erase.size() << "' = '" << pOut->size() << "'.";)
       std::swap(pIn, pOut);
     }
 
@@ -206,7 +206,7 @@ inline bool CSetCollector< element_type, selector >::apply()
     {
       pOut->clear();
       std::set_union(pIn->begin(), pIn->end(), Insert.begin(), Insert.end(), std::back_inserter(*pOut));
-      CLogger::trace() << "CSetCollector::apply: union returned '" << pIn->size() << "' + '" << Insert.size() << "' = '" << pOut->size() << "'.";
+      ENABLE_TRACE(CLogger::trace() << "CSetCollector::apply: union returned '" << pIn->size() << "' + '" << Insert.size() << "' = '" << pOut->size() << "'.";)
       std::swap(pIn, pOut);
     }
 

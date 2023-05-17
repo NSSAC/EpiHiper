@@ -58,6 +58,12 @@ if (APPLE)
   set(TARGET_MACOSX 1)
 endif(APPLE)
 
+option(ENABLE_LOGLEVEL_TRACE "Enable loglevel trace" OFF)
+
+if (ENABLE_LOGLEVEL_TRACE)
+  set(SUPPORT_LOGLEVEL_TRACE 1)
+endif(ENABLE_LOGLEVEL_TRACE)
+
 find_package (PGSQL REQUIRED)
 include_directories(BEFORE ${PGSQL_INCLUDE_DIR})
 
@@ -67,37 +73,37 @@ add_subdirectory(dependencies)
 add_subdirectory(src)
 add_subdirectory(plugin)
 
-message(STATUS "-----------------------------------------------------------
+message(STATUS "----------------------------------------------------------------
 
  Building EpiHiper 
 
-   Source Dir         = ${CMAKE_SOURCE_DIR}
-   Binary Dir         = ${CMAKE_BINARY_DIR}
-   Install Prefix     = ${CMAKE_INSTALL_PREFIX}
+   Source Dir             = ${CMAKE_SOURCE_DIR}
+   Binary Dir             = ${CMAKE_BINARY_DIR}
+   Install Prefix         = ${CMAKE_INSTALL_PREFIX}
 
   Options:
 
-   Use Location Id    = ${ENABLE_LOCATION_ID}
-   Use OpenMP         = ${ENABLE_OMP}
-   Use MPI            = ${ENABLE_MPI}
-
+   Use Location Id        = ${ENABLE_LOCATION_ID}
+   Use OpenMP             = ${ENABLE_OMP}
+   Use MPI                = ${ENABLE_MPI}
+   Log level trace        = ${ENABLE_LOGLEVEL_TRACE}
  Dependencies:
 
-   MPI Libs           = ${MPI_LIBRARIES}
-   MPI LDFLAGS        = ${MPI_LINKER_FLAGS}
-   MPI include        = ${MPI_INCLUDE_PATH}
+   MPI Libs               = ${MPI_LIBRARIES}
+   MPI LDFLAGS            = ${MPI_LINKER_FLAGS}
+   MPI include            = ${MPI_INCLUDE_PATH}
 
-   OpenMP CXX Flags   = ${OpenMP_CXX_FLAGS}
-   OpenMP Libs        = ${OpenMP_C_LIB_NAMES}
+   OpenMP CXX Flags       = ${OpenMP_CXX_FLAGS}
+   OpenMP Libs            = ${OpenMP_C_LIB_NAMES}
    
-   PostgreSQL Libs    = ${PGSQL_LIBRARY}
-   PostgreSQL include = ${PGSQL_INCLUDE_DIR}
+   PostgreSQL Libs        = ${PGSQL_LIBRARY}
+   PostgreSQL include     = ${PGSQL_INCLUDE_DIR}
    
-   libpqxx Libs       = ${CMAKE_BINARY_DIR}/lib/libpqxx.a
-   libpqxx include    = ${CMAKE_BINARY_DIR}/include
+   libpqxx Libs           = ${CMAKE_BINARY_DIR}/lib/libpqxx.a
+   libpqxx include        = ${CMAKE_BINARY_DIR}/include
 
-   jansson Libs       = ${CMAKE_BINARY_DIR}/lib/libjansson.a
-   jansson include    = ${CMAKE_BINARY_DIR}/include
+   jansson Libs           = ${CMAKE_BINARY_DIR}/lib/libjansson.a
+   jansson include        = ${CMAKE_BINARY_DIR}/include
 
------------------------------------------------------------
+----------------------------------------------------------------
 ")
