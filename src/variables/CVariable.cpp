@@ -326,7 +326,10 @@ CValue CVariable::toValue()
 // virtual 
 std::string CVariable::getComputableId() const
 {
-  return "CVariable:" + mId;
+  std::ostringstream os;
+  os << "CVariable: " << mId << " (" << mComputableId  << ")";
+
+  return os.str();
 }
 
 // virtual 

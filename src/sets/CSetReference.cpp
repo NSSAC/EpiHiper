@@ -120,12 +120,12 @@ bool CSetReference::resolve()
       if ((*it)->mpSet != NULL
           && (*it)->mpSet->isValid())
         {
-          (*it)->mPrerequisites.insert((*it)->mpSet); // DONE
+          (*it)->mPrerequisites.insert((*it)->mpSet);
         }
       else
         {
           (*it)->mpSet = NULL;
-          (*it)->mValid = false; // DONE
+          (*it)->mValid = false;
           CLogger::error() << "Set reference: Unresolved idRef '" << (*it)->mIdRef << "'.";
           success = false;
         }
@@ -144,8 +144,10 @@ bool CSetReference::computeProtected()
 // virtual 
 std::string CSetReference::getComputableId() const
 {
-  if (mpSet != nullptr)
-    return mpSet->getComputableId();
+  std::string SetId = (mpSet != nullptr) ? mpSet->CComputable::getComputableId() : "?";
 
-  return CSetContent::getComputableId();
+  std::ostringstream os;
+  os << "CSetReference: " << mIdRef << " (" << mComputableId  << ")"  << " => (" << SetId  << ")";
+
+  return os.str();
 }

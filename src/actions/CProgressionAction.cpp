@@ -65,7 +65,7 @@ bool CProgressionAction::execute() const
 
       if (CValueInterface(pTarget->healthState) == mStateAtScheduleTime)
         {
-          success &= COperationWithCollector< CNode, const CProgression * >(pTarget, mpProgression, NULL, &CNode::set, CNodeProperty:: Collectors[(size_t) CNodeProperty::Property::healthState], Info).execute();
+          success &= COperation::execute< CNode, const CProgression * >(pTarget, mpProgression, NULL, &CNode::set, CNodeProperty:: Collectors[(size_t) CNodeProperty::Property::healthState], Info);
         }
     }
   catch (...)

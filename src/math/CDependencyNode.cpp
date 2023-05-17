@@ -26,6 +26,9 @@
 
 #include "math/CComputable.h"
 #include "math/CDependencyNodeIterator.h"
+#include "utilities/CLogger.h"
+#include "sets/CSet.h"
+#include "sets/CSetReference.h"
 
 CDependencyNode::CDependencyNode()
   : mpComputable(NULL)
@@ -342,8 +345,6 @@ bool CDependencyNode::buildProcessGroups(std::vector < std::vector < CComputable
 
   while (itNode.next())
     {
-      const CComputable * pMathComputable = itNode->getComputable();
-
       switch (itNode.state())
         {
           case CDependencyNodeIterator::Recursive:
@@ -363,18 +364,18 @@ bool CDependencyNode::buildProcessGroups(std::vector < std::vector < CComputable
 
             // This check is not needed as unchanged or unrequested nodes
             // are skipped in Before processing.
-            if (itNode->isChanged() && itNode->isRequested() && pMathComputable != NULL)
+            if (itNode->isChanged() && itNode->isRequested())
               {
-                size_t ProcessGroupIndex = mMaxChildGroupIndex + 1;
+                size_t ProcessGroupIndex = itNode->maxChildGroupIndex() + 1;
 
                 if  (processGroups.size() <= ProcessGroupIndex)
                   processGroups.push_back(std::vector < CComputable * >());
-                
+
                 processGroups[ProcessGroupIndex].push_back(const_cast< CComputable * >(itNode->getComputable()));
                 itNode->setChanged(false);
 
-                if (itNode.parent() != NULL)
-                  const_cast< CDependencyNode * >(itNode.parent())->updateMaxChildGroupIndex(ProcessGroupIndex);
+                for (CDependencyNode * pNode : itNode->mDependents)
+                  pNode->updateMaxChildGroupIndex(ProcessGroupIndex);
               }
 
             break;
@@ -456,6 +457,17 @@ void CDependencyNode::updateEdges(const std::map< CDependencyNode *, CDependency
       *it = found->second;
     }
 }
+
+int CDependencyNode::maxChildGroupIndex() const
+{
+  if (mMaxChildGroupIndex >= 0
+      && (dynamic_cast< const CSet * >(mpComputable)
+          || dynamic_cast< const CSetReference * >(mpComputable)))
+    return mMaxChildGroupIndex - 1;
+
+  return mMaxChildGroupIndex;
+}
+
 
 void CDependencyNode::updateMaxChildGroupIndex(const int & childIndex)
 {

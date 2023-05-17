@@ -31,6 +31,8 @@
 
 #include "math/CComputable.h"
 
+// #define USE_PROCESS_GROUPS 1
+
 class CDependencyNode;
 
 class CDependencyGraph
@@ -40,24 +42,25 @@ public:
   typedef NodeMap::iterator iterator;
   typedef NodeMap::const_iterator const_iterator;
 
+#ifdef USE_PROCESS_GROUPS
+  typedef std::vector< CComputable::Sequence > UpdateOrder;
+
+#else
+  typedef CComputable::Sequence UpdateOrder;
+#endif
 
   static void buildGraph();
 
-  static bool applyUpdateSequence();
+  static bool applyUpdateOrder();
 
-  static bool applyComputeOnceSequence();
+  static bool applyComputeOnceOrder();
 
-  static bool applyUpdateSequence(CComputable::Sequence & updateSequence);
+  static bool applyUpdateOrder(UpdateOrder & updateOrder);
 
-  static bool getUpdateSequence(CComputable::Sequence & updateSequence,
-                                const CComputableSet & requestedComputables);
+  static bool getUpdateOrder(UpdateOrder & updateOrder,
+                             const CComputableSet & requestedComputables);
 
-  static bool applyProcessGroups();
-
-  static bool applyProcessGroups(std::vector< CComputable::Sequence > & processGroups);
-
-  static bool getProcessGroups(std::vector< CComputable::Sequence > & processGroups,
-                               const CComputableSet & requestedComputables);
+  static bool applyComputableSequence(CComputable::Sequence & updateSequence);
 
   // Operations
   /**
@@ -184,11 +187,10 @@ public:
 
 private:
   static CDependencyGraph INSTANCE;
-  static CComputable::Sequence UpdateSequence;
-  static std::vector< CComputable::Sequence > ProcessGroups;
+  static UpdateOrder CommonUpdateOrder;
   static CComputableSet UpToDate;
   static CComputable::Sequence ComputeOnceSequence;
-  
+
   std::string getDOTNodeId(const CComputable * pComputable) const;
 
   // Attributes

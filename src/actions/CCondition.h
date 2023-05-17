@@ -135,4 +135,8 @@ private:
   const CValueList & mValueList;
 };
 
+class SCondition {
+
+};
+
 #endif /* SRC_ACTIONS_CCONDITION_H_ */

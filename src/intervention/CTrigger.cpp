@@ -78,7 +78,7 @@ void CTrigger::release()
 // static
 bool CTrigger::processAll()
 {
-  static CComputable::Sequence UpdateSequence;
+  static CDependencyGraph::UpdateOrder UpdateSequence;
 
 #pragma omp single
   {
@@ -116,11 +116,12 @@ bool CTrigger::processAll()
         }
     }
 
-    CDependencyGraph::getUpdateSequence(UpdateSequence, RequiredTargets);
+    CDependencyGraph::getUpdateOrder(UpdateSequence, RequiredTargets);
+
     CLogger::setSingle(false);
   }
 
-  return CDependencyGraph::applyUpdateSequence(UpdateSequence);
+  return CDependencyGraph::applyUpdateOrder(UpdateSequence);
 }
 
 // static

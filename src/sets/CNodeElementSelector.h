@@ -50,7 +50,9 @@ public:
 
   virtual void determineIsStatic() override;
 
-  bool filter(const CNode * pNode);
+  virtual FilterType filterType() const override;
+
+  virtual bool filter(const CNode * pNode) const override;
 
 protected:
   virtual bool computeProtected() override;
@@ -72,9 +74,9 @@ private:
   bool dbIn();
   bool dbNotIn();
 
-  bool filterPropertySelection(const CNode * pNode);
-  bool filterPropertyIn(const CNode * pNode);
-  bool filterPropertyNotIn(const CNode * pNode);
+  bool filterPropertySelection(const CNode * pNode) const;
+  bool filterPropertyIn(const CNode * pNode) const;
+  bool filterPropertyNotIn(const CNode * pNode) const;
   
   CNodeProperty mNodeProperty;
   CValue * mpValue;
@@ -90,7 +92,7 @@ private:
   std::string mSQLComparison;
   bool mLocalScope;
   bool (CNodeElementSelector::*mpCompute)();
-  bool (CNodeElementSelector::*mpFilter)(const CNode *);
+  bool (CNodeElementSelector::*mpFilter)(const CNode *) const;
   std::shared_ptr< CSetCollectorInterface > mpCollector;
 };
 

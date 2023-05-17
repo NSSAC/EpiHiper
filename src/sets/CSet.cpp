@@ -174,5 +174,12 @@ bool CSet::computeProtected()
 // virtual 
 std::string CSet::getComputableId() const
 {
-  return "CSet: " + mId;
+  std::ostringstream os;
+  
+  if (mId != "%empty%")
+    os << "CSet: " << mId << " (" << mComputableId  << ")"  << " => (" << mpSetContent->getComputableId()  << ")";
+  else
+    os << "CSet: " << mId << " (" << mComputableId  << ") => ()";
+
+  return os.str();
 }

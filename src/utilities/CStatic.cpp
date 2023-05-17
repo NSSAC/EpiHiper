@@ -113,10 +113,7 @@ bool * CTrigger::pGlobalTriggered(NULL);
 CDependencyGraph CDependencyGraph::INSTANCE;
 
 // static
-CComputable::Sequence CDependencyGraph::UpdateSequence;
-
-// static
-std::vector< CComputable::Sequence > CDependencyGraph::ProcessGroups;
+CDependencyGraph::UpdateOrder CDependencyGraph::CommonUpdateOrder;
 
 // static
 CComputableSet CDependencyGraph::UpToDate;

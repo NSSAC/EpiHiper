@@ -314,11 +314,7 @@ bool CActionDefinition::execute() const
           std::vector< COperationDefinition >::const_iterator end = mOperations.end();
 
           for (; it != end; ++it)
-            {
-              COperation * pOperation = it->createOperation(mInfo); 
-              pOperation->execute();
-              delete pOperation;
-            }
+            it->execute(mInfo); 
         }
     }
   catch (...)
@@ -349,11 +345,7 @@ bool CActionDefinition::execute(CEdge * pEdge) const
           std::vector< COperationDefinition >::const_iterator end = mOperations.end();
 
           for (; it != end; ++it)
-            {
-              COperation * pOperation = it->createOperation(pEdge, mInfo); 
-              pOperation->execute();
-              delete pOperation;
-            }
+            it->execute(pEdge, mInfo); 
         }
     }
   catch (...)
@@ -384,11 +376,7 @@ bool CActionDefinition::execute(CNode * pNode) const
           std::vector< COperationDefinition >::const_iterator end = mOperations.end();
 
           for (; it != end; ++it)
-            {
-              COperation * pOperation = it->createOperation(pNode, mInfo); 
-              pOperation->execute();
-              delete pOperation;
-            }
+            it->execute(pNode, mInfo); 
         }
     }
   catch (...)

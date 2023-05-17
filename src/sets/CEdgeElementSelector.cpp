@@ -41,8 +41,6 @@
 #include "utilities/CSimConfig.h"
 #include "variables/CVariableList.h"
 
-#define USE_CSETCOLLECTOR 1
-
 CEdgeElementSelector::CEdgeElementSelector()
   : CSetContent(CSetContent::Type::edgeElementSelector)
   , mEdgeProperty()
@@ -790,7 +788,18 @@ bool CEdgeElementSelector::computeProtected()
   return false;
 }
 
-bool CEdgeElementSelector::filter(const CEdge * pEdge)
+// virtual 
+CSetContent::FilterType CEdgeElementSelector::filterType() const
+{
+  if (mpFilter != NULL
+      && mpCollector == NULL)
+    return FilterType::edge;
+
+  return FilterType::none;
+}
+
+// virtual
+bool CEdgeElementSelector::filter(const CEdge * pEdge) const
 {
   return (this->*mpFilter)(pEdge);
 }
@@ -831,7 +840,7 @@ bool CEdgeElementSelector::propertySelection()
   return true;
 }
 
-bool CEdgeElementSelector::filterPropertySelection(const CEdge * pEdge)
+bool CEdgeElementSelector::filterPropertySelection(const CEdge * pEdge) const
 {
   return mpComparison(mEdgeProperty.propertyOf(pEdge), *mpValue);
 }
@@ -852,7 +861,7 @@ bool CEdgeElementSelector::propertyIn()
   return true;
 }
 
-bool CEdgeElementSelector::filterPropertyIn(const CEdge * pEdge)
+bool CEdgeElementSelector::filterPropertyIn(const CEdge * pEdge) const
 {
   return mpValueList->contains(mEdgeProperty.propertyOf(pEdge));
 }
@@ -873,7 +882,7 @@ bool CEdgeElementSelector::propertyNotIn()
   return true;
 }
 
-bool CEdgeElementSelector::filterPropertyNotIn(const CEdge * pEdge)
+bool CEdgeElementSelector::filterPropertyNotIn(const CEdge * pEdge) const
 {
   return !mpValueList->contains(mEdgeProperty.propertyOf(pEdge));
 }

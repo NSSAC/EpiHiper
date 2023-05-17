@@ -30,6 +30,10 @@
 #include "actions/CConditionDefinition.h"
 #include "utilities/CLogger.h"
 #include "variables/CVariableList.h"
+#include "sets/CSetContent.h"
+#include "network/CNetwork.h"
+#include "network/CEdge.h"
+#include "network/CNode.h"
 
 // Uncomment this line below to get debug print out.
 // #define DEBUG_OUTPUT 1
@@ -39,6 +43,7 @@ void CDependencyGraph::buildGraph()
 {
   INSTANCE.clear();
   ComputeOnceSequence.clear();
+  UpToDate.clear();
 
   // We need to be smarter and not compute all.
   // Target sets should only be computed if the intervention fires.
@@ -52,7 +57,6 @@ void CDependencyGraph::buildGraph()
   for (; it != end; ++it)
     {
       CComputable * pComputable = const_cast< CComputable * >(it->second);
-
       INSTANCE.addComputable(pComputable);
 
       if (pComputable->getPrerequisites().empty())
@@ -67,80 +71,146 @@ void CDependencyGraph::buildGraph()
     }
 
   // CConditionDefinition::RequiredComputables already includes all computables for trigger and action conditions.
-  INSTANCE.getUpdateSequence(UpdateSequence, Changed, CConditionDefinition::RequiredComputables);
-  INSTANCE.getProcessGroups(ProcessGroups, Changed, CConditionDefinition::RequiredComputables);
+#ifdef USE_PROCESS_GROUPS
+  INSTANCE.getProcessGroups(CommonUpdateOrder, Changed, CConditionDefinition::RequiredComputables);
 
-  UpToDate.clear();
+  for (CComputable::Sequence & sequence : CommonUpdateOrder)
+    {
+      CComputable::Sequence::iterator itSeq = sequence.begin();
+      CComputable::Sequence::iterator endSeq = sequence.end();
 
-  CComputable::Sequence::iterator itSeq = UpdateSequence.begin();
-  CComputable::Sequence::iterator endSeq = UpdateSequence.end();
+      for (; itSeq != endSeq; ++itSeq)
+        UpToDate.insert(*itSeq);
+    }
+
+#else
+  INSTANCE.getUpdateSequence(CommonUpdateOrder, Changed, CConditionDefinition::RequiredComputables);
+
+  CComputable::Sequence::iterator itSeq = CommonUpdateOrder.begin();
+  CComputable::Sequence::iterator endSeq = CommonUpdateOrder.end();
 
   for (; itSeq != endSeq; ++itSeq)
     UpToDate.insert(*itSeq);
+#endif
 }
 
 // static
-bool CDependencyGraph::applyUpdateSequence()
+bool CDependencyGraph::applyUpdateOrder()
 {
-  return applyUpdateSequence(UpdateSequence);
+  return applyUpdateOrder(CommonUpdateOrder);
 }
 
 // static
-bool CDependencyGraph::applyComputeOnceSequence()
+bool CDependencyGraph::applyComputeOnceOrder()
 {
-  return applyUpdateSequence(ComputeOnceSequence);
+  return applyComputableSequence(ComputeOnceSequence);
 }
 
 // static
-bool CDependencyGraph::applyUpdateSequence(CComputable::Sequence & updateSequence)
+bool CDependencyGraph::applyComputableSequence(CComputable::Sequence & updateSequence)
 {
+  std::vector< CSetContent::Filter< CEdge > > EdgeFilter;
+  std::vector< CSetContent::Filter< CNode > > NodeFilter;
+
   bool success = true;
   CComputable::Sequence::iterator it = updateSequence.begin();
   CComputable::Sequence::iterator end = updateSequence.end();
 
   for (; it != end && success; ++it)
-    success &= (*it)->compute();
+    {
+      if (dynamic_cast< CSetContent * >(*it))
+        {
+          CSetContent * pSetContent = static_cast< CSetContent * >(*it);
+
+          switch (pSetContent->filterType())
+          {
+            case CSetContent::FilterType::edge:
+              EdgeFilter.push_back(CSetContent::Filter< CEdge >(pSetContent));
+              CLogger::debug() << "CComputable: Adding '" << pSetContent->getComputableId() << "' to EdgeFilter.";
+              break;
+
+            case CSetContent::FilterType::node:
+              NodeFilter.push_back(CSetContent::Filter< CNode >(pSetContent));
+              CLogger::debug() << "CComputable: Adding '" << pSetContent->getComputableId() << "' to NodeFilter.";
+              break;
+
+            case CSetContent::FilterType::none:
+              success &= (*it)->compute();
+              break;
+          }
+        }
+      else
+        success &= (*it)->compute();
+    }
+
+  if (!EdgeFilter.empty())
+    {
+      CEdge * pEdge = CNetwork::Context.Active().beginEdge();
+      CEdge * pEdgeEnd = CNetwork::Context.Active().endEdge();
+
+      for (; pEdge != pEdgeEnd; ++pEdge)
+        for (CSetContent::Filter< CEdge > & filter : EdgeFilter)
+          filter.addMatching(pEdge);
+
+      for (CSetContent::Filter< CEdge > & filter : EdgeFilter)
+          filter.report();
+
+    }
+
+  if (!NodeFilter.empty())
+    {
+      CNode * pNode = CNetwork::Context.Active().beginNode();
+      CNode * pNodeEnd = CNetwork::Context.Active().endNode();
+
+      for (; pNode != pNodeEnd; ++pNode)
+        for (CSetContent::Filter< CNode > & filter : NodeFilter)
+          filter.addMatching(pNode);
+
+      for (CSetContent::Filter< CNode > & filter : NodeFilter)
+        filter.report();
+    }
+
+  return success;
+}
+
+// static 
+bool CDependencyGraph::applyUpdateOrder(CDependencyGraph::UpdateOrder & updateSequence)
+{
+  bool success = true;
+
+#ifdef USE_PROCESS_GROUPS
+
+  std::vector< CComputable::Sequence >::iterator it = updateSequence.begin();
+  std::vector< CComputable::Sequence >::iterator end = updateSequence.end();
+
+  for (; it != end && success; ++it)
+    success &= applyComputableSequence(*it);
+
+#else
+
+  success &= applyComputableSequence(updateSequence);
+
+#endif
 
   return success;
 }
 
 // static
-bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
+bool CDependencyGraph::getUpdateOrder(CDependencyGraph::UpdateOrder & updateSequence,
                                          const CComputableSet & requestedComputables)
 {
   CComputableSet & Changed = CVariableList::INSTANCE.changedVariables().Master();
   Changed.insert(&CActionQueue::getCurrentTick());
 
+#ifdef USE_PROCESS_GROUPS
+
+  return INSTANCE.getProcessGroups(updateSequence, Changed, requestedComputables, UpToDate);
+
+#else
+
   return INSTANCE.getUpdateSequence(updateSequence, Changed, requestedComputables, UpToDate);
-}
 
-// static
-bool CDependencyGraph::applyProcessGroups()
-{
-  return applyProcessGroups(ProcessGroups);
-}
-
-// static
-bool CDependencyGraph::applyProcessGroups(std::vector< CComputable::Sequence > & processGroups)
-{
-  bool success = true;
-  std::vector< CComputable::Sequence >::iterator it = processGroups.begin();
-  std::vector< CComputable::Sequence >::iterator end = processGroups.end();
-
-  for (; it != end && success; ++it)
-    success &= applyUpdateSequence(*it);
-
-  return success;
-}
-
-// static
-bool CDependencyGraph::getProcessGroups(std::vector< CComputable::Sequence > & processGroups,
-                                        const CComputableSet & requestedComputables)
-{
-  CComputableSet & Changed = CVariableList::INSTANCE.changedVariables().Master();
-  Changed.insert(&CActionQueue::getCurrentTick());
-
-  return INSTANCE.getProcessGroups(processGroups, Changed, requestedComputables, UpToDate);
+#endif
 }
 
 CDependencyGraph::CDependencyGraph()
@@ -609,30 +679,21 @@ finish:
 
   if (!success)
     {
-      UpdateSequence.clear();
+      ProcessGroups.clear();
     }
 
   processGroups = ProcessGroups;
 
 #ifdef DEBUG_OUTPUT
-  CComputable::Sequence::const_iterator itSeq = updateSequence.begin();
-  CComputable::Sequence::const_iterator endSeq = updateSequence.end();
+  size_t Level = 0;
 
-  std::cout << std::endl <<  "Start" << std::endl;
-
-  for (; itSeq != endSeq; ++itSeq)
+  for (const CComputable::Sequence & sequence : processGroups)
     {
-      if (dynamic_cast< const CMathComputable * >(*itSeq))
-        {
-          std::cout << *static_cast< const CMathComputable * >(*itSeq);
-        }
-      else
-        {
-          std::cout << (*itSeq)->getCN() << std::endl;
-        }
-    }
+      CLogger::debug() << "Level: " << Level++;
 
-  std::cout << "End" << std::endl;
+      for (const CComputable * pComputable : sequence)
+        CLogger::debug() << "  " << pComputable->getComputableId();
+    }
 #endif // DEBUG_OUTPUT
 
   return success;

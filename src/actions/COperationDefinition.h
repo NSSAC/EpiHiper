@@ -56,6 +56,13 @@ public:
     variable
   };
 
+  enum struct SourceType {
+    variable,
+    observable,
+    sizeOf,
+    value
+  };
+
   /**
    * Default constructor
    */
@@ -78,11 +85,11 @@ public:
 
   const bool & isValid() const;
 
-  COperation * createOperation(CNode * pNode, const CMetadata & info) const;
+  bool execute(CNode * pNode, const CMetadata & info) const;
 
-  COperation * createOperation(CEdge * pEdge, const CMetadata & info) const;
+  bool execute(CEdge * pEdge, const CMetadata & info) const;
 
-  COperation * createOperation(const CMetadata & info) const;
+  bool execute(const CMetadata & info) const;
 
 private:
   TargetType mTargetType;
@@ -90,6 +97,7 @@ private:
   CEdgeProperty * mpEdgeProperty;
   CVariable * mpTargetVariable;
   CValueInterface::pOperator mpOperator;
+  SourceType mSourceType;
   CVariable * mpSourceVariable;
   CObservable * mpObservable;
   CSizeOf * mpSizeOf;

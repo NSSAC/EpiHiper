@@ -339,7 +339,7 @@ int CCommunicate::sequential(int firstRank, CCommunicate::SequentialProcessInter
       send(&signal, sizeof(int), MPINextRank, MPI_COMM_WORLD);
     }
 
-  CLogger::debug() << "CCommunicate::sequential: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+  CLogger::info() << "CCommunicate::sequential: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
 
   return (int) Result;
 }
@@ -392,7 +392,7 @@ int CCommunicate::master(int masterRank,
       Result = (*pReceive)(is, masterRank);
     }
 
-  CLogger::debug() << "CCommunicate::master: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+  CLogger::info() << "CCommunicate::master: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
 
   return (int) Result;
 }
@@ -525,7 +525,7 @@ int CCommunicate::roundRobinFixed(const void * buffer,
         }
     }
 
-  CLogger::debug() << "CCommunicate::roundRobinFixed: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+  CLogger::info() << "CCommunicate::roundRobinFixed: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
 
   return (int) Result;
 }
@@ -614,7 +614,7 @@ int CCommunicate::roundRobin(const void * buffer,
         }
     }
 
-  CLogger::debug() << "CCommunicate::roundRobin: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+  CLogger::info() << "CCommunicate::roundRobin: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
 
   return (int) Result;
 }
@@ -707,7 +707,7 @@ int CCommunicate::roundRobin(SendInterface * pSend,
         }
     }
 
-  CLogger::debug() << "CCommunicate::roundRobin: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+  CLogger::info() << "CCommunicate::roundRobin: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
 
   return (int) Result;
 }
@@ -757,7 +757,7 @@ int CCommunicate::barrierRMA()
 #pragma omp single
       result = MPI_Win_fence(0, MPIWin);
 
-      CLogger::debug() << "CCommunicate::barrierRMA: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+      CLogger::debug() << "CCommunicate::barrierRMA: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "'\xc2\xb5s.";
     }
 #endif // USE_MPI
 

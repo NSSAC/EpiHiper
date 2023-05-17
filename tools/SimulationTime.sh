@@ -46,10 +46,12 @@ accumulateReplicates () {
     processCurrentActionsSD = 0
     total = 0
     totalSD = 0
+    rawCommunication = 0
+    rawCommunicationSD = 0
   }
 
   END {
-    print total "," sqrt(totalSD/count) "," initialization "," sqrt(initializationSD/count) "," output "," sqrt(outputSD/count) "," synchronize "," sqrt(synchronizeSD/count) "," ProcessTransmissions "," sqrt(ProcessTransmissionsSD/count) "," ProcessIntervention "," sqrt(ProcessInterventionSD/count) "," processCurrentActions "," sqrt(processCurrentActionsSD/count)
+    print total "," sqrt(totalSD/count) "," rawCommunication "," sqrt(rawCommunicationSD/count) "," initialization "," sqrt(initializationSD/count) "," output "," sqrt(outputSD/count) "," synchronize "," sqrt(synchronizeSD/count) "," ProcessTransmissions "," sqrt(ProcessTransmissionsSD/count) "," ProcessIntervention "," sqrt(ProcessInterventionSD/count) "," processCurrentActions "," sqrt(processCurrentActionsSD/count)
   }
 
   {
@@ -99,10 +101,11 @@ accumulateProcesses () {
     ProcessIntervention = 0
     processCurrentActions = 0
     total = 0
+    rawCommunication = 0
   }
 
   END {
-    print initialization " " output " " synchronize " " ProcessTransmissions " " ProcessIntervention " " processCurrentActions " " total
+    print initialization " " output " " synchronize " " ProcessTransmissions " " ProcessIntervention " " processCurrentActions " " total " " rawCommunication
   }
 
   {
@@ -113,6 +116,7 @@ accumulateProcesses () {
     ProcessIntervention += $5
     processCurrentActions += $6
     total += $7
+    rawCommunication += $8
   }
   '
 
@@ -120,7 +124,7 @@ accumulateProcesses () {
 }
 
 accumulateProcess () {
-  grep 'CSimulation::' $1 | gawk -- '
+  grep 'CSimulation::\|CCommunicate::' $1 | gawk -- '
   BEGIN {
     initialization = 0
     output = 0
@@ -128,23 +132,25 @@ accumulateProcess () {
     ProcessTransmissions = 0
     ProcessIntervention = 0
     processCurrentActions = 0
+    rawCommunication = 0
   }
 
   END {
-    print initialization/1000 " " output/1000 " " synchronize/1000 " "  ProcessTransmissions/1000 " " ProcessIntervention/1000 " " processCurrentActions/1000 " " (initialization + output + synchronize + ProcessTransmissions + ProcessIntervention + processCurrentActions)/1000
+    print initialization/1000 " " output/1000 " " synchronize/1000 " "  ProcessTransmissions/1000 " " ProcessIntervention/1000 " " processCurrentActions/1000 " " (initialization + output + synchronize + ProcessTransmissions + ProcessIntervention + processCurrentActions)/1000 " " rawCommunication/1000
   }
 
-  $5 ~ "CSimulation::initialization:" {initialization += substr($8, 2, length($8) - 2)}
-  $5 ~ "CSimulation::output:" {output += substr($8, 2, length($8) - 2)}
-  $5 ~ "CSimulation::synchronize:" {synchronize += substr($8, 2, length($8) - 2)}
-  $5 ~ "CSimulation::applyUpdateSequence:" {ProcessIntervention += substr($8, 2, length($8) - 2)}
-  $5 ~ "CSimulation::ProcessTransmissions:" {ProcessTransmissions += substr($8, 2, length($8) - 2)}
-  $5 ~ "CSimulation::ProcessIntervention:" {ProcessIntervention += substr($8, 2, length($8) - 2)}
-  $5 ~ "CSimulation::processCurrentActions:" {processCurrentActions += substr($8, 2, length($8) - 2)}
+  $6 ~ "CSimulation::initialization:" {initialization += substr($9, 2, length($9) - 2)}
+  $6 ~ "CSimulation::output:" {output += substr($9, 2, length($9) - 2)}
+  $6 ~ "CSimulation::synchronize:" {synchronize += substr($9, 2, length($9) - 2)}
+  $6 ~ "CSimulation::applyUpdateSequence:" {ProcessIntervention += substr($9, 2, length($9) - 2)}
+  $6 ~ "CSimulation::ProcessTransmissions:" {ProcessTransmissions += substr($9, 2, length($9) - 2)}
+  $6 ~ "CSimulation::ProcessIntervention:" {ProcessIntervention += substr($9, 2, length($9) - 2)}
+  $6 ~ "CSimulation::processCurrentActions:" {processCurrentActions += substr($9, 2, length($9) - 2)}
+  $6 ~ "CCommunicate::" && $7 ~ "duration" {rawCommunication += substr($9, 2, length($9) - 2)} 
   '
 }
 
-echo "experiment,total,totalSD,initialization,initializationSD,output,outputSD,synchronize,synchronizeSD,ProcessTransmissions,ProcessTransmissionsSD,ProcessIntervention,ProcessInterventionSD,processCurrentActions,processCurrentActionsSD" > Performance.csv
+echo "experiment,total,totalSD,rawCommunication,rawCommunicationSD,initialization,initializationSD,output,outputSD,synchronize,synchronizeSD,ProcessTransmissions,ProcessTransmissionsSD,ProcessIntervention,ProcessInterventionSD,processCurrentActions,processCurrentActionsSD" > Performance.csv
 
 for d in $@; do
   echo -n "$(dirname $d)," >> Performance.csv 

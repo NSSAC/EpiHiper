@@ -28,6 +28,7 @@
 #include "math/CValueList.h"
 #include "math/CComputable.h"
 #include "utilities/CContext.h"
+#include "utilities/CLogger.h"
 
 #include <memory>
 #include <set>
@@ -63,6 +64,28 @@ public:
 
   static std::set< CSetContentPtr, Compare > UniqueSetContent;
 
+  enum struct FilterType {
+    edge,
+    node,
+    none
+  };
+
+  template < class element_type >
+  class Filter {
+    CSetContent * mpSetContent;
+    std::vector< element_type * > * mpSet;
+
+  public:
+    Filter(CSetContent * pSetContent);
+
+    void addMatching(element_type * pType);
+
+    void report()
+    {
+      CLogger::debug() << "CSetContent: '" << mpSetContent->getComputableId() << "' contains '" << mpSet->size() << "' elements.";
+    }
+  };
+
 protected:
   enum struct Type {
     sampled,
@@ -85,6 +108,12 @@ protected:
 public:
   virtual ~CSetContent();
 
+  virtual FilterType filterType() const;
+
+  virtual bool filter(const CNode * pNode) const;
+ 
+  virtual bool filter(const CEdge * pEdge) const;
+ 
   bool lessThan(const CSetContent & rhs) const;
 
   void fromJSON(const json_t * json);
@@ -168,6 +197,29 @@ int CSetContent::comparePointer(const element_type * pLhs, const element_type * 
     return pLhs < pRhs ? -1 : 1;
 
   return 0;
+}
+
+template <>
+inline CSetContent::Filter< CEdge >::Filter(CSetContent * pSetContent)
+  : mpSetContent(pSetContent)
+  , mpSet(&mpSetContent->getEdges())
+{
+  mpSet->clear();
+}
+
+template <>
+inline CSetContent::Filter< CNode >::Filter(CSetContent * pSetContent)
+  : mpSetContent(pSetContent)
+  , mpSet(&mpSetContent->getNodes())
+{
+  mpSet->clear();
+}
+
+template < class element_type >
+void CSetContent::Filter< element_type >::addMatching(element_type * pType)
+{
+  if (mpSetContent->filter(pType))
+    mpSet->push_back(pType);
 }
 
 #endif /* SRC_INTERVENTION_CSETCONTENT_H_ */

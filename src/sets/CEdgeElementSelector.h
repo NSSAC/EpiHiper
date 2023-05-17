@@ -51,7 +51,9 @@ public:
 
   virtual void determineIsStatic() override;
 
-  bool filter(const CEdge * pEdge);
+  virtual FilterType filterType() const override;
+
+  virtual bool filter(const CEdge * pEdge) const override;
 
 protected:
   virtual bool computeProtected() override;
@@ -70,9 +72,9 @@ private:
   bool dbIn();
   bool dbNotIn();
 
-  bool filterPropertySelection(const CEdge * pEdge);
-  bool filterPropertyIn(const CEdge * pEdge);
-  bool filterPropertyNotIn(const CEdge * pEdge);
+  bool filterPropertySelection(const CEdge * pEdge) const;
+  bool filterPropertyIn(const CEdge * pEdge) const;
+  bool filterPropertyNotIn(const CEdge * pEdge) const;
   
   CEdgeProperty mEdgeProperty;
   CValue * mpValue;
@@ -87,7 +89,7 @@ private:
   CValueInterface::pComparison mpComparison;
   std::string mSQLComparison;
   bool (CEdgeElementSelector::*mpCompute)();
-  bool (CEdgeElementSelector::*mpFilter)(const CEdge *);
+  bool (CEdgeElementSelector::*mpFilter)(const CEdge *) const;
   std::shared_ptr< CSetCollectorInterface > mpCollector;
 };
 

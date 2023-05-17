@@ -103,7 +103,7 @@ public:
    * @return bool success
    */
   bool updateDependentState(const CComputableSet & changedComputables,
-                            bool ignoreCircularDependecies);
+                            bool ignoreCircularDependencies);
 
   /**
    * Update the state of all prerequisites (and prerequisites thereof) to requested.
@@ -112,7 +112,7 @@ public:
    * @return bool success
    */
   bool updatePrerequisiteState(const CComputableSet & changedComputables,
-                               bool ignoreCircularDependecies);
+                               bool ignoreCircularDependencies);
 
   /**
    * Update the state of all prerequisites (and prerequisites thereof) to calculate.
@@ -121,7 +121,7 @@ public:
    * @return bool success
    */
   bool updateCalculatedState(const CComputableSet & changedComputables,
-                             bool ignoreCircularDependecies);
+                             bool ignoreCircularDependencies);
 
   /**
    * Update the state of all dependents (and dependents thereof) to changed,
@@ -182,6 +182,8 @@ public:
   void remove();
 
   void updateEdges(const std::map< CDependencyNode *, CDependencyNode * > & map);
+
+  int maxChildGroupIndex() const;
 
   void updateMaxChildGroupIndex(const int & childIndex);
 

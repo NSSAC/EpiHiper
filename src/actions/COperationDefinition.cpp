@@ -44,6 +44,7 @@ COperationDefinition::COperationDefinition()
   , mpEdgeProperty(NULL)
   , mpTargetVariable(NULL)
   , mpOperator(NULL)
+  , mSourceType()
   , mpSourceVariable(NULL)
   , mpObservable(NULL)
   , mpSizeOf(NULL)
@@ -58,6 +59,7 @@ COperationDefinition::COperationDefinition(const COperationDefinition & src)
   , mpEdgeProperty(src.mpEdgeProperty != NULL ? new CEdgeProperty(*src.mpEdgeProperty) : NULL)
   , mpTargetVariable(src.mpTargetVariable)
   , mpOperator(src.mpOperator)
+  , mSourceType(src.mSourceType)
   , mpSourceVariable(src.mpSourceVariable)
   , mpObservable(src.mpObservable)
   , mpSizeOf(src.mpSizeOf)
@@ -72,6 +74,7 @@ COperationDefinition::COperationDefinition(const json_t * json)
   , mpEdgeProperty(NULL)
   , mpTargetVariable(NULL)
   , mpOperator(NULL)
+  , mSourceType()
   , mpSourceVariable(NULL)
   , mpObservable(NULL)
   , mpSizeOf(NULL)
@@ -249,6 +252,7 @@ void COperationDefinition::fromJSON(const json_t * json)
 
   if (mpSourceVariable->isValid())
     {
+      mSourceType = SourceType::variable;
       mValid = true;
       return; 
     }
@@ -268,6 +272,7 @@ void COperationDefinition::fromJSON(const json_t * json)
           return;
         }
 
+      mSourceType = SourceType::observable;
       mValid = true;
       return;
     }
@@ -288,6 +293,7 @@ void COperationDefinition::fromJSON(const json_t * json)
           return;
         }
 
+      mSourceType = SourceType::sizeOf;
       mValid = true;
       return;
     }
@@ -308,6 +314,7 @@ void COperationDefinition::fromJSON(const json_t * json)
       return;
     }
 
+  mSourceType = SourceType::value;
   mValid = mValue.isValid();
 }
 
@@ -316,52 +323,82 @@ const bool & COperationDefinition::isValid() const
   return mValid;
 }
 
-COperation * COperationDefinition::createOperation(CNode * pNode, const CMetadata & info) const
+bool COperationDefinition::execute(CNode * pNode, const CMetadata & info) const
 {
   if (pNode == NULL
       || mpNodeProperty == NULL)
-    return createOperation(info);
+    return execute(info);
 
-  if (mpSourceVariable != NULL)
-    return mpNodeProperty->createOperation(pNode, mpSourceVariable->toValue(), mpOperator, info);
+  switch (mSourceType)
+    {
+    case SourceType::variable:
+      return mpNodeProperty->execute(pNode, mpSourceVariable->toValue(), mpOperator, info);
+      break;
 
-  if (mpObservable != NULL)
-    return mpNodeProperty->createOperation(pNode, *mpObservable, mpOperator, info);
+    case SourceType::observable:
+      return mpNodeProperty->execute(pNode, *mpObservable, mpOperator, info);
+      break;
 
-  if (mpSizeOf != NULL)
-    return mpNodeProperty->createOperation(pNode, *mpSizeOf, mpOperator, info);
+    case SourceType::sizeOf:
+      return mpNodeProperty->execute(pNode, *mpSizeOf, mpOperator, info);
+      break;
 
-  return mpNodeProperty->createOperation(pNode, mValue, mpOperator, info);
+    case SourceType::value:
+      return mpNodeProperty->execute(pNode, mValue, mpOperator, info);
+      break;
+    }
+
+  return false;
 }
 
-COperation * COperationDefinition::createOperation(CEdge * pEdge, const CMetadata & info) const
+bool COperationDefinition::execute(CEdge * pEdge, const CMetadata & info) const
 {
   if (pEdge == NULL
       || mpEdgeProperty == NULL)
-    return createOperation(info);
+    return execute(info);
 
-  if (mpSourceVariable != NULL)
-    return mpEdgeProperty->createOperation(pEdge, mpSourceVariable->toValue(), mpOperator, info);
+  switch (mSourceType)
+    {
+    case SourceType::variable:
+      return mpEdgeProperty->execute(pEdge, mpSourceVariable->toValue(), mpOperator, info);
+      break;
 
-  if (mpObservable != NULL)
-    return mpEdgeProperty->createOperation(pEdge, *mpObservable, mpOperator, info);
+    case SourceType::observable:
+      return mpEdgeProperty->execute(pEdge, *mpObservable, mpOperator, info);
+      break;
 
-  if (mpSizeOf != NULL)
-    return mpEdgeProperty->createOperation(pEdge, *mpSizeOf, mpOperator, info);
+    case SourceType::sizeOf:
+      return mpEdgeProperty->execute(pEdge, *mpSizeOf, mpOperator, info);
+      break;
 
-  return mpEdgeProperty->createOperation(pEdge, mValue, mpOperator, info);
+    case SourceType::value:
+      return mpEdgeProperty->execute(pEdge, mValue, mpOperator, info);
+      break;
+    }
+
+  return false;
 }
 
-COperation * COperationDefinition::createOperation(const CMetadata & info) const
+bool COperationDefinition::execute(const CMetadata & info) const
 {
-  if (mpSourceVariable != NULL)
-    return new COperationInstance< CVariable, CValue >(mpTargetVariable, mpSourceVariable->toValue(), mpOperator, &CVariable::setValue, info);
+  switch (mSourceType)
+    {
+    case SourceType::variable:
+      return COperation::execute< CVariable, CValue >(mpTargetVariable, mpSourceVariable->toValue(), mpOperator, &CVariable::setValue, info);
+      break;
 
-  if (mpObservable != NULL)
-    return new COperationInstance< CVariable, CValue >(mpTargetVariable, *mpObservable, mpOperator, &CVariable::setValue, info);
+    case SourceType::observable:
+      return COperation::execute< CVariable, CValue >(mpTargetVariable, *mpObservable, mpOperator, &CVariable::setValue, info);
+      break;
 
-  if (mpSizeOf != NULL)
-    return new COperationInstance< CVariable, CValue >(mpTargetVariable, *mpSizeOf, mpOperator, &CVariable::setValue, info);
+    case SourceType::sizeOf:
+      return COperation::execute< CVariable, CValue >(mpTargetVariable, *mpSizeOf, mpOperator, &CVariable::setValue, info);
+      break;
 
-  return new COperationInstance< CVariable, CValue >(mpTargetVariable, mValue, mpOperator, &CVariable::setValue, info);
+    case SourceType::value:
+      return COperation::execute< CVariable, CValue >(mpTargetVariable, mValue, mpOperator, &CVariable::setValue, info);
+      break;
+    }
+
+  return false;
 }

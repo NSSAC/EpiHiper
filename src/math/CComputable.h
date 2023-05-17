@@ -65,9 +65,8 @@ protected:
 private:
   static size_t UniqueId;
 
-  size_t mComputableId;
-
 protected:
+  const size_t mComputableId;
   bool mValid;
   bool mStatic;
   CContext< bool > mComputedOnce;

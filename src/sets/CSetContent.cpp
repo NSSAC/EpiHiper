@@ -80,6 +80,24 @@ bool CSetContent::computeProtected()
   return true;
 }
 
+// virtual 
+CSetContent::FilterType CSetContent::filterType() const
+{
+  return FilterType::none;
+}
+
+// virtual 
+bool CSetContent::filter(const CNode * /* pNode */) const
+{
+  return false;
+} 
+
+// virtual 
+bool CSetContent::filter(const CEdge * /* pEdge */) const
+{
+  return false;
+} 
+ 
 // static
 CSetContent::CSetContentPtr CSetContent::create(const json_t * json)
 {

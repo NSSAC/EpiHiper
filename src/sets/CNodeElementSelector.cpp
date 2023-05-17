@@ -43,8 +43,6 @@
 #include "utilities/CSimConfig.h"
 #include "variables/CVariableList.h"
 
-#define USE_CSETCOLLECTOR 1
-
 CNodeElementSelector::CNodeElementSelector()
   : CSetContent(CSetContent::Type::nodeElementSelector)
   , mNodeProperty()
@@ -907,7 +905,18 @@ bool CNodeElementSelector::computeProtected()
   return false;
 }
 
-bool CNodeElementSelector::filter(const CNode * pNode)
+// virtual 
+CSetContent::FilterType CNodeElementSelector::filterType() const
+{
+  if (mpFilter != NULL
+      && mpCollector == NULL)
+    return FilterType::node;
+
+  return FilterType::none;
+}
+
+// virtual
+bool CNodeElementSelector::filter(const CNode * pNode) const
 {
   return (this->*mpFilter)(pNode);
 }
@@ -968,7 +977,7 @@ bool CNodeElementSelector::propertySelection()
   return true;
 }
 
-bool CNodeElementSelector::filterPropertySelection(const CNode * pNode)
+bool CNodeElementSelector::filterPropertySelection(const CNode * pNode) const
 {
   return mpComparison(mNodeProperty.propertyOf(pNode), *mpValue);
 }
@@ -1010,7 +1019,7 @@ bool CNodeElementSelector::propertyIn()
   return true;
 }
 
-bool CNodeElementSelector::filterPropertyIn(const CNode * pNode)
+bool CNodeElementSelector::filterPropertyIn(const CNode * pNode) const
 {
   return mpValueList->contains(mNodeProperty.propertyOf(pNode));
 }
@@ -1053,7 +1062,7 @@ bool CNodeElementSelector::propertyNotIn()
   return true;
 }
 
-bool CNodeElementSelector::filterPropertyNotIn(const CNode * pNode)
+bool CNodeElementSelector::filterPropertyNotIn(const CNode * pNode) const
 {
   return !mpValueList->contains(mNodeProperty.propertyOf(pNode));
 }

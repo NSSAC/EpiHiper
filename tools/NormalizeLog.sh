@@ -41,7 +41,7 @@ while getopts "o:s:e:" opt; do
     e )  # process option e
       End="$OPTARG"
       ;;
-    \? ) echo "Usage: cmd [-o] [-a]"
+    \? ) echo "Usage: cmd [-o] [-s] [-e]"
       ;;
   esac
 done

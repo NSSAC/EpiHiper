@@ -14,6 +14,8 @@
 #include "utilities/CLogger.h"
 
 
+// #define USE_CSETCOLLECTOR 1
+
 // #define USE_BITSET 1
 #define USE_HASH_MAP 1
 

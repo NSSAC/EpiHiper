@@ -110,7 +110,7 @@ bool CInitialization::processAll()
 {
   std::vector< CInitialization * >::iterator it = INSTANCES.begin();
   std::vector< CInitialization * >::iterator end = INSTANCES.end();
-  static CComputable::Sequence InitializationSequence;
+  static CDependencyGraph::UpdateOrder InitializationSequence;
 
 #pragma omp single
   {
@@ -122,11 +122,12 @@ bool CInitialization::processAll()
         RequiredTargets.insert((*it)->getTarget());
       }
 
-    CDependencyGraph::getUpdateSequence(InitializationSequence, RequiredTargets);
+    CDependencyGraph::getUpdateOrder(InitializationSequence, RequiredTargets);
+
     CLogger::setSingle(false);
   }
 
-  bool success = CDependencyGraph::applyUpdateSequence(InitializationSequence);
+  bool success = CDependencyGraph::applyUpdateOrder(InitializationSequence);
 
   for (it = INSTANCES.begin(); it != end && success; ++it)
     {
