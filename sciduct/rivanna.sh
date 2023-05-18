@@ -48,15 +48,15 @@ chmod 775 libEpiHiper*
 
 # Intel Runtime Libraries
 [ -e l_comp_lib_2018.5.274_comp.cpp_redist.tgz ] || \
-    wget https://software.intel.com/sites/default/files/managed/b0/e9/l_comp_lib_2018.5.274_comp.cpp_redist.tgz
+    scp rivanna:/project/bii_nssac/EpiHiper/intel/src/l_comp_lib_2018.5.274_comp.cpp_redist.tgz .
 
 # Intel MPI
 [ -e l_mpi_2018.5.288.tgz ] || \
-    wget http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/15614/l_mpi_2018.5.288.tgz
+    scp rivanna:/project/bii_nssac/EpiHiper/intel/src/l_mpi_2018.5.288.tgz .
     
 # IntelOPA
 [ -e IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz ] || \
-    wget https://downloadmirror.intel.com/28866/eng/IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz
+    scp rivanna:/project/bii_nssac/EpiHiper/intel/src/IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz .
     
 cd ..
 
