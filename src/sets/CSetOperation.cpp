@@ -137,7 +137,13 @@ bool CSetOperation::lessThanProtected(const CSetContent & rhs) const
   if (mSets != pRhs->mSets)
     return mSets < pRhs->mSets;
 
-  return reinterpret_cast< const void * >(mpCompute) < reinterpret_cast< const void * >(pRhs->mpCompute);
+  char LeftCompute[19];
+  sprintf(LeftCompute, "%p", mpCompute);
+
+  char RightCompute[19];
+  sprintf(RightCompute, "%p", pRhs->mpCompute);
+  
+  return strcmp(LeftCompute, RightCompute) < 0;
 }
 
 // virtual
