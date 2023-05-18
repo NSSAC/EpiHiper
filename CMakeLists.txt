@@ -30,7 +30,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 include(GNUInstallDirs)
 set(CMAKE_CXX_STANDARD 11)
 
-option(ENABLE_LOCATION_ID "Enable the Location Id field in the network" OFF)
+option(ENABLE_LOCATION_ID "Enable the Location Id field in the network" ON)
 
 if (ENABLE_LOCATION_ID)
   set(USE_LOCATION_ID 1)

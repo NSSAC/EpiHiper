@@ -64,6 +64,18 @@ public:
 
   static std::set< CSetContentPtr, Compare > UniqueSetContent;
 
+  template< class function_pointer >
+  static bool pointerLessThan(const function_pointer pLeft, const function_pointer pRight)
+  {
+    char Left[19];
+    sprintf(Left, "%p", pLeft);
+
+    char Right[19];
+    sprintf(Right, "%p", pRight);
+
+    return strcmp(Left, Right) < 0;
+  }
+
   enum struct FilterType {
     edge,
     node,

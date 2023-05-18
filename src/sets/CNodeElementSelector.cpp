@@ -874,13 +874,7 @@ bool CNodeElementSelector::lessThanProtected(const CSetContent & rhs) const
   if (mLocalScope != pRhs->mLocalScope)  
     return mLocalScope < pRhs->mLocalScope;
 
-  char LeftCompute[19];
-  sprintf(LeftCompute, "%p", mpCompute);
-
-  char RightCompute[19];
-  sprintf(RightCompute, "%p", pRhs->mpCompute);
-  
-  return strcmp(LeftCompute, RightCompute) < 0;
+  return pointerLessThan(mpCompute, pRhs->mpCompute);
 }
 
 // virtual 
