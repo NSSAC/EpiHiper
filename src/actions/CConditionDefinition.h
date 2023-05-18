@@ -25,6 +25,7 @@
 #ifndef SRC_ACTIONS_CCONDITIONDEFINITION_H_
 #define SRC_ACTIONS_CCONDITIONDEFINITION_H_
 
+#include <memory>
 #include <vector>
 
 #include "math/CValueList.h"
@@ -79,15 +80,14 @@ public:
 private:
   struct ValueInstance
   {
-    size_t * pCounter;
     ValueType type;
-    CValue * pValue;
-    CValueList * pValueList;
+    std::shared_ptr< CValue > pValue;
+    std::shared_ptr< CValueList > pValueList;
     CObservable * pObservable;
-    CNodeProperty * pNodeProperty;
-    CEdgeProperty * pEdgeProperty;
+    std::shared_ptr< CNodeProperty > pNodeProperty;
+    std::shared_ptr< CEdgeProperty > pEdgeProperty;
     CVariable * pVariable;
-    CSizeOf * pSizeOf;
+    std::shared_ptr< CSizeOf > pSizeOf;
     bool valid;
 
     ValueInstance();
@@ -133,11 +133,11 @@ public:
 
   const bool & isValid() const;
 
-  CCondition * createCondition() const;
+  bool isTrue() const;
 
-  CCondition * createCondition(const CNode * pNode) const;
+  bool isTrue(const CNode * pNode) const;
 
-  CCondition * createCondition(const CEdge * pEdge) const;
+  bool isTrue(const CEdge * pEdge) const;
 
   static bool compatible(const ValueInstance & lhs, const ValueInstance & rhs);
 

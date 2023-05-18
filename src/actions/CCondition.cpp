@@ -27,248 +27,119 @@
 #include <jansson.h>
 
 #include "actions/CCondition.h"
-#include "math/CSizeOf.h"
 #include "variables/CVariable.h"
 
-
-CCondition::CCondition()
-{}
-
-CCondition::CCondition(const CCondition & /* src */)
-{}
-
-// virtual
-CCondition::~CCondition()
-{}
-
-CBooleanValue::CBooleanValue(const bool & value)
-  : CCondition()
-  , mTrue(value)
-{}
-
-// virtual
-CBooleanValue::~CBooleanValue()
-{}
-
-// virtual
-bool CBooleanValue::isTrue() const
+// static 
+bool CCondition::isTrue(CConditionDefinition::ComparisonType operation, CValueInterface const * pLeft, CValueInterface const * pRight)
 {
-  return mTrue;
-}
-
-CComparison::CComparison(CConditionDefinition::ComparisonType operation, CValueInterface const * pLeft, bool inheritLeft, CValueInterface const * pRight, bool inheritRight)
-  : CCondition()
-  , mpComparison(NULL)
-  , mOwnLeft(inheritLeft)
-  , mpLeft(pLeft)
-  , mOwnRight(inheritRight)
-  , mpRight(pRight)
-{
-  selectComparison(operation);
-}
-
-// virtual
-CComparison::~CComparison()
-{
-  if (mOwnLeft) delete mpLeft;
-  if (mOwnRight) delete mpRight;
-}
-
-// virtual
-bool CComparison::isTrue() const
-{
-  const CValueInterface * pLeft = mpLeft;
-  const CValueInterface * pRight = mpRight;
+  bool result = true;
 
   std::shared_ptr< CValue > VariableLeft;
   std::shared_ptr< CValue > VariableRight;
 
-  if (dynamic_cast< const CVariable * >(mpLeft))
-    {
-      VariableLeft = std::make_shared< CValue >(const_cast< CVariable * >(static_cast< const CVariable * >(mpLeft))->toValue());
-      pLeft = VariableLeft.get();
-    }
+  if (dynamic_cast< const CVariable * >(pLeft))
+    VariableLeft = std::make_shared< CValue >(const_cast< CVariable * >(static_cast< const CVariable * >(pLeft))->toValue());
 
-  if (dynamic_cast< const CVariable * >(mpRight))
-    {
-      VariableRight = std::make_shared< CValue >(const_cast< CVariable * >(static_cast< const CVariable * >(mpRight))->toValue());
-      pRight = VariableRight.get();
-    }
+  if (dynamic_cast< const CVariable * >(pRight))
+    VariableRight = std::make_shared< CValue >(const_cast< CVariable * >(static_cast< const CVariable * >(pRight))->toValue());
 
+  const CValueInterface & ValueLeft = VariableLeft ? *VariableLeft : *pLeft;
+  const CValueInterface & ValueRight = VariableLeft ? *VariableRight : *pRight;
 
-  return (*mpComparison)(*pLeft, *pRight);
-}
-
-void CComparison::selectComparison(CConditionDefinition::ComparisonType operation)
-{
   switch (operation)
     {
     case CConditionDefinition::ComparisonType::Equal:
-      mpComparison = &operator==;
+      result = (ValueLeft == ValueRight);
       break;
 
     case CConditionDefinition::ComparisonType::NotEqual:
-      mpComparison = &operator!=;
+      result = (ValueLeft != ValueRight);
       break;
 
     case CConditionDefinition::ComparisonType::Less:
-      mpComparison = &operator<;
+      result = (ValueLeft < ValueRight);
       break;
 
     case CConditionDefinition::ComparisonType::LessOrEqual:
-      mpComparison = &operator<=;
+      result = (ValueLeft <= ValueRight);
       break;
 
     case CConditionDefinition::ComparisonType::Greater:
-      mpComparison = &operator>;
+      result = (ValueLeft > ValueRight);
       break;
 
     case CConditionDefinition::ComparisonType::GreaterOrEqual:
-      mpComparison = &operator>=;
+      result = (ValueLeft >= ValueRight);
       break;
 
-    case CConditionDefinition::ComparisonType::Within:
-    case CConditionDefinition::ComparisonType::NotWithin:
-      mpComparison = NULL;
+    default:
+      result = false;
       break;
     }
+
+  return result;
 }
 
-CContainedIn::CContainedIn(CConditionDefinition::ComparisonType operation,
-                           const CValueInterface * pValue,
-                           bool inheritLeft,
-                           const CValueList & valueList)
-  : CCondition()
-  , mpWithin(NULL)
-  , mOwnLeft(inheritLeft)
-  , mpLeft(pValue)
-  , mValueList(valueList)
+// static 
+bool CCondition::isTrue(const bool & value)
 {
-  switch (operation)
+  return value;
+}
+
+// static 
+bool CCondition::isTrue(CConditionDefinition::BooleanOperationType operation, const std::vector< bool > & booleanVector)
+{
+  bool result = true;
+
+    switch (operation)
     {
-    case CConditionDefinition::ComparisonType::Equal:
-    case CConditionDefinition::ComparisonType::NotEqual:
-    case CConditionDefinition::ComparisonType::Less:
-    case CConditionDefinition::ComparisonType::LessOrEqual:
-    case CConditionDefinition::ComparisonType::Greater:
-    case CConditionDefinition::ComparisonType::GreaterOrEqual:
-      mpWithin = NULL;
-      break;
+      case CConditionDefinition::BooleanOperationType::And:
+        for (const bool & value : booleanVector)
+          result &= value;
+        break;
 
-    case CConditionDefinition::ComparisonType::Within:
-      mpWithin = &within;
-      break;
+      case CConditionDefinition::BooleanOperationType::Or:
+        for (const bool & value : booleanVector)
+          result |= value;
+        break;
 
-    case CConditionDefinition::ComparisonType::NotWithin:
-      mpWithin = &notWithin;
-      break;
-    }
+      case CConditionDefinition::BooleanOperationType::Not:
+        result = !booleanVector[0];
+        break;
+
+      default:
+        result = false;
+        break;
+  }
+
+  return result;
 }
 
-// virtual
-CContainedIn::~CContainedIn()
+// static 
+bool CCondition::isTrue(CConditionDefinition::ComparisonType operation, const CValueInterface * pValue, const CValueList & valueList)
 {
-  if (mOwnLeft) delete mpLeft;
-}
-
-bool CContainedIn::within(const CValueInterface & value, const CValueList & valueList)
-{
-  return valueList.contains(value);
-}
-
-// static
-bool CContainedIn::notWithin(const CValueInterface & value, const CValueList & valueList)
-{
-  return !valueList.contains(value);
-}
-
-// virtual
-bool CContainedIn::isTrue() const
-{
-  const CValueInterface * pLeft = mpLeft;
-
+  bool result = true;
   std::shared_ptr< CValue > VariableLeft;
 
-  if (dynamic_cast< const CVariable * >(mpLeft))
-    {
-      VariableLeft = std::make_shared< CValue >(const_cast< CVariable * >(static_cast< const CVariable * >(mpLeft))->toValue());
-      pLeft = VariableLeft.get();
-    }
+  if (dynamic_cast< const CVariable * >(pValue))
+    VariableLeft = std::make_shared< CValue >(const_cast< CVariable * >(static_cast< const CVariable * >(pValue))->toValue());
 
-  return (*mpWithin)(*pLeft, mValueList);
-}
+  const CValueInterface & Value = VariableLeft ? *VariableLeft : *pValue;
 
-bool CBooleanOperation::_and() const
-{
-  bool Result = true;
-
-  std::vector< CCondition * >::const_iterator it = mVector.begin();
-  std::vector< CCondition * >::const_iterator end = mVector.end();
-
-  for (; it != end && Result; ++it)
-    Result &= (*it)->isTrue();
-
-  return Result;
-}
-
-bool CBooleanOperation::_or() const
-{
-  bool Result = false;
-
-  std::vector< CCondition * >::const_iterator it = mVector.begin();
-  std::vector< CCondition * >::const_iterator end = mVector.end();
-
-  for (; it != end && !Result; ++it)
-    Result |= (*it)->isTrue();
-
-  return Result;
-
-}
-
-// static
-bool CBooleanOperation::_not() const
-{
-  return !(*mVector.begin())->isTrue();
-}
-
-CBooleanOperation::CBooleanOperation(CConditionDefinition::BooleanOperationType operation,
-                                                 const std::vector< CCondition * > & booleanVector)
-  : mpOperation(NULL)
-  , mVector(booleanVector)
-{
   switch (operation)
   {
-    case CConditionDefinition::BooleanOperationType::And:
-      mpOperation = &CBooleanOperation::_and;
+    case CConditionDefinition::ComparisonType::Within:
+      result = valueList.contains(Value);
       break;
 
-    case CConditionDefinition::BooleanOperationType::Or:
-      mpOperation = &CBooleanOperation::_or;
+    case CConditionDefinition::ComparisonType::NotWithin:
+      result = !valueList.contains(Value);
       break;
 
-    case CConditionDefinition::BooleanOperationType::Not:
-      mpOperation = &CBooleanOperation::_not;
-      break;
-
-    case CConditionDefinition::BooleanOperationType::Comparison:
-    case CConditionDefinition::BooleanOperationType::Value:
-      mpOperation = NULL;
+    default:
+      result = false;
       break;
   }
-}
 
-// virtual
-CBooleanOperation::~CBooleanOperation()
-{
-  std::vector< CCondition * >::iterator it = mVector.begin();
-  std::vector< CCondition * >::iterator end = mVector.end();
-
-  for (; it != end; ++it)
-    delete *it;
-}
-
-// virtual
-bool CBooleanOperation::isTrue() const
-{
-  return (this->*mpOperation)();
+  return result;
 }

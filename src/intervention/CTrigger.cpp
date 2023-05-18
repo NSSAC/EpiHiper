@@ -175,9 +175,7 @@ CTrigger::~CTrigger()
 // virtual
 void CTrigger::process()
 {
-  CCondition *pCondition = mCondition.createCondition((CNode *) NULL);
-  mIsLocalTrue = pCondition->isTrue();
-  delete pCondition;
+  mIsLocalTrue = mCondition.isTrue();
 
   if (mIsLocalTrue)
     CLogger::info() << "CTrigger: Trigger '" << getAnnId() << "' condition is 'true'."; 

@@ -301,13 +301,10 @@ void CActionDefinition::process(const CNode * pNode) const
 bool CActionDefinition::execute() const
 {
   bool success = true;
-  CCondition * pCondition = NULL;
 
   try
     {
-      pCondition = mCondition.createCondition();
-
-      if (pCondition->isTrue())
+      if (mCondition.isTrue())
         {
           // Loop through the operation definitions
           std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
@@ -323,22 +320,16 @@ bool CActionDefinition::execute() const
       success = false;
     }
 
-  if (pCondition != NULL)
-    delete pCondition;
-
   return success;
 }
 
 bool CActionDefinition::execute(CEdge * pEdge) const
 {
   bool success = true;
-  CCondition * pCondition = NULL;
 
   try
     {
-      pCondition = mCondition.createCondition(pEdge);
-
-      if (pCondition->isTrue())
+      if (mCondition.isTrue(pEdge))
         {
           // Loop through the operation definitions
           std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
@@ -354,22 +345,16 @@ bool CActionDefinition::execute(CEdge * pEdge) const
       success = false;
     }
 
-  if (pCondition != NULL)
-    delete pCondition;
-
   return success;
 }
 
 bool CActionDefinition::execute(CNode * pNode) const
 {
   bool success = true;
-  CCondition * pCondition = NULL;
 
   try
     {
-      pCondition = mCondition.createCondition(pNode);
-
-      if (pCondition->isTrue())
+      if (mCondition.isTrue(pNode))
         {
           // Loop through the operation definitions
           std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
@@ -384,9 +369,6 @@ bool CActionDefinition::execute(CNode * pNode) const
       CLogger::error() << "CActionDefinition::execute: [ActionDefinition:" << mIndex << "] Failed to execute action for node '" << pNode->id << "'.";
       success = false;
     }
-
-  if (pCondition != NULL)
-    delete pCondition;
 
   return success;
 }
