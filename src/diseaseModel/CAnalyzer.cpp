@@ -93,7 +93,7 @@ CAnalyzer::~CAnalyzer()
 }
 
 CAnalyzer::CAnalyzer(const std::string & jsonFile)
-  : mSeed(-1)
+  : mSeed(std::numeric_limits< size_t >::max())
   , mMaxTick(100)
   , mSampleSize(100000)
   , mData(NULL)

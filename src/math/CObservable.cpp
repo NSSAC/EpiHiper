@@ -83,7 +83,7 @@ CObservable::CObservable()
   , CComputable()
   , mObservableType(ObservableType::healthStateAbsolute)
   , mObservableSubset(ObservableSubset::current)
-  , mId(-1)
+  , mId(std::numeric_limits< size_t >::max())
   , mpCompute(NULL)
 {}
 
@@ -101,7 +101,7 @@ CObservable::CObservable(const json_t * json)
   , CComputable()
   , mObservableType(ObservableType::healthStateAbsolute)
   , mObservableSubset(ObservableSubset::current)
-  , mId(-1)
+  , mId(std::numeric_limits< size_t >::max())
   , mpCompute(NULL)
 {
   fromJSON(json);

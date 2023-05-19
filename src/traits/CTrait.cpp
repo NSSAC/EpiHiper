@@ -70,8 +70,6 @@ const CTrait * CTrait::find(const std::string & id)
 // static
 void CTrait::load(const std::string & jsonFile)
 {
-  std::map< std::string, CTrait > Traits;
-
   json_t * pRoot = CSimConfig::loadJson(jsonFile, JSON_DECODE_INT_AS_REAL);
 
   if (pRoot == NULL)

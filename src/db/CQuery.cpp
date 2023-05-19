@@ -35,7 +35,7 @@
 
 size_t toIdFieldValueList(const pqxx::result & result, CFieldValueList & list)
 {
-  size_t Default(-1);
+  size_t Default(std::numeric_limits< size_t >::max());
   size_t OldSize = list.size();
 
   for (const pqxx::row & Row : result)

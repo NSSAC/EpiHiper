@@ -57,7 +57,7 @@ CVariable::CVariable()
   , mInitialValue(std::numeric_limits< double >::quiet_NaN())
   , mLocalValue()
   , mResetValue(0)
-  , mIndex(-1)
+  , mIndex(std::numeric_limits< size_t >::max())
 {
   mLocalValue.init();
 }
@@ -84,7 +84,7 @@ CVariable::CVariable(const json_t * json)
   , mInitialValue(std::numeric_limits< double >::quiet_NaN())
   , mLocalValue()
   , mResetValue(0)
-  , mIndex(-1)
+  , mIndex(std::numeric_limits< size_t >::max())
 {
   mLocalValue.init();
 

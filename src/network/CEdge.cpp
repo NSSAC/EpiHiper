@@ -50,13 +50,13 @@ CEdge CEdge::getDefault()
 }
 
 CEdge::CEdge()
-  : targetId(-1)
+  : targetId(std::numeric_limits< size_t >::max())
   , targetActivity()
-  , sourceId(-1)
+  , sourceId(std::numeric_limits< size_t >::max())
   , sourceActivity()
   , duration(0.0)
 #ifdef USE_LOCATION_ID
-  , locationId(-1)
+  , locationId(std::numeric_limits< size_t >::max())
 #endif
   , edgeTrait()
   , active(true)

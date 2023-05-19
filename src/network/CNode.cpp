@@ -48,7 +48,7 @@ CNode CNode::getDefault()
 }
 
 CNode::CNode()
-  : id(-1)
+  : id(std::numeric_limits< size_t >::max())
   , healthState()
   , susceptibilityFactor(1.0)
   , susceptibility(0.0)
