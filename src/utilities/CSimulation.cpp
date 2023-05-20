@@ -76,6 +76,7 @@ bool CSimulation::run()
   CActionQueue::setCurrentTick(startTick - 1);
   CChanges::setCurrentTick(startTick - 1);
   CLogger::updateTick();
+  CCommunicate::memUsage();
 
   CChanges::initDefaultOutput();
   CModel::InitGlobalStateCountOutput();
@@ -116,6 +117,7 @@ bool CSimulation::run()
   CActionQueue::incrementTick();
   CChanges::incrementTick();
   CLogger::updateTick();
+  CCommunicate::memUsage();
 
   CChanges::writeDefaultOutput();
   CModel::UpdateGlobalStateCounts();
@@ -179,6 +181,7 @@ bool CSimulation::run()
       CActionQueue::incrementTick();
       CChanges::incrementTick();
       CLogger::updateTick();
+      CCommunicate::memUsage();
 
       CChanges::writeDefaultOutput();
       CModel::UpdateGlobalStateCounts();

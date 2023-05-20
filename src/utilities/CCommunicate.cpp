@@ -839,7 +839,7 @@ void CCommunicate::memUsage()
   vm_usage = vsize / 1024.0;
   resident_set = rss * page_size_kb;
 
-  CLogger::info() << "VM: " << (size_t) vm_usage << "; RSS: " << (size_t) resident_set;
+  CLogger::info() << "Memory VM: " << (size_t) vm_usage << "; RSS: " << (size_t) resident_set;
 }
 
 CCommunicate::~CCommunicate()
