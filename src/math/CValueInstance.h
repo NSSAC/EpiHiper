@@ -43,7 +43,7 @@ public:
 
   CValueInterface value(const CEdge * pEdge) const;
 
-  CValueInterface & value() const;
+  CValueInterface value() const;
 
   CValueList & valueList() const;
 

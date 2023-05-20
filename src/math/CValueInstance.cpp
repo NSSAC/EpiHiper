@@ -174,7 +174,7 @@ CValueInterface CValueInstance::value(const CEdge * pEdge) const
   return value();
 }
 
-CValueInterface & CValueInstance::value() const
+CValueInterface CValueInstance::value() const
 {
   static CValueInterface Invalid(CValueInterface::Type::__SIZE, NULL);
 
@@ -189,9 +189,8 @@ CValueInterface & CValueInstance::value() const
       break;
 
     case ValueType::Variable:
-      // We need to make sure that the value of a global variable is up to date
-      mpVariable->getValue();
-      return *mpVariable;
+      // We need to make sure that the value of a global variable is up to date and we have the correct context.
+      return mpVariable->toValue();
       break;
 
     case ValueType::Sizeof:
