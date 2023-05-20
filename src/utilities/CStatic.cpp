@@ -125,9 +125,6 @@ CComputable::Sequence CDependencyGraph::ComputeOnceSequence;
 CObservable::ObservableMap CObservable::Observables;
 
 // static
-std::vector< CSizeOf * > CSizeOf::INSTANCES;
-
-// static
 bool CEdge::HasLocationId(false);
 
 // static
@@ -149,7 +146,7 @@ CSetList CSetList::INSTANCE;
 std::set< CSetReference * > CSetReference::UnResolved;
 
 // static 
-std::set< CSetContent::CSetContentPtr, CSetContent::Compare > CSetContent::UniqueSetContent;
+std::set< CSetContent::shared_pointer, CSetContent::Compare > CSetContent::Unique;
 
 // static
 std::map< std::string, CTrait > CTrait::INSTANCES;

@@ -109,7 +109,7 @@ void CSetOperation::fromJSONProtected(const json_t * json)
 
   for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
     {
-      CSetContentPtr pSetContent = CSetContent::create(json_array_get(pValue, i));
+      shared_pointer pSetContent = CSetContent::create(json_array_get(pValue, i));
 
       if (pSetContent
           && pSetContent->isValid())

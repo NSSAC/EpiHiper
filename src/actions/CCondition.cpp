@@ -30,46 +30,34 @@
 #include "variables/CVariable.h"
 
 // static 
-bool CCondition::isTrue(CConditionDefinition::ComparisonType operation, CValueInterface const * pLeft, CValueInterface const * pRight)
+bool CCondition::isTrue(CConditionDefinition::ComparisonType operation, const CValueInterface & Left, const CValueInterface & Right)
 {
   bool result = true;
-
-  std::shared_ptr< CValue > VariableLeft;
-  std::shared_ptr< CValue > VariableRight;
-
-  if (dynamic_cast< const CVariable * >(pLeft))
-    VariableLeft = std::make_shared< CValue >(const_cast< CVariable * >(static_cast< const CVariable * >(pLeft))->toValue());
-
-  if (dynamic_cast< const CVariable * >(pRight))
-    VariableRight = std::make_shared< CValue >(const_cast< CVariable * >(static_cast< const CVariable * >(pRight))->toValue());
-
-  const CValueInterface & ValueLeft = VariableLeft ? *VariableLeft : *pLeft;
-  const CValueInterface & ValueRight = VariableLeft ? *VariableRight : *pRight;
 
   switch (operation)
     {
     case CConditionDefinition::ComparisonType::Equal:
-      result = (ValueLeft == ValueRight);
+      result = (Left == Right);
       break;
 
     case CConditionDefinition::ComparisonType::NotEqual:
-      result = (ValueLeft != ValueRight);
+      result = (Left != Right);
       break;
 
     case CConditionDefinition::ComparisonType::Less:
-      result = (ValueLeft < ValueRight);
+      result = (Left < Right);
       break;
 
     case CConditionDefinition::ComparisonType::LessOrEqual:
-      result = (ValueLeft <= ValueRight);
+      result = (Left <= Right);
       break;
 
     case CConditionDefinition::ComparisonType::Greater:
-      result = (ValueLeft > ValueRight);
+      result = (Left > Right);
       break;
 
     case CConditionDefinition::ComparisonType::GreaterOrEqual:
-      result = (ValueLeft >= ValueRight);
+      result = (Left >= Right);
       break;
 
     default:
@@ -116,24 +104,18 @@ bool CCondition::isTrue(CConditionDefinition::BooleanOperationType operation, co
 }
 
 // static 
-bool CCondition::isTrue(CConditionDefinition::ComparisonType operation, const CValueInterface * pValue, const CValueList & valueList)
+bool CCondition::isTrue(CConditionDefinition::ComparisonType operation, const CValueInterface & value, const CValueList & valueList)
 {
   bool result = true;
-  std::shared_ptr< CValue > VariableLeft;
-
-  if (dynamic_cast< const CVariable * >(pValue))
-    VariableLeft = std::make_shared< CValue >(const_cast< CVariable * >(static_cast< const CVariable * >(pValue))->toValue());
-
-  const CValueInterface & Value = VariableLeft ? *VariableLeft : *pValue;
 
   switch (operation)
   {
     case CConditionDefinition::ComparisonType::Within:
-      result = valueList.contains(Value);
+      result = valueList.contains(value);
       break;
 
     case CConditionDefinition::ComparisonType::NotWithin:
-      result = !valueList.contains(Value);
+      result = !valueList.contains(value);
       break;
 
     default:

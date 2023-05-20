@@ -61,7 +61,7 @@ public:
   CSetContent * getTarget();
 
 private:
-  CSetContent::CSetContentPtr mpTarget;
+  CSetContent::shared_pointer mpTarget;
   CActionEnsemble mActionEnsemble;
 
 protected:

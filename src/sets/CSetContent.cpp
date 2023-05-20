@@ -38,7 +38,8 @@
 #include "utilities/CLogger.h"
 #include "utilities/CSimConfig.h"
 
-bool CSetContent::Compare::operator()(const CSetContentPtr & lhs, const CSetContentPtr & rhs)
+// static
+bool CSetContent::Compare::operator()(const CSetContent::shared_pointer & lhs, const CSetContent::shared_pointer & rhs)
 {
   return lhs->lessThan(*rhs);
 }
@@ -99,7 +100,7 @@ bool CSetContent::filter(const CEdge * /* pEdge */) const
 } 
  
 // static
-CSetContent::CSetContentPtr CSetContent::create(const json_t * json)
+CSetContent::shared_pointer CSetContent::create(const json_t * json)
 {
   CSetContent * pNew = NULL;
 
@@ -149,11 +150,11 @@ CSetContent::CSetContentPtr CSetContent::create(const json_t * json)
 
   // Assure unique CSetContent is returned
   if (pNew == NULL)
-    return CSetContentPtr(NULL);
+    return shared_pointer(NULL);
 
-  CSetContentPtr New(pNew);
+  shared_pointer New(pNew);
 
-  return *UniqueSetContent.insert(New).first;
+  return *Unique.insert(New).first;
 }
 
 bool CSetContent::lessThan(const CSetContent & rhs) const

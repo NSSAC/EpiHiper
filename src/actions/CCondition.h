@@ -38,10 +38,10 @@
 #include "math/CComputable.h"
 
 struct CCondition {
-  static bool isTrue(CConditionDefinition::ComparisonType operation, CValueInterface const * pLeft, CValueInterface const * pRight);
+  static bool isTrue(CConditionDefinition::ComparisonType operation, const CValueInterface & pLeft, const CValueInterface & pRight);
   static bool isTrue(const bool & value);
   static bool isTrue(CConditionDefinition::BooleanOperationType operation, const std::vector< bool > & booleanVector);
-  static bool isTrue(CConditionDefinition::ComparisonType operation, const CValueInterface * pValue, const CValueList & valueList);
+  static bool isTrue(CConditionDefinition::ComparisonType operation, const CValueInterface & pValue, const CValueList & valueList);
 };
 
 #endif /* SRC_ACTIONS_CCONDITION_H_ */

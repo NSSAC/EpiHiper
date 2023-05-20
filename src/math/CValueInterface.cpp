@@ -25,6 +25,35 @@
 #include "math/CValueInterface.h"
 #include "utilities/CCommunicate.h"
 
+// static 
+const CEnumAnnotation< std::string, CValueInterface::Type > CValueInterface::TypeName({
+  "Boolean",
+  "number",
+  "integer",
+  "trait data",
+  "trait value",
+  "string",
+  "id"
+});
+
+// static 
+const CEnumAnnotation< std::string, CValueInterface::Operator > CValueInterface::OperatorName({
+  "=",
+  "+=",
+  "-=",
+  "*=",
+  "/="
+});
+
+// static 
+const CEnumAnnotation< CValueInterface::pOperator, CValueInterface::Operator > CValueInterface::OperatorFunction({
+  &CValueInterface::equal,
+  &CValueInterface::plus,
+  &CValueInterface::minus,
+  &CValueInterface::multiply,
+  &CValueInterface::divide
+});
+
 CValueInterface::CValueInterface(const CValueInterface::Type & type, void * pValue)
   : mType(type)
   , mpValue(pValue)
@@ -72,12 +101,6 @@ CValueInterface::~CValueInterface()
 const bool & CValueInterface::toBoolean() const
 {
   return * static_cast< bool * >(mpValue);
-}
-
-// virtual
-CValueInterface * CValueInterface::copy() const
-{
-  return new CValueInterface(*this);
 }
 
 const double & CValueInterface::toNumber() const
@@ -153,6 +176,9 @@ void CValueInterface::toBinary(std::ostream & os) const
         os.write(reinterpret_cast<const char *>(pStr->c_str()), Size * sizeof(char));
       }
       break;
+
+    case Type::__SIZE:
+      break;
   }
 }
 
@@ -197,7 +223,10 @@ void CValueInterface::fromBinary(std::istream & is)
         *static_cast< std::string * >(mpValue) = str;
       }
       break;
-  }
+
+    case Type::__SIZE:
+      break;
+    }
 }
 
 CValueInterface & CValueInterface::operator=(const CValueInterface & rhs)
@@ -233,7 +262,10 @@ CValueInterface & CValueInterface::operator=(const CValueInterface & rhs)
         case Type::id:
           *static_cast< size_t * >(mpValue) = *static_cast< const size_t * >(rhs.mpValue);
           break;
-      }
+
+        case Type::__SIZE:
+          break;
+        }
     }
 
   return *this;
@@ -293,6 +325,9 @@ bool CValueInterface::compatible(const CValueInterface::Type & lhs, const CValue
 
       case Type::traitValue:
         compatible = (rhs == Type::traitData);
+        break;
+
+      case CValueInterface::Type::__SIZE:
         break;
     }
 
@@ -355,6 +390,9 @@ bool operator<(const CValueInterface & lhs, const CValueInterface & rhs)
     case CValueInterface::Type::string:
       return * static_cast< std::string * >(lhs.mpValue) < * static_cast< const std::string * >(rhs.mpValue);
       break;
+
+    case CValueInterface::Type::__SIZE:
+      break;
   }
 
   return lhs.mpValue < rhs.mpValue;
@@ -393,6 +431,9 @@ bool operator<=(const CValueInterface & lhs, const CValueInterface & rhs)
 
     case CValueInterface::Type::string:
       return * static_cast< std::string * >(lhs.mpValue) <= * static_cast< const std::string * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::__SIZE:
       break;
   }
 
@@ -457,6 +498,9 @@ bool operator==(const CValueInterface & lhs, const CValueInterface & rhs)
     case CValueInterface::Type::string:
       return * static_cast< std::string * >(lhs.mpValue) == * static_cast< const std::string * >(rhs.mpValue);
       break;
+
+    case CValueInterface::Type::__SIZE:
+      break;
   }
 
   return lhs.mpValue == rhs.mpValue;
@@ -519,6 +563,9 @@ std::ostream & operator << (std::ostream & os, const CValueInterface & p)
     case CValueInterface::Type::string:
       os << * static_cast< const std::string * >(p.mpValue);
       break;
+
+    case CValueInterface::Type::__SIZE:
+      break;      
   }
 
   return os;

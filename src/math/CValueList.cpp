@@ -399,6 +399,7 @@ void CValueList::fromJSON(const json_t * json)
 
     case Type::string:
     case Type::traitData:
+    case Type::__SIZE:
       break;
     }
 
@@ -443,6 +444,7 @@ void CValueList::toBinary(std::ostream & os) const
 
     case Type::string:
     case Type::traitData:
+    case Type::__SIZE:
       break;
     }
 }
@@ -502,6 +504,7 @@ void CValueList::fromBinary(std::istream & is)
       
     case Type::string:
     case Type::traitData:
+    case Type::__SIZE:
       break;
     }
 }
@@ -509,4 +512,24 @@ void CValueList::fromBinary(std::istream & is)
 CValueList::iterator CValueList::insert(CValueList::iterator position, const CValueList::value_type & val)
 {
   return std::set< CValue >::insert(position, val);
+}
+
+std::ostream & operator << (std::ostream & os, const CValueList & p)
+{
+  bool first = true;
+  os << "{";
+
+  for (const CValue & v : p)
+    {
+      if (first)
+        first = false;
+      else 
+        os << ", ";
+
+      os << v;
+    }
+
+  os << "}";
+
+  return os;
 }

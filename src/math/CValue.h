@@ -54,8 +54,6 @@ public:
 
   virtual ~CValue();
 
-  virtual CValueInterface * copy() const override;
-
   virtual void fromJSON(const json_t * json);
 
   virtual bool isValid() const;

@@ -64,12 +64,6 @@ CEdgeProperty::CEdgeProperty(const json_t * json)
 CEdgeProperty::~CEdgeProperty()
 {}
 
-// virtual
-CValueInterface * CEdgeProperty::copy() const
-{
-  return new CEdgeProperty(*this);
-}
-
 void CEdgeProperty::fromJSON(const json_t * json)
 {
   mValid = false; // DONE

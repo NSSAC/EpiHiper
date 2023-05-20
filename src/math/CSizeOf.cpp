@@ -30,11 +30,29 @@
 #include "sets/CSetContent.h"
 #include "utilities/CLogger.h"
 #include "utilities/CSimConfig.h"
-
-// static
-std::vector< CSizeOf * > CSizeOf::GetInstances()
+ 
+bool  CSizeOf::Compare::operator()(const CSizeOf::shared_pointer & lhs, const CSizeOf::shared_pointer & rhs)
 {
-  return INSTANCES;
+  return CSetContent::Compare()(lhs->mpSetContent, rhs->mpSetContent);
+}
+
+// static 
+std::set< CSizeOf::shared_pointer, CSizeOf::Compare > CSizeOf::Unique;
+
+// static 
+CSizeOf::shared_pointer CSizeOf::FromJSON(const json_t * json )
+{
+  CSizeOf * pNew = new CSizeOf(json);
+
+  if (!pNew->isValid())
+    {
+      delete pNew;
+      return nullptr;
+    }
+
+  shared_pointer New(pNew);
+
+  return *Unique.insert(New).first;
 }
 
 CSizeOf::CSizeOf()
@@ -61,23 +79,11 @@ CSizeOf::CSizeOf(const json_t * json)
   , mIdentifier()
 {
   fromJSON(json);
-
-  if (isValid())
-    {
-      mIndex = INSTANCES.size();
-      INSTANCES.push_back(this);
-    }
 }
 
 // virtual
 CSizeOf::~CSizeOf()
 {}
-
-// virtual
-CValueInterface * CSizeOf::copy() const
-{
-  return new CSizeOf(*this);
-}
 
 //  virtual
 bool CSizeOf::computeProtected()

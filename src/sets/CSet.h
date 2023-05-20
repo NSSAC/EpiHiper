@@ -84,7 +84,7 @@ protected:
 private:
   std::string mId;
   Type mType;
-  CSetContentPtr mpSetContent;
+  shared_pointer mpSetContent;
 };
 
 #endif /* SRC_INTERVENTION_CSET_H_ */

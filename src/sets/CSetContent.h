@@ -39,7 +39,7 @@ class CEdge;
 class CSetContent: public CComputable
 {
 public:
-  typedef std::shared_ptr< CSetContent > CSetContentPtr;
+  typedef std::shared_ptr< CSetContent > shared_pointer;
 
   class CDBFieldValues : public std::map< CValueList::Type, CValueList >
   {
@@ -55,14 +55,14 @@ public:
   };
 
 public:
-  static CSetContentPtr create(const json_t * json);
+  static shared_pointer create(const json_t * json);
 
   struct Compare
   {
-    bool operator()(const CSetContentPtr & lhs, const CSetContentPtr & rhs);
+    bool operator()(const shared_pointer & lhs, const shared_pointer & rhs);
   };
 
-  static std::set< CSetContentPtr, Compare > UniqueSetContent;
+  static std::set< shared_pointer, Compare > Unique;
 
   template< class function_pointer >
   static bool pointerLessThan(const function_pointer pLeft, const function_pointer pRight)
@@ -184,7 +184,7 @@ protected:
   virtual bool lessThanProtected(const CSetContent & rhs) const = 0;
 
 private:
-  static std::set< CSetContentPtr > SetContents;
+  static std::set< shared_pointer > SetContents;
 
   Type mType;
   

@@ -30,17 +30,7 @@
 
 #include "math/CValueList.h"
 #include "math/CComputable.h"
-
-class CObservable;
-class CNodeProperty;
-class CEdgeProperty ;
-class CVariable;
-class CSizeOf;
-class CCondition;
-class CNode;
-class CEdge;
-
-struct json_t;
+#include "math/CValueInstance.h"
 
 class CConditionDefinition
 {
@@ -63,43 +53,8 @@ public:
     Or,
     Not,
     Value,
-    Comparison
-  };
-
-  enum struct ValueType
-  {
-    Value,
-    ValueList,
-    Observable,
-    NodeProperty,
-    EdgeProperty,
-    Variable,
-    Sizeof
-  };
-
-private:
-  struct ValueInstance
-  {
-    ValueType type;
-    std::shared_ptr< CValue > pValue;
-    std::shared_ptr< CValueList > pValueList;
-    CObservable * pObservable;
-    std::shared_ptr< CNodeProperty > pNodeProperty;
-    std::shared_ptr< CEdgeProperty > pEdgeProperty;
-    CVariable * pVariable;
-    std::shared_ptr< CSizeOf > pSizeOf;
-    bool valid;
-
-    ValueInstance();
-    ValueInstance(const ValueInstance & src);
-    ~ValueInstance();
-    virtual void fromJSON(const json_t * json);
-    CValueInterface * value(const CNode * pNode) const;
-    CValueInterface * value(const CEdge * pEdge) const;
-    CValueInterface * value() const;
-    CValueInterface::Type interfaceType() const;
-
-    bool inherit() const;
+    Comparison,
+    __SIZE
   };
 
 public:
@@ -139,13 +94,11 @@ public:
 
   bool isTrue(const CEdge * pEdge) const;
 
-  static bool compatible(const ValueInstance & lhs, const ValueInstance & rhs);
-
 private:
   BooleanOperationType mType;
   ComparisonType mComparison;
-  ValueInstance mLeft;
-  ValueInstance mRight;
+  CValueInstance mLeft;
+  CValueInstance mRight;
   bool mValue;
   std::vector< CConditionDefinition > mBooleanValues;
   bool mValid;

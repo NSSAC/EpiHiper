@@ -79,7 +79,7 @@ private:
   CEdgeProperty mEdgeProperty;
   CValue * mpValue;
   CValueList * mpValueList;
-  CSetContent::CSetContentPtr mpSelector;
+  CSetContent::shared_pointer mpSelector;
   std::string mDBTable;
   std::string mDBField;
   CObservable * mpObservable;

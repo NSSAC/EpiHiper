@@ -36,6 +36,7 @@
 
 #include "traits/CTraitData.h"
 #include "diseaseModel/CModel.h"
+#include "utilities/CEnumAnnotation.h"
 
 class CValueInterface
 {
@@ -60,8 +61,25 @@ public:
     traitData,
     traitValue,
     string,
-    id
+    id,
+    __SIZE
   };
+
+  static const CEnumAnnotation< std::string, Type > TypeName;
+
+  enum struct Operator
+  {
+    equal,
+    plus,
+    minus,
+    multiply,
+    divide,
+    __SIZE,
+  };
+
+  static const CEnumAnnotation< std::string, Operator > OperatorName;
+
+  static const CEnumAnnotation< pOperator, Operator > OperatorFunction;
 
   CValueInterface() = delete;
 
@@ -84,8 +102,6 @@ public:
   CValueInterface(std::string & str);
 
   virtual ~CValueInterface();
-
-  virtual CValueInterface * copy() const;
 
   const bool & toBoolean() const;
 

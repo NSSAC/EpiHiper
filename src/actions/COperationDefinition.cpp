@@ -280,11 +280,14 @@ void COperationDefinition::fromJSON(const json_t * json)
   mpObservable = NULL;
 
   CLogger::pushLevel(spdlog::level::off);
-  mpSizeOf = new CSizeOf(json);
+  CSizeOf::shared_pointer pSizeOf = CSizeOf::FromJSON(json);
   CLogger::popLevel();
   
-  if (mpSizeOf->isValid())
+  if (pSizeOf
+      && pSizeOf->isValid())
     {
+      mpSizeOf = pSizeOf.get();
+      
       CConditionDefinition::RequiredComputables.insert(mpSizeOf);
 
       if (!CValueInterface::compatible(TargetValueType, mpSizeOf->getType()))
@@ -298,7 +301,6 @@ void COperationDefinition::fromJSON(const json_t * json)
       return;
     }
 
-  delete mpSizeOf;
   mpSizeOf = NULL;
 
   mValue.fromJSON(json_object_get(json, "value"));

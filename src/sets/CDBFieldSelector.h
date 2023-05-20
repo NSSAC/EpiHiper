@@ -50,7 +50,7 @@ private:
   std::string mTable;
   std::string mField;
   CValue::Type mFieldType;
-  CSetContent::CSetContentPtr mpSelector;
+  CSetContent::shared_pointer mpSelector;
 };
 
 #endif /* SRC_SETS_CDBFIELDSELECTOR_H_ */

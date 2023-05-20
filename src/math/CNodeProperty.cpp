@@ -65,12 +65,6 @@ CNodeProperty::CNodeProperty(const json_t * json)
 CNodeProperty::~CNodeProperty()
 {}
 
-// virtual
-CValueInterface * CNodeProperty::copy() const
-{
-  return new CNodeProperty(*this);
-}
-
 void CNodeProperty::fromJSON(const json_t * json)
 {
   mValid = false; 
