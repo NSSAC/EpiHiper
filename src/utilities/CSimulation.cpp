@@ -99,8 +99,6 @@ bool CSimulation::run()
 #pragma omp atomic
       success &= false;
 
-    CCommunicate::memUsage();
-
     CVariableList::INSTANCE.resetAll();
 
     if (!CActionQueue::processCurrentActions())
