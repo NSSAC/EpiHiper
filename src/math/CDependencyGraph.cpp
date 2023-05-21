@@ -64,9 +64,11 @@ void CDependencyGraph::buildGraph()
           ComputeOnceSequence.push_back(pComputable);
           Changed.insert(pComputable);
         }
-      else if (pComputable->isStatic())
+      else if (pComputable->isStatic()
+              && !INSTANCE.dependsOn(pComputable, &CActionQueue::getCurrentTick()))
         {
-          CConditionDefinition::RequiredComputables.insert(pComputable);
+          // This is required so that the static computable is updated the first time it is accessed.
+          INSTANCE.addPrerequisite(pComputable,  &CActionQueue::getCurrentTick());
         }
     }
 
