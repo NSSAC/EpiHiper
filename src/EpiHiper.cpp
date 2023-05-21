@@ -45,6 +45,7 @@
 #include "intervention/CIntervention.h"
 #include "variables/CVariableList.h"
 #include "sets/CSetReference.h"
+#include "math/CSizeOf.h"
 
 // Uncomment the following line if you want to attache a debugger
 // #define DEBUG_WAIT 1
@@ -203,6 +204,9 @@ success:
   CModel::Release();
   CInitialization::release();
   CIntervention::release();
+  CSizeOf::Unique.clear();
+  CSetContent::Unique.clear();
+  CComputable::Instances.clear();
   CNetwork::release();
   CConnection::release();
   CActionQueue::release();
