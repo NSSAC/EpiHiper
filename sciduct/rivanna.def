@@ -96,7 +96,7 @@ From: centos:7.6.1810
     rm -rf /src
 
     # nodejs install
-    curl -sL https://rpm.nodesource.com/setup_12.x | bash -
+    curl -sL https://rpm.nodesource.com/setup_14.x | bash -
     yum install -y nodejs
 
     # jq is a processor for helping with json from bash
