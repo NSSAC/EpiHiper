@@ -37,7 +37,7 @@ ID=$(id -u)
 cd cache.rivanna
 
 # EpiHiper
-if [ ! -e EpiHiper ]; then
+if [ ! -e EpiHiper ] || [ _$1 == _fetch ]; then
     scp rivanna:/project/biocomplexity/nssac/EpiHiper/build/src/EpiHiper* . 
     scp rivanna:/project/biocomplexity/nssac/EpiHiper/build/src/libEpiHiper* . 
 fi
