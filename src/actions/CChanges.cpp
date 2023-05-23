@@ -273,6 +273,8 @@ CCommunicate::ErrorCode CChanges::receiveNodesRequested(std::istream & is, int s
 {
   std::set< const CNode * > & Requested = RankToNodesRequested[sender];
   Requested.clear();
+
+  CNetwork & Master = CNetwork::Context.Active();
   size_t id;
 
   while (true)
@@ -282,7 +284,7 @@ CCommunicate::ErrorCode CChanges::receiveNodesRequested(std::istream & is, int s
       if (is.fail())
         break;
 
-      CNode * pNode = CNetwork::Context.Active().lookupNode(id, true);
+      CNode * pNode = Master.lookupNode(id, true);
 
       if (pNode != NULL)
         Requested.insert(pNode);
@@ -290,8 +292,8 @@ CCommunicate::ErrorCode CChanges::receiveNodesRequested(std::istream & is, int s
 
   CLogger::debug() << "CChanges::receiveNodesRequested: rank "
                    << sender << " requested " << Requested.size() << " of "
-                   << CNetwork::Context.Active().getLocalNodeCount() << " ("
-                   << 100.0 * Requested.size() / CNetwork::Context.Active().getLocalNodeCount() << ")";
+                   << Master.getLocalNodeCount() << " ("
+                   << 100.0 * Requested.size() / Master.getLocalNodeCount() << ")";
 
   return CCommunicate::ErrorCode::Success;
 }

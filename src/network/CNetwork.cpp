@@ -1335,6 +1335,8 @@ bool CNetwork::openPartition(const size_t & partition,
 
   os << std::endl;
 
+  json_decref(pJson);
+  
   return true;
 }
 
@@ -1711,16 +1713,9 @@ const bool & CNetwork::isValid() const
 
 int CNetwork::broadcastChanges()
 {
-  // std::cout << Communicate::Rank << ": ActionQueue::broadcastChanges (Nodes)" << std::endl;
   CCommunicate::Send SendNodes(&CChanges::sendNodesRequested);
   CCommunicate::ClassMemberReceive< CNetwork > ReceiveNodes(this, &CNetwork::receiveNodes);
   CCommunicate::roundRobin(&SendNodes, &ReceiveNodes);
-
-  // Buffer = CChanges::getEdges().str();
-
-  // std::cout << Communicate::Rank << ": ActionQueue::broadcastChanges (Edges)" << std::endl;
-  // CCommunicate::ClassMemberReceive< CNetwork > ReceiveEdge(CNetwork::INSTANCE, &CNetwork::receiveEdges);
-  // CCommunicate::roundRobin(Buffer.c_str(), Buffer.length(), &ReceiveEdge);
 
   CChanges::clear();
 
@@ -1757,35 +1752,6 @@ CCommunicate::ErrorCode CNetwork::receiveNodes(std::istream & is, int sender)
     }
 
   CLogger::debug() << "CChanges::receiveNodes: Receiving " << i << " nodes from: " << sender;
-
-  return CCommunicate::ErrorCode::Success;
-}
-
-CCommunicate::ErrorCode CNetwork::receiveEdges(std::istream & is, int /* sender */)
-{
-  CEdge Edge;
-
-  while (true)
-    {
-      Edge.fromBinary(is);
-
-      if (is.fail())
-        {
-          break;
-        }
-
-      CEdge * pEdge = lookupEdge(Edge.targetId, Edge.sourceId);
-
-      if (pEdge != NULL)
-        {
-          pEdge->targetActivity = Edge.targetActivity;
-          pEdge->sourceActivity = Edge.sourceActivity;
-          pEdge->duration = Edge.duration;
-          pEdge->edgeTrait = Edge.edgeTrait;
-          pEdge->active = Edge.active;
-          pEdge->weight = Edge.weight;
-        }
-    }
 
   return CCommunicate::ErrorCode::Success;
 }

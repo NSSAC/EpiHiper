@@ -178,20 +178,40 @@ void CIntervention::fromJSON(const json_t * json)
   if (!mValid)
     return;
 
+  // Delete auto generated annotation ids for initialization.
   if (mAnnId.find("epiHiper.initialization.") != std::string::npos)
-    {
-      mAnnId.clear();
-    }
-    
-  json_t * pValue = json_object_get(json, "trigger");
+    mAnnId.clear();
+  
+  // We must have one of id or trigger
+  bool IdOrTrigger = false;
+  json_t * pValue = json_object_get(json, "id");
 
-  if (json_is_object(pValue))
+  if (json_is_string(pValue))
+    {
+      mId = json_string_value(pValue);
+      IdOrTrigger = true;
+    }
+  else if (!mAnnId.empty())
+    {
+      mId = mAnnId;
+    }
+  else
     {
       std::ostringstream uniqueId;
       uniqueId << "epiHiper.intervention." << INSTANCES.size();
       mId = uniqueId.str();
-      INSTANCES[mId] = this;
+    }
 
+  INSTANCES[mId] = this;
+
+  if (CAnnotation::mAnnId.empty())
+    CAnnotation::mAnnId = mId;
+
+  pValue = json_object_get(json, "trigger");
+
+  if (json_is_object(pValue))
+    {
+      // Added the intervention's id to the triggered ids.
       json_object_set_new(const_cast< json_t * >(json), "interventionIds", json_array());
       json_t * pArray = json_object_get(json, "interventionIds");
       json_array_append_new(pArray, json_string(mId.c_str()));
@@ -201,6 +221,7 @@ void CIntervention::fromJSON(const json_t * json)
       if (pTrigger->isValid())
         {
           CTrigger::INSTANCES.push_back(pTrigger);
+          IdOrTrigger = true;
         }
       else
         {
@@ -208,27 +229,9 @@ void CIntervention::fromJSON(const json_t * json)
           CLogger::error("Intervention: Invalid trigger.");
           mValid = false; // DONE
         }
-
-      return;
     }
 
-  mId.clear();
-  pValue = json_object_get(json, "id");
-
-  if (json_is_string(pValue))
-    {
-      mId = json_string_value(pValue);
-      INSTANCES[mId] = this;
-
-      if (CAnnotation::mAnnId.empty())
-        {
-          CAnnotation::mAnnId = mId;
-        }
-        
-      return;
-    }
-
-  mValid = false; // DONE
+  mValid &= IdOrTrigger; // DONE
 }
 
 bool CIntervention::process()

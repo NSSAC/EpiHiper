@@ -73,14 +73,15 @@ bool CSimulation::run()
   bool success = true;
   std::chrono::time_point<std::chrono::steady_clock> Start = std::chrono::steady_clock::now();
 
+  // Initialization is reported prior to the start tick of the simulation.
   CActionQueue::setCurrentTick(startTick - 1);
   CChanges::setCurrentTick(startTick - 1);
   CLogger::updateTick();
   CCommunicate::memUsage();
 
+  CChanges::determineNodesRequested();
   CChanges::initDefaultOutput();
   CModel::InitGlobalStateCountOutput();
-
   CDependencyGraph::buildGraph();
 
 #pragma omp parallel

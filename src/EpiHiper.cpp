@@ -179,8 +179,6 @@ int main(int argc, char * argv[])
       goto failed;
     }
 
-  CChanges::determineNodesRequested();
-
   {
     CSimulation sim;
 
