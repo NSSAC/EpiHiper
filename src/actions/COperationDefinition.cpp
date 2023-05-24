@@ -32,6 +32,7 @@
 #include "math/CEdgeProperty.h"
 #include "math/CObservable.h"
 #include "math/CSizeOf.h"
+#include "variables/CVariable.h"
 #include "variables/CVariableList.h"
 #include "utilities/CMetadata.h"
 #include "utilities/CLogger.h"
@@ -39,46 +40,25 @@
 
 COperationDefinition::COperationDefinition()
   : CAnnotation()
-  , mTargetType()
-  , mpNodeProperty(NULL)
-  , mpEdgeProperty(NULL)
-  , mpTargetVariable(NULL)
+  , mTarget()
   , mpOperator(NULL)
-  , mSourceType()
-  , mpSourceVariable(NULL)
-  , mpObservable(NULL)
-  , mpSizeOf(NULL)
-  , mValue((json_t *) NULL)
+  , mSource()
   , mValid(false)
 {}
 
 COperationDefinition::COperationDefinition(const COperationDefinition & src)
   : CAnnotation(src)
-  , mTargetType()
-  , mpNodeProperty(src.mpNodeProperty != NULL ? new CNodeProperty(*src.mpNodeProperty) : NULL)
-  , mpEdgeProperty(src.mpEdgeProperty != NULL ? new CEdgeProperty(*src.mpEdgeProperty) : NULL)
-  , mpTargetVariable(src.mpTargetVariable)
+  , mTarget(src.mTarget)
   , mpOperator(src.mpOperator)
-  , mSourceType(src.mSourceType)
-  , mpSourceVariable(src.mpSourceVariable)
-  , mpObservable(src.mpObservable)
-  , mpSizeOf(src.mpSizeOf)
-  , mValue(src.mValue)
+  , mSource(src.mSource)
   , mValid(src.mValid)
 {}
 
 COperationDefinition::COperationDefinition(const json_t * json)
   : CAnnotation()
-  , mTargetType()
-  , mpNodeProperty(NULL)
-  , mpEdgeProperty(NULL)
-  , mpTargetVariable(NULL)
+  , mTarget()
   , mpOperator(NULL)
-  , mSourceType()
-  , mpSourceVariable(NULL)
-  , mpObservable(NULL)
-  , mpSizeOf(NULL)
-  , mValue((json_t *) NULL)
+  , mSource()
   , mValid(false)
 {
   fromJSON(json);
@@ -86,12 +66,7 @@ COperationDefinition::COperationDefinition(const json_t * json)
 
 // virtual
 COperationDefinition::~COperationDefinition()
-{
-  if (mpNodeProperty != NULL)
-    delete mpNodeProperty;
-  if (mpEdgeProperty != NULL)
-    delete mpEdgeProperty;
-}
+{}
 
 void COperationDefinition::fromJSON(const json_t * json)
 {
@@ -155,53 +130,11 @@ void COperationDefinition::fromJSON(const json_t * json)
   mValid = false; // DONE
   json_t * pValue = json_object_get(json, "target");
 
-  if (!json_is_object(pValue))
+  mTarget.fromJSON(pValue, true);
+   
+  if (!mTarget.isValid())
     {
-      CLogger::error("Operation: Invalid target.");
-      return;
-    }
-
-  // Strings may never be altered, i.e., this will always be invalid.
-  CValueInterface::Type TargetValueType = CValueInterface::Type::string;
-
-  mpTargetVariable = &CVariableList::INSTANCE[pValue];
-
-  if (mpTargetVariable->isValid())
-    {
-      mTargetType = TargetType::variable;
-      TargetValueType = mpTargetVariable->getType();
-    }
-  else
-    {
-      CNodeProperty NodeProperty(pValue);
-
-      if (NodeProperty.isValid())
-        {
-          mpNodeProperty = new CNodeProperty(NodeProperty);
-          mTargetType = TargetType::node;
-          TargetValueType = mpNodeProperty->getType();
-        }
-      else
-        {
-          CEdgeProperty EdgeProperty(pValue);
-
-          if (EdgeProperty.isValid())
-            {
-              mpEdgeProperty = new CEdgeProperty(EdgeProperty);
-              mTargetType = TargetType::edge;
-              TargetValueType = mpEdgeProperty->getType();
-            }
-          else
-            {
               CLogger::error() << "Operation: Invalid target '" << CSimConfig::jsonToString(json) << "'.";
-              return;
-            }
-        }
-    }
-
-  if (TargetValueType == CValueInterface::Type::string)
-    {
-      CLogger::error() << "Operation: Invalid target value type '" << CSimConfig::jsonToString(json) << "'.";
       return;
     }
 
@@ -241,83 +174,31 @@ void COperationDefinition::fromJSON(const json_t * json)
     }
 
   if (mpOperator != &CValueInterface::equal
-      && TargetValueType != CValueInterface::Type::number 
-      && TargetValueType != CValueInterface::Type::integer)
+      && mTarget.interfaceType() != CValueInterface::Type::number 
+      && mTarget.interfaceType() != CValueInterface::Type::integer)
     {
       CLogger::error() << "Operation: Target value type must be numeric for operator '" << CSimConfig::jsonToString(json) << "'.";
       return;
     }
 
-  mpSourceVariable = &CVariableList::INSTANCE[json];
+  mSource.fromJSON(json, false);
 
-  if (mpSourceVariable->isValid())
+  if (!mSource.isValid())
     {
-      mSourceType = SourceType::variable;
-      mValid = true;
-      return; 
-    }
-
-  mpSourceVariable = NULL;
-
-  mpObservable = CObservable::get(json);
-
-  if (mpObservable != NULL
-      && mpObservable->isValid())
-    {
-      CConditionDefinition::RequiredComputables.insert(mpObservable);
-
-      if (!CValueInterface::compatible(TargetValueType, mpObservable->getType()))
-        {
-          CLogger::error() << "Operation: Incompatible value types for '" << CSimConfig::jsonToString(json) << "'.";
-          return;
-        }
-
-      mSourceType = SourceType::observable;
-      mValid = true;
+      CLogger::error("Operation: Invalid source.");
       return;
     }
 
-  mpObservable = NULL;
+  if (mSource.getPrerequisite() != NULL)
+    CConditionDefinition::RequiredComputables.insert(mSource.getPrerequisite());
 
-  CLogger::pushLevel(spdlog::level::off);
-  CSizeOf::shared_pointer pSizeOf = CSizeOf::FromJSON(json);
-  CLogger::popLevel();
-  
-  if (pSizeOf
-      && pSizeOf->isValid())
-    {
-      mpSizeOf = pSizeOf.get();
-      
-      CConditionDefinition::RequiredComputables.insert(mpSizeOf);
-
-      if (!CValueInterface::compatible(TargetValueType, mpSizeOf->getType()))
-        {
-          CLogger::error() << "Operation: Incompatible value types for '" << CSimConfig::jsonToString(json) << "'.";
-          return;
-        }
-
-      mSourceType = SourceType::sizeOf;
-      mValid = true;
-      return;
-    }
-
-  mpSizeOf = NULL;
-
-  mValue.fromJSON(json_object_get(json, "value"));
-
-  if (!mValue.isValid())
-    {
-      CLogger::error() << "Operation: Invalid '" << CSimConfig::jsonToString(json);
-    }
-
-  if (!CValueInterface::compatible(TargetValueType, mValue.getType()))
+  if (!CValueInterface::compatible(mTarget.interfaceType(), mSource.interfaceType()))
     {
       CLogger::error() << "Operation: Incompatible value types for '" << CSimConfig::jsonToString(json) << "'.";
       return;
     }
 
-  mSourceType = SourceType::value;
-  mValid = mValue.isValid();
+  mValid = true;
 }
 
 const bool & COperationDefinition::isValid() const
@@ -327,26 +208,22 @@ const bool & COperationDefinition::isValid() const
 
 bool COperationDefinition::execute(CNode * pNode, const CMetadata & info) const
 {
+  CNodeProperty * pProperty = mTarget.nodeProperty();
+
   if (pNode == NULL
-      || mpNodeProperty == NULL)
+      || pProperty == NULL)
     return execute(info);
 
-  switch (mSourceType)
+  switch (mSource.getType())
     {
-    case SourceType::variable:
-      return mpNodeProperty->execute(pNode, mpSourceVariable->toValue(), mpOperator, info);
+    case CValueInstance::ValueType::Variable:
+    case CValueInstance::ValueType::Observable:
+    case CValueInstance::ValueType::SizeOf:
+    case CValueInstance::ValueType::Value:
+      return pProperty->execute(pNode, mSource.value(), mpOperator, info);
       break;
 
-    case SourceType::observable:
-      return mpNodeProperty->execute(pNode, *mpObservable, mpOperator, info);
-      break;
-
-    case SourceType::sizeOf:
-      return mpNodeProperty->execute(pNode, *mpSizeOf, mpOperator, info);
-      break;
-
-    case SourceType::value:
-      return mpNodeProperty->execute(pNode, mValue, mpOperator, info);
+    default:
       break;
     }
 
@@ -355,26 +232,23 @@ bool COperationDefinition::execute(CNode * pNode, const CMetadata & info) const
 
 bool COperationDefinition::execute(CEdge * pEdge, const CMetadata & info) const
 {
+  CEdgeProperty * pProperty = mTarget.edgeProperty();
+
   if (pEdge == NULL
-      || mpEdgeProperty == NULL)
+      || pProperty == NULL)
     return execute(info);
 
-  switch (mSourceType)
+  switch (mSource.getType())
     {
-    case SourceType::variable:
-      return mpEdgeProperty->execute(pEdge, mpSourceVariable->toValue(), mpOperator, info);
+    case CValueInstance::ValueType::Variable:
+    case CValueInstance::ValueType::Observable:
+    case CValueInstance::ValueType::SizeOf:
+    case CValueInstance::ValueType::Value:
+      return pProperty->execute(pEdge, mSource.value(), mpOperator, info);
       break;
 
-    case SourceType::observable:
-      return mpEdgeProperty->execute(pEdge, *mpObservable, mpOperator, info);
-      break;
 
-    case SourceType::sizeOf:
-      return mpEdgeProperty->execute(pEdge, *mpSizeOf, mpOperator, info);
-      break;
-
-    case SourceType::value:
-      return mpEdgeProperty->execute(pEdge, mValue, mpOperator, info);
+    default:
       break;
     }
 
@@ -383,22 +257,21 @@ bool COperationDefinition::execute(CEdge * pEdge, const CMetadata & info) const
 
 bool COperationDefinition::execute(const CMetadata & info) const
 {
-  switch (mSourceType)
+  CVariable * pVariable = mTarget.variable();
+
+  if (pVariable == NULL)
+    return false;
+
+  switch (mSource.getType())
     {
-    case SourceType::variable:
-      return COperation::execute< CVariable, CValue >(mpTargetVariable, mpSourceVariable->toValue(), mpOperator, &CVariable::setValue, info);
+    case CValueInstance::ValueType::Variable:
+    case CValueInstance::ValueType::Observable:
+    case CValueInstance::ValueType::SizeOf:
+    case CValueInstance::ValueType::Value:
+      return COperation::execute< CVariable, CValueInterface >(pVariable, mSource.value(), mpOperator, &CVariable::setValue, info);
       break;
 
-    case SourceType::observable:
-      return COperation::execute< CVariable, CValue >(mpTargetVariable, *mpObservable, mpOperator, &CVariable::setValue, info);
-      break;
-
-    case SourceType::sizeOf:
-      return COperation::execute< CVariable, CValue >(mpTargetVariable, *mpSizeOf, mpOperator, &CVariable::setValue, info);
-      break;
-
-    case SourceType::value:
-      return COperation::execute< CVariable, CValue >(mpTargetVariable, mValue, mpOperator, &CVariable::setValue, info);
+    default:
       break;
     }
 

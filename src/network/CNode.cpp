@@ -185,7 +185,7 @@ void CNode::fromBinary(std::istream & is)
   pHealthState = CModel::StateFromType(healthState);
 }
 
-bool CNode::set(const CTransmission * pTransmission, CValueInterface::pOperator /* pOperator */, const CMetadata & metadata)
+bool CNode::set(const CTransmission * pTransmission, const CMetadata & metadata)
 {
   if (pHealthState == pTransmission->getExitState()) return false;
 
@@ -220,7 +220,7 @@ bool CNode::set(const CTransmission * pTransmission, CValueInterface::pOperator 
   return true;
 }
 
-bool CNode::set(const CProgression * pProgression, CValueInterface::pOperator /* pOperator */, const CMetadata & /* metadata */)
+bool CNode::set(const CProgression * pProgression, const CMetadata & /* metadata */)
 {
   if (pHealthState == pProgression->getExitState()) return false;
 
@@ -243,7 +243,7 @@ bool CNode::set(const CProgression * pProgression, CValueInterface::pOperator /*
   return true;
 }
 
-bool CNode::setSusceptibilityFactor(double value, CValueInterface::pOperator pOperator, const CMetadata & ENABLE_TRACE(metadata))
+bool CNode::setSusceptibilityFactor(const double & value, CValueInterface::pOperator pOperator, const CMetadata & ENABLE_TRACE(metadata))
 {
   ENABLE_TRACE(CLogger::trace() << "CNode [ActionDefinition:"
                                 << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
@@ -259,7 +259,7 @@ bool CNode::setSusceptibilityFactor(double value, CValueInterface::pOperator pOp
   return true;
 }
 
-bool CNode::setInfectivityFactor(double value, CValueInterface::pOperator pOperator, const CMetadata & ENABLE_TRACE(metadata))
+bool CNode::setInfectivityFactor(const double &  value, CValueInterface::pOperator pOperator, const CMetadata & ENABLE_TRACE(metadata))
 {
   ENABLE_TRACE(CLogger::trace() << "CNode [ActionDefinition:"
                                 << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
@@ -275,7 +275,7 @@ bool CNode::setInfectivityFactor(double value, CValueInterface::pOperator pOpera
   return true;
 }
 
-bool CNode::setHealthState(CModel::state_t value, CValueInterface::pOperator ENABLE_TRACE(pOperator), const CMetadata & ENABLE_TRACE(metadata))
+bool CNode::setHealthState(const CModel::state_t & value, CValueInterface::pOperator ENABLE_TRACE(pOperator), const CMetadata & ENABLE_TRACE(metadata))
 {
   ENABLE_TRACE(CLogger::trace() << "CNode [ActionDefinition:"
                                 << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
@@ -295,7 +295,7 @@ bool CNode::setHealthState(CModel::state_t value, CValueInterface::pOperator ENA
   return true;
 }
 
-bool CNode::setNodeTrait(CTraitData::value value, CValueInterface::pOperator ENABLE_TRACE(pOperator), const CMetadata & ENABLE_TRACE(metadata))
+bool CNode::setNodeTrait(const CTraitData::value & value, CValueInterface::pOperator ENABLE_TRACE(pOperator), const CMetadata & ENABLE_TRACE(metadata))
 {
   ENABLE_TRACE(CLogger::trace() << "CNode [ActionDefinition:"
                                 << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)

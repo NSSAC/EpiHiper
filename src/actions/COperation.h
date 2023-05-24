@@ -34,9 +34,9 @@ struct COperation
 {
   template < class Target, class Value >
   static bool execute(Target * pTarget,
-               Value value,
+               const Value & value,
                CValueInterface::pOperator pOperator,
-               bool (Target::*method)(Value, CValueInterface::pOperator, const CMetadata &),
+               bool (Target::*method)(const Value &, CValueInterface::pOperator, const CMetadata &),
                std::set< std::shared_ptr< CSetCollectorInterface > > & collectors,
                const CMetadata & metadata = CMetadata())
   {
@@ -55,9 +55,9 @@ struct COperation
 
   template < class Target, class Value >
   static bool execute(Target * pTarget,
-               Value value,
+               const Value & value,
                CValueInterface::pOperator pOperator,
-               bool (Target::*method)(Value, CValueInterface::pOperator, const CMetadata &),
+               bool (Target::*method)(const Value &, CValueInterface::pOperator, const CMetadata &),
                const CMetadata & metadata = CMetadata())
   {
     bool changed = (pTarget->*method)(value, pOperator, metadata);
@@ -69,6 +69,43 @@ struct COperation
 
     return changed;
   };
+
+  template < class Target, class Value >
+  static bool execute(Target * pTarget,
+               Value value,
+               bool (Target::*method)(Value, const CMetadata &),
+               std::set< std::shared_ptr< CSetCollectorInterface > > & collectors,
+               const CMetadata & metadata = CMetadata())
+  {
+    bool changed = (pTarget->*method)(value, metadata);
+
+    if (changed)
+      {
+        CChanges::record(pTarget, metadata);
+
+        for (const std::shared_ptr< CSetCollectorInterface > & collector : collectors)
+          collector->record(pTarget);
+      }
+
+    return changed;
+  };
+
+  template < class Target, class Value >
+  static bool execute(Target * pTarget,
+               Value value,
+               bool (Target::*method)(Value, const CMetadata &),
+               const CMetadata & metadata = CMetadata())
+  {
+    bool changed = (pTarget->*method)(value, metadata);
+
+    if (changed)
+      {
+        CChanges::record(pTarget, metadata);
+      }
+
+    return changed;
+  };
+
 };
 
 #endif /* SRC_ACTIONS_COPERATION_H_ */

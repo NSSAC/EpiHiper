@@ -121,7 +121,7 @@ void CEdge::fromBinary(std::istream & is)
   */
 }
 
-bool CEdge::setTargetActivity(CTraitData::value value, CValueInterface::pOperator ENABLE_TRACE(pOperator), const CMetadata & ENABLE_TRACE(metadata))
+bool CEdge::setTargetActivity(const CTraitData::value & value, CValueInterface::pOperator ENABLE_TRACE(pOperator), const CMetadata & ENABLE_TRACE(metadata))
 {
   ENABLE_TRACE(CLogger::trace() << "CEdge [ActionDefinition:"
                                 << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
@@ -137,7 +137,7 @@ bool CEdge::setTargetActivity(CTraitData::value value, CValueInterface::pOperato
   return true;
 }
 
-bool CEdge::setSourceActivity(CTraitData::value value, CValueInterface::pOperator ENABLE_TRACE(pOperator), const CMetadata & ENABLE_TRACE(metadata))
+bool CEdge::setSourceActivity(const CTraitData::value & value, CValueInterface::pOperator ENABLE_TRACE(pOperator), const CMetadata & ENABLE_TRACE(metadata))
 {
   ENABLE_TRACE(CLogger::trace() << "CEdge [ActionDefinition:"
                                 << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
@@ -153,7 +153,7 @@ bool CEdge::setSourceActivity(CTraitData::value value, CValueInterface::pOperato
   return true;
 }
 
-bool CEdge::setEdgeTrait(CTraitData::value value, CValueInterface::pOperator ENABLE_TRACE(pOperator), const CMetadata & ENABLE_TRACE(metadata))
+bool CEdge::setEdgeTrait(const CTraitData::value & value, CValueInterface::pOperator ENABLE_TRACE(pOperator), const CMetadata & ENABLE_TRACE(metadata))
 {
   ENABLE_TRACE(CLogger::trace() << "CEdge [ActionDefinition:"
                                 << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
@@ -169,7 +169,7 @@ bool CEdge::setEdgeTrait(CTraitData::value value, CValueInterface::pOperator ENA
   return true;
 }
 
-bool CEdge::setActive(bool value, CValueInterface::pOperator ENABLE_TRACE(pOperator), const CMetadata & ENABLE_TRACE(metadata))
+bool CEdge::setActive(const bool & value, CValueInterface::pOperator ENABLE_TRACE(pOperator), const CMetadata & ENABLE_TRACE(metadata))
 {
   ENABLE_TRACE(CLogger::trace() << "CEdge [ActionDefinition:"
                                 << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
@@ -185,7 +185,7 @@ bool CEdge::setActive(bool value, CValueInterface::pOperator ENABLE_TRACE(pOpera
   return true;
 }
 
-bool CEdge::setWeight(double value, CValueInterface::pOperator pOperator, const CMetadata & ENABLE_TRACE(metadata))
+bool CEdge::setWeight(const double & value, CValueInterface::pOperator pOperator, const CMetadata & ENABLE_TRACE(metadata))
 {
   ENABLE_TRACE(CLogger::trace() << "CEdge [ActionDefinition:"
                                 << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)

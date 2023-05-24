@@ -352,7 +352,7 @@ bool CTrait::fromString(const char * str, CTraitData::base & data) const
   return success;
 }
 
-std::string CTrait::toString(CTraitData::base & data) const
+std::string CTrait::toString(const CTraitData::base & data) const
 {
   std::map< CTraitData::base, std::string >::const_iterator found = mTextEncoding.find(data);
 
@@ -385,7 +385,7 @@ std::string CTrait::toString(CTraitData::base & data) const
   return os.str();
 }
 
-std::string CTrait::toString(CTraitData::value & value) const
+std::string CTrait::toString(const CTraitData::value & value) const
 {
   std::map< CTraitData::value, std::string >::const_iterator found = mValueEncoding.find(value);
 

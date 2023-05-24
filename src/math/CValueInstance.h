@@ -25,7 +25,7 @@ public:
     NodeProperty,
     EdgeProperty,
     Variable,
-    Sizeof,
+    SizeOf,
     __SIZE
   };
 
@@ -56,6 +56,12 @@ public:
   const ValueType & getType() const;
 
   CComputable * getPrerequisite() const;
+
+  CEdgeProperty * edgeProperty() const;
+
+  CNodeProperty * nodeProperty() const;
+
+  CVariable * variable() const;
 
 private:
   ValueType mType;

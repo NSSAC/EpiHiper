@@ -49,11 +49,11 @@ public:
   void toBinary(std::ostream & os) const;
   void fromBinary(std::istream & is);
 
-  bool setTargetActivity(CTraitData::value value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
-  bool setSourceActivity(CTraitData::value value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
-  bool setEdgeTrait(CTraitData::value value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
-  bool setActive(bool value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
-  bool setWeight(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+  bool setTargetActivity(const CTraitData::value & value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+  bool setSourceActivity(const CTraitData::value & value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+  bool setEdgeTrait(const CTraitData::value & value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+  bool setActive(const bool & value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+  bool setWeight(const double & value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
 
   size_t targetId;
   CTraitData::base targetActivity;

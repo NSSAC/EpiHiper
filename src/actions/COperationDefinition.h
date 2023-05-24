@@ -33,7 +33,7 @@
 #define SRC_ACTIONS_COPERATIONDEFINITION_H_
 
 #include "utilities/CAnnotation.h"
-#include "math/CValueList.h"
+#include "math/CValueInstance.h"
 
 class COperation;
 class CNodeProperty;
@@ -92,16 +92,9 @@ public:
   bool execute(const CMetadata & info) const;
 
 private:
-  TargetType mTargetType;
-  CNodeProperty * mpNodeProperty;
-  CEdgeProperty * mpEdgeProperty;
-  CVariable * mpTargetVariable;
+  CValueInstance mTarget;
   CValueInterface::pOperator mpOperator;
-  SourceType mSourceType;
-  CVariable * mpSourceVariable;
-  CObservable * mpObservable;
-  CSizeOf * mpSizeOf;
-  CValue mValue;
+  CValueInstance mSource;
   bool mValid;
 };
 #endif /* SRC_ACTIONS_COPERATIONDEFINITION_H_ */

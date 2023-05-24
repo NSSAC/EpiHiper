@@ -68,15 +68,13 @@ public:
 
   bool getValue();
 
-  bool setValue(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
-
-  bool setValue(const CValue value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+  bool setValue(const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
 
   void updateMaster();
 
   void setInitialValue(const double & initialValue);
 
-  CValue toValue();
+  CValueInterface toValue();
   
   virtual std::string getComputableId() const override;
 
@@ -96,6 +94,8 @@ protected:
    */
 
 private:
+  bool setValue(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+
   std::string mId;
   Scope mScope;
   double mInitialValue;

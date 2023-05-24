@@ -139,7 +139,7 @@ void CValueInstance::fromJSON(const json_t * json, bool writable)
       if (mpSizeOf
           && mpSizeOf->isValid())
         {
-          mType = ValueType::Sizeof;
+          mType = ValueType::SizeOf;
           mpPrerequisites = mpSizeOf.get();
           mWritable = false;
           mValid = true;
@@ -193,7 +193,7 @@ CValueInterface CValueInstance::value() const
       return mpVariable->toValue();
       break;
 
-    case ValueType::Sizeof:
+    case ValueType::SizeOf:
       return *mpSizeOf;
       break;
 
@@ -257,7 +257,7 @@ CValueInterface::Type CValueInstance::interfaceType() const
 
       break;
 
-    case ValueType::Sizeof:
+    case ValueType::SizeOf:
       if (mpSizeOf)
         return mpSizeOf->getType();
 
@@ -290,3 +290,18 @@ CComputable * CValueInstance::getPrerequisite() const
   return mpPrerequisites;
 }
     
+CEdgeProperty * CValueInstance::edgeProperty() const
+{
+  return mpEdgeProperty.get();
+}
+
+CNodeProperty * CValueInstance::nodeProperty() const
+{
+  return mpNodeProperty.get();
+}
+
+CVariable * CValueInstance::variable() const
+{
+  return mpVariable;
+}
+

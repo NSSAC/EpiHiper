@@ -395,7 +395,7 @@ bool CQuery::where(const std::string & table,
                    CFieldValueList & result,
                    const bool & local,
                    const std::string & constraintField,
-                   const CValue & constraint,
+                   const CValueInterface & constraint,
                    const std::string & cmp)
 {
   init();

@@ -265,18 +265,20 @@ bool CVariable::getValue()
   if (mScope == Scope::global &&
       CCommunicate::MPIProcesses > 1)
     {
-      double Value = CCommunicate::getRMA(mIndex);
+      double & Value = mLocalValue.Active();
+      const double OldValue = Value;
 
-      changed = (mLocalValue.Active() != Value);
+      Value = CCommunicate::getRMA(mIndex);
 
-      mLocalValue.Active() = Value;
+      changed = (Value != OldValue);
     }
 
   return changed;
 }
 
-bool CVariable::setValue(double value, CValueInterface::pOperator pOperator, const CMetadata & ENABLE_TRACE(metadata))
+bool CVariable::setValue(const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
 {
+  const double & OperatorValue = value.toNumber();
   ENABLE_TRACE(CLogger::trace() << "CVariable [ActionDefinition:"
                                 << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
                                 << "]: Variable ("
@@ -284,27 +286,23 @@ bool CVariable::setValue(double value, CValueInterface::pOperator pOperator, con
                                 << ") value "
                                 << CValueInterface::operatorToString(pOperator)
                                 << " "
-                                << value;)
+                                << OperatorValue;)
 
-  const double Value = mLocalValue.Active();
+  double & Value = mLocalValue.Active();
+  const double OldValue = Value;
 
   if (mScope == Scope::global
       && CCommunicate::MPIProcesses > 1)
-    mLocalValue.Active() = CCommunicate::updateRMA(mIndex, pOperator, value);
+    Value = CCommunicate::updateRMA(mIndex, pOperator, OperatorValue);
   else
-    (*pOperator)(mLocalValue.Active(), value);
+    (*pOperator)(Value, OperatorValue);
 
-  bool changed = (mLocalValue.Active() != Value);
+  bool changed = (Value != OldValue);
 
   if (changed)
     CVariableList::INSTANCE.changedVariables().Active().insert(this);
 
   return changed;
-}
-
-bool CVariable::setValue(const CValue value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
-{
-  return setValue(value.toNumber(), pOperator, metadata);
 }
 
 void CVariable::updateMaster()
@@ -317,10 +315,10 @@ void CVariable::setInitialValue(const double & initialValue)
   mInitialValue = initialValue;
 }
 
-CValue CVariable::toValue() 
+CValueInterface CVariable::toValue() 
 {
   getValue();
-  return CValue(mLocalValue.Active());
+  return CValueInterface(mLocalValue.Active());
 }
 
 // virtual 
