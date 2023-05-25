@@ -276,7 +276,7 @@ bool CVariable::getValue()
   return changed;
 }
 
-bool CVariable::setValue(const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & metadata)
+bool CVariable::setValue(const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & ENABLE_TRACE(metadata))
 {
   const double & OperatorValue = value.toNumber();
   ENABLE_TRACE(CLogger::trace() << "CVariable [ActionDefinition:"
