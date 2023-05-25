@@ -78,4 +78,3 @@
   .. |schema_XXX| replace:: XXX
   .. _schema_XXX: 
 
-  variables.rst:  |schema_variables|_ 
