@@ -48,31 +48,37 @@ done
 
 shift $((OPTIND-1))
 
-filename=$(basename -- "${1}")
-extension="${filename##*.}"
-filename="${filename%.*}"
+normalize () {
+  filename=$(basename -- "${1}")
+  extension="${filename##*.}"
+  filename="${filename%.*}"
 
-ThreadInfo=$(echo ${filename} | sed -e 's/^[^\[]*//' -e 's/\[/ /g' -e 's/:/ /g' -e 's/]/ /g')
-ThreadInfo=($(echo $ThreadInfo))
-(( Thread = ${ThreadInfo[1]} * ${ThreadInfo[2]:-1} + ${ThreadInfo[3]:-0} ))
+  ThreadInfo=$(echo ${filename} | sed -e 's/^[^\[]*//' -e 's/\[/ /g' -e 's/:/ /g' -e 's/]/ /g')
+  ThreadInfo=($(echo $ThreadInfo))
+  (( Thread = ${ThreadInfo[1]} * ${ThreadInfo[2]:-1} + ${ThreadInfo[3]:-0} ))
 
-out="${Base}.${Thread}.${extension}"
+  out="$(dirname ${1})/${Base}.${Thread}.${extension}"
 
-gawk -- '
-function printRow()
-{
-  printf "[%d] ", '${Thread}'
-  for (i=5; i <= NF; i++) printf "%s ", $i
-  printf "\n"
+  gawk -- '
+  function printRow()
+  {
+    printf "[%d] ", '${Thread}'
+    for (i=5; i <= NF; i++) printf "%s ", $i
+    printf "\n"
+  }
+
+  {
+    Tick = $5
+    gsub(/[\[\]]/, "", Tick)
+
+    if (strtonum(Tick) >= '${Start}' && strtonum(Tick) <= '${End}' && $6 != "CNetwork:")
+      printRow()
+
+    if (strtonum(Tick) > '${End}')
+      exit 0
+  }' "${1}" > $out
 }
 
-{
-  Tick = $5
-  gsub(/[\[\]]/, "", Tick)
-
-  if (strtonum(Tick) >= '${Start}' && strtonum(Tick) <= '${End}' && $6 != "CNetwork:")
-    printRow()
-
-  if (strtonum(Tick) > '${End}')
-    exit 0
-}' "${1}" > $out
+for f in $@; do
+  normalize $f
+done

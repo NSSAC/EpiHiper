@@ -24,12 +24,42 @@
 # SOFTWARE 
 # END: Copyright 
 
-set -o xtrace
+# set -o xtrace
+
+show_help () {
+  echo "Usage: $0 [-r|-s|-p] argument ..."
+}
+
+while getopts "rsp" opt; do
+  case ${opt} in
+    r ) # process option o
+      Tool=accumulateReplicates
+      Columns="experiment,total,totalSD,rawCommunication,rawCommunicationSD,initialization,initializationSD,output,outputSD,synchronize,synchronizeSD,ProcessTransmissions,ProcessTransmissionsSD,ProcessIntervention,ProcessInterventionSD,processCurrentActions,processCurrentActionsSD"
+      ;;
+    s )  # process option s
+      Tool=accumulateSimulation
+      Columns=simmulation,initialization,output,synchronize,ProcessTransmissions,ProcessIntervention,processCurrentActions,total,communication
+      ;;
+    p )  # process option e
+      Tool=accumulateProcess
+      Columns=process,initialization,output,synchronize,ProcessTransmissions,ProcessIntervention,processCurrentActions,total,communication
+      ;;
+    \? ) show_help; exit 0
+      ;;
+  esac
+done
+
+shift $((OPTIND-1))
+
+[ -z "${Tool}" ] && echo "Missing tool option" && show_help && exit 1
+[ -z "$1" ] && echo "Missing tool argument(s)" && show_help && exit 1
 
 accumulateReplicates () {
-  for f in $(find $1 -type d); do
-    [ $1 == $f ] || accumulateProcesses $f
-  done | gawk -- '
+  pushd $1 > /dev/null 2>&1
+
+  for f in $(find . -type d); do
+    [ $1 == $f ] || accumulateSimulation $f
+  done | gawk -F',' -- '
   BEGIN {
     count = 0
     initialization = 0
@@ -84,15 +114,22 @@ accumulateReplicates () {
     delta = $7 - total
     total += delta/count
     totalSD += delta * ($7 - total)
+    
+    rawCommunication = $8 - rawCommunication
+    total += rawCommunication/count
+    rawCommunicationSD += rawCommunication * ($8 - total)
   }
   '
+
+  popd  > /dev/null 2>&1
 }
-accumulateProcesses () {
+
+accumulateSimulation () {
   pushd $1 > /dev/null 2>&1
 
-  for f in *.log; do
+  for f in EpiHiper.*.log; do
     accumulateProcess $f
-  done | gawk -- '
+  done | gawk -F',' -- '
   BEGIN {
     initialization = 0
     output = 0
@@ -105,7 +142,7 @@ accumulateProcesses () {
   }
 
   END {
-    print initialization " " output " " synchronize " " ProcessTransmissions " " ProcessIntervention " " processCurrentActions " " total " " rawCommunication
+    print initialization "," output "," synchronize "," ProcessTransmissions "," ProcessIntervention "," processCurrentActions "," total "," rawCommunication
   }
 
   {
@@ -136,7 +173,7 @@ accumulateProcess () {
   }
 
   END {
-    print initialization/1000 " " output/1000 " " synchronize/1000 " "  ProcessTransmissions/1000 " " ProcessIntervention/1000 " " processCurrentActions/1000 " " (initialization + output + synchronize + ProcessTransmissions + ProcessIntervention + processCurrentActions)/1000 " " rawCommunication/1000
+    print initialization/1000 "," output/1000 "," synchronize/1000 ","  ProcessTransmissions/1000 "," ProcessIntervention/1000 "," processCurrentActions/1000 "," (initialization + output + synchronize + ProcessTransmissions + ProcessIntervention + processCurrentActions)/1000 "," rawCommunication/1000
   }
 
   $6 ~ "CSimulation::initialization:" {initialization += substr($9, 2, length($9) - 2)}
@@ -150,10 +187,10 @@ accumulateProcess () {
   '
 }
 
-echo "experiment,total,totalSD,rawCommunication,rawCommunicationSD,initialization,initializationSD,output,outputSD,synchronize,synchronizeSD,ProcessTransmissions,ProcessTransmissionsSD,ProcessIntervention,ProcessInterventionSD,processCurrentActions,processCurrentActionsSD" > Performance.csv
+echo ${Columns}
 
-for d in $@; do
-  echo -n "$(dirname $d)," >> Performance.csv 
-  accumulateReplicates $d >> Performance.csv
+for a in $@; do
+  echo -n "$(basename $(readlink -f $a)),"
+  $Tool $a
 done
 
