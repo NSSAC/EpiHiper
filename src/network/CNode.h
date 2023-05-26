@@ -76,6 +76,7 @@ public:
   inline const CHealthState *const  & getHealthState() const {return pHealthState;}
   void setHealthState(const CHealthState * pHealthState);
 
+  // start binary data
   size_t id;
   CModel::state_t healthState;
   double susceptibilityFactor;
@@ -83,6 +84,9 @@ public:
   double infectivityFactor;
   double infectivity;
   CTraitData::base nodeTrait;
+  // end binary data
+
+  mutable bool changed;
   CEdge * Edges;
   size_t EdgesSize;
   CContext< sOutgoingEdges > OutgoingEdges;

@@ -272,6 +272,7 @@ public:
   static void memUsage();
 
   CCommunicate() = delete;
+  
   virtual ~CCommunicate();
 
   static MPI_Win MPIWin;

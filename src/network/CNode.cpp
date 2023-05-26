@@ -55,6 +55,7 @@ CNode::CNode()
   , infectivityFactor(1.0)
   , infectivity(0.0)
   , nodeTrait()
+  , changed(false)
   , Edges(NULL)
   , EdgesSize(0)
   , OutgoingEdges()
@@ -84,6 +85,7 @@ CNode::CNode(const CNode & src)
   , infectivityFactor(src.infectivityFactor)
   , infectivity(src.infectivity)
   , nodeTrait(src.nodeTrait)
+  , changed(src.changed)
   , Edges(src.Edges)
   , EdgesSize(src.EdgesSize)
   , OutgoingEdges()
@@ -312,7 +314,7 @@ bool CNode::setNodeTrait(const CTraitData::value & value, CValueInterface::pOper
 
 void CNode::setHealthState(const CHealthState * pNewHealthState)
 {
-  if (CNetwork::Context.Active().isRemoteNode(this))
+  if (CNetwork::Context.Master().isRemoteNode(this))
     {
       pHealthState = pNewHealthState;
       healthState = pHealthState->getIndex();

@@ -83,16 +83,7 @@ void CChanges::incrementTick()
 
 // static 
 void CChanges::clear()
-{
-  Changes * pIt = Context.beginThread();
-  Changes * pEnd = Context.endThread();
-
-  for (; pIt != pEnd; ++pIt)
-    {
-      pIt->Nodes.clear();
-      pIt->Edges.clear();
-    }
-}
+{}
 
 // static
 void CChanges::record(const CNode * pNode, const CMetadata & metadata)
@@ -100,8 +91,8 @@ void CChanges::record(const CNode * pNode, const CMetadata & metadata)
   if (pNode == NULL)
     return;
 
+  pNode->changed = true;
   Changes & Active = Context.Active();
-  Active.Nodes.insert(pNode);
 
   if (metadata.getBool("StateChange"))
     {
@@ -210,7 +201,7 @@ CCommunicate::ErrorCode CChanges::writeDefaultOutputData()
 // static
 CCommunicate::ErrorCode CChanges::determineNodesRequested()
 {
-  const std::map< size_t, CNode * > & RemoteNodes = CNetwork::Context.Active().getRemoteNodes();
+  const std::map< size_t, CNode * > & RemoteNodes = CNetwork::Context.Master().getRemoteNodes();
   std::map< size_t, CNode * >::const_iterator it = RemoteNodes.begin();
   std::map< size_t, CNode * >::const_iterator end = RemoteNodes.end();
 
@@ -232,38 +223,51 @@ CCommunicate::ErrorCode CChanges::determineNodesRequested()
 // static 
 CCommunicate::ErrorCode CChanges::sendNodesRequested(std::ostream & os, int receiver)
 {
-  Changes * pIt = Context.beginThread();
-  Changes * pEnd = Context.endThread();
-  size_t i = 0;
+  size_t Count = 0;
 
-  for (; pIt != pEnd; ++pIt)
+#pragma omp parallel shared(os) reduction(+: Count)
     {
-      std::set< const CNode * >::const_iterator it = pIt->Nodes.begin();
-      std::set< const CNode * >::const_iterator end = pIt->Nodes.end();
+      CNode * it = CNetwork::Context.Active().beginNode();
+      CNode * end = CNetwork::Context.Active().endNode();
+
+      std::ostringstream OutStream;
+
+      // std::set< const CNode * >::const_iterator it = Active.__Nodes.begin();
+      // std::set< const CNode * >::const_iterator end = Active.__Nodes.end();
 
       const std::set< const CNode * > & Requested = RankToNodesRequested[receiver];
       std::set< const CNode * >::const_iterator itRequested = Requested.begin();
       std::set< const CNode * >::const_iterator endRequested = Requested.end();
 
       while (it != end && itRequested != endRequested)
-        if (*it < *itRequested)
+        if (it < *itRequested)
           {
             ++it;
           }
-        else if (*it > *itRequested)
+        else if (it > *itRequested)
           {
             ++itRequested;
           }
         else
           {
-            (*it)->toBinary(os);
+            // CLogger::debug() << "CNetwork::sendNodesRequested: Send node: '" << (*it)->id << "'.";
+
+            if (it->changed)
+              {
+                it->toBinary(OutStream);
+                it->changed = false;
+              }
+
             ++it;
             ++itRequested;
-            ++i;
+            ++Count;
           }
+
+#pragma omp critical
+      os << OutStream.str();
     }
 
-  CLogger::debug() << "CChanges::sendNodesRequested: Sending " << i << " nodes to: " << receiver;
+  CLogger::debug() << "CChanges::sendNodesRequested: Sending " << Count << " nodes to: " << receiver;
 
   return CCommunicate::ErrorCode::Success;
 }
