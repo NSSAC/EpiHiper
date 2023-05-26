@@ -35,6 +35,9 @@
 class CActionDefinition : public CAnnotation
 {
 public:
+  static void convertPrioritiesToOrder();
+
+  static size_t OrderSize();
 
   CActionDefinition();
 
@@ -62,15 +65,18 @@ public:
 
   const size_t & getDelay() const;
   
-  double getPriority() const;
+  size_t getOrder() const;
 
   static CActionDefinition * GetActionDefinition(const size_t & index);
 
 private:
   static std::vector< CActionDefinition * > INSTANCES;
 
+  static std::map< double, std::set< CActionDefinition * > > Priorities;
+
   std::vector< COperationDefinition > mOperations;
   double mPriority;
+  size_t mOrder;
   size_t mDelay;
   CConditionDefinition mCondition;
   size_t mIndex;

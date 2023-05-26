@@ -36,9 +36,9 @@ CNodeAction::~CNodeAction()
 {}
 
 // virtual 
-double CNodeAction::getPriority() const
+size_t CNodeAction::getOrder() const
 {
-  return mpDefinition->getPriority();
+  return mpDefinition->getOrder();
 }
 
 // virtual 

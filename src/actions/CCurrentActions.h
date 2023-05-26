@@ -37,10 +37,10 @@
 
 #include "actions/CAction.h"
 
-class CCurrentActions: protected std::map< double, std::vector< CAction * > >
+class CCurrentActions: protected std::vector< std::vector< CAction * > >
 {
 public:
-  typedef std::map< double, std::vector< CAction * > > base;
+  typedef std::vector< std::vector< CAction * > > base;
 
   class iterator
   {
@@ -59,8 +59,8 @@ public:
   private:
     const base * mpBase;
     base::const_iterator mIt;
-    std::vector< CAction const * > mShuffled;
-    std::vector< CAction const * >::iterator mItShuffled;
+    std::vector< CAction * > mShuffled;
+    std::vector< CAction * >::iterator mItShuffled;
     CAction const * mpAction;
     bool mShuffle;
   };

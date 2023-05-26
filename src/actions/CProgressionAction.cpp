@@ -48,9 +48,9 @@ CProgressionAction::~CProgressionAction()
 {}
 
 // virtual
-double CProgressionAction::getPriority() const
+size_t CProgressionAction::getOrder() const
 {
-  return 1.0;
+  return 1;
 }
 
 // virtual

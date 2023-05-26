@@ -41,7 +41,7 @@ public:
 
   virtual ~CNodeAction();
 
-  virtual double getPriority() const override;
+  virtual size_t getOrder() const override;
   
   virtual bool execute() const override;
 

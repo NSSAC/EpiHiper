@@ -37,6 +37,37 @@
 #include "network/CNode.h"
 #include "utilities/CLogger.h"
 
+// static 
+std::map< double, std::set< CActionDefinition * > > CActionDefinition::Priorities;
+
+// static 
+void CActionDefinition::convertPrioritiesToOrder()
+{
+  size_t Order = 0;
+
+  std::map< double, std::set< CActionDefinition * > >::const_iterator it = Priorities.begin();
+  std::map< double, std::set< CActionDefinition * > >::const_iterator end = Priorities.end();
+  
+  for (; it != end; ++it)
+    {
+      std::set< CActionDefinition * >::const_iterator itSet = it->second.begin();
+      std::set< CActionDefinition * >::const_iterator endSet = it->second.end();
+
+      for (; itSet != endSet; ++itSet)
+        (*itSet)->mOrder = Order;
+
+      ++Order;
+    }
+}
+
+// static 
+size_t CActionDefinition::OrderSize()
+{
+  return Priorities.size();
+}
+
+
+
 // static
 CActionDefinition * CActionDefinition::GetActionDefinition(const size_t & index)
 {
@@ -50,6 +81,7 @@ CActionDefinition::CActionDefinition()
   : CAnnotation()
   , mOperations()
   , mPriority(1.0)
+  , mOrder(0)
   , mDelay(0)
   , mCondition()
   , mIndex(std::numeric_limits< size_t >::max())
@@ -61,6 +93,7 @@ CActionDefinition::CActionDefinition(const CActionDefinition & src)
   : CAnnotation(src)
   , mOperations(src.mOperations)
   , mPriority(src.mPriority)
+  , mOrder(src.mOrder)
   , mDelay(src.mDelay)
   , mCondition(src.mCondition)
   , mIndex(src.mIndex)
@@ -72,6 +105,7 @@ CActionDefinition::CActionDefinition(const json_t * json)
   : CAnnotation()
   , mOperations()
   , mPriority(1.0)
+  , mOrder(0)
   , mDelay(0)
   , mCondition()
   , mIndex(std::numeric_limits< size_t >::max())
@@ -85,6 +119,7 @@ CActionDefinition::CActionDefinition(const json_t * json)
       mIndex = INSTANCES.size();
       mInfo.set("CActionDefinition", (int) mIndex);
       INSTANCES.push_back(this);
+      Priorities[mPriority].insert(this);
     }
 }
 
@@ -379,7 +414,7 @@ const size_t & CActionDefinition::getDelay() const
 }
   
 
-double CActionDefinition::getPriority() const
+size_t CActionDefinition::getOrder() const
 {
-  return mPriority;
+  return mOrder;
 }

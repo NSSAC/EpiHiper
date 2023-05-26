@@ -60,9 +60,9 @@ CTransmissionAction::~CTransmissionAction()
 {}
 
 // virtual
-double CTransmissionAction::getPriority() const
+size_t CTransmissionAction::getOrder() const
 {
-  return 1.0;
+  return 1;
 }
 
 // virtual

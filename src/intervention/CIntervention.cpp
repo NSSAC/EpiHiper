@@ -76,6 +76,8 @@ void CIntervention::load(const std::string & file)
   CTrigger::loadJSON(json_object_get(pRoot, "triggers"));
 
   json_decref(pRoot);
+
+  CActionDefinition::convertPrioritiesToOrder();
 }
 
 // static
