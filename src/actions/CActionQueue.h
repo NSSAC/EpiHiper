@@ -35,12 +35,12 @@
 class CNode;
 class CEdge;
 
-class CActionQueue: public std::map< int, CCurrentActions * >
+class CActionQueue
 {
-  typedef std::map< int, CCurrentActions * > map;
+  typedef std::vector< CCurrentActions * > queue;
 
   public:
-    static void init();
+    static void init(const int & firstTick);
 
     static void release();
 
@@ -64,8 +64,8 @@ class CActionQueue: public std::map< int, CCurrentActions * >
   private:
     struct sActionQueue
       {
-        map actionQueue;
-        map locallyAdded;
+        queue actionQueue;
+        queue locallyAdded;
       };
 
     static int broadcastPendingActions();
@@ -76,8 +76,10 @@ class CActionQueue: public std::map< int, CCurrentActions * >
     static CTick CurrenTick;
     static size_t TotalPendingActions;
     static std::stringstream RemoteActions;
+    static size_t Offset;
+    static void addAction(queue & queue, size_t deltaTick, CAction * pAction);
 
-    static void addAction(map & queue, size_t deltaTick, CAction * pAction);
+    static queue::value_type & at(size_t index, CActionQueue::queue & queue);
 };
 
 #endif /* SRC_ACTIONS_CACTIONQUEUE_H_ */

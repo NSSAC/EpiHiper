@@ -31,10 +31,16 @@
 #include "network/CEdge.h"
 #include "utilities/CLogger.h"
 
+// static 
+size_t CActionQueue::Offset = 0;
+
 // static
-void CActionQueue::init()
+void CActionQueue::init(const int & firstTick)
 {
   Context.init();
+
+  Offset = -firstTick;
+  setCurrentTick(firstTick);
 }
 
 // static
@@ -42,20 +48,20 @@ void CActionQueue::release()
 {
   if (Context.size() > 1)
     {
-      map::iterator itAction = Context.Master().actionQueue.begin();
-      map::iterator endAction = Context.Master().actionQueue.end();
+      queue::iterator itAction = Context.Master().actionQueue.begin();
+      queue::iterator endAction = Context.Master().actionQueue.end();
 
       for (; itAction != endAction; ++itAction)
         {
-          delete itAction->second;
+          delete *itAction;
         }
 
-      map::iterator itLocal = Context.Master().locallyAdded.begin();
-      map::iterator endLocal = Context.Master().locallyAdded.end();
+      queue::iterator itLocal = Context.Master().locallyAdded.begin();
+      queue::iterator endLocal = Context.Master().locallyAdded.end();
 
       for (; itLocal != endLocal; ++itLocal)
         {
-          delete itLocal->second;
+          delete *itLocal;
         }
     }
 
@@ -64,20 +70,20 @@ void CActionQueue::release()
 
   for (; pActionQueue != pEndActionQueue; ++pActionQueue)
     {
-      map::iterator itAction = pActionQueue->actionQueue.begin();
-      map::iterator endAction = pActionQueue->actionQueue.end();
+      queue::iterator itAction = pActionQueue->actionQueue.begin();
+      queue::iterator endAction = pActionQueue->actionQueue.end();
 
       for (; itAction != endAction; ++itAction)
         {
-          delete itAction->second;
+          delete *itAction;
         }
 
-      map::iterator itLocal = pActionQueue->locallyAdded.begin();
-      map::iterator endLocal = pActionQueue->locallyAdded.end();
+      queue::iterator itLocal = pActionQueue->locallyAdded.begin();
+      queue::iterator endLocal = pActionQueue->locallyAdded.end();
 
       for (; itLocal != endLocal; ++itLocal)
         {
-          delete itLocal->second;
+          delete *itLocal;
         }
     }
     
@@ -98,41 +104,21 @@ void CActionQueue::addAction(size_t deltaTick, CAction * pAction)
 }
 
 // static 
-void CActionQueue::addAction(CActionQueue::map & queue, size_t deltaTick, CAction * pAction)
+void CActionQueue::addAction(CActionQueue::queue & queue, size_t deltaTick, CAction * pAction)
 {
-  map::iterator found = queue.find(CurrenTick + deltaTick);
-
-  if (found == queue.end())
-    {
-      found = queue.insert(std::make_pair(CurrenTick + deltaTick, new CCurrentActions())).first;
-    }
-
-  found->second->addAction(pAction);
+  at(CurrenTick + deltaTick, queue)->addAction(pAction);
 }
 
 // static
 bool CActionQueue::processCurrentActions()
 {
-  sActionQueue & ActionQueue = Context.Active();
-
   bool success = true;
 
   // We need to enter the loop at least once
   do
     {
-      CCurrentActions * pActions = NULL;
-      map::iterator found = ActionQueue.actionQueue.find(CurrenTick);
-
-      if (found != ActionQueue.actionQueue.end())
-        {
-          pActions = found->second;
-        }
-      else
-        {
-          pActions = new CCurrentActions();
-        }
-
-      ActionQueue.actionQueue.erase(CurrenTick);
+      queue::value_type pActions = at(CurrenTick, Context.Active().actionQueue);
+      at(CurrenTick, Context.Active().actionQueue) = new CCurrentActions();
 
       CCurrentActions::iterator it = pActions->begin();
       CCurrentActions::iterator end = pActions->end();
@@ -158,15 +144,7 @@ bool CActionQueue::processCurrentActions()
 // static
 size_t CActionQueue::pendingActions()
 {
-  map & ActionQueue = Context.Active().actionQueue;
-  map::iterator found = ActionQueue.find(CurrenTick);
-
-  if (found == ActionQueue.end())
-    {
-      return 0;
-    }
-
-  return found->second->size();
+  return at(CurrenTick, Context.Active().actionQueue)->size();
 }
 
 // static
@@ -272,20 +250,20 @@ void CActionQueue::addRemoteAction(const size_t & actionId, const CEdge * pEdge)
 int CActionQueue::broadcastPendingActions()
 {
   sActionQueue & ActionQueue = Context.Active();
-  map::const_iterator it = ActionQueue.locallyAdded.begin();
-  map::const_iterator end = ActionQueue.locallyAdded.end();
+  queue::iterator it = ActionQueue.locallyAdded.begin();
+  queue::iterator end = ActionQueue.locallyAdded.end();
 
-  for (; it != end; ++it)
+  size_t Tick = -Offset;
+
+  for (; it != end; ++it, ++Tick)
     {
-      CCurrentActions::iterator itAction = it->second->begin(false);
-      CCurrentActions::iterator endAction = end->second->end(false);
+      CCurrentActions::iterator itAction = (*it)->begin(false);
+      CCurrentActions::iterator endAction = (*it)->end(false);
 
       for (; itAction != endAction; itAction.next())
-        {
-          addAction(it->first - CurrenTick, const_cast< CAction * >(*itAction));
-        }
+        addAction(Tick - CurrenTick, const_cast< CAction * >(*itAction));
 
-      it->second->clear();
+      (*it)->clear();
     }
 
   ActionQueue.locallyAdded.clear();
@@ -414,3 +392,15 @@ CCommunicate::ErrorCode CActionQueue::receivePendingActions(std::istream & is, i
 
   return CCommunicate::ErrorCode::Success;
 }
+
+// static
+CActionQueue::queue::value_type & CActionQueue::at(size_t index, CActionQueue::queue & queue)
+{
+  index += Offset;
+
+  while (queue.size() < index + 1)
+    queue.push_back(new CCurrentActions());
+
+  return  queue.at(index);
+}
+

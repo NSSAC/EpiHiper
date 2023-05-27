@@ -139,6 +139,8 @@ CCurrentActions::~CCurrentActions()
 
       for (; it != end; ++it)
         delete *it;
+
+      itMap->clear();
     }
 }
 
@@ -149,7 +151,14 @@ void CCurrentActions::addAction(CAction * pAction)
 
 size_t CCurrentActions::size() const
 {
-  return base::size();
+  size_t Size = 0;
+  base::const_iterator itMap = base::begin();
+  base::const_iterator endMap = base::end();
+
+  for (; itMap != endMap; ++itMap)
+    Size += itMap->size();
+
+  return Size;
 }
 
 CCurrentActions::iterator CCurrentActions::begin(bool shuffle)
@@ -164,6 +173,10 @@ CCurrentActions::iterator CCurrentActions::end(bool shuffle)
 
 void CCurrentActions::clear()
 {
-  base::clear();
+  base::iterator itMap = base::begin();
+  base::iterator endMap = base::end();
+
+  for (; itMap != endMap; ++itMap)
+    itMap->clear();
 }
 

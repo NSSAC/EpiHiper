@@ -97,7 +97,6 @@ int main(int argc, char * argv[])
 
   CStatus::load("epihiper", CArgs::getName(), CSimConfig::getStatus());
 
-  CActionQueue::init();
   CRandom::init(CSimConfig::getSeed());
   CTrait::init();
 
