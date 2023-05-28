@@ -115,7 +115,7 @@ bool CSetCollector< element_type, selector >::record(element_type * pType)
     }
 
 #else
-  typename changes::iterator found = Context.Changes.insert(std::make_pair(pType, 0)).first;
+  typename changes::iterator found = Context.Changes.emplace(pType, 0).first;
 
   if (mpSelector->filter(pType))
     found->second = 1;

@@ -98,7 +98,7 @@ void CTable::fromJSON(const json_t * json)
 
       if (Field.isValid())
         {
-          mFields.insert(std::make_pair(Field.getId(), Field));
+          mFields.emplace(Field.getId(), Field);
         }
       else
         {

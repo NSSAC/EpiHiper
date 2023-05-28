@@ -209,7 +209,7 @@ bool CDBFieldSelector::computeProtected()
 
   if (FieldValueList.size() > 0)
     {
-      DBFieldValues.insert(std::make_pair(FieldValueList.getType(), FieldValueList));
+      DBFieldValues.emplace(FieldValueList.getType(), FieldValueList);
     }
 
   // std::cout << "CDBFieldSelector::compute: " << FieldValueList.size() << std::endl;

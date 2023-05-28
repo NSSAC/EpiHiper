@@ -98,7 +98,7 @@ void CTrait::load(const json_t * json)
           return;
         }
 
-      std::map< std::string, CTrait >::iterator found = INSTANCES.insert(std::make_pair(std::string(json_string_value(pValue)), CTrait())).first;
+      std::map< std::string, CTrait >::iterator found = INSTANCES.emplace(std::string(json_string_value(pValue)), CTrait()).first;
 
       found->second.fromJSON(pItem);
     }
@@ -118,7 +118,7 @@ void CTrait::loadSingle(const json_t * json)
       return;
     }
 
-  std::map< std::string, CTrait >::iterator found = INSTANCES.insert(std::make_pair(std::string(json_string_value(pValue)), CTrait())).first;
+  std::map< std::string, CTrait >::iterator found = INSTANCES.emplace(std::string(json_string_value(pValue)), CTrait()).first;
 
   found->second.fromJSON(json);
 }

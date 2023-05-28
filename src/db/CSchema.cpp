@@ -98,7 +98,7 @@ bool CSchema::addTable(const json_t * json)
       return false;
     }
 
-  CTable * pTable = &mTables.insert(std::make_pair(Table.getId(), Table)).first->second;
+  CTable * pTable = &mTables.emplace(Table.getId(), Table).first->second;
 
   std::map< std::string, CField >::const_iterator it = pTable->getFields().begin();
   std::map< std::string, CField >::const_iterator end = pTable->getFields().end();

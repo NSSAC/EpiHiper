@@ -236,8 +236,8 @@ CDependencyGraph::CDependencyGraph(const CDependencyGraph & src):
   for (; itSrc != endSrc; ++itSrc)
     {
       CDependencyNode * pNode = new CDependencyNode(*itSrc->second);
-      mComputables2Nodes.insert(std::make_pair(itSrc->first, pNode));
-      Src2New.insert(std::make_pair(itSrc->second, pNode));
+      mComputables2Nodes.emplace(itSrc->first, pNode);
+      Src2New.emplace(itSrc->second, pNode);
     }
 
   NodeMap::iterator it = mComputables2Nodes.begin();
@@ -273,7 +273,7 @@ CDependencyGraph::iterator CDependencyGraph::addComputable(const CComputable * p
 
   if (found == mComputables2Nodes.end())
     {
-      found = mComputables2Nodes.insert(std::make_pair(pComputable, new CDependencyNode(pComputable))).first;
+      found = mComputables2Nodes.emplace(pComputable, new CDependencyNode(pComputable)).first;
 
       const CComputableSet & Prerequisites = pComputable->getPrerequisites();
       CComputableSet::const_iterator it = Prerequisites.begin();
