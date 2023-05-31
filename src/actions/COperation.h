@@ -28,71 +28,84 @@
 #include "actions/CChanges.h"
 #include "utilities/CMetadata.h"
 #include "math/CValueInterface.h"
+#include "sets/CSetCollector.h"
 
-struct json_t;
-
-class COperation
+struct COperation
 {
-public:
-  virtual ~COperation() {};
-
-  virtual bool execute() const = 0;
-  virtual COperation * copy() const = 0;
-
-  void toBinary(std::ostream & os) const;
-  void fromBinary(std::istream & is);
-};
-
-template <class Target, class Value> class COperationInstance : public COperation
-{
-private:
-  mutable Target  * mpTarget;
-  Value mValue;
-  CValueInterface::pOperator mpOperator;
-  bool(Target::*mMethod)(Value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
-  CMetadata mMetadata;
-
-public:
-  COperationInstance() = delete;
-
-  COperationInstance(Target * pTarget,
-                     Value value,
-                     CValueInterface::pOperator pOperator,
-                     bool (Target::*method)(Value, CValueInterface::pOperator, const CMetadata &),
-                     const CMetadata & metadata = CMetadata())
-    : mpTarget(pTarget)
-    , mValue(value)
-    , mpOperator(pOperator)
-    , mMethod(method)
-    , mMetadata(metadata)
-  {}
-
-  COperationInstance(const COperationInstance & src)
-    : mpTarget(src.mpTarget)
-    , mValue(src.mValue)
-    , mpOperator(src.mpOperator)
-    , mMethod(src.mMethod)
-    , mMetadata(src.mMetadata)
-  {}
-
-  virtual ~COperationInstance() {};
-
-  virtual bool execute() const override
+  template < class Target, class Value >
+  static bool execute(Target * pTarget,
+               const Value & value,
+               CValueInterface::pOperator pOperator,
+               bool (Target::*method)(const Value &, CValueInterface::pOperator, const CMetadata &),
+               std::set< std::shared_ptr< CSetCollectorInterface > > & collectors,
+               const CMetadata & metadata = CMetadata())
   {
-    bool changed = (mpTarget->*mMethod)(mValue, mpOperator, mMetadata);
+    bool changed = (pTarget->*method)(value, pOperator, metadata);
 
     if (changed)
       {
-        CChanges::record(mpTarget, mMetadata);
+        CChanges::record(pTarget, metadata);
+
+        for (const std::shared_ptr< CSetCollectorInterface > & collector : collectors)
+          collector->record(pTarget);
       }
 
     return changed;
-  }
+  };
 
-  virtual COperation * copy() const override
+  template < class Target, class Value >
+  static bool execute(Target * pTarget,
+               const Value & value,
+               CValueInterface::pOperator pOperator,
+               bool (Target::*method)(const Value &, CValueInterface::pOperator, const CMetadata &),
+               const CMetadata & metadata = CMetadata())
   {
-    return new COperationInstance<Target, Value>(*this);
-  }
+    bool changed = (pTarget->*method)(value, pOperator, metadata);
+
+    if (changed)
+      {
+        CChanges::record(pTarget, metadata);
+      }
+
+    return changed;
+  };
+
+  template < class Target, class Value >
+  static bool execute(Target * pTarget,
+               Value value,
+               bool (Target::*method)(Value, const CMetadata &),
+               std::set< std::shared_ptr< CSetCollectorInterface > > & collectors,
+               const CMetadata & metadata = CMetadata())
+  {
+    bool changed = (pTarget->*method)(value, metadata);
+
+    if (changed)
+      {
+        CChanges::record(pTarget, metadata);
+
+        for (const std::shared_ptr< CSetCollectorInterface > & collector : collectors)
+          collector->record(pTarget);
+      }
+
+    return changed;
+  };
+
+  template < class Target, class Value >
+  static bool execute(Target * pTarget,
+               Value value,
+               bool (Target::*method)(Value, const CMetadata &),
+               const CMetadata & metadata = CMetadata())
+  {
+    bool changed = (pTarget->*method)(value, metadata);
+
+    if (changed)
+      {
+        CChanges::record(pTarget, metadata);
+      }
+
+    return changed;
+  };
+
 };
 
 #endif /* SRC_ACTIONS_COPERATION_H_ */

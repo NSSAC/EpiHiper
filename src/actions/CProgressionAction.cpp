@@ -29,6 +29,7 @@
 #include "network/CNode.h"
 #include "utilities/CMetadata.h"
 #include "utilities/CLogger.h"
+#include "math/CNodeProperty.h"
 
 CProgressionAction::CProgressionAction(const CProgression * pProgression, CNode * pTarget)
   : CAction()
@@ -36,10 +37,10 @@ CProgressionAction::CProgressionAction(const CProgression * pProgression, CNode 
   , mpTarget(pTarget)
   , mStateAtScheduleTime(pTarget->healthState)
 {
-  CLogger::trace() << "CProgressionAction: Add action Node "
-                   << mpTarget->id
-                   << " healthState = "
-                   << mpProgression->getExitState()->getId();
+  ENABLE_TRACE(CLogger::trace() << "CProgressionAction: Add action Node "
+                                << mpTarget->id
+                                << " healthState = "
+                                << mpProgression->getExitState()->getId();)
 }
 
 // virtual
@@ -47,9 +48,9 @@ CProgressionAction::~CProgressionAction()
 {}
 
 // virtual
-double CProgressionAction::getPriority() const
+size_t CProgressionAction::getOrder() const
 {
-  return 1.0;
+  return 1;
 }
 
 // virtual
@@ -64,7 +65,7 @@ bool CProgressionAction::execute() const
 
       if (CValueInterface(pTarget->healthState) == mStateAtScheduleTime)
         {
-          success &= COperationInstance< CNode, const CProgression * >(pTarget, mpProgression, NULL, &CNode::set, Info).execute();
+          success &= COperation::execute< CNode, const CProgression * >(pTarget, mpProgression, &CNode::set, CNodeProperty:: Collectors[(size_t) CNodeProperty::Property::healthState], Info);
         }
     }
   catch (...)

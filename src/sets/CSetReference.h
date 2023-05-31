@@ -32,7 +32,7 @@ struct json_t;
 class CSetReference : public CSetContent
 {
 private:
-  static std::vector< CSetReference * > UnResolved;
+  static std::set< CSetReference * > UnResolved;
 
 public:
   static bool resolve();
@@ -44,12 +44,6 @@ public:
   CSetReference(const json_t * json);
 
   virtual ~CSetReference();
-
-  virtual CSetContent * copy() const override;
-
-  virtual void fromJSON(const json_t * json) override;
-
-  virtual bool computeProtected() override;
 
   virtual std::string getComputableId() const override;
 
@@ -68,6 +62,13 @@ public:
 
     return CSetContent::getContext();
   }
+
+protected:
+  virtual bool computeProtected() override;
+
+  virtual void fromJSONProtected(const json_t * json) override;
+
+  virtual bool lessThanProtected(const CSetContent & rhs) const override;
 
 private:
   std::string mIdRef;

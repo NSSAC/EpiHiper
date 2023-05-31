@@ -55,7 +55,7 @@ void CPlugin::Init()
 #endif // TARGET_MACOSX
               if (pLibraryHandle != nullptr)
                 {
-                  Libraries.insert(std::make_pair(PluginPath, pLibraryHandle));
+                  Libraries.emplace(PluginPath, pLibraryHandle);
                 }
               else
                 {

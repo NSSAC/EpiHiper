@@ -73,7 +73,7 @@ CModel::CModel(const std::string & modelFile)
   , mValid(false)
 {
   CVariableList::INSTANCE.append(CVariable::transmissibility());
-  mpTransmissibility = &CVariableList::INSTANCE["%transmissibility%"].toNumber();
+  mpTransmissibility = &CVariableList::INSTANCE["%transmissibility%"];
 
   json_t * pRoot = CSimConfig::loadJson(modelFile, JSON_DECODE_INT_AS_REAL);
 
@@ -287,8 +287,23 @@ bool CModel::processTransmissions() const
   CNode * pNode = CNetwork::Context.Active().beginNode();
   CNode * pNodeEnd = CNetwork::Context.Active().endNode();
 
+  struct Candidate
+  {
+    const CEdge * pEdge;
+    const CTransmission * pTransmission;
+    double Propensity;
+
+    Candidate(const CEdge * edge, const CTransmission * transmission, double propensity)
+      : pEdge(edge)
+      , pTransmission(transmission)
+      , Propensity(propensity)
+    {}
+  };
+
+  std::vector< Candidate > Candidates;
   CTransmission ** pPossibleTransmissions = NULL;
-  
+  double Transmissibility = mpTransmissibility->toValue().toNumber();
+
   for (pNode = CNetwork::Context.Active().beginNode(); pNode != pNodeEnd; ++pNode)
     if (pNode->susceptibility > 0.0
         && (pPossibleTransmissions = mPossibleTransmissions[pNode->healthState].Transmissions) != NULL)
@@ -298,14 +313,7 @@ bool CModel::processTransmissions() const
 
         CTransmission * pTransmission = NULL;
 
-        struct Candidate
-        {
-          const CEdge * pEdge;
-          const CTransmission * pTransmission;
-          double Propensity;
-        };
-
-        std::vector< Candidate > Candidates;
+        Candidates.clear();
         double A0 = 0.0;
 
         for (; pEdge != pEdgeEnd; ++pEdge)
@@ -314,21 +322,18 @@ bool CModel::processTransmissions() const
                 && pEdge->pSource->infectivity > 0.0
                 && (pTransmission = pPossibleTransmissions[pEdge->pSource->healthState]) != NULL)
               {
-                Candidate Candidate;
-                Candidate.pEdge = pEdge;
-                Candidate.pTransmission = pTransmission;
-                Candidate.Propensity = pTransmission->propensity(pEdge);
+                double Propensity = pTransmission->propensity(pEdge);
 
-                if (Candidate.Propensity > 0.0)
+                if (Propensity > 0.0)
                   {
-                    A0 += Candidate.Propensity;
-                    Candidates.push_back(Candidate);
+                    A0 += Propensity;
+                    Candidates.emplace_back(pEdge, pTransmission, Propensity);
                   }
               }
           }
 
         if (A0 > 0.0
-            && -log(Uniform01(CRandom::G.Active())) < A0 * *mpTransmissibility * resolutionPerTick)
+            && -log(Uniform01(CRandom::G.Active())) < A0 * Transmissibility * resolutionPerTick)
           {
             double alpha = Uniform01(CRandom::G.Active()) * A0;
 
@@ -553,8 +558,7 @@ void CModel::WriteGlobalStateCounts()
 
           for (; it != end; ++it)
             {
-              (*it)->getValue();
-              out << "," << (*it)->toNumber();
+              out << "," << (*it)->toValue().toNumber();
             }
 
           out << "," << CRandom::getSeed() << std::endl;

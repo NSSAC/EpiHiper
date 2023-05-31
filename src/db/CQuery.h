@@ -36,7 +36,7 @@
 
 #include "utilities/CContext.h"
 
-class CValue;
+class CValueInterface;
 class CValueList;
 class CFieldValueList;
 
@@ -68,7 +68,7 @@ public:
                    CFieldValueList & result,
                    const bool & local,
                    const std::string & constraintField,
-                   const CValue & constraint,
+                   const CValueInterface & constraint,
                    const std::string & cmp);
 
 private:

@@ -54,15 +54,7 @@ public:
 
   virtual ~CSet();
 
-  virtual CSetContent * copy() const override;
-
   const std::string & getId() const;
-
-  const bool & isValid() const;
-
-  virtual void fromJSON(const json_t * json) override;
-
-  virtual bool computeProtected() override;
 
   virtual std::string getComputableId() const override;
   
@@ -82,11 +74,17 @@ public:
     return CSetContent::getContext();
   }
 
+protected:
+  virtual bool computeProtected() override;
+
+  virtual void fromJSONProtected(const json_t * json) override;
+
+  virtual bool lessThanProtected(const CSetContent & rhs) const override;
+
 private:
   std::string mId;
   Type mType;
-  CSetContent * mpSetContent;
-  bool mValid;
+  shared_pointer mpSetContent;
 };
 
 #endif /* SRC_INTERVENTION_CSET_H_ */

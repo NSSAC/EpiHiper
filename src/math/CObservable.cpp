@@ -32,7 +32,7 @@
 #include "network/CNetwork.h"
 #include "utilities/CLogger.h"
 
-bool CObservable::ObservableKey::operator < (const CObservable::ObservableKey & rhs) const
+bool CObservable::ObservableKey::operator<(const CObservable::ObservableKey & rhs) const
 {
   if (id != rhs.id)
     return id < rhs.id;
@@ -83,11 +83,9 @@ CObservable::CObservable()
   , CComputable()
   , mObservableType(ObservableType::healthStateAbsolute)
   , mObservableSubset(ObservableSubset::current)
-  , mId(-1)
+  , mId(std::numeric_limits< size_t >::max())
   , mpCompute(NULL)
-{
-  mValid = false; // DONE
-}
+{}
 
 CObservable::CObservable(const CObservable & src)
   : CValue(src)
@@ -103,15 +101,10 @@ CObservable::CObservable(const json_t * json)
   , CComputable()
   , mObservableType(ObservableType::healthStateAbsolute)
   , mObservableSubset(ObservableSubset::current)
-  , mId(-1)
+  , mId(std::numeric_limits< size_t >::max())
   , mpCompute(NULL)
 {
   fromJSON(json);
-
-  if (mValid)
-    {
-      mPrerequisites.insert(&CActionQueue::getCurrentTick());
-    }
 }
 
 // virtual
@@ -119,14 +112,26 @@ CObservable::~CObservable()
 {}
 
 // virtual
+bool CObservable::isValid() const
+{
+  return CValue::mValid && CComputable::mValid;
+}
+
+// virtual
+void CObservable::determineIsStatic()
+{
+  mStatic = (mObservableType == ObservableType::totalPopulation);
+}
+
+// virtual
 bool CObservable::computeProtected()
 {
-  if (mValid
+  if (isValid()
       && mpCompute != NULL)
     {
       bool success = true;
 
-#pragma omp single      
+#pragma omp single
       success = (this->*mpCompute)();
 
       return success;
@@ -186,7 +191,7 @@ bool CObservable::computeHealthStateAbsolute()
 
       return true;
     }
-  
+
   return false;
 }
 
@@ -273,7 +278,7 @@ void CObservable::fromJSON(const json_t * json)
     },
   */
 
-  mValid = false; // DONE
+  CComputable::mValid = false; // DONE
   json_t * pObservable = json_object_get(json, "observable");
 
   if (json_is_object(pObservable))
@@ -348,7 +353,9 @@ void CObservable::fromJSON(const json_t * json)
         }
 
       mId = pHealthState->getIndex();
-      mValid = true;
+      mPrerequisites.insert(&CActionQueue::getCurrentTick()); // DONE
+      CComputable::mValid = true;
+
       return;
     }
   else if (json_is_string(pObservable))
@@ -363,7 +370,9 @@ void CObservable::fromJSON(const json_t * json)
           mType = Type::number;
           mpValue = createValue(mType);
 
-          mValid = true;
+          mPrerequisites.insert(&CActionQueue::getCurrentTick()); // DONE
+          CComputable::mValid = true;
+
           return;
         }
       else if (strcmp(json_string_value(pObservable), "totalPopulation") == 0)
@@ -371,13 +380,14 @@ void CObservable::fromJSON(const json_t * json)
           mObservableType = ObservableType::totalPopulation;
           mpCompute = &CObservable::computeTotalPopulation;
           mId = 0;
-          mStatic = true;
 
           destroyValue();
           mType = Type::number;
           mpValue = createValue(mType);
 
-          mValid = true;
+          // The total population is a constant and has no prerequisites
+          CComputable::mValid = true;
+
           return;
         }
       else

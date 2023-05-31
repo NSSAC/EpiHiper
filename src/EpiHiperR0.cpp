@@ -91,7 +91,6 @@ int main(int argc, char * argv[])
     }
 
   CStatus::load("epihiperr0", CArgs::getName(), CSimConfig::getStatus());
-  CActionQueue::init();
   CRandom::init(CSimConfig::getSeed());
   CTrait::init();
 
@@ -168,7 +167,7 @@ int main(int argc, char * argv[])
       goto failed;
     }
 
-  CCommunicate::memUsage(-2);
+  CCommunicate::memUsage();
 
   {
     CSimulation sim;

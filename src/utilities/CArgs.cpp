@@ -110,6 +110,12 @@ void CArgs::printWhoAmI()
 #else
             << "OFF"
 #endif // USE_OMP
+            << ", LOGLEVEL TRACE: "
+#ifdef SUPPORT_LOGLEVEL_TRACE
+            << "ON"
+#else
+            << "OFF"
+#endif // USE_OMP
             << ")" << std::endl;
 }
 

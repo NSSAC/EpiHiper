@@ -25,6 +25,8 @@
 #ifndef SRC_MATH_CEDGEPROPERTY_H_
 #define SRC_MATH_CEDGEPROPERTY_H_
 
+#include <memory>
+
 #include "math/CValueInterface.h"
 #include "math/CNodeProperty.h"
 
@@ -32,11 +34,25 @@ class CEdge;
 class COperation;
 class CMetadata;
 struct json_t;
+class CSetCollectorInterface;
 
 class CEdgeProperty: public CValueInterface
 {
 public:
   typedef CNode * (*pGetNode)(CEdge *);
+
+  enum struct Property {
+    targetId,
+    sourceId,
+    targetActivity,
+    sourceActivity,
+    locationId,
+    edgeTrait,
+    active,
+    weight,
+    duration,
+    __SIZE
+  };
 
   CEdgeProperty();
 
@@ -46,15 +62,19 @@ public:
 
   virtual ~CEdgeProperty();
 
-  virtual CValueInterface * copy() const override;
-
   virtual void fromJSON(const json_t * json);
+
+  bool operator != (const CEdgeProperty & rhs) const;
+
+  bool operator < (const CEdgeProperty & rhs) const;
 
   const bool & isValid() const;
 
-  CValue propertyOf(const CEdge * pEdge);
+  CValueInterface propertyOf(const CEdge * pEdge) const;
 
   COperation * createOperation(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+
+  bool execute(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
 
   bool isReadOnly() const;
 
@@ -62,30 +82,36 @@ public:
 
   static CNode * sourceNode(CEdge * pEdge);
 
+  void registerSetCollector(std::shared_ptr< CSetCollectorInterface > pCollector) const;
+
+  void deregisterSetCollector(std::shared_ptr< CSetCollectorInterface > pCollector) const;
+
 private:
-  CValue targetId(CEdge * pEdge);
-  CValue sourceId(CEdge * pEdge);
-  CValue targetActivity(CEdge * pEdge);
-  CValue sourceActivity(CEdge * pEdge);
-  CValue locationId(CEdge * pEdge);
-  CValue edgeTrait(CEdge * pEdge);
-  CValue active(CEdge * pEdge);
-  CValue weight(CEdge * pEdge);
-  CValue duration(CEdge * pEdge);
+  static std::vector< std::set< std::shared_ptr< CSetCollectorInterface > > > Collectors;
 
-  COperation * setTargetId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
-  COperation * setSourceId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
-  COperation * setTargetActivity(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
-  COperation * setSourceActivity(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
-  COperation * setLocationId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
-  COperation * setEdgeTrait(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
-  COperation * setActive(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
-  COperation * setWeight(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
-  COperation * setDuration(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+  CValueInterface targetId(CEdge * pEdge) const;
+  CValueInterface sourceId(CEdge * pEdge) const;
+  CValueInterface targetActivity(CEdge * pEdge) const;
+  CValueInterface sourceActivity(CEdge * pEdge) const;
+  CValueInterface locationId(CEdge * pEdge) const;
+  CValueInterface edgeTrait(CEdge * pEdge) const;
+  CValueInterface active(CEdge * pEdge) const;
+  CValueInterface weight(CEdge * pEdge) const;
+  CValueInterface duration(CEdge * pEdge) const;
 
-  CValue (CEdgeProperty::*mpPropertyOf)(CEdge *);
-  COperation * (CEdgeProperty::*mpCreateOperation)(CEdge *, const CValueInterface &, CValueInterface::pOperator pOperator, const CMetadata & info);
-  CNodeProperty mNodeProperty;
+  bool setTargetId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+  bool setSourceId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+  bool setTargetActivity(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+  bool setSourceActivity(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+  bool setLocationId(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+  bool setEdgeTrait(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+  bool setActive(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+  bool setWeight(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+  bool setDuration(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+
+  Property mProperty;
+  CValueInterface (CEdgeProperty::*mpPropertyOf)(CEdge *) const;
+  bool (CEdgeProperty::*mpExecute)(CEdge *, const CValueInterface &, CValueInterface::pOperator pOperator, const CMetadata & info);
   bool mValid;
 };
 

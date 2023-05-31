@@ -78,7 +78,7 @@ void CTrigger::release()
 // static
 bool CTrigger::processAll()
 {
-  static CComputable::Sequence UpdateSequence;
+  static CDependencyGraph::UpdateOrder UpdateSequence;
 
 #pragma omp single
   {
@@ -116,11 +116,12 @@ bool CTrigger::processAll()
         }
     }
 
-    CDependencyGraph::getUpdateSequence(UpdateSequence, RequiredTargets);
+    CDependencyGraph::getUpdateOrder(UpdateSequence, RequiredTargets);
+
     CLogger::setSingle(false);
   }
 
-  return CDependencyGraph::applyUpdateSequence(UpdateSequence);
+  return CDependencyGraph::applyUpdateOrder(UpdateSequence);
 }
 
 // static
@@ -174,11 +175,10 @@ CTrigger::~CTrigger()
 // virtual
 void CTrigger::process()
 {
-  CCondition *pCondition = mCondition.createCondition((CNode *) NULL);
-  mIsLocalTrue = pCondition->isTrue();
-  delete pCondition;
+  mIsLocalTrue = mCondition.isTrue();
 
-  CLogger::info() << "CTrigger: Trigger '" << getAnnId() << "' condition is '" << (mIsLocalTrue ? "true" : "false") << "'."; 
+  if (mIsLocalTrue)
+    CLogger::info() << "CTrigger: Trigger '" << getAnnId() << "' condition is 'true'."; 
 }
 
 void CTrigger::trigger(const bool & triggers)

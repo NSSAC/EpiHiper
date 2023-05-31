@@ -33,7 +33,7 @@
 #define SRC_ACTIONS_COPERATIONDEFINITION_H_
 
 #include "utilities/CAnnotation.h"
-#include "math/CValueList.h"
+#include "math/CValueInstance.h"
 
 class COperation;
 class CNodeProperty;
@@ -54,6 +54,13 @@ public:
     node,
     edge,
     variable
+  };
+
+  enum struct SourceType {
+    variable,
+    observable,
+    sizeOf,
+    value
   };
 
   /**
@@ -78,22 +85,16 @@ public:
 
   const bool & isValid() const;
 
-  COperation * createOperation(CNode * pNode, const CMetadata & info) const;
+  bool execute(CNode * pNode, const CMetadata & info) const;
 
-  COperation * createOperation(CEdge * pEdge, const CMetadata & info) const;
+  bool execute(CEdge * pEdge, const CMetadata & info) const;
 
-  COperation * createOperation(const CMetadata & info) const;
+  bool execute(const CMetadata & info) const;
 
 private:
-  TargetType mTargetType;
-  CNodeProperty * mpNodeProperty;
-  CEdgeProperty * mpEdgeProperty;
-  CVariable * mpTargetVariable;
+  CValueInstance mTarget;
   CValueInterface::pOperator mpOperator;
-  CVariable * mpSourceVariable;
-  CObservable * mpObservable;
-  CSizeOf * mpSizeOf;
-  CValue mValue;
+  CValueInstance mSource;
   bool mValid;
 };
 #endif /* SRC_ACTIONS_COPERATIONDEFINITION_H_ */

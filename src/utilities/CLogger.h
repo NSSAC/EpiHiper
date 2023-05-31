@@ -32,6 +32,12 @@
 #include <spdlog/sinks/sink.h>
 #include "utilities/CContext.h"
 
+#ifdef SUPPORT_LOGLEVEL_TRACE
+#  define ENABLE_TRACE(trace...) trace
+#else
+#  define ENABLE_TRACE(trace...)
+#endif
+
 class CLogger
 {
 private:
@@ -57,6 +63,7 @@ public :
     std::shared_ptr< spdlog::sinks::sink > pConsole;
     std::shared_ptr< spdlog::sinks::sink > pFile;
     std::string task;
+    std::string tick;
     std::stack< spdlog::level::level_enum > levels;
   };
 
@@ -79,6 +86,8 @@ public :
   static bool hasErrors();
 
   static void setSingle(bool single);
+
+  static void updateTick();
 
   typedef CStream< spdlog::level::trace > trace;
   typedef CStream< spdlog::level::debug > debug;
@@ -154,33 +163,38 @@ void CLogger::CStream< level >::flush(const std::string & msg)
     }
 
   for (; pIt != pEnd; ++pIt)
-    switch (static_cast< LogLevel >(level))
-      {
-      case spdlog::level::trace:
-        pIt->pLogger->trace(pIt->task + " " + msg);
-        break;
-      case spdlog::level::debug:
-        pIt->pLogger->debug(pIt->task + " " + msg);
-        break;
-      case spdlog::level::info:
-        pIt->pLogger->info(pIt->task + " " + msg);
-        break;
-      case spdlog::level::warn:
-        pIt->pLogger->warn(pIt->task + " " + msg);
-        break;
-      case spdlog::level::err:
-  #pragma omp atomic
-        haveErrors |= true;
-        pIt->pLogger->error(pIt->task + " " + msg);
-        break;
-      case spdlog::level::critical:
-  #pragma omp atomic
-        haveErrors |= true;
-        pIt->pLogger->critical(pIt->task + " " + msg);
-        break;
-      case spdlog::level::off:
-        break;
-      }
+    {
+      switch (static_cast< LogLevel >(level))
+        {
+        case spdlog::level::trace:
+          pIt->pLogger->trace(pIt->task + " " + pIt->tick + " " + msg);
+          break;
+        case spdlog::level::debug:
+          pIt->pLogger->debug(pIt->task + " " + pIt->tick + " " + msg);
+          break;
+        case spdlog::level::info:
+          pIt->pLogger->info(pIt->task + " " + pIt->tick + " " + msg);
+          break;
+        case spdlog::level::warn:
+          pIt->pLogger->warn(pIt->task + " " + pIt->tick + " " + msg);
+          break;
+        case spdlog::level::err:
+#pragma omp atomic
+          haveErrors |= true;
+          pIt->pLogger->error(pIt->task + " " + pIt->tick + " " + msg);
+          break;
+        case spdlog::level::critical:
+#pragma omp atomic
+          haveErrors |= true;
+          pIt->pLogger->critical(pIt->task + " " + pIt->tick + " " + msg);
+          break;
+        case spdlog::level::off:
+          break;
+        }
+
+      if (Context.Active().levels.top() == spdlog::level::trace)
+        pIt->pLogger->flush();
+    }
 }
 
 #endif // UTILITIES_CLOGGER_H

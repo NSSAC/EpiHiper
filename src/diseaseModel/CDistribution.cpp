@@ -34,11 +34,11 @@ CDistribution::CDistribution()
   , mUniformSet()
   , mpSample(NULL)
   , mFixed(0.0)
-  , mpUniformInt(NULL)
-  , mpUniformReal(NULL)
-  , mpNormal(NULL)
-  , mpGamma(NULL)
-  , mValid(false)
+  , mUniformInt()
+  , mUniformReal()
+  , mNormal()
+  , mGamma()
+  , mValid()
 {}
 
 CDistribution::CDistribution(const CDistribution & src)
@@ -47,25 +47,16 @@ CDistribution::CDistribution(const CDistribution & src)
   , mUniformSet(src.mUniformSet)
   , mpSample(src.mpSample)
   , mFixed(0.0)
-  , mpUniformInt(src.mpUniformInt != NULL ? new CRandom::uniform_int(*src.mpUniformInt) : NULL)
-  , mpUniformReal(src.mpUniformReal != NULL ? new CRandom::uniform_real(*src.mpUniformReal) : NULL)
-  , mpNormal(src.mpNormal != NULL ? new CRandom::normal(*src.mpNormal) : NULL)
-  , mpGamma(src.mpGamma != NULL ? new CRandom::gamma(*src.mpGamma) : NULL)
+  , mUniformInt(src.mUniformInt)
+  , mUniformReal(src.mUniformReal)
+  , mNormal(src.mNormal)
+  , mGamma(src.mGamma)
   , mValid(src.mValid)
 {}
 
 // virtual
 CDistribution::~CDistribution()
-{
-  if (mpUniformInt != NULL)
-    delete mpUniformInt;
-  if (mpUniformReal != NULL)
-    delete mpUniformReal;
-  if (mpNormal != NULL)
-    delete mpNormal;
-  if (mpGamma != NULL)
-    delete mpGamma;
-}
+{}
 
 void CDistribution::fromJSON(const json_t * json)
 {
@@ -256,7 +247,7 @@ void CDistribution::fromJSON(const json_t * json)
 
       if (mValid)
         {
-          mpUniformReal = new CRandom::uniform_real(0, std::nextafter(Total, 2.0));
+          mUniformReal.init(0, std::nextafter(Total, 2.0));
         }
       else
         {
@@ -300,7 +291,7 @@ void CDistribution::fromJSON(const json_t * json)
         }
 
       mValid = true;
-      mpUniformInt = new CRandom::uniform_int(0, mUniformSet.size() - 1);
+      mUniformInt.init(0, mUniformSet.size() - 1);
       return;
     }
   else if (json_is_object(pValue))
@@ -347,7 +338,7 @@ void CDistribution::fromJSON(const json_t * json)
         }
 
       mValid = true;
-      mpUniformInt = new CRandom::uniform_int(min, max);
+      mUniformInt.init(min, max);
       return;
     }
 
@@ -397,7 +388,7 @@ void CDistribution::fromJSON(const json_t * json)
         }
 
       mValid = true;
-      mpNormal = new CRandom::normal(mean, standardDeviation);
+      mNormal.init(mean, standardDeviation);
       return;
     }
 
@@ -447,7 +438,7 @@ void CDistribution::fromJSON(const json_t * json)
         }
 
       mValid = true;
-      mpGamma = new CRandom::gamma(alpha, beta);
+      mGamma.init(alpha, beta);
       return;
     }
 }
@@ -469,7 +460,7 @@ unsigned int CDistribution::fixed() const
 
 unsigned int CDistribution::discrete() const
 {
-  double A = mpUniformReal->operator()(CRandom::G.Active());
+  double A = mUniformReal.sample();
 
   std::vector< std::pair< double, unsigned int > >::const_iterator it = mDiscrete.begin();
   std::vector< std::pair< double, unsigned int > >::const_iterator end = mDiscrete.end();
@@ -487,20 +478,20 @@ unsigned int CDistribution::discrete() const
 
 unsigned int CDistribution::uniformSet() const
 {
-  return mUniformSet[mpUniformInt->operator()(CRandom::G.Active())];
+  return mUniformSet[mUniformInt.sample()];
 }
 
 unsigned int CDistribution::uniformDiscrete() const
 {
-  return mpUniformInt->operator()(CRandom::G.Active());
+  return mUniformInt.sample();
 }
 
 unsigned int CDistribution::normal() const
 {
-  return std::round(std::max(0.0, mpNormal->operator()(CRandom::G.Active())));
+  return std::round(std::max(0.0, mNormal.sample()));
 }
 
 unsigned int CDistribution::gamma() const
 {
-  return std::round(std::max(0.0, mpGamma->operator()(CRandom::G.Active())));
+  return std::round(std::max(0.0, mGamma.sample()));
 }

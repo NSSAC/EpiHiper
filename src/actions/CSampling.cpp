@@ -33,7 +33,7 @@
 #include "variables/CVariableList.h"
 
 CSampling::CSampled::CSampled()
-  : CSetContent()
+  : CSetContent(CSetContent::Type::sampled)
 {
   CComputable::Instances.erase(this);
 }
@@ -49,14 +49,14 @@ CSampling::CSampled::~CSampled()
 {}
 
 // virtual
-CSetContent * CSampling::CSampled::copy() const
-{
-  return new CSampled(*this);
-}
+void CSampling::CSampled::fromJSONProtected(const json_t * /* json */)
+{}
 
 // virtual
-void CSampling::CSampled::fromJSON(const json_t * /* json */)
-{}
+bool CSampling::CSampled::lessThanProtected(const CSetContent & rhs) const
+{
+  return this < static_cast< const CSampling::CSampled * >(&rhs);
+}
 
 CSampling::CSampling()
   : mType()
@@ -592,7 +592,7 @@ void CSampling::process(const CSetContent & targets)
   else
     {
       if (mpVariable != NULL)
-        mPercentage = mpVariable->toNumber() * mConversionFactor;
+        mPercentage = mpVariable->toValue().toNumber() * mConversionFactor;
 
       if (std::isnan(mPercentage))
         {
@@ -714,14 +714,14 @@ void CSampling::determineThreadLimits()
   if (mType == Type::relativeGroup)
     {
       if (mpVariable != NULL)
-        mPercentage = mpVariable->toNumber() * mConversionFactor;
+        mPercentage = mpVariable->toValue().toNumber() * mConversionFactor;
 
       Available = std::round(Requested * mPercentage / 100.0);
     }
   else
     {
       if (mpVariable != NULL)
-        Available = std::round(mpVariable->toNumber());
+        Available = std::round(mpVariable->toValue().toNumber());
       else  
         Available = mCount;
     }

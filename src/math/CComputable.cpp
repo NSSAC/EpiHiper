@@ -30,6 +30,7 @@ size_t CComputable::UniqueId(0);
 
 CComputable::CComputable()
   : mComputableId(UniqueId++)
+  , mValid(false)
   , mStatic(false)
   , mComputedOnce()
   , mPrerequisites()
@@ -49,6 +50,7 @@ CComputable::CComputable()
 
 CComputable::CComputable(const CComputable & src)
   : mComputableId(UniqueId++)
+  , mValid(src.mValid)
   , mStatic(src.mStatic)
   , mComputedOnce(src.mComputedOnce)
   , mPrerequisites(src.mPrerequisites)
@@ -71,17 +73,27 @@ bool CComputable::compute()
   if (mStatic && mComputedOnce.Active())
     return true;
 
+  CLogger::debug() << "CComputable: Computing '" << getComputableId() << "'" <<  (mStatic ? " (static)" : "") << ".";
+  bool success = computeProtected();
+
   mComputedOnce.Active() = true;
 
-  CLogger::debug() << "CComputable: Computing '" << getComputableId() << "'" <<  (mStatic ? " (static)" : "") << ".";
-  return computeProtected();
+  return success;
 }
+
+// virtual 
+bool CComputable::isValid() const
+{
+  return mValid;
+}
+
 
 bool CComputable::isStatic() const
 {
   return mStatic;
 }
 
+// virtual
 void CComputable::determineIsStatic()
 {
   mStatic = true;
@@ -91,7 +103,7 @@ void CComputable::determineIsStatic()
 
   for (; it != end && mStatic; ++it)
     {
-      mStatic = it->second->isStatic();
+      mStatic &= it->second->isStatic();
     }
 }
 

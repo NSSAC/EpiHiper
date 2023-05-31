@@ -1171,19 +1171,17 @@ void CNetwork::initExternalEdges()
   // If we are running single threaded the above code took care of this,
   // since mRemoteNodes and Context.Active().mRemoteNodes are identical.
   if (CCommunicate::LocalProcesses() > 1)
-    {
 #pragma omp parallel
-      {
-        CNetwork & Active = Context.Active();
+    {
+      CNetwork & Active = Context.Active();
 
-        std::map< size_t, CNode * >::iterator it = Active.mRemoteNodes.begin();
-        std::map< size_t, CNode * >::iterator end = Active.mRemoteNodes.end();
+      std::map< size_t, CNode * >::iterator it = Active.mRemoteNodes.begin();
+      std::map< size_t, CNode * >::iterator end = Active.mRemoteNodes.end();
 
-        for (; it != end; ++it)
-          {
-            it->second = Active.lookupNode(it->first, false);
-          }
-      }
+      for (; it != end; ++it)
+        {
+          it->second = Active.lookupNode(it->first, false);
+        }
     }
 }
 
@@ -1335,6 +1333,8 @@ bool CNetwork::openPartition(const size_t & partition,
 
   os << std::endl;
 
+  json_decref(pJson);
+  
   return true;
 }
 
@@ -1462,28 +1462,12 @@ CNode * CNetwork::lookupNode(const size_t & id, const bool localOnly) const
       if (!localOnly)
         {
           if (Context.isThread(this))
-            {
-              CNetwork * pIt = Context.beginThread();
-              CNetwork * pEnd = Context.endThread();
-              CNode * pNode = NULL;
+            return Context.Master().lookupNode(id, false);
 
-              for (; pIt != pEnd && pNode == NULL; ++pIt)
-                pNode = pIt->lookupNode(id, true);
+          std::map< size_t, CNode * >::const_iterator found = mRemoteNodes.find(id);
 
-              if (pNode != NULL)
-                return pNode;
-
-              return Context.Master().lookupNode(id, false);
-            }
-          else
-            {
-              std::map< size_t, CNode * >::const_iterator found = mRemoteNodes.find(id);
-
-              if (found != mRemoteNodes.end())
-                {
-                  return const_cast< CNode * >(found->second);
-                }
-            }
+          if (found != mRemoteNodes.end())
+            return const_cast< CNode * >(found->second);
         }
 
       return NULL;
@@ -1711,16 +1695,9 @@ const bool & CNetwork::isValid() const
 
 int CNetwork::broadcastChanges()
 {
-  // std::cout << Communicate::Rank << ": ActionQueue::broadcastChanges (Nodes)" << std::endl;
   CCommunicate::Send SendNodes(&CChanges::sendNodesRequested);
   CCommunicate::ClassMemberReceive< CNetwork > ReceiveNodes(this, &CNetwork::receiveNodes);
   CCommunicate::roundRobin(&SendNodes, &ReceiveNodes);
-
-  // Buffer = CChanges::getEdges().str();
-
-  // std::cout << Communicate::Rank << ": ActionQueue::broadcastChanges (Edges)" << std::endl;
-  // CCommunicate::ClassMemberReceive< CNetwork > ReceiveEdge(CNetwork::INSTANCE, &CNetwork::receiveEdges);
-  // CCommunicate::roundRobin(Buffer.c_str(), Buffer.length(), &ReceiveEdge);
 
   CChanges::clear();
 
@@ -1729,22 +1706,26 @@ int CNetwork::broadcastChanges()
 
 CCommunicate::ErrorCode CNetwork::receiveNodes(std::istream & is, int sender)
 {
-  CNode Node;
-  size_t i = 0;
+  size_t BufferSize = is.rdbuf()->in_avail() / 56;
+  size_t Count = 0;
 
-  while (true)
+#pragma omp parallel for shared(is) reduction(+: Count)
+  for (size_t i = 0; i < BufferSize; ++i)
     {
-      Node.CNode::fromBinary(is);
+      CNode Node;
 
-      if (is.fail())
-        break;
+#pragma omp critical
+      Node.fromBinary(is);
 
-      ++i;
       CNode * pNode = lookupNode(Node.id, false);
 
+      // CLogger::debug() << "CNetwork::receiveNodes: Receiving node: '" << Node.id << "' (" << pNode << ").";
+
+      // TODO CSetCollector for non local nodes
       if (pNode != NULL)
         {
-          CLogger::trace() << "CNetwork: Updating node '" << pNode->id << "'.";
+          Count++;
+          ENABLE_TRACE(CLogger::trace() << "CNetwork: Updating node '" << pNode->id << "'.";)
 
           pNode->susceptibilityFactor = Node.susceptibilityFactor;
           pNode->susceptibility = Node.susceptibility;
@@ -1755,36 +1736,7 @@ CCommunicate::ErrorCode CNetwork::receiveNodes(std::istream & is, int sender)
         }
     }
 
-  CLogger::debug() << "CChanges::receiveNodes: Receiving " << i << " nodes from: " << sender;
-
-  return CCommunicate::ErrorCode::Success;
-}
-
-CCommunicate::ErrorCode CNetwork::receiveEdges(std::istream & is, int /* sender */)
-{
-  CEdge Edge;
-
-  while (true)
-    {
-      Edge.fromBinary(is);
-
-      if (is.fail())
-        {
-          break;
-        }
-
-      CEdge * pEdge = lookupEdge(Edge.targetId, Edge.sourceId);
-
-      if (pEdge != NULL)
-        {
-          pEdge->targetActivity = Edge.targetActivity;
-          pEdge->sourceActivity = Edge.sourceActivity;
-          pEdge->duration = Edge.duration;
-          pEdge->edgeTrait = Edge.edgeTrait;
-          pEdge->active = Edge.active;
-          pEdge->weight = Edge.weight;
-        }
-    }
+  CLogger::debug() << "CChanges::receiveNodes: Receiving " << Count << " nodes from: " << sender;
 
   return CCommunicate::ErrorCode::Success;
 }
@@ -1815,7 +1767,7 @@ bool CNetwork::dumpActiveNetwork()
 
   const CTick & CurrentTick = CActionQueue::getCurrentTick();
 
-  // Is the current tick within the interval [statTick, endTick]
+  // Is the current tick within the interval [startTick, endTick]
   if (CurrentTick < dumpActiveNetwork.startTick || dumpActiveNetwork.endTick < CurrentTick)
     return true;
 

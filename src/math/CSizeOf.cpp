@@ -30,11 +30,29 @@
 #include "sets/CSetContent.h"
 #include "utilities/CLogger.h"
 #include "utilities/CSimConfig.h"
-
-// static
-std::vector< CSizeOf * > CSizeOf::GetInstances()
+ 
+bool  CSizeOf::Compare::operator()(const CSizeOf::shared_pointer & lhs, const CSizeOf::shared_pointer & rhs)
 {
-  return INSTANCES;
+  return CSetContent::Compare()(lhs->mpSetContent, rhs->mpSetContent);
+}
+
+// static 
+std::set< CSizeOf::shared_pointer, CSizeOf::Compare > CSizeOf::Unique;
+
+// static 
+CSizeOf::shared_pointer CSizeOf::FromJSON(const json_t * json )
+{
+  CSizeOf * pNew = new CSizeOf(json);
+
+  if (!pNew->isValid())
+    {
+      delete pNew;
+      return nullptr;
+    }
+
+  shared_pointer New(pNew);
+
+  return *Unique.insert(New).first;
 }
 
 CSizeOf::CSizeOf()
@@ -48,7 +66,7 @@ CSizeOf::CSizeOf()
 CSizeOf::CSizeOf(const CSizeOf & src)
   : CValue(src)
   , CComputable(src)
-  , mpSetContent(src.mpSetContent != NULL ? src.mpSetContent->copy() : NULL)
+  , mpSetContent(src.mpSetContent)
   , mIndex(src.mIndex)
   , mIdentifier(src.mIdentifier)
 {}
@@ -61,30 +79,16 @@ CSizeOf::CSizeOf(const json_t * json)
   , mIdentifier()
 {
   fromJSON(json);
-
-  if (mValid)
-    {
-      mIndex = INSTANCES.size();
-      INSTANCES.push_back(this);
-    }
 }
 
 // virtual
 CSizeOf::~CSizeOf()
-{
-  CSetContent::destroy(mpSetContent);
-}
-
-// virtual
-CValueInterface * CSizeOf::copy() const
-{
-  return new CSizeOf(*this);
-}
+{}
 
 //  virtual
 bool CSizeOf::computeProtected()
 {
-  if (mValid)
+  if (isValid())
     {
       return broadcastSize() == (int) CCommunicate::ErrorCode::Success;
     }
@@ -135,25 +139,27 @@ void CSizeOf::fromJSON(const json_t * json)
     },
   */
 
-  mValid = false; // DONE
+  CComputable::mValid = false; // DONE
   mpSetContent = CSetContent::create(json_object_get(json, "sizeof"));
 
   if (mpSetContent != NULL && mpSetContent->isValid())
     {
-      mPrerequisites.insert(mpSetContent);
-      mStatic = mpSetContent->isStatic();
-      mValid = true;
+      mPrerequisites.insert(mpSetContent.get()); // DONE
+      CComputable::mValid = true;
 
       mIdentifier = CSimConfig::jsonToString(json_object_get(json, "sizeof"));
 
       return;
     }
 
-  if (mpSetContent != NULL)
-    {
-      delete mpSetContent;
-      mpSetContent = NULL;
-    }
+  mpSetContent.reset();
 
   CLogger::error("sizeof: Missing or invalid set content.");
 }
+
+// virtual 
+bool CSizeOf::isValid() const
+{
+  return CValue::mValid && CComputable::mValid;
+}
+

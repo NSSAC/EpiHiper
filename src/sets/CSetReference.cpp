@@ -30,7 +30,7 @@
 #include "utilities/CLogger.h"
 
 CSetReference::CSetReference()
-  : CSetContent()
+  : CSetContent(CSetContent::Type::setReference)
   , mIdRef()
   , mpSet(NULL)
 {}
@@ -42,7 +42,7 @@ CSetReference::CSetReference(const CSetReference & src)
 {}
 
 CSetReference::CSetReference(const json_t * json)
-  : CSetContent()
+  : CSetContent(CSetContent::Type::setReference)
   , mIdRef()
   , mpSet(NULL)
 {
@@ -51,16 +51,12 @@ CSetReference::CSetReference(const json_t * json)
 
 // virtual
 CSetReference::~CSetReference()
-{}
-
-// virtual
-CSetContent * CSetReference::copy() const
 {
-  return new CSetReference(*this);
+  UnResolved.erase(this);
 }
 
 // virtual
-void CSetReference::fromJSON(const json_t * json)
+void CSetReference::fromJSONProtected(const json_t * json)
 {
   /*
     "setReference": {
@@ -99,15 +95,23 @@ void CSetReference::fromJSON(const json_t * json)
   mIdRef = json_string_value(pIdRef);
   mpSet = NULL;
   mValid = true;
-  UnResolved.push_back(this);
+  UnResolved.insert(this);
+}
+
+// virtual 
+bool CSetReference::lessThanProtected(const CSetContent & rhs) const
+{
+  const CSetReference * pRhs = static_cast< const CSetReference * >(&rhs);
+
+  return mIdRef < pRhs->mIdRef;
 }
 
 // static
 bool CSetReference::resolve()
 {
   bool success = true;
-  std::vector< CSetReference * >::iterator it = UnResolved.begin();
-  std::vector< CSetReference * >::iterator end = UnResolved.end();
+  std::set< CSetReference * >::iterator it = UnResolved.begin();
+  std::set< CSetReference * >::iterator end = UnResolved.end();
 
   for (; it != end; ++it)
     {
@@ -117,12 +121,11 @@ bool CSetReference::resolve()
           && (*it)->mpSet->isValid())
         {
           (*it)->mPrerequisites.insert((*it)->mpSet);
-          (*it)->mStatic = (*it)->mpSet->isStatic();
         }
       else
         {
           (*it)->mpSet = NULL;
-          (*it)->mValid = false; // DONE
+          (*it)->mValid = false;
           CLogger::error() << "Set reference: Unresolved idRef '" << (*it)->mIdRef << "'.";
           success = false;
         }
@@ -141,8 +144,10 @@ bool CSetReference::computeProtected()
 // virtual 
 std::string CSetReference::getComputableId() const
 {
-  if (mpSet != nullptr)
-    return mpSet->getComputableId();
+  std::string SetId = (mpSet != nullptr) ? mpSet->CComputable::getComputableId() : "?";
 
-  return CSetContent::getComputableId();
+  std::ostringstream os;
+  os << "CSetReference: " << mIdRef << " (" << mComputableId  << ")"  << " => (" << SetId  << ")";
+
+  return os.str();
 }

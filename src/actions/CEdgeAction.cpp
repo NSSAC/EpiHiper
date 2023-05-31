@@ -36,9 +36,9 @@ CEdgeAction::~CEdgeAction()
 {}
 
 // virtual 
-double CEdgeAction::getPriority() const
+size_t CEdgeAction::getOrder() const
 {
-  return mpDefinition->getPriority();
+  return mpDefinition->getOrder();
 }
 
 // virtual 

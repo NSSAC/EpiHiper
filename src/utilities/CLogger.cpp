@@ -29,6 +29,7 @@
 
 #include "utilities/CLogger.h"
 #include "utilities/CSimConfig.h"
+#include "actions/CActionQueue.h"
 
 // static 
 bool CLogger::haveErrors = false;
@@ -60,6 +61,7 @@ void CLogger::init()
 // static 
 void CLogger::initData(LoggerData & loggerData)
 {
+  loggerData.tick = "[?]";
   loggerData.task = "";
   loggerData.levels = std::stack< LogLevel >();
   loggerData.levels.push(spdlog::level::warn);
@@ -264,6 +266,32 @@ void CLogger::setSingle(bool s)
 
 #pragma omp atomic write
   single = index;
+}
+
+// static 
+void CLogger::updateTick()
+{
+  LoggerData & Active = Context.Active();
+
+  if (Context.isThread(&Active))
+    {
+      CLogger::error() << "CLogger::setTask: This function may only be called from master.";
+      return;
+    }
+
+  std::ostringstream os;
+  os << "[" << (int) CActionQueue::getCurrentTick() << "]";
+  std::string Tick(os.str());
+
+  Context.Master().tick = Tick;
+  LoggerData * pIt = Context.beginThread();
+  LoggerData * pEnd = Context.endThread();
+
+  for (; pIt != pEnd; ++pIt)
+    if (Context.isThread(pIt))
+      {
+        pIt->tick = Tick;
+      }
 }
 
 // static 

@@ -1,26 +1,26 @@
-// BEGIN: Copyright 
-// MIT License 
-//  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
-//  
-// Permission is hereby granted, free of charge, to any person obtaining a copy 
-// of this software and associated documentation files (the "Software"), to deal 
-// in the Software without restriction, including without limitation the rights 
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-// copies of the Software, and to permit persons to whom the Software is 
-// furnished to do so, subject to the following conditions: 
-//  
-// The above copyright notice and this permission notice shall be included in all 
-// copies or substantial portions of the Software. 
-//  
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
-// SOFTWARE 
-// END: Copyright 
+// BEGIN: Copyright
+// MIT License
+//
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE
+// END: Copyright
 
 #include <cstring>
 #include <jansson.h>
@@ -34,250 +34,6 @@
 #include "variables/CVariableList.h"
 #include "utilities/CLogger.h"
 #include "utilities/CSimConfig.h"
-
-CConditionDefinition::ValueInstance::ValueInstance()
-  : pCounter(new size_t(1))
-  , type()
-  , pValue(NULL)
-  , pValueList(NULL)
-  , pObservable(NULL)
-  , pNodeProperty(NULL)
-  , pEdgeProperty(NULL)
-  , pVariable(NULL)
-  , pSizeOf(NULL)
-  , valid(false)
-{}
-
-CConditionDefinition::ValueInstance::ValueInstance(const CConditionDefinition::ValueInstance & src)
-  : pCounter(src.pCounter)
-  , type(src.type)
-  , pValue(src.pValue)
-  , pValueList(src.pValueList)
-  , pObservable(src.pObservable)
-  , pNodeProperty(src.pNodeProperty)
-  , pEdgeProperty(src.pEdgeProperty)
-  , pVariable(src.pVariable)
-  , pSizeOf(src.pSizeOf)
-  , valid(src.valid)
-{
-  ++(*pCounter);
-}
-
-CConditionDefinition::ValueInstance::~ValueInstance()
-{
-  (*pCounter)--;
-
-  if (*pCounter == 0)
-    {
-      delete pCounter;
-      if (pValue != NULL)
-        delete pValue;
-      if (pValueList != NULL)
-        delete pValueList;
-      if (pNodeProperty != NULL)
-        delete pNodeProperty;
-      if (pEdgeProperty != NULL)
-        delete pEdgeProperty;
-      if (pSizeOf != NULL)
-        delete pSizeOf;
-    }
-}
-
-void CConditionDefinition::ValueInstance::fromJSON(const json_t * json)
-{
-  valid = false; //DONE
-
-  if (!json_is_object(json))
-    {
-      CLogger::error("Value Instance: Invalid.");
-      return;
-    }
-
-  CLogger::pushLevel(spdlog::level::off);
-  pValue = new CValue(json);
-
-  if (pValue->isValid())
-    {
-      type = ValueType::Value;
-      valid = true;
-      goto final;
-    }
-
-  delete pValue;
-  pValue = NULL;
-
-  pValueList = new CValueList(json);
-
-  if (pValueList->isValid())
-    {
-      type = ValueType::ValueList;
-      valid = true;
-      goto final;
-    }
-
-  delete pValueList;
-  pValueList = NULL;
-
-  pObservable = CObservable::get(json);
-
-  if (pObservable != NULL
-      && pObservable->isValid())
-    {
-      type = ValueType::Observable;
-      RequiredComputables.insert(pObservable);
-      valid = true;
-      goto final;
-    }
-
-  pObservable = NULL;
-
-  pNodeProperty = new CNodeProperty(json);
-
-  if (pNodeProperty->isValid())
-    {
-      type = ValueType::NodeProperty;
-      valid = true;
-      goto final;
-    }
-
-  delete pNodeProperty;
-  pNodeProperty = NULL;
-
-  pEdgeProperty = new CEdgeProperty(json);
-
-  if (pEdgeProperty->isValid())
-    {
-      type = ValueType::EdgeProperty;
-      valid = true;
-      goto final;
-    }
-
-  delete pEdgeProperty;
-  pEdgeProperty = NULL;
-
-  pVariable = &CVariableList::INSTANCE[json];
-
-  if (pVariable->isValid())
-    {
-      type = ValueType::Variable;
-      valid = true;
-      goto final;
-    }
-
-  pVariable = NULL;
-
-  pSizeOf = new CSizeOf(json);
-
-  if (pSizeOf->isValid())
-    {
-      type = ValueType::Sizeof;
-      RequiredComputables.insert(pSizeOf);
-      valid = true;
-      goto final;
-    }
-
-  delete pSizeOf;
-  pSizeOf = NULL;
-
-final:
-  CLogger::popLevel();
-
-  if (!valid)
-  {
-    CLogger::error() << "Value Instance: Invalid. " << CSimConfig::jsonToString(json);
-  }
-}
-
-CValueInterface * CConditionDefinition::ValueInstance::value(const CNode * pNode) const
-{
-  if (pNodeProperty != NULL)
-    return pNodeProperty->propertyOf(pNode).copy();
-
-  return value();
-}
-
-CValueInterface * CConditionDefinition::ValueInstance::value(const CEdge * pEdge) const
-{
-  if (pEdgeProperty != NULL)
-    return pEdgeProperty->propertyOf(pEdge).copy();
-
-  return value();
-}
-
-CValueInterface * CConditionDefinition::ValueInstance::value() const
-{
-  if (pValue != NULL)
-    return pValue;
-
-  if (pObservable != NULL)
-    return pObservable;
-
-  if (pVariable != NULL)
-    return pVariable;
-
-  if (pSizeOf != NULL)
-    return pSizeOf;
-
-  // pValueList is only available for Within and NotWithin which does not use this path
-
-  return NULL;
-}
-
-CValueInterface::Type CConditionDefinition::ValueInstance::interfaceType() const
-{
-  switch (type)
-    {
-      case ValueType::Value:
-        if (pValue != NULL)
-          return pValue->getType();
-
-        break;
-    
-      case ValueType::ValueList:
-        if (pValueList != NULL)
-          return pValueList->getType();
-
-        break;
-    
-      case ValueType::Observable:
-        if (pObservable != NULL)
-          return pObservable->getType();
-          
-        break;
-    
-      case ValueType::NodeProperty:
-        if (pNodeProperty != NULL)
-          return pNodeProperty->getType();
-          
-        break;
-    
-      case ValueType::EdgeProperty:
-        if (pEdgeProperty != NULL)
-          return pEdgeProperty->getType();
-          
-        break;
-    
-      case ValueType::Variable:
-        if (pVariable != NULL)
-          return pVariable->getType();
-          
-        break;
-    
-      case ValueType::Sizeof:
-        if (pSizeOf != NULL)
-          return pSizeOf->getType();
-          
-        break;
-    }
-
-  return CValueList::Type::boolean;
-}
-
-bool CConditionDefinition::ValueInstance::inherit() const 
-{
-  return pNodeProperty != NULL
-         || pEdgeProperty != NULL;
-}
 
 CConditionDefinition::CConditionDefinition()
   : mType(BooleanOperationType::Value)
@@ -300,7 +56,7 @@ CConditionDefinition::CConditionDefinition(const CConditionDefinition & src)
 {}
 
 CConditionDefinition::CConditionDefinition(const json_t * json)
-  : mType()
+  : mType(BooleanOperationType::__SIZE)
   , mComparison()
   , mLeft()
   , mRight()
@@ -406,7 +162,7 @@ bool CConditionDefinition::operationFromJSON(const json_t * json)
     },
     */
 
-  mValid = false; // DONE
+  mValid = false;
   json_t * pOperation = json_object_get(json, "not");
 
   if (pOperation != NULL)
@@ -508,7 +264,7 @@ bool CConditionDefinition::operationFromJSON(const json_t * json)
       else
         {
           CLogger::error() << "Condition: Invalid operant for Boolean operator '" << (mType == BooleanOperationType::And ? "and" : "or") << "'.";
-          mValid = false; // DONE
+          mValid = false; 
         }
     }
 
@@ -697,17 +453,17 @@ bool CConditionDefinition::comparisonFromJSON(const json_t * json)
 
   mValid = true;
 
-  mLeft.fromJSON(json_object_get(json, "left"));
+  mLeft.fromJSON(json_object_get(json, "left"), false);
 
-  if (!mLeft.valid)
+  if (!mLeft.isValid())
     {
       CLogger::error() << "Condition: Invalid left operant for comparison operator '" << CSimConfig::jsonToString(json) << "'.";
       mValid = false; // DONE
     }
 
-  mRight.fromJSON(json_object_get(json, "right"));
+  mRight.fromJSON(json_object_get(json, "right"), false);
 
-  if (!mRight.valid)
+  if (!mRight.isValid())
     {
       CLogger::error() << "Condition: Invalid right operant for comparison operator '" << CSimConfig::jsonToString(json) << "'.";
       mValid = false; // DONE
@@ -716,19 +472,19 @@ bool CConditionDefinition::comparisonFromJSON(const json_t * json)
   if (mComparison != ComparisonType::Within
       && mComparison != ComparisonType::NotWithin)
     {
-      if (mLeft.type == ValueType::ValueList)
+      if (mLeft.getType() == CValueInstance::ValueType::ValueList)
         {
           CLogger::error() << "Condition: Invalid value type for left operant for comparison operator '" << CSimConfig::jsonToString(json) << "'.";
           mValid = false; // DONE
         }
 
-      if (mRight.type == ValueType::ValueList)
+      if (mRight.getType() == CValueInstance::ValueType::ValueList)
         {
           CLogger::error() << "Condition: Invalid value type for right operant for comparison operator '" << CSimConfig::jsonToString(json) << "'.";
           mValid = false; // DONE
         }
 
-      if (!compatible(mLeft, mRight))
+      if (!CValueInstance::compatible(mLeft, mRight))
         {
           CLogger::error() << "Condition: Incompatible values for comparison: '" << CSimConfig::jsonToString(json) << "'.";
           mValid = false; // DONE
@@ -736,32 +492,38 @@ bool CConditionDefinition::comparisonFromJSON(const json_t * json)
     }
   else
     {
-      if (mLeft.type != ValueType::NodeProperty
-          && mLeft.type != ValueType::EdgeProperty
-          && mLeft.type != ValueType::Observable
-          && mLeft.type != ValueType::Variable)
+      if (mLeft.getType() != CValueInstance::ValueType::NodeProperty
+          && mLeft.getType() != CValueInstance::ValueType::EdgeProperty
+          && mLeft.getType() != CValueInstance::ValueType::Observable
+          && mLeft.getType() != CValueInstance::ValueType::Variable)
         {
           CLogger::error() << "Condition: Invalid value type for left operant for comparison operator '" << CSimConfig::jsonToString(json) << "'.";
           mValid = false; // DONE
         }
 
-      if (mRight.type != ValueType::ValueList)
+      if (mRight.getType() != CValueInstance::ValueType::ValueList)
         {
           CLogger::error() << "Condition: Invalid value type for right operant for comparison operator '" << CSimConfig::jsonToString(json) << "'.";
           mValid = false; // DONE
         }
 
-      if (!compatible(mLeft, mRight))
+      if (!CValueInstance::compatible(mLeft, mRight))
         {
           CLogger::error() << "Condition: Incompatible values for comparison: '" << CSimConfig::jsonToString(json) << "'.";
           mValid = false; // DONE
         }
     }
 
+  if (mLeft.getPrerequisite() != NULL)
+    RequiredComputables.insert(mLeft.getPrerequisite());
+
+  if (mRight.getPrerequisite() != NULL)
+    RequiredComputables.insert(mRight.getPrerequisite());
+
   return true;
 }
 
-CCondition * CConditionDefinition::createCondition() const
+bool CConditionDefinition::isTrue() const
 {
   switch (mType)
     {
@@ -769,49 +531,39 @@ CCondition * CConditionDefinition::createCondition() const
     case BooleanOperationType::Or:
     case BooleanOperationType::Not:
       {
-        std::vector< CCondition * > Vector;
+        std::vector< bool > Vector;
         std::vector< CConditionDefinition >::const_iterator it = mBooleanValues.begin();
         std::vector< CConditionDefinition >::const_iterator end = mBooleanValues.end();
 
         for (; it != end; ++it)
-          {
-            Vector.push_back(it->createCondition());
-          }
+          Vector.push_back(it->isTrue());
 
-        return new CBooleanOperation(mType, Vector);
+        return CCondition::isTrue(mType, Vector);
       }
       break;
 
     case BooleanOperationType::Value:
-      return new CBooleanValue(mValue);
+      return CCondition::isTrue(mValue);
       break;
 
     case BooleanOperationType::Comparison:
       {
-        CValueInterface * pLeft = mLeft.value();
-
         if (mComparison != ComparisonType::Within
             && mComparison != ComparisonType::NotWithin)
-          {
-            CValueInterface * pRight = mRight.value();
-
-            if (pLeft != NULL
-                && pRight != NULL)
-              return new CComparison(mComparison, pLeft, mLeft.inherit(), pRight, mRight.inherit());
-          }
-        else if (mRight.pValueList != NULL
-                 && pLeft != NULL)
-          {
-            return new CContainedIn(mComparison, pLeft, mLeft.inherit(), *mRight.pValueList);
-          }
+          return CCondition::isTrue(mComparison, mLeft.value(), mRight.value());
+        else
+          return CCondition::isTrue(mComparison, mLeft.value(), mRight.valueList());
       }
+      break;
+
+    case BooleanOperationType::__SIZE:
       break;
     }
 
-  return new CBooleanValue(true);
+  return true;
 }
 
-CCondition * CConditionDefinition::createCondition(const CNode * pNode) const
+bool CConditionDefinition::isTrue(const CNode * pNode) const
 {
   switch (mType)
     {
@@ -819,49 +571,39 @@ CCondition * CConditionDefinition::createCondition(const CNode * pNode) const
     case BooleanOperationType::Or:
     case BooleanOperationType::Not:
       {
-        std::vector< CCondition * > Vector;
+        std::vector< bool > Vector;
         std::vector< CConditionDefinition >::const_iterator it = mBooleanValues.begin();
         std::vector< CConditionDefinition >::const_iterator end = mBooleanValues.end();
 
         for (; it != end; ++it)
-          {
-            Vector.push_back(it->createCondition(pNode));
-          }
+          Vector.push_back(it->isTrue(pNode));
 
-        return new CBooleanOperation(mType, Vector);
+        return CCondition::isTrue(mType, Vector);
       }
       break;
 
     case BooleanOperationType::Value:
-      return new CBooleanValue(mValue);
+      return CCondition::isTrue(mValue);
       break;
 
     case BooleanOperationType::Comparison:
       {
-        CValueInterface * pLeft = mLeft.value(pNode);
-
         if (mComparison != ComparisonType::Within
             && mComparison != ComparisonType::NotWithin)
-          {
-            CValueInterface * pRight = mRight.value(pNode);
-
-            if (pLeft != NULL
-                && pRight != NULL)
-              return new CComparison(mComparison, pLeft, mLeft.inherit(), pRight, mRight.inherit());
-          }
-        else if (mRight.pValueList != NULL
-                 && pLeft != NULL)
-          {
-            return new CContainedIn(mComparison, pLeft, mLeft.inherit(), *mRight.pValueList);
-          }
+          return CCondition::isTrue(mComparison, mLeft.value(pNode), mRight.value(pNode));
+        else
+          return CCondition::isTrue(mComparison, mLeft.value(pNode), mRight.valueList());
       }
+      break;
+
+    case BooleanOperationType::__SIZE:
       break;
     }
 
-  return new CBooleanValue(true);
+  return true;
 }
 
-CCondition * CConditionDefinition::createCondition(const CEdge * pEdge) const
+bool CConditionDefinition::isTrue(const CEdge * pEdge) const
 {
   switch (mType)
     {
@@ -869,46 +611,36 @@ CCondition * CConditionDefinition::createCondition(const CEdge * pEdge) const
     case BooleanOperationType::Or:
     case BooleanOperationType::Not:
       {
-        std::vector< CCondition * > Vector;
+        std::vector< bool > Vector;
         std::vector< CConditionDefinition >::const_iterator it = mBooleanValues.begin();
         std::vector< CConditionDefinition >::const_iterator end = mBooleanValues.end();
 
         for (; it != end; ++it)
-          {
-            Vector.push_back(it->createCondition(pEdge));
-          }
+          Vector.push_back(it->isTrue(pEdge));
 
-        return new CBooleanOperation(mType, Vector);
+        return CCondition::isTrue(mType, Vector);
       }
       break;
 
     case BooleanOperationType::Value:
-      return new CBooleanValue(mValue);
+      return CCondition::isTrue(mValue);
       break;
 
     case BooleanOperationType::Comparison:
       {
-        CValueInterface * pLeft = mLeft.value(pEdge);
-
         if (mComparison != ComparisonType::Within
             && mComparison != ComparisonType::NotWithin)
-          {
-            CValueInterface * pRight = mRight.value(pEdge);
-
-            if (pLeft != NULL
-                && pRight != NULL)
-              return new CComparison(mComparison, pLeft, mLeft.inherit(), pRight, mRight.inherit());
-          }
-        else if (mRight.pValueList != NULL
-                 && pLeft != NULL)
-          {
-            return new CContainedIn(mComparison, pLeft, mLeft.inherit(), *mRight.pValueList);
-          }
+          return CCondition::isTrue(mComparison, mLeft.value(pEdge), mRight.value(pEdge));
+        else
+          return CCondition::isTrue(mComparison, mLeft.value(pEdge), mRight.valueList());
       }
+      break;
+
+    case BooleanOperationType::__SIZE:
       break;
     }
 
-  return new CBooleanValue(true);
+  return true;
 }
 
 const bool & CConditionDefinition::isValid() const
@@ -916,8 +648,3 @@ const bool & CConditionDefinition::isValid() const
   return mValid;
 }
 
-// static
-bool CConditionDefinition::compatible(const  CConditionDefinition::ValueInstance & lhs, const  CConditionDefinition::ValueInstance & rhs)
-{
-  return CValueInterface::compatible(lhs.interfaceType(), rhs.interfaceType());
-}

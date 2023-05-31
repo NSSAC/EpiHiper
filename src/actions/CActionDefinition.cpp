@@ -37,6 +37,37 @@
 #include "network/CNode.h"
 #include "utilities/CLogger.h"
 
+// static 
+std::map< double, std::set< CActionDefinition * > > CActionDefinition::Priorities;
+
+// static 
+void CActionDefinition::convertPrioritiesToOrder()
+{
+  size_t Order = 0;
+
+  std::map< double, std::set< CActionDefinition * > >::const_iterator it = Priorities.begin();
+  std::map< double, std::set< CActionDefinition * > >::const_iterator end = Priorities.end();
+  
+  for (; it != end; ++it)
+    {
+      std::set< CActionDefinition * >::const_iterator itSet = it->second.begin();
+      std::set< CActionDefinition * >::const_iterator endSet = it->second.end();
+
+      for (; itSet != endSet; ++itSet)
+        (*itSet)->mOrder = Order;
+
+      ++Order;
+    }
+}
+
+// static 
+size_t CActionDefinition::OrderSize()
+{
+  return Priorities.size();
+}
+
+
+
 // static
 CActionDefinition * CActionDefinition::GetActionDefinition(const size_t & index)
 {
@@ -50,6 +81,7 @@ CActionDefinition::CActionDefinition()
   : CAnnotation()
   , mOperations()
   , mPriority(1.0)
+  , mOrder(0)
   , mDelay(0)
   , mCondition()
   , mIndex(std::numeric_limits< size_t >::max())
@@ -61,6 +93,7 @@ CActionDefinition::CActionDefinition(const CActionDefinition & src)
   : CAnnotation(src)
   , mOperations(src.mOperations)
   , mPriority(src.mPriority)
+  , mOrder(src.mOrder)
   , mDelay(src.mDelay)
   , mCondition(src.mCondition)
   , mIndex(src.mIndex)
@@ -72,6 +105,7 @@ CActionDefinition::CActionDefinition(const json_t * json)
   : CAnnotation()
   , mOperations()
   , mPriority(1.0)
+  , mOrder(0)
   , mDelay(0)
   , mCondition()
   , mIndex(std::numeric_limits< size_t >::max())
@@ -85,6 +119,7 @@ CActionDefinition::CActionDefinition(const json_t * json)
       mIndex = INSTANCES.size();
       mInfo.set("CActionDefinition", (int) mIndex);
       INSTANCES.push_back(this);
+      Priorities[mPriority].insert(this);
     }
 }
 
@@ -243,7 +278,7 @@ void CActionDefinition::process() const
 {
   try
     {
-      CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] node and edge independent action.";
+      ENABLE_TRACE(CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] node and edge independent action.";)
       CActionQueue::addAction(mDelay, new CVariableAction(this));
     }
   catch (...)
@@ -266,7 +301,7 @@ void CActionDefinition::process(const CEdge * pEdge) const
 
   try
     {
-      CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Add action for edge '" << pEdge->targetId << "," << pEdge->sourceId << "'.";
+      ENABLE_TRACE(CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Add action for edge '" << pEdge->targetId << "," << pEdge->sourceId << "'.";)
       CActionQueue::addAction(mDelay, new CEdgeAction(this, pEdge));
     }
   catch (...)
@@ -282,14 +317,14 @@ void CActionDefinition::process(const CNode * pNode) const
 
   if (CNetwork::Context.Active().isRemoteNode(pNode))
     {
-      CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Add remote action for node '" << pNode->id << "'.";
+      ENABLE_TRACE(CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Add remote action for node '" << pNode->id << "'.";)
       CActionQueue::addRemoteAction(mIndex, pNode);
       return;
     }
 
   try
     {
-      CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Add action for node '" << pNode->id << "'.";
+      ENABLE_TRACE(CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Add action for node '" << pNode->id << "'.";)
       CActionQueue::addAction(mDelay, new CNodeAction(this, pNode));
     }
   catch (...)
@@ -301,24 +336,17 @@ void CActionDefinition::process(const CNode * pNode) const
 bool CActionDefinition::execute() const
 {
   bool success = true;
-  CCondition * pCondition = NULL;
 
   try
     {
-      pCondition = mCondition.createCondition();
-
-      if (pCondition->isTrue())
+      if (mCondition.isTrue())
         {
           // Loop through the operation definitions
           std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
           std::vector< COperationDefinition >::const_iterator end = mOperations.end();
 
           for (; it != end; ++it)
-            {
-              COperation * pOperation = it->createOperation(mInfo); 
-              success &= pOperation->execute();
-              delete pOperation;
-            }
+            it->execute(mInfo); 
         }
     }
   catch (...)
@@ -327,33 +355,23 @@ bool CActionDefinition::execute() const
       success = false;
     }
 
-  if (pCondition != NULL)
-    delete pCondition;
-
   return success;
 }
 
 bool CActionDefinition::execute(CEdge * pEdge) const
 {
   bool success = true;
-  CCondition * pCondition = NULL;
 
   try
     {
-      pCondition = mCondition.createCondition(pEdge);
-
-      if (pCondition->isTrue())
+      if (mCondition.isTrue(pEdge))
         {
           // Loop through the operation definitions
           std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
           std::vector< COperationDefinition >::const_iterator end = mOperations.end();
 
           for (; it != end; ++it)
-            {
-              COperation * pOperation = it->createOperation(pEdge, mInfo); 
-              success &= pOperation->execute();
-              delete pOperation;
-            }
+            it->execute(pEdge, mInfo); 
         }
     }
   catch (...)
@@ -362,33 +380,23 @@ bool CActionDefinition::execute(CEdge * pEdge) const
       success = false;
     }
 
-  if (pCondition != NULL)
-    delete pCondition;
-
   return success;
 }
 
 bool CActionDefinition::execute(CNode * pNode) const
 {
   bool success = true;
-  CCondition * pCondition = NULL;
 
   try
     {
-      pCondition = mCondition.createCondition(pNode);
-
-      if (pCondition->isTrue())
+      if (mCondition.isTrue(pNode))
         {
           // Loop through the operation definitions
           std::vector< COperationDefinition >::const_iterator it = mOperations.begin();
           std::vector< COperationDefinition >::const_iterator end = mOperations.end();
 
           for (; it != end; ++it)
-            {
-              COperation * pOperation = it->createOperation(pNode, mInfo); 
-              success &= pOperation->execute();
-              delete pOperation;
-            }
+            it->execute(pNode, mInfo); 
         }
     }
   catch (...)
@@ -396,9 +404,6 @@ bool CActionDefinition::execute(CNode * pNode) const
       CLogger::error() << "CActionDefinition::execute: [ActionDefinition:" << mIndex << "] Failed to execute action for node '" << pNode->id << "'.";
       success = false;
     }
-
-  if (pCondition != NULL)
-    delete pCondition;
 
   return success;
 }
@@ -409,7 +414,7 @@ const size_t & CActionDefinition::getDelay() const
 }
   
 
-double CActionDefinition::getPriority() const
+size_t CActionDefinition::getOrder() const
 {
-  return mPriority;
+  return mOrder;
 }

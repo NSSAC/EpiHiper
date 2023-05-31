@@ -51,21 +51,23 @@ public:
 
   bool compute();
 
+  virtual bool isValid() const;
+
   bool isStatic() const;
 
   virtual std::string getComputableId() const;
 
-protected:
-  void determineIsStatic();
+  virtual void determineIsStatic();
 
+protected:
   virtual bool computeProtected() = 0;
   
 private:
   static size_t UniqueId;
 
-  size_t mComputableId;
-
 protected:
+  const size_t mComputableId;
+  bool mValid;
   bool mStatic;
   CContext< bool > mComputedOnce;
   CComputableSet mPrerequisites;

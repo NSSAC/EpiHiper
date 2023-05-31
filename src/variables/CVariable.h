@@ -26,12 +26,15 @@
 #define SRC_VARIABLES_CVARIABLE_H_
 
 #include "math/CComputable.h"
-#include "utilities/CAnnotation.h"
-#include "math/CValue.h"
+#include "math/CValueInterface.h"
 
+#include "utilities/CAnnotation.h"
+#include "utilities/CContext.h"
+
+class CValue;
 class CMetadata;
 
-class CVariable: public CValue, public CAnnotation
+class CVariable: public CValueInterface, public CComputable, public CAnnotation
 {
 public:
   enum struct Scope
@@ -51,8 +54,6 @@ public:
 
   virtual ~CVariable();
 
-  virtual CValueInterface * copy() const override;
-
   virtual void fromJSON(const json_t * json) override;
 
   void toBinary(std::ostream & os) const;
@@ -61,19 +62,28 @@ public:
 
   const std::string & getId() const;
 
-  const bool & isValid() const;
-
   const Scope & getScope() const;
   
-  void reset(const bool & force = false);
+  bool reset(const bool & force = false);
 
-  void getValue();
+  bool getValue();
 
-  bool setValue(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+  bool setValue(const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
 
-  bool setValue(const CValue value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+  void updateMaster();
 
   void setInitialValue(const double & initialValue);
+
+  CValueInterface toValue();
+  
+  virtual std::string getComputableId() const override;
+
+  virtual bool isValid() const override;
+
+  virtual void determineIsStatic() override;
+
+protected:
+  virtual bool computeProtected() override;
 
   /*
     "=",
@@ -84,13 +94,14 @@ public:
    */
 
 private:
+  bool setValue(double value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+
   std::string mId;
   Scope mScope;
   double mInitialValue;
-  double * mpLocalValue;
+  CContext< double > mLocalValue;
   int mResetValue;
   size_t mIndex;
-  bool mValid;
 };
 
 #endif /* SRC_VARIABLES_CVARIABLE_H_ */

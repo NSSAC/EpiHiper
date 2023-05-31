@@ -32,15 +32,18 @@
 #include "git-commit.h"
 
 // Add attribute location id to edges
-#cmakedefine USE_LOCATION_ID
+#cmakedefine USE_LOCATION_ID 1
 
 // Enable multithreading by using of OpenMP 
-#cmakedefine USE_OMP
+#cmakedefine USE_OMP 1
 
 // Enable multithreading by using of MPI
-#cmakedefine USE_MPI
+#cmakedefine USE_MPI 1
 
 // Target architecture is MACOSX
-#cmakedefine TARGET_MACOSX
+#cmakedefine TARGET_MACOSX 1
+
+// Enable loglevel trace
+#cmakedefine SUPPORT_LOGLEVEL_TRACE 1
 
 #endif // SRC_EPIHIPERCONFIG_H_

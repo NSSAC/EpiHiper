@@ -95,9 +95,9 @@ public:
 
   bool fromString(const char * str, CTraitData::base & data) const;
 
-  std::string toString(CTraitData::base & data) const;
+  std::string toString(const CTraitData::base & data) const;
 
-  std::string toString(CTraitData::value & value) const;
+  std::string toString(const CTraitData::value & value) const;
 
   void remap();
 

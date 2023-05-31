@@ -28,6 +28,10 @@
 #include "math/CValueList.h"
 #include "math/CComputable.h"
 #include "utilities/CContext.h"
+#include "utilities/CLogger.h"
+
+#include <memory>
+#include <set>
 
 class CNode;
 class CEdge;
@@ -35,6 +39,8 @@ class CEdge;
 class CSetContent: public CComputable
 {
 public:
+  typedef std::shared_ptr< CSetContent > shared_pointer;
+
   class CDBFieldValues : public std::map< CValueList::Type, CValueList >
   {
   public:
@@ -49,25 +55,80 @@ public:
   };
 
 public:
-  static CSetContent * create(const json_t * json);
-  // static CSetContent * copy(const CSetContent * pSetContent);
-  static void destroy(CSetContent *& pSetContent);
+  static shared_pointer create(const json_t * json);
+
+  struct Compare
+  {
+    bool operator()(const shared_pointer & lhs, const shared_pointer & rhs);
+  };
+
+  static std::set< shared_pointer, Compare > Unique;
+
+  template< class function_pointer >
+  static bool pointerLessThan(const function_pointer pLeft, const function_pointer pRight)
+  {
+    char Left[19];
+    sprintf(Left, "%p", pLeft);
+
+    char Right[19];
+    sprintf(Right, "%p", pRight);
+
+    return strcmp(Left, Right) < 0;
+  }
+
+  enum struct FilterType {
+    edge,
+    node,
+    none
+  };
+
+  template < class element_type >
+  class Filter {
+    CSetContent * mpSetContent;
+    std::vector< element_type * > * mpSet;
+
+  public:
+    Filter(CSetContent * pSetContent);
+
+    void addMatching(element_type * pType);
+
+    void report()
+    {
+      CLogger::debug() << "CSetContent: '" << mpSetContent->getComputableId() << "' contains '" << mpSet->size() << "' elements.";
+    }
+  };
 
 protected:
-  CSetContent();
+  enum struct Type {
+    sampled,
+    edgeElementSelector,
+    nodeElementSelector,
+    dbFieldSelector,
+    set,
+    setReference,
+    operation,
+    __SIZE
+  };
+
+  template< class element_type >
+  static int comparePointer(const element_type * pLhs, const element_type * pRhs);
+
+  CSetContent(const Type & type = Type::__SIZE);
 
   CSetContent(const CSetContent & src);
 
 public:
   virtual ~CSetContent();
 
-  virtual CSetContent * copy() const = 0;
+  virtual FilterType filterType() const;
 
-  virtual bool computeProtected() override;
+  virtual bool filter(const CNode * pNode) const;
+ 
+  virtual bool filter(const CEdge * pEdge) const;
+ 
+  bool lessThan(const CSetContent & rhs) const;
 
-  virtual void fromJSON(const json_t * json) = 0;
-
-  const bool & isValid() const;
+  void fromJSON(const json_t * json);
 
   bool contains(CNode * pNode) const;
 
@@ -115,11 +176,62 @@ public:
 
   CContext< size_t > sizes() const;
 
+protected:
+  virtual bool computeProtected() override;
+
+  virtual void fromJSONProtected(const json_t * json) = 0;
+
+  virtual bool lessThanProtected(const CSetContent & rhs) const = 0;
+
 private:
+  static std::set< shared_pointer > SetContents;
+
+  Type mType;
+  
   CContext< SetContent > mContext;
 
-protected:
-  bool mValid;
+  std::string mJSON;
 };
+
+template < class element_type >
+int CSetContent::comparePointer(const element_type * pLhs, const element_type * pRhs)
+{
+  if (pLhs != NULL
+      && pRhs != NULL)
+    {
+      if (*pLhs != *pRhs)
+        return *pLhs < *pRhs ? -1 : 1;
+      else
+        return 0;
+    }
+
+  if (pLhs != pRhs)
+    return pLhs < pRhs ? -1 : 1;
+
+  return 0;
+}
+
+template <>
+inline CSetContent::Filter< CEdge >::Filter(CSetContent * pSetContent)
+  : mpSetContent(pSetContent)
+  , mpSet(&mpSetContent->getEdges())
+{
+  mpSet->clear();
+}
+
+template <>
+inline CSetContent::Filter< CNode >::Filter(CSetContent * pSetContent)
+  : mpSetContent(pSetContent)
+  , mpSet(&mpSetContent->getNodes())
+{
+  mpSet->clear();
+}
+
+template < class element_type >
+void CSetContent::Filter< element_type >::addMatching(element_type * pType)
+{
+  if (mpSetContent->filter(pType))
+    mpSet->push_back(pType);
+}
 
 #endif /* SRC_INTERVENTION_CSETCONTENT_H_ */

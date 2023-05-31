@@ -39,17 +39,18 @@ public:
 
   virtual ~CDBFieldSelector();
 
-  virtual CSetContent * copy() const override;
-
-  virtual void fromJSON(const json_t * json) override;
-
+protected:
   virtual bool computeProtected() override;
+
+  virtual void fromJSONProtected(const json_t * json) override;
+
+  virtual bool lessThanProtected(const CSetContent & rhs) const override;
 
 private:
   std::string mTable;
   std::string mField;
   CValue::Type mFieldType;
-  CSetContent * mpSelector;
+  CSetContent::shared_pointer mpSelector;
 };
 
 #endif /* SRC_SETS_CDBFIELDSELECTOR_H_ */

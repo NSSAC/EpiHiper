@@ -73,15 +73,26 @@ bool CSimulation::run()
   bool success = true;
   std::chrono::time_point<std::chrono::steady_clock> Start = std::chrono::steady_clock::now();
 
-  CActionQueue::setCurrentTick(startTick - 1);
+  // Initialization is reported prior to the start tick of the simulation.
+  CActionQueue::init(startTick - 1);
   CChanges::setCurrentTick(startTick - 1);
+  CLogger::updateTick();
+  CCommunicate::memUsage();
+
+  CChanges::determineNodesRequested();
   CChanges::initDefaultOutput();
   CModel::InitGlobalStateCountOutput();
   CDependencyGraph::buildGraph();
 
 #pragma omp parallel
   {
-    if (!CDependencyGraph::applyUpdateSequence())
+    CVariableList::INSTANCE.resetAll(true);
+
+    if (!CDependencyGraph::applyComputeOnceOrder())
+#pragma omp atomic
+      success &= false;
+
+    if (!CDependencyGraph::applyUpdateOrder())
 #pragma omp atomic
       success &= false;
 
@@ -89,29 +100,34 @@ bool CSimulation::run()
 #pragma omp atomic
       success &= false;
 
-    CCommunicate::memUsage(CActionQueue::getCurrentTick());
+    CVariableList::INSTANCE.resetAll();
 
     if (!CActionQueue::processCurrentActions())
 #pragma omp atomic
       success &= false;
+
+    CVariableList::INSTANCE.synchronizeChangedVariables();
   }
 
-  CLogger::info() << "CSimulation::initialization: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+  CLogger::info() << "CSimulation::initialization: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
+
   Start = std::chrono::steady_clock::now();
 
   CActionQueue::incrementTick();
   CChanges::incrementTick();
+  CLogger::updateTick();
+  CCommunicate::memUsage();
 
   CChanges::writeDefaultOutput();
   CModel::UpdateGlobalStateCounts();
   CModel::WriteGlobalStateCounts();
 
-  CLogger::info() << "CSimulation::output: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+  CLogger::info() << "CSimulation::output: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
   Start = std::chrono::steady_clock::now();
 
   CNetwork::Context.Master().broadcastChanges();
 
-  CLogger::info() << "CSimulation::synchronize: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+  CLogger::info() << "CSimulation::synchronize: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
 
   CNetwork::dumpActiveNetwork();
 
@@ -122,18 +138,19 @@ bool CSimulation::run()
 #pragma omp parallel
       {
         std::chrono::time_point<std::chrono::steady_clock> Start = std::chrono::steady_clock::now();
-        CVariableList::INSTANCE.resetAll();
 
-        if (!CDependencyGraph::applyUpdateSequence())
+        if (!CDependencyGraph::applyUpdateOrder())
 #pragma omp atomic
           success &= false;
 
-        CLogger::info() << "CSimulation::applyUpdateSequence: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+        CLogger::info() << "CSimulation::applyUpdateOrder: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
+
         Start = std::chrono::steady_clock::now();
 
         CModel::ProcessTransmissions();
 
-        CLogger::info() << "CSimulation::ProcessTransmissions: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+        CLogger::info() << "CSimulation::ProcessTransmissions: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
+
         Start = std::chrono::steady_clock::now();
 
         if (!CTrigger::processAll())
@@ -144,27 +161,32 @@ bool CSimulation::run()
 #pragma omp atomic
           success &= false;
 
-        CLogger::info() << "CSimulation::ProcessIntervention: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+        CLogger::info() << "CSimulation::ProcessIntervention: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
+
         Start = std::chrono::steady_clock::now();
 
-        CCommunicate::memUsage(CActionQueue::getCurrentTick());
+        CVariableList::INSTANCE.resetAll();
 
         if (!CActionQueue::processCurrentActions())
 #pragma omp atomic
           success &= false;
+        
+        CLogger::info() << "CSimulation::processCurrentActions: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
 
-        CLogger::info() << "CSimulation::processCurrentActions: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+        CVariableList::INSTANCE.synchronizeChangedVariables();
       }
 
       Start = std::chrono::steady_clock::now();
       CActionQueue::incrementTick();
       CChanges::incrementTick();
+      CLogger::updateTick();
+      CCommunicate::memUsage();
 
       CChanges::writeDefaultOutput();
       CModel::UpdateGlobalStateCounts();
       CModel::WriteGlobalStateCounts();
 
-      CLogger::info() << "CSimulation::output: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+      CLogger::info() << "CSimulation::output: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
       Start = std::chrono::steady_clock::now();
 
       CNetwork::Context.Master().broadcastChanges();

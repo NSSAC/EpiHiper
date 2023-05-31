@@ -38,6 +38,12 @@
 #include "utilities/CLogger.h"
 #include "utilities/CSimConfig.h"
 
+// static
+bool CSetContent::Compare::operator()(const CSetContent::shared_pointer & lhs, const CSetContent::shared_pointer & rhs)
+{
+  return lhs->lessThan(*rhs);
+}
+
 size_t CSetContent::CDBFieldValues::size() const
 {
   size_t Size = 0;
@@ -51,18 +57,19 @@ size_t CSetContent::CDBFieldValues::size() const
   return Size;
 }
 
-CSetContent::CSetContent()
+CSetContent::CSetContent(const Type & type)
   : CComputable()
+  , mType(type)
   , mContext()
-  , mValid(true)
 {
   mContext.init();
+  mValid = true;
 }
 
 CSetContent::CSetContent(const CSetContent & src)
   : CComputable(src)
+  , mType(src.mType)
   , mContext(src.mContext)
-  , mValid(src.mValid)
 {}
 
 CSetContent::~CSetContent()
@@ -71,90 +78,97 @@ CSetContent::~CSetContent()
 // virtual
 bool CSetContent::computeProtected()
 {
-  return false;
+  return true;
 }
 
-// static
-CSetContent * CSetContent::create(const json_t * json)
+// virtual 
+CSetContent::FilterType CSetContent::filterType() const
 {
+  return FilterType::none;
+}
+
+// virtual 
+bool CSetContent::filter(const CNode * /* pNode */) const
+{
+  return false;
+} 
+
+// virtual 
+bool CSetContent::filter(const CEdge * /* pEdge */) const
+{
+  return false;
+} 
+ 
+// static
+CSetContent::shared_pointer CSetContent::create(const json_t * json)
+{
+  CSetContent * pNew = NULL;
+
   json_t * pContentType = json_object_get(json, "elementType");
 
   if (json_is_string(pContentType))
     {
       if (strcmp(json_string_value(pContentType), "edge") == 0)
         {
-          return new CEdgeElementSelector(json);
+          pNew = new CEdgeElementSelector(json);
         }
       else if (strcmp(json_string_value(pContentType), "node") == 0)
         {
-          return new CNodeElementSelector(json);
+          pNew = new CNodeElementSelector(json);
         }
       else if (strcmp(json_string_value(pContentType), "dbField") == 0)
         {
-          return new CDBFieldSelector(json);
+          pNew = new CDBFieldSelector(json);
         }
       else
         {
           CLogger::error() << "Set content: Invalid value for 'elementType'. " << CSimConfig::jsonToString(json);
-          return NULL;
         }
     }
-
-  pContentType = json_object_get(json, "operation");
-
-  if (json_is_string(pContentType))
+  else
     {
-      return new CSetOperation(json);
+      pContentType = json_object_get(json, "operation");
+
+      if (json_is_string(pContentType))
+        {
+          pNew = new CSetOperation(json);
+        }
+
+      if (pNew == NULL)
+        {
+          pContentType = json_object_get(json, "set");
+
+          if (json_is_object(pContentType))
+            {
+              pNew = new CSetReference(json);
+            }
+        }
+
+      if (pNew == NULL)
+        CLogger::error() << "Set content: Invalid." << CSimConfig::jsonToString(json);
     }
 
-  pContentType = json_object_get(json, "set");
+  // Assure unique CSetContent is returned
+  if (pNew == NULL)
+    return shared_pointer(NULL);
 
-  if (json_is_object(pContentType))
-    {
-      return new CSetReference(json);
-    }
+  shared_pointer New(pNew);
 
-  CLogger::error() << "Set content: Invalid. ";
-  return NULL;
+  return *Unique.insert(New).first;
 }
 
-// static
-/*
-CSetContent * CSetContent::copy(const CSetContent * pSetContent)
+bool CSetContent::lessThan(const CSetContent & rhs) const
 {
-  if (dynamic_cast< const CEdgeElementSelector * >(pSetContent) != NULL)
-    return new CEdgeElementSelector(*static_cast< const CEdgeElementSelector * >(pSetContent));
+  if (mType == rhs.mType)
+    return lessThanProtected(rhs);
 
-  if (dynamic_cast< const CNodeElementSelector * >(pSetContent) != NULL)
-    return new CNodeElementSelector(*static_cast< const CNodeElementSelector * >(pSetContent));
-
-  if (dynamic_cast< const CDBFieldSelector * >(pSetContent) != NULL)
-    return new CDBFieldSelector(*static_cast< const CDBFieldSelector * >(pSetContent));
-
-  if (dynamic_cast< const CSetOperation * >(pSetContent) != NULL)
-    return new CSetOperation(*static_cast<const  CSetOperation * >(pSetContent));
-
-  if (dynamic_cast< const CSetReference * >(pSetContent) != NULL)
-    return new CSetReference(*static_cast<const  CSetReference * >(pSetContent));
-
-  return NULL;
-}
-*/
-
-// static
-void CSetContent::destroy(CSetContent *& pSetContent)
-{
-  if (pSetContent != NULL
-      && dynamic_cast< CSet * >(pSetContent) == NULL)
-    {
-      delete pSetContent;
-      pSetContent = NULL;
-    }
+  return mType < rhs.mType;
 }
 
-const bool & CSetContent::isValid() const
+void CSetContent::fromJSON(const json_t * json)
 {
-  return mValid;
+  mJSON = CSimConfig::jsonToString(json);
+  fromJSONProtected(json);
 }
 
 bool CSetContent::contains(CNode * pNode) const
@@ -249,7 +263,7 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
   NotSampled.nodes.clear();
   NotSampled.dBFieldValues.clear();
 
-  CRandom::uniform_real Percent(0.0, 1.0);
+  CRandom::uniform_real Probability(0.0, 1.0);
 
   // Sampling is only supported if we have either only nodes or only edges;
   if (size() == Nodes.size())
@@ -264,7 +278,7 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
         {
           if (Available <= Requested
               || (Requested > 0.5
-                  && Percent(CRandom::G.Active()) < Requested / Available))
+                  && Probability(CRandom::G.Active()) < Requested / Available))
             {
               Sampled.nodes.push_back(*it);
               Requested -= 1.0;
@@ -287,7 +301,7 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
         {
           if (Available <= Requested
               || (Requested > 0.5
-                  && Percent(CRandom::G.Active()) < Requested / Available))
+                  && Probability(CRandom::G.Active()) < Requested / Available))
             {
               Sampled.edges.push_back(*it);
               Requested -= 1.0;

@@ -35,9 +35,9 @@ CVariableAction::~CVariableAction()
 {}
 
 // virtual 
-double CVariableAction::getPriority() const
+size_t CVariableAction::getOrder() const
 {
-  return mpDefinition->getPriority();
+  return mpDefinition->getOrder();
 }
 
 // virtual 

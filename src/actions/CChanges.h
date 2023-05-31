@@ -67,8 +67,6 @@ public:
 private:
   struct Changes
   {
-    std::set< const CNode * > Nodes;
-    std::set< const CEdge * > Edges;
     std::stringstream *pDefaultOutput;
   };
 

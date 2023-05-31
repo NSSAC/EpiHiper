@@ -129,8 +129,6 @@ public:
 
   CCommunicate::ErrorCode receiveNodes(std::istream & is, int sender);
 
-  CCommunicate::ErrorCode receiveEdges(std::istream & is, int sender);
-
   const size_t & getLocalNodeCount() const;
   const size_t & getGlobalNodeCount() const;
   const size_t & getLocalEdgeCount() const;

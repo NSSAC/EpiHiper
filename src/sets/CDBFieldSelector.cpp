@@ -35,7 +35,7 @@
 #include "utilities/CLogger.h"
 
 CDBFieldSelector::CDBFieldSelector()
-  : CSetContent()
+  : CSetContent(CSetContent::Type::dbFieldSelector)
   , mTable()
   , mField()
   , mFieldType()
@@ -44,35 +44,27 @@ CDBFieldSelector::CDBFieldSelector()
 
 CDBFieldSelector::CDBFieldSelector(const CDBFieldSelector & src)
   : CSetContent(src)
-  , mTable()
-  , mField()
+  , mTable(src.mTable)
+  , mField(src.mField)
   , mFieldType(src.mFieldType)
-  , mpSelector(src.mpSelector != NULL ? src.mpSelector->copy() : NULL)
+  , mpSelector(src.mpSelector)
 {}
 
 CDBFieldSelector::CDBFieldSelector(const json_t * json)
-  : CSetContent()
+  : CSetContent(CSetContent::Type::dbFieldSelector)
   , mTable()
   , mField()
   , mFieldType()
   , mpSelector(NULL)
 {
-  fromJSON(json);
+  fromJSONProtected(json);
 }
 
 CDBFieldSelector::~CDBFieldSelector()
-{
-  CSetContent::destroy(mpSelector);
-}
+{}
 
 // virtual
-CSetContent * CDBFieldSelector::copy() const
-{
-  return new CDBFieldSelector(*this);
-}
-
-// virtual
-void CDBFieldSelector::fromJSON(const json_t * json)
+void CDBFieldSelector::fromJSONProtected(const json_t * json)
 {
   /*
     "dbFieldValueSelector": {
@@ -157,16 +149,11 @@ void CDBFieldSelector::fromJSON(const json_t * json)
       if (mpSelector != NULL
           && mpSelector->isValid())
         {
-          mPrerequisites.insert(mpSelector);
-          mStatic = mpSelector->isStatic();
+          mPrerequisites.insert(mpSelector.get()); // DONE
         }
       else
         {
-          if (mpSelector != NULL)
-            {
-              delete mpSelector;
-              mpSelector = NULL;
-            }
+          mpSelector.reset();
 
           {
             CLogger::error("Field selector: Invalid value for 'selector'.");
@@ -182,6 +169,23 @@ void CDBFieldSelector::fromJSON(const json_t * json)
 
   CConnection::setRequired(true);
   mValid = true;
+}
+
+// virtual 
+bool CDBFieldSelector::lessThanProtected(const CSetContent & rhs) const
+{
+  const CDBFieldSelector * pRhs = static_cast< const CDBFieldSelector * >(&rhs);
+
+  if (mTable != pRhs->mTable)  
+    return mTable < pRhs->mTable;
+
+  if (mField != pRhs->mField)  
+    return mField < pRhs->mField;
+    
+  if (mFieldType != pRhs->mFieldType)  
+    return mFieldType < pRhs->mFieldType;
+    
+  return mpSelector < pRhs->mpSelector;
 }
 
 // virtual
@@ -205,7 +209,7 @@ bool CDBFieldSelector::computeProtected()
 
   if (FieldValueList.size() > 0)
     {
-      DBFieldValues.insert(std::make_pair(FieldValueList.getType(), FieldValueList));
+      DBFieldValues.emplace(FieldValueList.getType(), FieldValueList);
     }
 
   // std::cout << "CDBFieldSelector::compute: " << FieldValueList.size() << std::endl;

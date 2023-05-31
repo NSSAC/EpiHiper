@@ -31,7 +31,7 @@
 #include "utilities/CSimConfig.h"
 
 CSetOperation::CSetOperation()
-  : CSetContent()
+  : CSetContent(CSetContent::Type::operation)
   , mpCompute(NULL)
   , mSets()
 {}
@@ -39,19 +39,11 @@ CSetOperation::CSetOperation()
 CSetOperation::CSetOperation(const CSetOperation & src)
   : CSetContent(src)
   , mpCompute(src.mpCompute)
-  , mSets()
-{
-  std::set< CSetContent * >::const_iterator it = src.mSets.begin();
-  std::set< CSetContent * >::const_iterator end = src.mSets.end();
-
-  for (; it != end; ++it)
-    mSets.insert((*it)->copy());
-
-  mSets.erase(NULL);
-}
+  , mSets(src.mSets)
+{}
 
 CSetOperation::CSetOperation(const json_t * json)
-  : CSetContent()
+  : CSetContent(CSetContent::Type::operation)
   , mpCompute(NULL)
   , mSets()
 {
@@ -59,27 +51,10 @@ CSetOperation::CSetOperation(const json_t * json)
 }
 
 CSetOperation::~CSetOperation()
-{
-  std::set< CSetContent * >::iterator it = mSets.begin();
-  std::set< CSetContent * >::iterator end = mSets.end();
-
-  for (; it != end; ++it)
-    {
-      CSetContent * pSetContent = *it;
-      CSetContent::destroy(pSetContent);
-    }
-
-  mSets.clear();
-}
+{}
 
 // virtual
-CSetContent * CSetOperation::copy() const
-{
-  return new CSetOperation(*this);
-}
-
-// virtual
-void CSetOperation::fromJSON(const json_t * json)
+void CSetOperation::fromJSONProtected(const json_t * json)
 {
   /*
     "required": [
@@ -134,28 +109,35 @@ void CSetOperation::fromJSON(const json_t * json)
 
   for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
     {
-      CSetContent * pSetContent = CSetContent::create(json_array_get(pValue, i));
+      shared_pointer pSetContent = CSetContent::create(json_array_get(pValue, i));
 
-      if (pSetContent != NULL
+      if (pSetContent
           && pSetContent->isValid())
         {
-          mSets.insert(pSetContent);
-          mPrerequisites.insert(pSetContent);
+          mSets.insert(pSetContent.get());
+          mPrerequisites.insert(pSetContent.get()); // DONE
         }
       else
         {
-          if (pSetContent != NULL)
-            {
-              delete pSetContent;
-            }
+          pSetContent.reset();
 
           CLogger::error() << "Set operation: Invalid value for item '" << i << "'. " << CSimConfig::jsonToString(json);
           return;
         }
     }
 
-  determineIsStatic();
   mValid = true;
+}
+
+// virtual 
+bool CSetOperation::lessThanProtected(const CSetContent & rhs) const
+{
+  const CSetOperation * pRhs = static_cast< const CSetOperation * >(&rhs);
+
+  if (mSets != pRhs->mSets)
+    return mSets < pRhs->mSets;
+
+  return pointerLessThan(mpCompute, pRhs->mpCompute);
 }
 
 // virtual
@@ -313,7 +295,7 @@ bool CSetOperation::computeIntersection()
 
   for (it = mSets.begin(); it != end; ++it)
     {
-      Debug << Separator << (*it)->getComputableId() << ": " << (*it)->size();
+      Debug << Separator << (*it)->CComputable::getComputableId() << ": " << (*it)->size();
 
       if (Separator.empty())
         Separator = ", ";

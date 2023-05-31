@@ -113,16 +113,16 @@ bool * CTrigger::pGlobalTriggered(NULL);
 CDependencyGraph CDependencyGraph::INSTANCE;
 
 // static
-CComputable::Sequence CDependencyGraph::UpdateSequence;
+CDependencyGraph::UpdateOrder CDependencyGraph::CommonUpdateOrder;
 
 // static
 CComputableSet CDependencyGraph::UpToDate;
 
 // static
-CObservable::ObservableMap CObservable::Observables;
+CComputable::Sequence CDependencyGraph::ComputeOnceSequence;
 
 // static
-std::vector< CSizeOf * > CSizeOf::INSTANCES;
+CObservable::ObservableMap CObservable::Observables;
 
 // static
 bool CEdge::HasLocationId(false);
@@ -143,7 +143,10 @@ CContext< CNetwork > CNetwork::Context = CContext< CNetwork >();
 CSetList CSetList::INSTANCE;
 
 // static
-std::vector< CSetReference * > CSetReference::UnResolved;
+std::set< CSetReference * > CSetReference::UnResolved;
+
+// static 
+std::set< CSetContent::shared_pointer, CSetContent::Compare > CSetContent::Unique;
 
 // static
 std::map< std::string, CTrait > CTrait::INSTANCES;

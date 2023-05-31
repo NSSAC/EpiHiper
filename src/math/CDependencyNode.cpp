@@ -26,29 +26,35 @@
 
 #include "math/CComputable.h"
 #include "math/CDependencyNodeIterator.h"
+#include "utilities/CLogger.h"
+#include "sets/CSet.h"
+#include "sets/CSetReference.h"
 
-CDependencyNode::CDependencyNode():
-  mpComputable(NULL),
-  mPrerequisites(),
-  mDependents(),
-  mChanged(false),
-  mRequested(false)
+CDependencyNode::CDependencyNode()
+  : mpComputable(NULL)
+  , mPrerequisites()
+  , mDependents()
+  , mChanged(false)
+  , mRequested(false)
+  , mMaxChildGroupIndex(-1)
 {}
 
-CDependencyNode::CDependencyNode(const CComputable * pComputable):
-  mpComputable(pComputable),
-  mPrerequisites(),
-  mDependents(),
-  mChanged(false),
-  mRequested(false)
+CDependencyNode::CDependencyNode(const CComputable * pComputable)
+  : mpComputable(pComputable)
+  , mPrerequisites()
+  , mDependents()
+  , mChanged(false)
+  , mRequested(false)
+  , mMaxChildGroupIndex(-1)
 {}
 
-CDependencyNode::CDependencyNode(const CDependencyNode & src):
-  mpComputable(src.mpComputable),
-  mPrerequisites(src.mPrerequisites),
-  mDependents(src.mDependents),
-  mChanged(src.mChanged),
-  mRequested(src.mRequested)
+CDependencyNode::CDependencyNode(const CDependencyNode & src)
+  : mpComputable(src.mpComputable)
+  , mPrerequisites(src.mPrerequisites)
+  , mDependents(src.mDependents)
+  , mChanged(src.mChanged)
+  , mRequested(src.mRequested)
+  , mMaxChildGroupIndex(src.mMaxChildGroupIndex)
 {}
 
 CDependencyNode::~CDependencyNode()
@@ -326,6 +332,65 @@ bool CDependencyNode::buildUpdateSequence(std::vector < CComputable * > & update
   return success;
 }
 
+bool CDependencyNode::buildProcessGroups(std::vector < std::vector < CComputable * > > & processGroups,
+    bool ignoreCircularDependecies)
+{
+  bool success = true;
+
+  if (!mChanged || !mRequested)
+    return success;
+
+  CDependencyNodeIterator itNode(this, CDependencyNodeIterator::Prerequisites);
+  itNode.setProcessingModes(CDependencyNodeIterator::Flag(CDependencyNodeIterator::Before) | CDependencyNodeIterator::After);
+
+  while (itNode.next())
+    {
+      switch (itNode.state())
+        {
+          case CDependencyNodeIterator::Recursive:
+            success &= itNode->createMessage(ignoreCircularDependecies);
+            break;
+
+          case CDependencyNodeIterator::Before:
+
+            if (!itNode->isChanged() || !itNode->isRequested())
+              {
+                itNode.skipChildren();
+              }
+
+            break;
+
+          case CDependencyNodeIterator::After:
+
+            // This check is not needed as unchanged or unrequested nodes
+            // are skipped in Before processing.
+            if (itNode->isChanged() && itNode->isRequested())
+              {
+                size_t ProcessGroupIndex = itNode->maxChildGroupIndex() + 1;
+
+                if  (processGroups.size() <= ProcessGroupIndex)
+                  processGroups.push_back(std::vector < CComputable * >());
+
+                processGroups[ProcessGroupIndex].push_back(const_cast< CComputable * >(itNode->getComputable()));
+                itNode->setChanged(false);
+
+                for (CDependencyNode * pNode : itNode->mDependents)
+                  pNode->updateMaxChildGroupIndex(ProcessGroupIndex);
+              }
+
+            break;
+
+          default:
+            break;
+        }
+    }
+
+  mChanged = false;
+
+  return success;
+}
+
+
 void CDependencyNode::setChanged(const bool & changed)
 {
   mChanged = changed;
@@ -350,6 +415,7 @@ void CDependencyNode::reset()
 {
   mChanged = false;
   mRequested = false;
+  mMaxChildGroupIndex = -1;
 }
 
 void CDependencyNode::remove()
@@ -390,6 +456,23 @@ void CDependencyNode::updateEdges(const std::map< CDependencyNode *, CDependency
       std::map< CDependencyNode *, CDependencyNode * >::const_iterator found = map.find(*it);
       *it = found->second;
     }
+}
+
+int CDependencyNode::maxChildGroupIndex() const
+{
+  if (mMaxChildGroupIndex >= 0
+      && (dynamic_cast< const CSet * >(mpComputable)
+          || dynamic_cast< const CSetReference * >(mpComputable)))
+    return mMaxChildGroupIndex - 1;
+
+  return mMaxChildGroupIndex;
+}
+
+
+void CDependencyNode::updateMaxChildGroupIndex(const int & childIndex)
+{
+  if (childIndex > mMaxChildGroupIndex)
+    mMaxChildGroupIndex = childIndex;
 }
 
 bool CDependencyNode::createMessage(bool ignoreCircularDependecies)

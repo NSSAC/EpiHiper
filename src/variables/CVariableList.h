@@ -36,6 +36,8 @@
 #include <map>
 
 #include "variables/CVariable.h"
+#include "math/CComputableSet.h"
+#include "utilities/CContext.h"
 
 struct json_t;
 
@@ -69,15 +71,21 @@ public:
 
   void resetAll(const bool & force = false);
 
+  void synchronizeChangedVariables();
+
   bool append(CVariable * pVariable);
 
   const_iterator begin() const;
   
   const_iterator end() const;
 
+  CContext< CComputableSet > & changedVariables();
+
 private:
   std::map< std::string, size_t > mId2Index;
   bool mValid;
+  CContext< CComputableSet > mChangedVariables;
+  CVariable mInvalidVariable;
 };
 
 #endif /* SRC_VARIABLES_CVARIABLELIST_H_ */

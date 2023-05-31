@@ -25,6 +25,8 @@
 #ifndef SRC_ACTIONS_CSCHEDULEDACTION_H_
 #define SRC_ACTIONS_CSCHEDULEDACTION_H_
 
+#include <stddef.h>
+
 class CAction
 {
 protected:
@@ -35,7 +37,7 @@ public:
 
   virtual ~CAction();
 
-  virtual double getPriority() const = 0;
+  virtual size_t getOrder() const = 0;
 
   virtual bool execute() const = 0;
 };

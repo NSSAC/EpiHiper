@@ -123,6 +123,7 @@ void CFieldValue::fromJSON(const json_t * json)
     case Type::boolean:
     case Type::traitData:
     case Type::traitValue:
+    case CValueInterface::Type::__SIZE:
       CLogger::error("Field value: Invalid type for 'value'.");
       mValid = false; // DONE
       break;

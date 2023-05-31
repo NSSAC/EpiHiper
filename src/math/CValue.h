@@ -54,11 +54,9 @@ public:
 
   virtual ~CValue();
 
-  virtual CValueInterface * copy() const override;
-
   virtual void fromJSON(const json_t * json);
 
-  const bool & isValid() const;
+  virtual bool isValid() const;
 
   void toBinary(std::ostream & os) const;
 

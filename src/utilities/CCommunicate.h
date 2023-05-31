@@ -269,9 +269,10 @@ public:
 
   static size_t getRMAIndex();
 
-  static void memUsage(const int & tick);
+  static void memUsage();
 
   CCommunicate() = delete;
+  
   virtual ~CCommunicate();
 
   static MPI_Win MPIWin;

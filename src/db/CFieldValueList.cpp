@@ -144,6 +144,7 @@ void CFieldValueList::fromJSON(const json_t * json)
       case Type::boolean:
       case Type::traitData:
       case Type::traitValue:
+      case Type::__SIZE:
         break;
     }
 }

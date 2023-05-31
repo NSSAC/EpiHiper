@@ -177,7 +177,6 @@ bool CActionEnsemble::process(const CSetContent & targets)
   if (!mOnce.empty())
     CLogger::info() << "CActionEnsemble: Process '" << mOnce.size() << "' action definitions in 'once'.";
 
-#pragma omp single
   for (; it != end; ++it)
     (*it)->process();
 

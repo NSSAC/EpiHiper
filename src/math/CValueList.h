@@ -29,13 +29,16 @@
 
 #include "math/CValue.h"
 
-class CValueList : protected std::set< CValue >
+class CValueList : public std::set< CValue >
 {
+  friend std::ostream & operator << (std::ostream & os, const CValueList & p);
+
 public:
   typedef CValueInterface::Type Type;
-  typedef std::set< CValue >::iterator iterator;
-  typedef std::set< CValue >::const_iterator const_iterator;
-  typedef std::set< CValue >::value_type value_type;
+  typedef std::set< CValue > base;
+  typedef base::iterator iterator;
+  typedef base::const_iterator const_iterator;
+  typedef base::value_type value_type;
 
   CValueList(const Type & type = Type::number);
 
@@ -78,7 +81,7 @@ protected:
 
 template < typename _InputIterator > void CValueList::insert(_InputIterator __first, _InputIterator __last)
 {
-  std::set< CValue >::insert(__first, __last);
+  base::insert(__first, __last);
 }
 
 

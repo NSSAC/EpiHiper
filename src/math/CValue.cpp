@@ -102,12 +102,6 @@ CValue::~CValue()
   destroyValue();
 }
 
-// virtual
-CValueInterface * CValue::copy() const
-{
-  return new CValue(*this);
-}
-
 void CValue::fromJSON(const json_t * json)
 {
   mValid = false; // DONE
@@ -236,7 +230,7 @@ void CValue::fromJSON(const json_t * json)
   mValid = true;
 }
 
-const bool & CValue::isValid() const
+bool CValue::isValid() const
 {
   return mValid;
 }
@@ -278,6 +272,9 @@ void CValue::toBinary(std::ostream & os) const
 
     case Type::id:
       os.write(reinterpret_cast< const char * >(mpValue), sizeof(size_t));
+      break;
+
+    case Type::__SIZE:
       break;
     }
 }
@@ -326,6 +323,9 @@ void CValue::fromBinary(std::istream & is)
     case Type::id:
       is.read(reinterpret_cast< char * >(mpValue), sizeof(size_t));
       break;
+
+    case Type::__SIZE:
+      break;
     }
 }
 
@@ -360,6 +360,9 @@ void * CValue::createValue(const CValue::Type & type)
 
     case Type::id:
       return new size_t();
+      break;
+
+    case Type::__SIZE:
       break;
     }
 
@@ -397,6 +400,9 @@ void CValue::assignValue(const void * pValue)
     case Type::id:
       *static_cast< size_t * >(mpValue) = *static_cast< const size_t * >(pValue);
       break;
+
+    case Type::__SIZE:
+      break;
     }
 }
 
@@ -433,6 +439,9 @@ void CValue::destroyValue()
 
     case Type::id:
       delete static_cast< size_t * >(mpValue);
+      break;
+
+    case Type::__SIZE:
       break;
     }
 

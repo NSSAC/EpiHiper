@@ -65,12 +65,11 @@ ExternalProject_Add(libpqxx
   PREFIX            ${CMAKE_BINARY_DIR}/dependencies
   SOURCE_DIR        ${CMAKE_CURRENT_SOURCE_DIR}/libpqxx
 
-  CONFIGURE_COMMAND  CXXFLAGS=-std=c++11 ${CMAKE_CURRENT_SOURCE_DIR}/libpqxx/configure 
-  	--prefix=${CMAKE_BINARY_DIR} 
-  	--libdir=${CMAKE_BINARY_DIR}/lib 
-#  	--with-postgres-include=${PGSQL_INCLUDE_DIR} 
-#  	--with-postgres-lib=${PGSQL_LIBRARY} 
-  	--disable-documentation
+  CONFIGURE_COMMAND cmake
+  	-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR} 
+    -DCMAKE_INSTALL_LIBDIR=lib
+    -DSKIP_BUILD_TEST=ON
+  	${CMAKE_CURRENT_SOURCE_DIR}/libpqxx
   	
   BUILD_COMMAND      make 
   INSTALL_COMMAND    make install

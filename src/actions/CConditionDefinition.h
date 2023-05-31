@@ -25,21 +25,12 @@
 #ifndef SRC_ACTIONS_CCONDITIONDEFINITION_H_
 #define SRC_ACTIONS_CCONDITIONDEFINITION_H_
 
+#include <memory>
 #include <vector>
 
 #include "math/CValueList.h"
 #include "math/CComputable.h"
-
-class CObservable;
-class CNodeProperty;
-class CEdgeProperty ;
-class CVariable;
-class CSizeOf;
-class CCondition;
-class CNode;
-class CEdge;
-
-struct json_t;
+#include "math/CValueInstance.h"
 
 class CConditionDefinition
 {
@@ -62,44 +53,8 @@ public:
     Or,
     Not,
     Value,
-    Comparison
-  };
-
-  enum struct ValueType
-  {
-    Value,
-    ValueList,
-    Observable,
-    NodeProperty,
-    EdgeProperty,
-    Variable,
-    Sizeof
-  };
-
-private:
-  struct ValueInstance
-  {
-    size_t * pCounter;
-    ValueType type;
-    CValue * pValue;
-    CValueList * pValueList;
-    CObservable * pObservable;
-    CNodeProperty * pNodeProperty;
-    CEdgeProperty * pEdgeProperty;
-    CVariable * pVariable;
-    CSizeOf * pSizeOf;
-    bool valid;
-
-    ValueInstance();
-    ValueInstance(const ValueInstance & src);
-    ~ValueInstance();
-    virtual void fromJSON(const json_t * json);
-    CValueInterface * value(const CNode * pNode) const;
-    CValueInterface * value(const CEdge * pEdge) const;
-    CValueInterface * value() const;
-    CValueInterface::Type interfaceType() const;
-
-    bool inherit() const;
+    Comparison,
+    __SIZE
   };
 
 public:
@@ -133,19 +88,17 @@ public:
 
   const bool & isValid() const;
 
-  CCondition * createCondition() const;
+  bool isTrue() const;
 
-  CCondition * createCondition(const CNode * pNode) const;
+  bool isTrue(const CNode * pNode) const;
 
-  CCondition * createCondition(const CEdge * pEdge) const;
-
-  static bool compatible(const ValueInstance & lhs, const ValueInstance & rhs);
+  bool isTrue(const CEdge * pEdge) const;
 
 private:
   BooleanOperationType mType;
   ComparisonType mComparison;
-  ValueInstance mLeft;
-  ValueInstance mRight;
+  CValueInstance mLeft;
+  CValueInstance mRight;
   bool mValue;
   std::vector< CConditionDefinition > mBooleanValues;
   bool mValid;

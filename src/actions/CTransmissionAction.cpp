@@ -60,9 +60,9 @@ CTransmissionAction::~CTransmissionAction()
 {}
 
 // virtual
-double CTransmissionAction::getPriority() const
+size_t CTransmissionAction::getOrder() const
 {
-  return 1.0;
+  return 1;
 }
 
 // virtual
@@ -86,7 +86,7 @@ bool CTransmissionAction::execute() const
             }
 #endif
 
-          success &= COperationInstance< CNode, const CTransmission * >(pTarget, mpTransmission, NULL, &CNode::set, Info).execute();
+          success &= COperation::execute< CNode, const CTransmission * >(pTarget, mpTransmission, &CNode::set, CNodeProperty::Collectors[(size_t) CNodeProperty::Property::healthState], Info);
         }
     }
   catch (...)

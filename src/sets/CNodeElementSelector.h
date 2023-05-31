@@ -34,6 +34,8 @@
 class CFieldValue;
 class CFieldValueList;
 class CObservable;
+class CVariable;
+class CSetCollectorInterface;
 
 class CNodeElementSelector: public CSetContent
 {
@@ -46,36 +48,52 @@ public:
 
   virtual ~CNodeElementSelector();
 
-  virtual CSetContent * copy() const override;
+  virtual void determineIsStatic() override;
 
-  virtual void fromJSON(const json_t * json) override;
+  virtual FilterType filterType() const override;
 
+  virtual bool filter(const CNode * pNode) const override;
+
+protected:
   virtual bool computeProtected() override;
 
+  virtual void fromJSONProtected(const json_t * json) override;
+
+  virtual bool lessThanProtected(const CSetContent & rhs) const override;
+
 private:
+  static CNodeElementSelector * pALL;
+  
   bool all();
   bool propertySelection();
   bool propertyIn();
   bool propertyNotIn();
   bool withIncomingEdge();
-  bool inDBTable();
-  bool withDBFieldSelection();
-  bool withDBFieldWithin();
-  bool withDBFieldNotWithin();
+  bool dbAll();
+  bool dbSelection();
+  bool dbIn();
+  bool dbNotIn();
 
+  bool filterPropertySelection(const CNode * pNode) const;
+  bool filterPropertyIn(const CNode * pNode) const;
+  bool filterPropertyNotIn(const CNode * pNode) const;
+  
   CNodeProperty mNodeProperty;
   CValue * mpValue;
   CValueList * mpValueList;
-  CSetContent * mpSelector;
+  CSetContent::shared_pointer mpSelector;
   std::string mDBTable;
   std::string mDBField;
   CObservable * mpObservable;
+  CVariable * mpVariable;
   CFieldValue * mpDBFieldValue;
   CFieldValueList * mpDBFieldValueList;
   CValueInterface::pComparison mpComparison;
   std::string mSQLComparison;
   bool mLocalScope;
   bool (CNodeElementSelector::*mpCompute)();
+  bool (CNodeElementSelector::*mpFilter)(const CNode *) const;
+  std::shared_ptr< CSetCollectorInterface > mpCollector;
 };
 
 #endif /* SRC_SETS_CNODEELEMENTSELECTOR_H_ */

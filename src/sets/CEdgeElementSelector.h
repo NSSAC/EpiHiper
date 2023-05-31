@@ -25,6 +25,7 @@
 #ifndef SRC_SETS_CEDGEELEMENTSELECTOR_H_
 #define SRC_SETS_CEDGEELEMENTSELECTOR_H_
 
+#include <memory>
 #include "math/CEdgeProperty.h"
 #include "math/CValueList.h"
 #include "sets/CSetContent.h"
@@ -32,6 +33,8 @@
 class CFieldValue;
 class CFieldValueList;
 class CObservable;
+class CVariable;
+class CSetCollectorInterface;
 
 class CEdgeElementSelector: public CSetContent
 {
@@ -44,11 +47,18 @@ public:
 
   virtual ~CEdgeElementSelector();
 
-  virtual CSetContent * copy() const override;
+  virtual void fromJSONProtected(const json_t * json) override;
 
-  virtual void fromJSON(const json_t * json) override;
+  virtual void determineIsStatic() override;
 
+  virtual FilterType filterType() const override;
+
+  virtual bool filter(const CEdge * pEdge) const override;
+
+protected:
   virtual bool computeProtected() override;
+
+  virtual bool lessThanProtected(const CSetContent & rhs) const override;
 
 private:
   bool all();
@@ -57,23 +67,30 @@ private:
   bool propertyNotIn();
   bool withTargetNodeIn();
   bool withSourceNodeIn();
-  bool inDBTable();
-  bool withDBFieldSelection();
-  bool withDBFieldWithin();
-  bool withDBFieldNotWithin();
+  bool dbAll();
+  bool dbSelection();
+  bool dbIn();
+  bool dbNotIn();
 
+  bool filterPropertySelection(const CEdge * pEdge) const;
+  bool filterPropertyIn(const CEdge * pEdge) const;
+  bool filterPropertyNotIn(const CEdge * pEdge) const;
+  
   CEdgeProperty mEdgeProperty;
   CValue * mpValue;
   CValueList * mpValueList;
-  CSetContent * mpSelector;
+  CSetContent::shared_pointer mpSelector;
   std::string mDBTable;
   std::string mDBField;
   CObservable * mpObservable;
+  CVariable * mpVariable;
   CFieldValue * mpDBFieldValue;
   CFieldValueList * mpDBFieldValueList;
   CValueInterface::pComparison mpComparison;
   std::string mSQLComparison;
   bool (CEdgeElementSelector::*mpCompute)();
+  bool (CEdgeElementSelector::*mpFilter)(const CEdge *) const;
+  std::shared_ptr< CSetCollectorInterface > mpCollector;
 };
 
 #endif /* SRC_SETS_CEDGEELEMENTSELECTOR_H_ */

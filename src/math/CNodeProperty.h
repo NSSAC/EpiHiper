@@ -25,6 +25,7 @@
 #ifndef SRC_MATH_CNODEPROPERTY_H_
 #define SRC_MATH_CNODEPROPERTY_H_
 
+#include <memory>
 #include "math/CValueInterface.h"
 
 class CValue;
@@ -33,10 +34,23 @@ class CEdge;
 class COperation;
 class CMetadata;
 struct json_t;
+class CSetCollectorInterface;
 
 class CNodeProperty: public CValueInterface
 {
 public:
+  enum struct Property {
+    id,
+    susceptibilityFactor,
+    infectivityFactor,
+    healthState,
+    nodeTrait,
+    edges,
+    __SIZE
+  };
+
+  static std::vector< std::set< std::shared_ptr< CSetCollectorInterface > > > Collectors;
+
   CNodeProperty();
 
   CNodeProperty(const CNodeProperty & src);
@@ -45,32 +59,44 @@ public:
 
   virtual ~CNodeProperty();
 
-  virtual CValueInterface * copy() const override;
-
   virtual void fromJSON(const json_t * json);
+
+  bool operator != (const CNodeProperty & rhs) const;
+
+  bool operator < (const CNodeProperty & rhs) const;
 
   const bool & isValid() const;
 
-  CValue propertyOf(const CNode * pNode);
+  CValueInterface propertyOf(const CNode * pNode) const;
+  
   COperation * createOperation(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+
+  bool execute(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+
+  bool isReadOnly() const;
 
   static std::pair< CEdge *, CEdge * > edges(CNode * pNode);
 
+  void registerSetCollector(std::shared_ptr< CSetCollectorInterface > pCollector) const;
+
+  void deregisterSetCollector(std::shared_ptr< CSetCollectorInterface > pCollector) const;
+
 private:
-  CValue id(CNode * pNode);
-  CValue susceptibilityFactor(CNode * pNode);
-  CValue infectivityFactor(CNode * pNode);
-  CValue healthState(CNode * pNode);
-  CValue nodeTrait(CNode * pNode);
+  CValueInterface id(CNode * pNode) const;
+  CValueInterface susceptibilityFactor(CNode * pNode) const;
+  CValueInterface infectivityFactor(CNode * pNode) const;
+  CValueInterface healthState(CNode * pNode) const;
+  CValueInterface nodeTrait(CNode * pNode) const;
 
-  COperation * setId(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
-  COperation * setSusceptibilityFactor(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
-  COperation * setInfectivityFactor(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
-  COperation * setHealthState(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
-  COperation * setNodeTrait(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+  bool setId(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+  bool setSusceptibilityFactor(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+  bool setInfectivityFactor(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+  bool setHealthState(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
+  bool setNodeTrait(CNode * pNode, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
 
-  CValue (CNodeProperty::*mpPropertyOf)(CNode *);
-  COperation * (CNodeProperty::*mpCreateOperation)(CNode *, const CValueInterface &, CValueInterface::pOperator pOperator, const CMetadata & info);
+  Property mProperty;
+  CValueInterface (CNodeProperty::*mpPropertyOf)(CNode *) const;
+  bool (CNodeProperty::*mpExecute)(CNode *, const CValueInterface &, CValueInterface::pOperator pOperator, const CMetadata & info);
 
   bool mValid;
 };

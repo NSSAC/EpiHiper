@@ -70,8 +70,6 @@ const CTrait * CTrait::find(const std::string & id)
 // static
 void CTrait::load(const std::string & jsonFile)
 {
-  std::map< std::string, CTrait > Traits;
-
   json_t * pRoot = CSimConfig::loadJson(jsonFile, JSON_DECODE_INT_AS_REAL);
 
   if (pRoot == NULL)
@@ -100,7 +98,7 @@ void CTrait::load(const json_t * json)
           return;
         }
 
-      std::map< std::string, CTrait >::iterator found = INSTANCES.insert(std::make_pair(std::string(json_string_value(pValue)), CTrait())).first;
+      std::map< std::string, CTrait >::iterator found = INSTANCES.emplace(std::string(json_string_value(pValue)), CTrait()).first;
 
       found->second.fromJSON(pItem);
     }
@@ -120,7 +118,7 @@ void CTrait::loadSingle(const json_t * json)
       return;
     }
 
-  std::map< std::string, CTrait >::iterator found = INSTANCES.insert(std::make_pair(std::string(json_string_value(pValue)), CTrait())).first;
+  std::map< std::string, CTrait >::iterator found = INSTANCES.emplace(std::string(json_string_value(pValue)), CTrait()).first;
 
   found->second.fromJSON(json);
 }
@@ -354,7 +352,7 @@ bool CTrait::fromString(const char * str, CTraitData::base & data) const
   return success;
 }
 
-std::string CTrait::toString(CTraitData::base & data) const
+std::string CTrait::toString(const CTraitData::base & data) const
 {
   std::map< CTraitData::base, std::string >::const_iterator found = mTextEncoding.find(data);
 
@@ -387,7 +385,7 @@ std::string CTrait::toString(CTraitData::base & data) const
   return os.str();
 }
 
-std::string CTrait::toString(CTraitData::value & value) const
+std::string CTrait::toString(const CTraitData::value & value) const
 {
   std::map< CTraitData::value, std::string >::const_iterator found = mValueEncoding.find(value);
 

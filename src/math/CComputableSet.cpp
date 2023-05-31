@@ -53,7 +53,7 @@ CComputableSet::const_iterator CComputableSet::end() const
 
 void CComputableSet::insert(const CComputable * pComputable)
 {
-  std::map< size_t, const CComputable * >::insert(std::make_pair(pComputable->mComputableId, pComputable));
+  std::map< size_t, const CComputable * >::emplace(pComputable->mComputableId, pComputable);
 }
 
 void CComputableSet::erase(const CComputable * pComputable)

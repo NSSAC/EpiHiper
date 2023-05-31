@@ -35,7 +35,7 @@
 
 size_t toIdFieldValueList(const pqxx::result & result, CFieldValueList & list)
 {
-  size_t Default(-1);
+  size_t Default(std::numeric_limits< size_t >::max());
   size_t OldSize = list.size();
 
   for (const pqxx::row & Row : result)
@@ -104,6 +104,7 @@ size_t toFieldValueList(const CField & field, const pqxx::result & result, CFiel
     case CFieldValueList::Type::boolean:
     case CFieldValueList::Type::traitData:
     case CFieldValueList::Type::traitValue:
+    case CFieldValueList::Type::__SIZE:
       break;
     }
 
@@ -328,6 +329,7 @@ bool CQuery::in(const std::string & table,
         case CFieldValueList::Type::boolean:
         case CFieldValueList::Type::traitData:
         case CFieldValueList::Type::traitValue:
+        case CFieldValueList::Type::__SIZE:
           break;
         }
     }
@@ -393,7 +395,7 @@ bool CQuery::where(const std::string & table,
                    CFieldValueList & result,
                    const bool & local,
                    const std::string & constraintField,
-                   const CValue & constraint,
+                   const CValueInterface & constraint,
                    const std::string & cmp)
 {
   init();
@@ -459,6 +461,7 @@ bool CQuery::where(const std::string & table,
     case CFieldValueList::Type::boolean:
     case CFieldValueList::Type::traitData:
     case CFieldValueList::Type::traitValue:
+    case CFieldValueList::Type::__SIZE:
       break;
     }
 

@@ -45,6 +45,7 @@
 #include "intervention/CIntervention.h"
 #include "variables/CVariableList.h"
 #include "sets/CSetReference.h"
+#include "math/CSizeOf.h"
 
 // Uncomment the following line if you want to attache a debugger
 // #define DEBUG_WAIT 1
@@ -96,7 +97,6 @@ int main(int argc, char * argv[])
 
   CStatus::load("epihiper", CArgs::getName(), CSimConfig::getStatus());
 
-  CActionQueue::init();
   CRandom::init(CSimConfig::getSeed());
   CTrait::init();
 
@@ -171,17 +171,12 @@ int main(int argc, char * argv[])
       goto failed;
     }
 
-  CVariableList::INSTANCE.resetAll(true);
-
   CNetwork::Context.Master().load();
 
   if (CLogger::hasErrors())
     {
       goto failed;
     }
-
-  CChanges::determineNodesRequested();
-  CCommunicate::memUsage(-2);
 
   {
     CSimulation sim;
@@ -206,6 +201,9 @@ success:
   CModel::Release();
   CInitialization::release();
   CIntervention::release();
+  CSizeOf::Unique.clear();
+  CSetContent::Unique.clear();
+  CComputable::Instances.clear();
   CNetwork::release();
   CConnection::release();
   CActionQueue::release();

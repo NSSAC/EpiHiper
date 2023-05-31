@@ -339,7 +339,7 @@ int CCommunicate::sequential(int firstRank, CCommunicate::SequentialProcessInter
       send(&signal, sizeof(int), MPINextRank, MPI_COMM_WORLD);
     }
 
-  CLogger::debug() << "CCommunicate::sequential: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+  CLogger::info() << "CCommunicate::sequential: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
 
   return (int) Result;
 }
@@ -392,7 +392,7 @@ int CCommunicate::master(int masterRank,
       Result = (*pReceive)(is, masterRank);
     }
 
-  CLogger::debug() << "CCommunicate::master: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+  CLogger::info() << "CCommunicate::master: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
 
   return (int) Result;
 }
@@ -466,16 +466,17 @@ int CCommunicate::roundRobinFixed(const void * buffer,
 
   initRoundRobin();
 
-  while (true)
+  bool Proceed = true;
+
+  while (Proceed)
     {
       switch (nextRoundRobin(other))
         {
         case Schedule::finished:
-          return (int) Result;
+          Proceed = false;
           break;
 
         case Schedule::skip:
-          continue;
           break;
 
         case Schedule::proceed:
@@ -524,7 +525,7 @@ int CCommunicate::roundRobinFixed(const void * buffer,
         }
     }
 
-  CLogger::debug() << "CCommunicate::roundRobinFixed: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+  CLogger::info() << "CCommunicate::roundRobinFixed: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
 
   return (int) Result;
 }
@@ -544,16 +545,17 @@ int CCommunicate::roundRobin(const void * buffer,
 
   initRoundRobin();
 
-  while (true)
+  bool Proceed = true;
+
+  while (Proceed)
     {
       switch (nextRoundRobin(other))
         {
         case Schedule::finished:
-          return (int) Result;
+          Proceed = false;
           break;
 
         case Schedule::skip:
-          continue;
           break;
 
         case Schedule::proceed:
@@ -612,7 +614,7 @@ int CCommunicate::roundRobin(const void * buffer,
         }
     }
 
-  CLogger::debug() << "CCommunicate::roundRobin: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+  CLogger::info() << "CCommunicate::roundRobin: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
 
   return (int) Result;
 }
@@ -705,7 +707,7 @@ int CCommunicate::roundRobin(SendInterface * pSend,
         }
     }
 
-  CLogger::debug() << "CCommunicate::roundRobin: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+  CLogger::info() << "CCommunicate::roundRobin: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
 
   return (int) Result;
 }
@@ -755,7 +757,7 @@ int CCommunicate::barrierRMA()
 #pragma omp single
       result = MPI_Win_fence(0, MPIWin);
 
-      CLogger::debug() << "CCommunicate::barrierRMA: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+      CLogger::debug() << "CCommunicate::barrierRMA: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "'\xc2\xb5s.";
     }
 #endif // USE_MPI
 
@@ -817,7 +819,7 @@ size_t CCommunicate::getRMAIndex()
 }
 
 // static
-void CCommunicate::memUsage(const int & tick)
+void CCommunicate::memUsage()
 {
   double vm_usage = 0.0;
   double resident_set = 0.0;
@@ -837,7 +839,7 @@ void CCommunicate::memUsage(const int & tick)
   vm_usage = vsize / 1024.0;
   resident_set = rss * page_size_kb;
 
-  CLogger::info() << "Tick: " << tick + 1 << "; VM: " << (size_t) vm_usage << "; RSS: " << (size_t) resident_set;
+  CLogger::info() << "Memory VM: " << (size_t) vm_usage << "; RSS: " << (size_t) resident_set;
 }
 
 CCommunicate::~CCommunicate()

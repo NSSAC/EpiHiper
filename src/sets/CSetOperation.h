@@ -38,11 +38,12 @@ public:
 
   virtual ~CSetOperation();
 
-  virtual CSetContent * copy() const override;
-
-  virtual void fromJSON(const json_t * json) override;
-
+protected:
   virtual bool computeProtected() override;
+
+  virtual void fromJSONProtected(const json_t * json) override;
+
+  virtual bool lessThanProtected(const CSetContent & rhs) const override;
 
 private:
   bool computeUnion();

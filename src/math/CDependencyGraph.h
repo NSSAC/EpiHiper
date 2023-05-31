@@ -31,6 +31,8 @@
 
 #include "math/CComputable.h"
 
+#define USE_PROCESS_GROUPS 1
+
 class CDependencyNode;
 
 class CDependencyGraph
@@ -40,15 +42,25 @@ public:
   typedef NodeMap::iterator iterator;
   typedef NodeMap::const_iterator const_iterator;
 
+#ifdef USE_PROCESS_GROUPS
+  typedef std::vector< CComputable::Sequence > UpdateOrder;
+
+#else
+  typedef CComputable::Sequence UpdateOrder;
+#endif
 
   static void buildGraph();
 
-  static bool applyUpdateSequence();
+  static bool applyUpdateOrder();
 
-  static bool applyUpdateSequence(CComputable::Sequence & updateSequence);
+  static bool applyComputeOnceOrder();
 
-  static bool getUpdateSequence(CComputable::Sequence & updateSequence,
-                                const CComputableSet & requestedComputables);
+  static bool applyUpdateOrder(UpdateOrder & updateOrder);
+
+  static bool getUpdateOrder(UpdateOrder & updateOrder,
+                             const CComputableSet & requestedComputables);
+
+  static bool applyComputableSequence(CComputable::Sequence & updateSequence);
 
   // Operations
   /**
@@ -113,6 +125,20 @@ public:
                          const CComputableSet & calculatedComputables = CComputableSet()) const;
 
   /**
+   * Construct a vector of process groups. Please note the calculated objects
+   * must be calculated based on the same changed values and context.
+   * @param std::vector < CComputable::Sequence > & processGroups
+   * @param const CComputableSet & changedComputables
+   * @param const CComputableSet & requestedComputables
+   * @param const CComputableSet & calculatedComputables (default: none)
+   * @return bool success
+   */
+  bool getProcessGroups(std::vector < CComputable::Sequence > & processGroups,
+                        const CComputableSet & changedComputables,
+                        const CComputableSet & requestedComputables,
+                        const CComputableSet & calculatedComputables = CComputableSet()) const;
+
+  /**
    * Check whether the given object depends on the changed object in given context
    * @param const CComputable * pComputable
    * @param const CComputable * pChangedComputable
@@ -161,8 +187,9 @@ public:
 
 private:
   static CDependencyGraph INSTANCE;
-  static CComputable::Sequence UpdateSequence;
+  static UpdateOrder CommonUpdateOrder;
   static CComputableSet UpToDate;
+  static CComputable::Sequence ComputeOnceSequence;
 
   std::string getDOTNodeId(const CComputable * pComputable) const;
 

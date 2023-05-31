@@ -37,102 +37,11 @@
 #include "actions/CConditionDefinition.h"
 #include "math/CComputable.h"
 
-struct json_t;
-class CHealthState;
-
-class CCondition
-{
-protected:
-  CCondition();
-
-public:
-  CCondition(const CCondition & src);
-  virtual ~CCondition();
-
-  virtual bool isTrue() const = 0;
-};
-
-class CComparison : public CCondition
-{
-public:
-  typedef bool (*pComparison)(const CValueInterface &, const CValueInterface &);
-
-  CComparison() = delete;
-
-  CComparison(CConditionDefinition::ComparisonType operation, CValueInterface const * pLeft, bool inheritLeft, CValueInterface const * pRight, bool inheritRight);
-
-  CComparison(const CComparison & src) = delete;
-
-  virtual ~CComparison();
-
-  virtual bool isTrue() const override;
-
-private:
-  void selectComparison(CConditionDefinition::ComparisonType operation);
-
-  pComparison mpComparison;
-  bool mOwnLeft;
-  CValueInterface const * mpLeft;
-  bool mOwnRight;
-  CValueInterface const * mpRight;
-};
-
-class CBooleanValue : public CCondition
-{
-public:
-  CBooleanValue() = delete;
-  CBooleanValue(const bool & value);
-  CBooleanValue(const CBooleanValue & src) = delete;
-  virtual ~CBooleanValue();
-
-  virtual bool isTrue() const override;
-
-private:
-  bool mTrue;
-};
-
-class CBooleanOperation : public CCondition
-{
-private:
-  bool _and() const;
-  bool _or() const;
-  bool _not() const;
-
-public:
-  typedef bool (CBooleanOperation::*pOperation)() const;
-
-  CBooleanOperation() = delete;
-  CBooleanOperation(CConditionDefinition::BooleanOperationType operation, const std::vector< CCondition * > & booleanVector);
-  CBooleanOperation(const CBooleanOperation & src) = delete;
-  virtual ~CBooleanOperation();
-
-  virtual bool isTrue() const override;
-private:
-  pOperation mpOperation;
-  std::vector< CCondition * > mVector;
-};
-
-class CContainedIn : public CCondition
-{
-private:
-  static bool within(const CValueInterface &, const CValueList &);
-  static bool notWithin(const CValueInterface &, const CValueList &);
-
-public:
-  typedef bool (*pWithin)(const CValueInterface &, const CValueList &);
-
-  CContainedIn() = delete;
-  CContainedIn(CConditionDefinition::ComparisonType operation, const CValueInterface * pValue, bool inheritLeft, const CValueList & set);
-  CContainedIn(const CContainedIn & src) = delete;
-  virtual ~CContainedIn();
-
-  virtual bool isTrue() const override;
-
-private:
-  pWithin mpWithin;
-  bool mOwnLeft;
-  CValueInterface const * mpLeft;
-  const CValueList & mValueList;
+struct CCondition {
+  static bool isTrue(CConditionDefinition::ComparisonType operation, const CValueInterface & pLeft, const CValueInterface & pRight);
+  static bool isTrue(const bool & value);
+  static bool isTrue(CConditionDefinition::BooleanOperationType operation, const std::vector< bool > & booleanVector);
+  static bool isTrue(CConditionDefinition::ComparisonType operation, const CValueInterface & pValue, const CValueList & valueList);
 };
 
 #endif /* SRC_ACTIONS_CCONDITION_H_ */
