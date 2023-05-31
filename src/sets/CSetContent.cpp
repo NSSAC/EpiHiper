@@ -39,7 +39,7 @@
 #include "utilities/CSimConfig.h"
 
 // static
-bool CSetContent::Compare::operator()(const CSetContent::shared_pointer & lhs, const CSetContent::shared_pointer & rhs)
+bool CSetContent::Compare::operator()(const CSetContent::shared_pointer & lhs, const CSetContent::shared_pointer & rhs) const
 {
   return lhs->lessThan(*rhs);
 }

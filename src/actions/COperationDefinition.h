@@ -35,7 +35,7 @@
 #include "utilities/CAnnotation.h"
 #include "math/CValueInstance.h"
 
-class COperation;
+struct COperation;
 class CNodeProperty;
 class CEdgeProperty;
 class CVariable;

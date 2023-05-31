@@ -173,7 +173,7 @@ inline bool CSetCollector< element_type, selector >::apply()
 #else
   ENABLE_TRACE(count = Context.Changes.size();)
 
-  for (const std::pair< element_type *, int > & change: Context.Changes)
+  for (const typename changes::value_type & change: Context.Changes)
     if (change.second > 0)
       Insert.push_back(change.first);
     else if (change.second < 0)

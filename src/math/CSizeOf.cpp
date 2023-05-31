@@ -31,7 +31,7 @@
 #include "utilities/CLogger.h"
 #include "utilities/CSimConfig.h"
  
-bool  CSizeOf::Compare::operator()(const CSizeOf::shared_pointer & lhs, const CSizeOf::shared_pointer & rhs)
+bool  CSizeOf::Compare::operator()(const CSizeOf::shared_pointer & lhs, const CSizeOf::shared_pointer & rhs) const
 {
   return CSetContent::Compare()(lhs->mpSetContent, rhs->mpSetContent);
 }

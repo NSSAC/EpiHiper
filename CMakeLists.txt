@@ -64,8 +64,9 @@ if (ENABLE_LOGLEVEL_TRACE)
   set(SUPPORT_LOGLEVEL_TRACE 1)
 endif(ENABLE_LOGLEVEL_TRACE)
 
-find_package (PGSQL REQUIRED)
-include_directories(BEFORE ${PGSQL_INCLUDE_DIR})
+cmake_policy(SET CMP0074 NEW)
+find_package (PostgreSQL REQUIRED)
+include_directories(BEFORE ${PostgreSQL_INCLUDE_DIR})
 
 include_directories(BEFORE ${PROJECT_BINARY_DIR}/include)
 
@@ -96,8 +97,8 @@ message(STATUS "----------------------------------------------------------------
    OpenMP CXX Flags       = ${OpenMP_CXX_FLAGS}
    OpenMP Libs            = ${OpenMP_C_LIB_NAMES}
    
-   PostgreSQL Libs        = ${PGSQL_LIBRARY}
-   PostgreSQL include     = ${PGSQL_INCLUDE_DIR}
+   PostgreSQL Libs        = ${PostgreSQL_LIBRARY}
+   PostgreSQL include     = ${PostgreSQL_INCLUDE_DIR}
    
    libpqxx Libs           = ${CMAKE_BINARY_DIR}/lib/libpqxx.a
    libpqxx include        = ${CMAKE_BINARY_DIR}/include

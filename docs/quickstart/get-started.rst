@@ -60,6 +60,23 @@ Requirements for building EpiHiper:
   # OpenMP (optional)
   sudo zypper install libgomp1
 
+**MacOS X** 
+
+.. code-block:: bash
+  # required
+  brew install cmake libpq
+  # OpenMPI (optional)
+  brew install open-mpi
+  # OpenMP (optional)
+  brew install libomp
+
+  mkdir build
+  cd build
+  cmake -G "Unix Makefiles" -D-DPostgreSQL_ROOT=/usr/local/opt/libpq -DENABLE_MPI=OFF -DENABLE_OMP=OFF -DENABLE_LOCATION_ID=OFF ..
+  make -j4
+
+
+
 
 All other dependencies are provided through git submodules, which are automatically retrieved during configuration and compiled during make. These dependencies are:
   - `jansson <https://github.com/akheron/jansson.git>`_
