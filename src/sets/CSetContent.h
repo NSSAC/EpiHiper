@@ -59,7 +59,7 @@ public:
 
   struct Compare
   {
-    bool operator()(const shared_pointer & lhs, const shared_pointer & rhs);
+    bool operator()(const shared_pointer & lhs, const shared_pointer & rhs) const;
   };
 
   static std::set< shared_pointer, Compare > Unique;

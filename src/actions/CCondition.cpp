@@ -82,12 +82,12 @@ bool CCondition::isTrue(CConditionDefinition::BooleanOperationType operation, co
     switch (operation)
     {
       case CConditionDefinition::BooleanOperationType::And:
-        for (const bool & value : booleanVector)
+        for (bool value : booleanVector)
           result &= value;
         break;
 
       case CConditionDefinition::BooleanOperationType::Or:
-        for (const bool & value : booleanVector)
+        for (bool value : booleanVector)
           result |= value;
         break;
 

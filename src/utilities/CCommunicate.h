@@ -34,7 +34,7 @@
     CCommunicate::abortMessage((err), (msg), __FILE__, __LINE__); \
   }
 
-class COperation;
+struct COperation;
 
 class CCommunicate
 {

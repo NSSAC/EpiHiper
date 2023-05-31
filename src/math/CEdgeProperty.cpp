@@ -227,9 +227,10 @@ CValueInterface CEdgeProperty::locationId(CEdge * pEdge) const
   return CValueInterface(pEdge->locationId);
 }
 #else
-CValueInterface CEdgeProperty::locationId(CEdge * /* pEdge */)
+CValueInterface CEdgeProperty::locationId(CEdge * /* pEdge */) const
 {
-  return CValueInterface((size_t) -1);
+  static size_t Invalid(std::numeric_limits< size_t >::max());
+  return CValueInterface(Invalid);
 }
 #endif // USE_LOCATION_ID
 
@@ -278,7 +279,7 @@ bool CEdgeProperty::setSourceActivity(CEdge * pEdge, const CValueInterface & val
 bool CEdgeProperty::setLocationId(CEdge * pEdge, const CValueInterface & /* value */, CValueInterface::pOperator /* pOperator */, const CMetadata & /* info */)
 {
   CLogger::critical() << "Invalid operation 'setLocationId' for edge: " << pEdge->targetId << ", " << pEdge->sourceId;
-  return NULL;
+  return false;
 }
 
 bool CEdgeProperty::setEdgeTrait(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info)
@@ -299,7 +300,7 @@ bool CEdgeProperty::setWeight(CEdge * pEdge, const CValueInterface & value, CVal
 bool CEdgeProperty::setDuration(CEdge * pEdge, const CValueInterface & /* value */, CValueInterface::pOperator /* pOperator */, const CMetadata & /* info */)
 {
   CLogger::critical() << "Invalid operation 'setDuration' for edge: " << pEdge->targetId << ", " << pEdge->sourceId;
-  return NULL;
+  return false;
 }
 
 void CEdgeProperty::registerSetCollector(std::shared_ptr< CSetCollectorInterface > pCollector) const

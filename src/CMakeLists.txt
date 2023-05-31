@@ -56,31 +56,31 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/EpiHiperConfig.h.in ${CMAKE_CURRENT_S
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 add_library (EpiHiperLib-core OBJECT ${SOURCES_EPIHIPER} ${HEADERS_EPIHIPER})
-add_dependencies(EpiHiperLib-core jansson libpqxx spdlog)
+add_dependencies(EpiHiperLib-core jansson libpqxx spdlog GIT_COMMIT)
 set_property(TARGET EpiHiperLib-core PROPERTY CXX_STANDARD 11)
 set_property(TARGET EpiHiperLib-core PROPERTY CXX_STANDARD_REQUIRED ON)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  target_compile_options(EpiHiperLib-core PRIVATE -Werror -Wall -Wextra -Wformat=0 ${OpenMP_CXX_FLAGS} -lpthread)
+  target_compile_options(EpiHiperLib-core PRIVATE -Werror -Wall -Wextra -Wformat=0 ${OpenMP_CXX_FLAGS})
 else(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  target_compile_options(EpiHiperLib-core PRIVATE -Wall -Wextra -Wsuggest-override ${OpenMP_CXX_FLAGS} -lpthread)
+  target_compile_options(EpiHiperLib-core PRIVATE -Wall -Wextra ${OpenMP_CXX_FLAGS})
 endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
 add_library (EpiHiperLib SHARED $<TARGET_OBJECTS:EpiHiperLib-core>)
-add_dependencies(EpiHiperLib jansson libpqxx spdlog)
+add_dependencies(EpiHiperLib jansson libpqxx spdlog GIT_COMMIT)
 
 if(APPLE)
   set_target_properties(EpiHiperLib PROPERTIES LINK_FLAGS "-undefined dynamic_lookup -flat_namespace")
 endif(APPLE)
 
 add_executable (EpiHiper EpiHiper.cpp EpiHiperConfig.h)
-add_dependencies(EpiHiper EpiHiperLib GIT_COMMIT)
+add_dependencies(EpiHiper EpiHiperLib)
 
 if (ENABLE_OMP)
 	set (EPIHIPER_LIBARIES 
 		EpiHiperLib
 		${MPI_LIBRARIES}
-		${PGSQL_LIBRARY} 
+		${PostgreSQL_LIBRARY} 
 		${CMAKE_BINARY_DIR}/lib/libjansson.a 
 		${CMAKE_BINARY_DIR}/lib/libpqxx.a
 		OpenMP::OpenMP_CXX
@@ -91,7 +91,7 @@ else ()
 	set (EPIHIPER_LIBARIES 
 		EpiHiperLib
 		${MPI_LIBRARIES}
-		${PGSQL_LIBRARY} 
+		${PostgreSQL_LIBRARY} 
 		${CMAKE_BINARY_DIR}/lib/libjansson.a 
 		${CMAKE_BINARY_DIR}/lib/libpqxx.a
 		-lpthread

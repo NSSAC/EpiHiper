@@ -162,7 +162,6 @@ private:
   double mTimeResolution;
   bool mIsBinary;
   bool mValid;
-  size_t mTotalPendingActions;
   json_t * mpJson;
 
   dump_active_network mDumpActiveNetwork;

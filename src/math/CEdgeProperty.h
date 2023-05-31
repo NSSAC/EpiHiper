@@ -31,7 +31,7 @@
 #include "math/CNodeProperty.h"
 
 class CEdge;
-class COperation;
+struct COperation;
 class CMetadata;
 struct json_t;
 class CSetCollectorInterface;

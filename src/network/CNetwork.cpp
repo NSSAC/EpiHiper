@@ -150,7 +150,6 @@ CNetwork::CNetwork()
   , mTimeResolution(0)
   , mIsBinary(false)
   , mValid(false)
-  , mTotalPendingActions(0)
   , mpJson(NULL)
   , mDumpActiveNetwork()
 {}
