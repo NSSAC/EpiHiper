@@ -27,16 +27,16 @@ Requirements for building EpiHiper:
   - `Cmake <https://cmake.org/download/>`_ version 3.11 or above
   - `PostgreSQL <https://www.postgresql.org/download/>`_ library and header (provided by packages: libpq5, postgresql-devel)
 
-**Centos** (8)
+**Ubuntu** (22.04)
 
 .. code-block:: bash
 
   # required
-  sudo yum install cmake postgresql-libs postgresql-devel
+  sudo apt-get install build-essential git cmake libpq5 libpq-dev
   # OpenMPI
-  sudo yum install openmpi openmpi-devel 
+  sudo apt-get install libopenmpi-dev 
   # OpenMP
-  sudo yum install libgomp1
+  sudo apt-get install libgomp1
 
 **Debian** (bullseye)
 
