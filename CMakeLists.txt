@@ -32,6 +32,19 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 include(GNUInstallDirs)
 set(CMAKE_CXX_STANDARD 11)
 
+if (APPLE)
+  set(TARGET_MACOSX 1)
+
+  # Add homebrew specific library path
+  find_program(HOMEBREW brew QUIET)
+
+  if (HOMEBREW)
+    string(REPLACE "/bin/brew" "/opt" HOMEBREW ${HOMEBREW})
+    set(PostgreSQL_ROOT ${PostgreSQL_ROOT} "${HOMEBREW}/libpq")
+    set(OpenMP_ROOT ${OpenMP_ROOT} "${HOMEBREW}/libomp")
+  endif (HOMEBREW)
+endif(APPLE)
+
 option(ENABLE_LOCATION_ID "Enable the Location Id field in the network" ON)
 
 if (ENABLE_LOCATION_ID)
@@ -55,10 +68,6 @@ if (ENABLE_MPI)
   find_package(MPI COMPONENTS CXX)
   include_directories(BEFORE ${MPI_INCLUDE_PATH})
 endif(ENABLE_MPI)
-
-if (APPLE)
-  set(TARGET_MACOSX 1)
-endif(APPLE)
 
 option(ENABLE_LOGLEVEL_TRACE "Enable loglevel trace" OFF)
 
