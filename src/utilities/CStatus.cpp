@@ -34,32 +34,32 @@
 // static
 std::string CStatus::fileName;
 
-json_t * init(json_t * pObject, const char * key, const char * value)
+json_t * init(json_t * json, const char * key, const char * value)
 {
-  json_t * pName = json_object_get(pObject, key);
+  json_t * pObject = json_object_get(json, key);
 
-  if (!json_is_string(pName))
+  if (!json_is_string(pObject))
     {
-      json_object_del(pObject, key);
-      json_object_set_new(pObject, key, json_string(value));
-      pName = json_object_get(pObject, key);
+      json_object_del(json, key);
+      json_object_set_new(json, key, json_string(value));
+      pObject = json_object_get(json, key);
     }
 
-  return pName;
+  return pObject;
 }
 
-json_t * init(json_t * pObject, const char * key, const double & value)
+json_t * init(json_t * json, const char * key, const double & value)
 {
-  json_t * pName = json_object_get(pObject, key);
+  json_t * pObject = json_object_get(json, key);
 
-  if (!json_is_real(pName))
+  if (!json_is_real(pObject))
     {
-      json_object_del(pObject, key);
-      json_object_set_new(pObject, key, json_real(value));
-      pName = json_object_get(pObject, key);
+      json_object_del(json, key);
+      json_object_set_new(json, key, json_real(value));
+      pObject = json_object_get(json, key);
     }
 
-  return pName;
+  return pObject;
 }
 
 
@@ -77,7 +77,7 @@ void CStatus::load(const std::string & id, const std::string & name, const std::
 
   if (pJSON == NULL)
     {
-      std::string Default("{\"id\":\"" + id + "\",\"name\":\"" + name + "\",\"status\":\"running\",\"progress\":0.0,\"detail\":\"Starting\"}");
+      std::string Default("{\"id\":\"" + id + "\",\"name\":\"" + name  + "\",\"git\":\"" + GIT_COMMIT + "\",\"status\":\"running\",\"progress\":0.0,\"detail\":\"Starting\"}");
 
       json_error_t error;
 
@@ -86,6 +86,7 @@ void CStatus::load(const std::string & id, const std::string & name, const std::
 
   pId = init(pJSON, "id", id.c_str());
   pName = init(pJSON, "name", name.c_str());
+  pGit = init(pJSON, "git", GIT_COMMIT);
   pStatus = init(pJSON, "status", "running");
   pDetail = init(pJSON, "detail", (name + ": Starting").c_str());
   pProgress = init(pJSON, "progress", 0.0);

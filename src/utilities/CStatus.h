@@ -50,6 +50,7 @@ private:
   static json_t * pJSON;
   static json_t * pId;
   static json_t * pName;
+  static json_t * pGit;
   static json_t * pStatus;
   static json_t * pDetail;
   static json_t * pProgress;
