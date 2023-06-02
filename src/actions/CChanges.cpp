@@ -83,147 +83,159 @@ void CChanges::incrementTick()
 
 // static 
 void CChanges::clear()
-{}
-
-// static
-void CChanges::record(const CNode * pNode, const CMetadata & metadata)
 {
-  if (pNode == NULL)
-    return;
+#pragma omp parallel
+  {
+    CNode * it = CNetwork::Context.Active().beginNode();
+    CNode * end = CNetwork::Context.Active().endNode();
 
-  pNode->changed = true;
-  Changes & Active = Context.Active();
-
-  if (metadata.getBool("StateChange"))
-    {
-      // "tick,pid,exit_state,contact_pid,[locationId]"
-      (*Active.pDefaultOutput) << (int) Tick << "," << pNode->id << "," << pNode->getHealthState()->getAnnId() << ",";
-
-      if (metadata.contains("ContactNode"))
-        {
-          (*Active.pDefaultOutput) << (size_t) metadata.getInt("ContactNode");
-        }
-      else
-        {
-          (*Active.pDefaultOutput) << -1;
-        }
-
-      if (CEdge::HasLocationId)
-        {
-          if (metadata.contains("LocationId"))
-            {
-              (*Active.pDefaultOutput) << "," << (size_t) metadata.getInt("LocationId");
-            }
-          else
-            {
-              (*Active.pDefaultOutput) << "," << -1;
-            }
-        }
-
-      (*Active.pDefaultOutput) << std::endl;
-    }
+    for (; it != end; ++it)
+      it->changed = false;
+  }
 }
 
 // static
-void CChanges::record(const CEdge * /* pEdge */, const CMetadata & /* metadata */)
-{
-  /*
+void CChanges::record(const CNode * pNode, const CMetadata & metadata)
+  {
+    if (pNode == NULL)
+      return;
+
+    pNode->changed = true;
+    Changes & Active = Context.Active();
+
+    if (metadata.getBool("StateChange"))
+      {
+        // "tick,pid,exit_state,contact_pid,[locationId]"
+        (*Active.pDefaultOutput) << (int) Tick << "," << pNode->id << "," << pNode->getHealthState()->getAnnId() << ",";
+
+        if (metadata.contains("ContactNode"))
+          {
+            (*Active.pDefaultOutput) << (size_t) metadata.getInt("ContactNode");
+          }
+        else
+          {
+            (*Active.pDefaultOutput) << -1;
+          }
+
+        if (CEdge::HasLocationId)
+          {
+            if (metadata.contains("LocationId"))
+              {
+                (*Active.pDefaultOutput) << "," << (size_t) metadata.getInt("LocationId");
+              }
+            else
+              {
+                (*Active.pDefaultOutput) << "," << -1;
+              }
+          }
+
+        (*Active.pDefaultOutput) << std::endl;
+      }
+  }
+
+  // static
+  void CChanges::record(const CEdge * /* pEdge */, const CMetadata & /* metadata */)
+  {
+    /*
   if (pEdge == NULL)
     return;
 
   Edges.insert(pEdge);
   */
-}
+  }
 
-// static
-void CChanges::record(const CVariable * /* pVariable */, const CMetadata & /* metadata */)
-{}
+  // static
+  void CChanges::record(const CVariable * /* pVariable */, const CMetadata & /* metadata */)
+  {}
 
-// static
-void CChanges::initDefaultOutput()
-{
-  if (CCommunicate::MPIRank == 0)
-    {
-      std::ofstream out;
+  // static
+  void CChanges::initDefaultOutput()
+  {
+    if (CCommunicate::MPIRank == 0)
+      {
+        std::ofstream out;
 
-      out.open(CSimConfig::getOutput().c_str());
+        out.open(CSimConfig::getOutput().c_str());
 
-      if (out.good())
-        {
-          out << "tick,pid,exit_state,contact_pid";
+        if (out.good())
+          {
+            out << "tick,pid,exit_state,contact_pid";
 
-          if (CEdge::HasLocationId)
-            out << ",location_id";
+            if (CEdge::HasLocationId)
+              out << ",location_id";
 
-          out << std::endl;
-        }
-      else
-        {
-          CLogger::error("Error (Rank 0): Failed to open file '" + CSimConfig::getOutput() + "'.");
-          exit(EXIT_FAILURE);
-        }
+            out << std::endl;
+          }
+        else
+          {
+            CLogger::error("Error (Rank 0): Failed to open file '" + CSimConfig::getOutput() + "'.");
+            exit(EXIT_FAILURE);
+          }
 
-      out.close();
-    }
-}
+        out.close();
+      }
+  }
 
-// static
-void CChanges::writeDefaultOutput()
-{
-  CCommunicate::SequentialProcess WriteData(&CChanges::writeDefaultOutputData);
-  CCommunicate::sequential(0, &WriteData);
-}
+  // static
+  void CChanges::writeDefaultOutput()
+  {
+    CCommunicate::SequentialProcess WriteData(&CChanges::writeDefaultOutputData);
+    CCommunicate::sequential(0, &WriteData);
+  }
 
-// static
-CCommunicate::ErrorCode CChanges::writeDefaultOutputData()
-{
-  std::ofstream out;
+  // static
+  CCommunicate::ErrorCode CChanges::writeDefaultOutputData()
+  {
+    std::ofstream out;
 
-  out.open(CSimConfig::getOutput().c_str(), std::ios_base::app);
+    out.open(CSimConfig::getOutput().c_str(), std::ios_base::app);
 
-  if (out.good())
-    {
-      Changes * pIt = Context.beginThread();
-      Changes * pEnd = Context.endThread();
+    if (out.good())
+      {
+        Changes * pIt = Context.beginThread();
+        Changes * pEnd = Context.endThread();
 
-      for (; pIt != pEnd; ++pIt)
-        {
-          out << pIt->pDefaultOutput->str();
-          pIt->pDefaultOutput->str("");
-        }
-    }
+        for (; pIt != pEnd; ++pIt)
+          {
+            out << pIt->pDefaultOutput->str();
+            pIt->pDefaultOutput->str("");
+          }
+      }
 
-  out.close();
+    out.close();
 
-  return CCommunicate::ErrorCode::Success;
-}
+    return CCommunicate::ErrorCode::Success;
+  }
 
-// static
-CCommunicate::ErrorCode CChanges::determineNodesRequested()
-{
-  const std::map< size_t, CNode * > & RemoteNodes = CNetwork::Context.Master().getRemoteNodes();
-  std::map< size_t, CNode * >::const_iterator it = RemoteNodes.begin();
-  std::map< size_t, CNode * >::const_iterator end = RemoteNodes.end();
+  // static
+  CCommunicate::ErrorCode CChanges::determineNodesRequested()
+  {
+    const std::map< size_t, CNode * > & RemoteNodes = CNetwork::Context.Master().getRemoteNodes();
+    std::map< size_t, CNode * >::const_iterator it = RemoteNodes.begin();
+    std::map< size_t, CNode * >::const_iterator end = RemoteNodes.end();
 
-  size_t * pBuffer = RemoteNodes.size() > 0 ? new size_t[RemoteNodes.size()] : NULL;
-  size_t * pId = pBuffer;
+    size_t * pBuffer = RemoteNodes.size() > 0 ? new size_t[RemoteNodes.size()] : NULL;
+    size_t * pId = pBuffer;
 
-  for (; it != end; ++it, ++pId)
-    *pId = it->first;
+    for (; it != end; ++it, ++pId)
+      {
+        ENABLE_TRACE(CLogger::trace() << "CChanges: request node '" << it->first << "'.";)
+        *pId = it->first;
+      }
 
-  CCommunicate::Receive Receive(&CChanges::receiveNodesRequested);
-  CCommunicate::roundRobin(pBuffer, RemoteNodes.size() * sizeof(size_t), &Receive);
+    CCommunicate::Receive Receive(&CChanges::receiveNodesRequested);
+    CCommunicate::roundRobin(pBuffer, RemoteNodes.size() * sizeof(size_t), &Receive);
 
-  if (pBuffer != NULL)
-    delete[] pBuffer;
+    if (pBuffer != NULL)
+      delete[] pBuffer;
 
-  return CCommunicate::ErrorCode::Success;
-}
+    return CCommunicate::ErrorCode::Success;
+  }
 
-// static 
-CCommunicate::ErrorCode CChanges::sendNodesRequested(std::ostream & os, int receiver)
-{
-  size_t Count = 0;
+  // static
+  CCommunicate::ErrorCode CChanges::sendNodesRequested(std::ostream & os, int receiver)
+  {
+    size_t Count = 0;
 
 #pragma omp parallel shared(os) reduction(+: Count)
     {
@@ -250,13 +262,10 @@ CCommunicate::ErrorCode CChanges::sendNodesRequested(std::ostream & os, int rece
           }
         else
           {
-            // CLogger::debug() << "CNetwork::sendNodesRequested: Send node: '" << (*it)->id << "'.";
+            ENABLE_TRACE(CLogger::trace() << "CChanges: send node '" << it->id << "'.";)
 
             if (it->changed)
-              {
-                it->toBinary(OutStream);
-                it->changed = false;
-              }
+              it->toBinary(OutStream);
 
             ++it;
             ++itRequested;
@@ -267,7 +276,7 @@ CCommunicate::ErrorCode CChanges::sendNodesRequested(std::ostream & os, int rece
       os << OutStream.str();
     }
 
-  CLogger::debug() << "CChanges::sendNodesRequested: Sending " << Count << " nodes to: " << receiver;
+  CLogger::debug() << "CChanges: Sending '" << Count << "' nodes to: '" << receiver << "'.";
 
   return CCommunicate::ErrorCode::Success;
 }

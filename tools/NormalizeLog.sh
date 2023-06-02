@@ -71,8 +71,8 @@ normalize () {
     Tick = $5
     gsub(/[\[\]]/, "", Tick)
 
-    if (strtonum(Tick) >= '${Start}' && strtonum(Tick) <= '${End}' && $6 != "CNetwork:")
-      printRow()
+  if (strtonum(Tick) >= '${Start}' && strtonum(Tick) <= '${End}')
+    printRow()
 
     if (strtonum(Tick) > '${End}')
       exit 0
