@@ -55,7 +55,7 @@ normalize () {
 
   ThreadInfo=$(echo ${filename} | sed -e 's/^[^\[]*//' -e 's/\[/ /g' -e 's/:/ /g' -e 's/]/ /g')
   ThreadInfo=($(echo $ThreadInfo))
-  (( Thread = ${ThreadInfo[1]} * ${ThreadInfo[2]:-1} + ${ThreadInfo[3]:-0} ))
+  (( Thread = $(expr ${ThreadInfo[1]} + 0) * $(expr ${ThreadInfo[2]:-1} + 0) + $(expr ${ThreadInfo[3]:-0} + 0) ))
 
   out="$(dirname ${1})/${Base}.${Thread}.${extension}"
 
