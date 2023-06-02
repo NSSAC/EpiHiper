@@ -212,6 +212,9 @@ json_t * CStatus::pId(NULL);
 json_t * CStatus::pName(NULL);
 
 // static
+json_t * CStatus::pGit(NULL);
+
+// static
 json_t * CStatus::pStatus(NULL);
 
 // static

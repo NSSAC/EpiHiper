@@ -1724,7 +1724,7 @@ CCommunicate::ErrorCode CNetwork::receiveNodes(std::istream & is, int sender)
       if (pNode != NULL)
         {
           Count++;
-          ENABLE_TRACE(CLogger::trace() << "CNetwork: Updating node '" << pNode->id << "'.";)
+          ENABLE_TRACE(CLogger::trace() << "CChanges: updating node '" << pNode->id << "'.";)
 
           pNode->susceptibilityFactor = Node.susceptibilityFactor;
           pNode->susceptibility = Node.susceptibility;
@@ -1735,7 +1735,7 @@ CCommunicate::ErrorCode CNetwork::receiveNodes(std::istream & is, int sender)
         }
     }
 
-  CLogger::debug() << "CChanges::receiveNodes: Receiving " << Count << " nodes from: " << sender;
+  CLogger::debug() << "CChanges::receiveNodes: Receiving '" << Count << "' nodes from: '" << sender << "'.";
 
   return CCommunicate::ErrorCode::Success;
 }

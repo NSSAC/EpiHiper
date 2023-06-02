@@ -32,13 +32,13 @@ CEdge CEdge::getDefault()
 {
   CEdge Default;
 
-  Default.targetId = -1;
+  Default.targetId = std::numeric_limits< size_t >::max();
   Default.targetActivity = CTrait::ActivityTrait->getDefault();
-  Default.sourceId = -1;
+  Default.sourceId = std::numeric_limits< size_t >::max();
   Default.sourceActivity = CTrait::ActivityTrait->getDefault();
   Default.duration = 0.0;
 #ifdef USE_LOCATION_ID
-  Default.locationId = -1;
+  Default.locationId = std::numeric_limits< size_t >::max();
 #endif
   Default.edgeTrait = CTrait::EdgeTrait->getDefault();
   Default.active = true;
