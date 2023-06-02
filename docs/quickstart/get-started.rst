@@ -27,45 +27,49 @@ Requirements for building EpiHiper:
   - `Cmake <https://cmake.org/download/>`_ version 3.11 or above
   - `PostgreSQL <https://www.postgresql.org/download/>`_ library and header (provided by packages: libpq5, postgresql-devel)
 
-**Ubuntu** (22.04)
+**Ubuntu** (22.04) or **Debian** (bullseye)
 
 .. code-block:: bash
 
   # required
-  sudo apt-get install build-essential git cmake libpq5 libpq-dev
-  # OpenMPI
-  sudo apt-get install libopenmpi-dev 
-  # OpenMP
-  sudo apt-get install libgomp1
-
-**Debian** (bullseye)
-
-.. code-block:: bash
-
-  # required
+  sudo apt-get update
+  sudo apt-get install build-essential git
   sudo apt-get install cmake libpq5 libpq-dev
   # OpenMPI
-  sudo apt-get install libopenmpi libopenmpi-dev 
+  sudo apt-get install libopenmpi-dev
   # OpenMP
   sudo apt-get install libgomp1
 
-**openSUSE** (Leap 15.3)
+**openSUSE** (Leap 15.4)
 
 .. code-block:: bash
 
   # required
+  sudo zypper refresh
+  sudo zypper install patterns-devel-base-devel_basis
+  sudo zypper install patterns-devel-C-C++-devel_C_C++
+  sudo zypper install gcc-c++ git
   sudo zypper install cmake libpq5 postgresql-devel
   # OpenMPI (optional)
-  sudo zypper install openmpi3 openmpi3-devel 
+  zypper install openmpi4-devel
   # OpenMP (optional)
-  sudo zypper install libgomp1
+  zypper install libgomp1
+
+**Arch Linux**  
+
+.. code-block:: bash
+
+  # required
+  sudo pacman -S git cmake postgresql-libs
+  # OpenMPI (optional)
+  sudo pacman -S openmpi
 
 **MacOS X** 
 
 .. code-block:: bash
 
   # required
-  brew install cmake libpq
+  brew install cmake git libpq
   # OpenMPI (optional)
   brew install open-mpi
   # OpenMP (optional)
