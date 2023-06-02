@@ -75,6 +75,7 @@ if (ENABLE_LOGLEVEL_TRACE)
   set(SUPPORT_LOGLEVEL_TRACE 1)
 endif(ENABLE_LOGLEVEL_TRACE)
 
+set(PostgreSQL_TYPE_INCLUDE_DIR "ignored")
 find_package (PostgreSQL REQUIRED)
 include_directories(BEFORE ${PostgreSQL_INCLUDE_DIR})
 
