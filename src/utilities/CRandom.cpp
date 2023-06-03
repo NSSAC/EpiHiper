@@ -46,7 +46,7 @@ CRandom::generator_t & CRandom::CContext::Active()
 bool CRandom::mHaveSeed = false;
 
 // static 
-CRandom::result_t CRandom::mSeed = -1;
+CRandom::result_t CRandom::mSeed = std::numeric_limits< CRandom::result_t >::max();
 
 // static
 void CRandom::init(size_t seed)

@@ -504,7 +504,7 @@ CSimConfig::CSimConfig(const std::string & configFile)
             if (!json_is_real(pTick))
               continue;
 
-            size_t Seed = -1;
+            size_t Seed = std::numeric_limits< size_t >::max();
 
             json_t * pSeed = json_object_get(pReseed, "seed");
 
