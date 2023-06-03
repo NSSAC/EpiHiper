@@ -105,7 +105,7 @@ int CNetwork::index(const size_t & id)
 
   while (pLeft <= pRight)
     {
-      if ((pCurrent->endNode()-1)->id < id)
+      if ((pCurrent->endNode() - 1)->id < id)
         {
           pLeft = pCurrent + 1;
         }

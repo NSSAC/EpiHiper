@@ -80,7 +80,7 @@ CContext< CChanges::Changes > CChanges::Context = CContext< CChanges::Changes >(
 std::map< size_t, std::set< const CNode * > > CChanges::RankToNodesRequested;
 
 // static
-size_t CChanges::Tick = -1;
+size_t CChanges::Tick = std::numeric_limits< size_t >::max();
 
 // static
 CConnection * CConnection::pINSTANCE = NULL;
