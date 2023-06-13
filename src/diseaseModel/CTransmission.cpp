@@ -68,6 +68,12 @@ CTransmission::CTransmission(const CTransmission & src)
 CTransmission::~CTransmission()
 {}
 
+// virtual 
+void CTransmission::fromJSON(const json_t * json)
+{
+  CAnnotation::fromJSON(json);
+}
+
 void CTransmission::fromJSON(const json_t * json, const std::map< std::string, CHealthState * > & states)
 {
   mValid = true;
@@ -89,7 +95,7 @@ void CTransmission::fromJSON(const json_t * json, const std::map< std::string, C
       return;
     }
 
-  CAnnotation::fromJSON(json);
+  fromJSON(json);
 
   pValue = json_object_get(json, "entryState");
   mpEntryState = NULL;

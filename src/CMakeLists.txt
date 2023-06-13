@@ -61,7 +61,7 @@ set_property(TARGET EpiHiperLib-core PROPERTY CXX_STANDARD 11)
 set_property(TARGET EpiHiperLib-core PROPERTY CXX_STANDARD_REQUIRED ON)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  target_compile_options(EpiHiperLib-core PRIVATE -Werror -Wall -Wextra -Wformat=0 ${OpenMP_CXX_FLAGS})
+  target_compile_options(EpiHiperLib-core PRIVATE -Werror -Wall -Wextra -Wformat=0 -Wno-c++20-compat ${OpenMP_CXX_FLAGS})
 else(CMAKE_BUILD_TYPE STREQUAL "Debug")
   target_compile_options(EpiHiperLib-core PRIVATE -Wall -Wextra ${OpenMP_CXX_FLAGS})
 endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
