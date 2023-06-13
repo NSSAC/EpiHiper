@@ -66,6 +66,8 @@ public:
   double propensity(const CEdge * pEdge) const;
 
 private:
+  virtual void fromJSON(const json_t * json) override;
+  
   std::string mId;
   const CHealthState * mpEntryState;
   const CHealthState * mpExitState;

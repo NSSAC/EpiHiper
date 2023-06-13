@@ -65,6 +65,8 @@ public:
   const bool & isValid() const;
 
 private:
+  virtual void fromJSON(const json_t * json) override;
+  
   std::string mId;
   const CHealthState * mpEntryState;
   const CHealthState * mpExitState;

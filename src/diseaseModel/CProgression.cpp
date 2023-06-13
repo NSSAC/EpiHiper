@@ -64,6 +64,13 @@ CProgression::CProgression(const CProgression & src)
 CProgression::~CProgression()
 {}
 
+// virtual 
+void CProgression::fromJSON(const json_t * json)
+{
+  CAnnotation::fromJSON(json);
+}
+
+
 void CProgression::fromJSON(const json_t * json, const std::map< std::string, CHealthState * > & states)
 {
   mValid = false; // DONE
@@ -85,7 +92,7 @@ void CProgression::fromJSON(const json_t * json, const std::map< std::string, CH
       return;
     }
 
-  CAnnotation::fromJSON(json);
+  fromJSON(json);
 
   pValue = json_object_get(json, "entryState");
 
