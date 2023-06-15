@@ -1,3 +1,27 @@
+// BEGIN: Copyright 
+// MIT License 
+//  
+// Copyright (C) 2023 Rector and Visitors of the University of Virginia 
+//  
+// Permission is hereby granted, free of charge, to any person obtaining a copy 
+// of this software and associated documentation files (the "Software"), to deal 
+// in the Software without restriction, including without limitation the rights 
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+// copies of the Software, and to permit persons to whom the Software is 
+// furnished to do so, subject to the following conditions: 
+//  
+// The above copyright notice and this permission notice shall be included in all 
+// copies or substantial portions of the Software. 
+//  
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+// SOFTWARE 
+// END: Copyright 
+
 #ifndef SRC_SET_CSETCOLLECOTR_H_
 #define SRC_SET_CSETCOLLECOTR_H_
 
@@ -138,7 +162,7 @@ inline bool CSetCollector< element_type, selector >::apply()
   sorted_vector Insert;
   sorted_vector Erase;
 
-  ENABLE_TRACE(size_t count = 0;)
+  size_t count = 0;
   
 #ifdef USE_BITSET
   if (Context.insert.any())
@@ -149,7 +173,7 @@ inline bool CSetCollector< element_type, selector >::apply()
       for (; index < 546356; ++index, ++pOffset)
         if (Context.insert[index])
           {
-            ENABLE_TRACE(++count;)
+            ++count;
             Insert.push_back(pOffset);
           }
 
@@ -164,14 +188,14 @@ inline bool CSetCollector< element_type, selector >::apply()
       for (; index < 546356; ++index, ++pOffset)
         if (Context.erase[index])
           {
-            ENABLE_TRACE(++count;)
+            ++count;
             Erase.push_back(pOffset);
           }
 
       Context.erase.reset();
     }
 #else
-  ENABLE_TRACE(count = Context.Changes.size();)
+  count = Context.Changes.size();
 
   for (const typename changes::value_type & change: Context.Changes)
     if (change.second > 0)
@@ -187,7 +211,7 @@ inline bool CSetCollector< element_type, selector >::apply()
   Context.Changes.clear();
 #endif
 
-  ENABLE_TRACE(CLogger::trace() << "CSetCollector::apply: changes '" << count << "' => erase '" << Erase.size() << "' , insert '" << Insert.size() << "'.";)
+  CLogger::trace("CSetCollector::apply: changes '%d' => erase '%d' , insert '%d'.", count, Erase.size(), Insert.size());
 
   sorted_vector temp;
   sorted_vector * pIn = &Set;
@@ -197,7 +221,7 @@ inline bool CSetCollector< element_type, selector >::apply()
   if (!Erase.empty())
     {
       std::set_difference(pIn->begin(), pIn->end(), Erase.begin(), Erase.end(), std::back_inserter(*pOut));
-      ENABLE_TRACE(CLogger::trace() << "CSetCollector::apply: difference returned '" << pIn->size() << "' - '" << Erase.size() << "' = '" << pOut->size() << "'.";)
+      CLogger::trace("CSetCollector::apply: difference returned '%d' - '%d' = '%d'.", pIn->size(), Erase.size(), pOut->size());
       std::swap(pIn, pOut);
     }
 
@@ -206,14 +230,14 @@ inline bool CSetCollector< element_type, selector >::apply()
     {
       pOut->clear();
       std::set_union(pIn->begin(), pIn->end(), Insert.begin(), Insert.end(), std::back_inserter(*pOut));
-      ENABLE_TRACE(CLogger::trace() << "CSetCollector::apply: union returned '" << pIn->size() << "' + '" << Insert.size() << "' = '" << pOut->size() << "'.";)
+      CLogger::trace("CSetCollector::apply: union returned '%d' + '%d' = '%d'.", pIn->size(), Insert.size(), pOut->size());
       std::swap(pIn, pOut);
     }
 
   if (pIn != &Set)
     Set = temp;
 
-  CLogger::debug() << "CSetCollector::apply: returned '" << Set.size() << "' elements.";
+  CLogger::debug("CSetCollector::apply: returned '%d' elements.",Set.size());
 
   return true;
 }
