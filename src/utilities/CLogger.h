@@ -46,7 +46,8 @@ private:
   {
   public:
     CStream();
-    CStream(const std::string & msg);
+    template< class ... Arguments >
+    CStream(const std::string & format, Arguments ... arguments);
     virtual ~CStream();
     void flush();
 
@@ -115,13 +116,65 @@ CLogger::CStream< level >::CStream()
 }
 
 template < int level >
-CLogger::CStream< level >::CStream(const std::string & msg)
+template< class ... Arguments >
+  CLogger::CStream< level >::CStream(const std::string & format, Arguments ... arguments)
   : std::ostringstream()
 {
-  if (Context.Active().levels.top() <= level)
-    flush(msg);
-
   setstate(std::ios_base::badbit);
+
+  if (Context.Active().levels.top() > level)
+    return;
+
+  LoggerData * pIt = NULL;
+  LoggerData * pEnd = NULL;
+
+  if ((single != -1
+       && Context.localIndex(&Context.Active()) == single)
+      || omp_get_num_threads() == 1)
+    {
+      pIt = Context.beginThread();
+      pEnd = Context.endThread();
+    }
+  else
+    {
+      pIt = &Context.Active();
+      pEnd = pIt + 1;
+    }
+
+  for (; pIt != pEnd; ++pIt)
+    {
+      switch (static_cast< LogLevel >(level))
+        {
+        case spdlog::level::trace:
+          pIt->pLogger->trace(pIt->task + " " + pIt->tick + " " + format, arguments ...);
+          break;
+        case spdlog::level::debug:
+          pIt->pLogger->debug(pIt->task + " " + pIt->tick + " " + format, arguments ...);
+          break;
+        case spdlog::level::info:
+          pIt->pLogger->info(pIt->task + " " + pIt->tick + " " + format, arguments ...);
+          break;
+        case spdlog::level::warn:
+          pIt->pLogger->warn(pIt->task + " " + pIt->tick + " " + format, arguments ...);
+          break;
+        case spdlog::level::err:
+#pragma omp atomic
+          haveErrors |= true;
+          pIt->pLogger->error(pIt->task + " " + pIt->tick + " " + format, arguments ...);
+          break;
+        case spdlog::level::critical:
+#pragma omp atomic
+          haveErrors |= true;
+          pIt->pLogger->critical(pIt->task + " " + pIt->tick + " " + format, arguments ...);
+          break;
+        case spdlog::level::off:
+          break;
+        }
+
+      if (Context.Active().levels.top() == spdlog::level::trace)
+        pIt->pLogger->flush();
+    }
+
 }
 
 // virtual

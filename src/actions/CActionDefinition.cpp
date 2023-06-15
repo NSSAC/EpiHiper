@@ -278,6 +278,7 @@ void CActionDefinition::process() const
 {
   try
     {
+      CLogger::trace("CActionDefinition::process: [ActionDefinition: %d] node and edge independent action.", mIndex);
       ENABLE_TRACE(CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] node and edge independent action.";)
       CActionQueue::addAction(mDelay, new CVariableAction(this));
     }
