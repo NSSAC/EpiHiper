@@ -539,7 +539,7 @@ bool CModel::WriteGlobalStateCounts()
 
       if (out.fail())
         {
-          CLogger::error() << "CModel::WriteGlobalStateCounts: Failed to open '" << CSimConfig::getSummaryOutput() << "'.";
+          CLogger::error("CModel::WriteGlobalStateCounts: Failed to open '{}'.", CSimConfig::getSummaryOutput());
           return false;
         }
       else
@@ -571,7 +571,7 @@ bool CModel::WriteGlobalStateCounts()
 
       if (out.fail())
         {
-          CLogger::error() << "CModel::WriteGlobalStateCounts: Failed to write '" << CSimConfig::getSummaryOutput() << "'.";
+          CLogger::error("CModel::WriteGlobalStateCounts: Failed to write '{}'.", CSimConfig::getSummaryOutput());
           return false;
         }
 
@@ -579,7 +579,7 @@ bool CModel::WriteGlobalStateCounts()
 
       if (out.fail())
         {
-          CLogger::error() << "CModel::WriteGlobalStateCounts: Failed to close '" << CSimConfig::getSummaryOutput() << "'.";
+          CLogger::error("CModel::WriteGlobalStateCounts: Failed to close '{}'.", CSimConfig::getSummaryOutput());
           return false;
         }
     }

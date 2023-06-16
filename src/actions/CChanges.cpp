@@ -192,7 +192,7 @@ void CChanges::record(const CNode * pNode, const CMetadata & metadata)
 
     if (out.fail())
       {
-        CLogger::error() << "CChanges::writeDefaultOutputData: Failed to open '" << CSimConfig::getOutput() << "'.";
+        CLogger::error("CChanges::writeDefaultOutputData: Failed to open '{}'.", CSimConfig::getOutput());
         return CCommunicate::ErrorCode::FileOpenError;
       }
     else
@@ -209,7 +209,7 @@ void CChanges::record(const CNode * pNode, const CMetadata & metadata)
 
     if (out.fail())
       {
-        CLogger::error() << "CChanges::writeDefaultOutputData: Failed to write '" << CSimConfig::getOutput() << "'.";
+        CLogger::error("CChanges::writeDefaultOutputData: Failed to write '{}'.", CSimConfig::getOutput());
         return CCommunicate::ErrorCode::FileWriteError;
       }
 
@@ -217,7 +217,7 @@ void CChanges::record(const CNode * pNode, const CMetadata & metadata)
 
     if (out.fail())
       {
-        CLogger::error() << "CChanges::writeDefaultOutputData: Failed to close '" << CSimConfig::getOutput() << "'.";
+        CLogger::error("CChanges::writeDefaultOutputData: Failed to close '{}'.", CSimConfig::getOutput());
         return CCommunicate::ErrorCode::FileCloseError;
       }
 
