@@ -177,10 +177,10 @@ void CChanges::record(const CNode * pNode, const CMetadata & metadata)
   }
 
   // static
-  void CChanges::writeDefaultOutput()
+  bool CChanges::writeDefaultOutput()
   {
     CCommunicate::SequentialProcess WriteData(&CChanges::writeDefaultOutputData);
-    CCommunicate::sequential(0, &WriteData);
+    return CCommunicate::sequential(0, &WriteData) == (int) CCommunicate::ErrorCode::Success;
   }
 
   // static
@@ -190,19 +190,36 @@ void CChanges::record(const CNode * pNode, const CMetadata & metadata)
 
     out.open(CSimConfig::getOutput().c_str(), std::ios_base::app);
 
-    if (out.good())
+    if (out.fail())
+      {
+        CLogger::error() << "CChanges::writeDefaultOutputData: Failed to open '" << CSimConfig::getOutput() << "'.";
+        return CCommunicate::ErrorCode::FileOpenError;
+      }
+    else
       {
         Changes * pIt = Context.beginThread();
         Changes * pEnd = Context.endThread();
 
-        for (; pIt != pEnd; ++pIt)
+        for (; pIt != pEnd && out.good(); ++pIt)
           {
             out << pIt->pDefaultOutput->str();
             pIt->pDefaultOutput->str("");
           }
       }
 
+    if (out.fail())
+      {
+        CLogger::error() << "CChanges::writeDefaultOutputData: Failed to write '" << CSimConfig::getOutput() << "'.";
+        return CCommunicate::ErrorCode::FileWriteError;
+      }
+
     out.close();
+
+    if (out.fail())
+      {
+        CLogger::error() << "CChanges::writeDefaultOutputData: Failed to close '" << CSimConfig::getOutput() << "'.";
+        return CCommunicate::ErrorCode::FileCloseError;
+      }
 
     return CCommunicate::ErrorCode::Success;
   }

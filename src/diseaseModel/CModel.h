@@ -94,7 +94,7 @@ public:
 
   static void InitGlobalStateCountOutput();
 
-  static void WriteGlobalStateCounts();
+  static bool WriteGlobalStateCounts();
 
   const std::vector< CHealthState > & getStates() const;
 
