@@ -311,7 +311,7 @@ void CObservable::fromJSON(const json_t * json)
         }
       else
         {
-          CLogger::error() << "Observable: Invalid type '" << json_string_value(pValue) << "'.";
+          CLogger::error("Observable: Invalid type '{}'.", json_string_value(pValue));
           return;
         }
 
@@ -332,7 +332,7 @@ void CObservable::fromJSON(const json_t * json)
         }
       else
         {
-          CLogger::error() << "Observable: Invalid subset '" << json_string_value(pValue) << "'.";
+          CLogger::error("Observable: Invalid subset '{}'.", json_string_value(pValue));
           return;
         }
 
@@ -348,7 +348,7 @@ void CObservable::fromJSON(const json_t * json)
 
       if (pHealthState == NULL)
         {
-          CLogger::error() << "Observable: Invalid healthState '" << json_string_value(pValue) << "'.";
+          CLogger::error("Observable: Invalid healthState '{}'.", json_string_value(pValue));
           return;
         }
 
@@ -392,7 +392,7 @@ void CObservable::fromJSON(const json_t * json)
         }
       else
         {
-          CLogger::error() << "Observable: Invalid observable '" << json_string_value(pObservable) << "'.";
+          CLogger::error("Observable: Invalid observable '{}'.", json_string_value(pObservable));
           return;
         }
     }

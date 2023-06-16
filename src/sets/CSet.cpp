@@ -22,6 +22,7 @@
 // SOFTWARE 
 // END: Copyright 
 
+#include <sstream>
 #include <jansson.h>
 
 #include "sets/CSet.h"

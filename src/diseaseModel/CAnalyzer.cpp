@@ -226,7 +226,7 @@ CAnalyzer::CAnalyzer(const std::string & jsonFile)
     }
   else
     {
-      CLogger::error() << "CAnalyzer: Missing property 'diseaseModel'.";
+      CLogger::error("CAnalyzer: Missing property 'diseaseModel'.");
     }
 
   if (CDirEntry::exist("/job")

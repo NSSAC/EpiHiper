@@ -90,7 +90,7 @@ void CSetList::fromJSON(const json_t * json)
         {
           delete pSet;
           mValid = false; // DONE
-          CLogger::error() << "Set list: Invalid set for item '" << i << "'.";
+          CLogger::error("Set list: Invalid set for item '{}'.", i);
           return;
         }
     }

@@ -158,7 +158,7 @@ void CValue::fromJSON(const json_t * json)
 
       if (pHealthState == NULL)
         {
-          CLogger::error() << "Value: Invalid healthState: '" << json_string_value(pValue) << "'.";
+          CLogger::error("Value: Invalid healthState: '{}'.", json_string_value(pValue));
           pHealthState = &CModel::GetInitialState();
           return;
         }
@@ -177,7 +177,7 @@ void CValue::fromJSON(const json_t * json)
 
       if (pTrait == NULL)
         {
-          CLogger::error() << "Value: Invalid trait '" << json_string_value(pValue) << "'.";
+          CLogger::error("Value: Invalid trait '{}'.", json_string_value(pValue));
           return;
         }
     }
@@ -196,13 +196,13 @@ void CValue::fromJSON(const json_t * json)
 
       if (pFeature == NULL)
         {
-          CLogger::error() << "Value: Invalid feature '" << json_string_value(pValue) << "' for trait '" << pTrait->getId() << "'.";
+          CLogger::error("Value: Invalid feature '{}' for trait '{}'.", json_string_value(pValue), pTrait->getId());
           return;
         }
     }
   else
     {
-      CLogger::error() << "Value: Missing feature for trait '" << pTrait->getId() << "'.";
+      CLogger::error("Value: Missing feature for trait '{}'.", pTrait->getId());
       return;
     }
 
@@ -215,13 +215,13 @@ void CValue::fromJSON(const json_t * json)
 
       if (pEnum == NULL)
         {
-          CLogger::error() << "Value: Invalid enum '" << json_string_value(pValue) << "' for feature '" << pFeature->getId() << "' for trait '" << pTrait->getId() << "'.";
+          CLogger::error("Value: Invalid enum '{}' for feature '{}' for trait '{}'.", json_string_value(pValue), pFeature->getId(), pTrait->getId());
           return;
         }
     }
   else
     {
-      CLogger::error() << "Value: Missing enum for feature '" << pFeature->getId() << "' for trait '" << pTrait->getId() << "'.";
+      CLogger::error("Value: Missing enum for feature '{}' for trait '{}'.", pFeature->getId(), pTrait->getId());
       return;
     }
 

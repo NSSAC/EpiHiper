@@ -156,6 +156,18 @@ void CLogger::popLevel()
 }
 
 // static 
+CLogger::LogLevel CLogger::level()
+{
+  LoggerData & Active = Context.Active();
+
+  if (Active.levels.empty())
+    Active.levels.push(CSimConfig::getLogLevel());
+
+  return Active.levels.top();
+}
+
+
+// static 
 void CLogger::setLevel()
 {
   LoggerData & Active = Context.Active();
@@ -190,7 +202,7 @@ void CLogger::setLogDir(const std::string dir)
 
   if (Context.isThread(&Active))
     {
-      CLogger::error() << "CLogger::setLogDir: This function may only be called from master.";
+      CLogger::error("CLogger::setLogDir: This function may only be called from master.");
       return;
     }
 
@@ -229,7 +241,7 @@ void CLogger::setTask(int rank, int processes)
 
   if (Context.isThread(&Active))
     {
-      CLogger::error() << "CLogger::setTask: This function may only be called from master.";
+      CLogger::error("CLogger::setTask: This function may only be called from master.");
       return;
     }
 
@@ -275,7 +287,7 @@ void CLogger::updateTick()
 
   if (Context.isThread(&Active))
     {
-      CLogger::error() << "CLogger::setTask: This function may only be called from master.";
+      CLogger::error("CLogger::setTask: This function may only be called from master.");
       return;
     }
 

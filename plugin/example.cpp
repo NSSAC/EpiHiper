@@ -36,19 +36,19 @@ void EpiHiperPluginInit()
 {
   for (const CTransmission & Transmission : CModel::GetTransmissions())
     {
-      CLogger::info() << "EpiHiperPlugin: Setting custom method for transmission '" << Transmission.getId() << "'.";
+      CLogger::info("EpiHiperPlugin: Setting custom method for transmission '{}'.", Transmission.getId());
       Transmission.setCustomMethod(&EpiHiperPlugin::transmission_propensity);
     }
 
   for (const CHealthState & HealthState : CModel::GetStates())
     {
-      CLogger::info() << "EpiHiperPlugin: Setting custom method for health-state '" << HealthState.getId() << "'.";
+      CLogger::info("EpiHiperPlugin: Setting custom method for health-state '{}'.", HealthState.getId());
       HealthState.setCustomMethod(&EpiHiperPlugin::state_progression);
     }
 
   for (const CProgression & Progression : CModel::GetProgressions())
     {
-      CLogger::info() << "EpiHiperPlugin: Setting custom method for progression '" << Progression.getId() << "'.";
+      CLogger::info("EpiHiperPlugin: Setting custom method for progression '{}'.", Progression.getId());
       Progression.setCustomMethod(&EpiHiperPlugin::progression_dwell_time);
     }
 }

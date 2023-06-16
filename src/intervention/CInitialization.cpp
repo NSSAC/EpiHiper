@@ -29,6 +29,7 @@
  *      Author: shoops
  */
 
+#include <sstream>
 #include <jansson.h>
 
 #include "intervention/CInitialization.h"
@@ -131,7 +132,7 @@ bool CInitialization::processAll()
 
   for (it = INSTANCES.begin(); it != end && success; ++it)
     {
-      CLogger::info() << "CInitialization: Process initialization '" << (*it)->getAnnId() << "'.";
+      CLogger::info("CInitialization: Process initialization '{}'.", (*it)->getAnnId());
       (*it)->process();
     }
 

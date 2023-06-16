@@ -22,6 +22,7 @@
 // SOFTWARE 
 // END: Copyright 
 
+#include <sstream>
 #include <jansson.h>
 
 #include "intervention/CTrigger.h"
@@ -178,7 +179,7 @@ void CTrigger::process()
   mIsLocalTrue = mCondition.isTrue();
 
   if (mIsLocalTrue)
-    CLogger::info() << "CTrigger: Trigger '" << getAnnId() << "' condition is 'true'."; 
+    CLogger::info("CTrigger: Trigger '{}' condition is 'true'.", getAnnId()); 
 }
 
 void CTrigger::trigger(const bool & triggers)
@@ -186,7 +187,7 @@ void CTrigger::trigger(const bool & triggers)
   if (triggers 
       && !mInterventions.empty())
     {
-      CLogger::info() << "CTrigger: Processing trigger '" << getAnnId() << "'."; 
+      CLogger::info("CTrigger: Processing trigger '{}'.", getAnnId()); 
       std::map< std::string, CIntervention * >::iterator it = mInterventions.begin();
       std::map< std::string, CIntervention * >::iterator end = mInterventions.end();
 
@@ -244,7 +245,7 @@ void CTrigger::fromJSON(const json_t * json)
 
       if (!mCondition.isValid())
         {
-          CLogger::error() << "CTrigger (" << mAnnId << "): Invalid value for 'trigger'.";
+          CLogger::error("CTrigger ({}): Invalid value for 'trigger'.", mAnnId);
           return;
         }
     }
@@ -259,7 +260,7 @@ void CTrigger::fromJSON(const json_t * json)
 
         if (mInterventions[Id] == NULL)
           {
-            CLogger::error() << "Trigger (" << mAnnId << "): Invalid id for item '" << i << "'.";
+            CLogger::error("Trigger ({}): Invalid id for item '{}'.", mAnnId, i);
             return;
           }
       }

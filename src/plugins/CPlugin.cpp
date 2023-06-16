@@ -43,7 +43,7 @@ void CPlugin::Init()
 
           if (found != Libraries.end())
             {
-              CLogger::warn() << "CPlugin " << PluginPath << ": Plugin already loaded.";
+              CLogger::warn("CPlugin {}: Plugin already loaded.", PluginPath);
               continue;
             }
           else
@@ -59,7 +59,7 @@ void CPlugin::Init()
                 }
               else
                 {
-                  CLogger::error() << "CPlugin" << dlerror();
+                  CLogger::error("CPlugin {}", dlerror());
                   continue;
                 }
             }
@@ -69,11 +69,11 @@ void CPlugin::Init()
 
           if ((error = dlerror()) != nullptr)
             {
-              CLogger::error() << "CPlugin " << error;
+              CLogger::error("CPlugin {}", error);
               continue;
             }
 
-          CLogger::info() << "CPlugin " << PluginPath << ": Calling EpiHiperPluginInit().";
+          CLogger::info("CPlugin {}: Calling EpiHiperPluginInit().", PluginPath);
           (*pInit)();
         }
     }

@@ -1,26 +1,26 @@
-// BEGIN: Copyright
-// MIT License
-//
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE
-// END: Copyright
+// BEGIN: Copyright 
+// MIT License 
+//  
+// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+//  
+// Permission is hereby granted, free of charge, to any person obtaining a copy 
+// of this software and associated documentation files (the "Software"), to deal 
+// in the Software without restriction, including without limitation the rights 
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+// copies of the Software, and to permit persons to whom the Software is 
+// furnished to do so, subject to the following conditions: 
+//  
+// The above copyright notice and this permission notice shall be included in all 
+// copies or substantial portions of the Software. 
+//  
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+// SOFTWARE 
+// END: Copyright 
 
 #include <cstring>
 #include <jansson.h>
@@ -109,7 +109,7 @@ void CConditionDefinition::fromJSON(const json_t * json)
   if (operationFromJSON(json)) // also handles not
     return;
 
-  CLogger::error() << "Condition: Invalid. " << CSimConfig::jsonToString(json);
+  CLogger::error("Condition: Invalid. {}", CSimConfig::jsonToString(json));
 }
 
 bool CConditionDefinition::valueFromJSON(const json_t * json)
@@ -263,7 +263,7 @@ bool CConditionDefinition::operationFromJSON(const json_t * json)
         }
       else
         {
-          CLogger::error() << "Condition: Invalid operant for Boolean operator '" << (mType == BooleanOperationType::And ? "and" : "or") << "'.";
+          CLogger::error("Condition: Invalid operant for Boolean operator '{}'.", mType == BooleanOperationType::And ? "and" : "or");
           mValid = false; 
         }
     }
@@ -447,7 +447,7 @@ bool CConditionDefinition::comparisonFromJSON(const json_t * json)
     }
   else
     {
-      CLogger::error() << "Condition: Invalid comparison operator '" << CSimConfig::jsonToString(json) << "'.";
+      CLogger::error("Condition: Invalid comparison operator '{}'.", CSimConfig::jsonToString(json));
       return true;
     }
 
@@ -457,7 +457,7 @@ bool CConditionDefinition::comparisonFromJSON(const json_t * json)
 
   if (!mLeft.isValid())
     {
-      CLogger::error() << "Condition: Invalid left operant for comparison operator '" << CSimConfig::jsonToString(json) << "'.";
+      CLogger::error("Condition: Invalid left operant for comparison operator '{}'.", CSimConfig::jsonToString(json));
       mValid = false; // DONE
     }
 
@@ -465,7 +465,7 @@ bool CConditionDefinition::comparisonFromJSON(const json_t * json)
 
   if (!mRight.isValid())
     {
-      CLogger::error() << "Condition: Invalid right operant for comparison operator '" << CSimConfig::jsonToString(json) << "'.";
+      CLogger::error("Condition: Invalid right operant for comparison operator '{}'.", CSimConfig::jsonToString(json));
       mValid = false; // DONE
     }
 
@@ -474,19 +474,19 @@ bool CConditionDefinition::comparisonFromJSON(const json_t * json)
     {
       if (mLeft.getType() == CValueInstance::ValueType::ValueList)
         {
-          CLogger::error() << "Condition: Invalid value type for left operant for comparison operator '" << CSimConfig::jsonToString(json) << "'.";
+          CLogger::error("Condition: Invalid value type for left operant for comparison operator '{}'.", CSimConfig::jsonToString(json));
           mValid = false; // DONE
         }
 
       if (mRight.getType() == CValueInstance::ValueType::ValueList)
         {
-          CLogger::error() << "Condition: Invalid value type for right operant for comparison operator '" << CSimConfig::jsonToString(json) << "'.";
+          CLogger::error("Condition: Invalid value type for right operant for comparison operator '{}'.", CSimConfig::jsonToString(json));
           mValid = false; // DONE
         }
 
       if (!CValueInstance::compatible(mLeft, mRight))
         {
-          CLogger::error() << "Condition: Incompatible values for comparison: '" << CSimConfig::jsonToString(json) << "'.";
+          CLogger::error("Condition: Incompatible values for comparison: '{}'.", CSimConfig::jsonToString(json));
           mValid = false; // DONE
         }
     }
@@ -497,19 +497,19 @@ bool CConditionDefinition::comparisonFromJSON(const json_t * json)
           && mLeft.getType() != CValueInstance::ValueType::Observable
           && mLeft.getType() != CValueInstance::ValueType::Variable)
         {
-          CLogger::error() << "Condition: Invalid value type for left operant for comparison operator '" << CSimConfig::jsonToString(json) << "'.";
+          CLogger::error("Condition: Invalid value type for left operant for comparison operator '{}'.", CSimConfig::jsonToString(json));
           mValid = false; // DONE
         }
 
       if (mRight.getType() != CValueInstance::ValueType::ValueList)
         {
-          CLogger::error() << "Condition: Invalid value type for right operant for comparison operator '" << CSimConfig::jsonToString(json) << "'.";
+          CLogger::error("Condition: Invalid value type for right operant for comparison operator '{}'.", CSimConfig::jsonToString(json));
           mValid = false; // DONE
         }
 
       if (!CValueInstance::compatible(mLeft, mRight))
         {
-          CLogger::error() << "Condition: Incompatible values for comparison: '" << CSimConfig::jsonToString(json) << "'.";
+          CLogger::error("Condition: Incompatible values for comparison: '{}'.", CSimConfig::jsonToString(json));
           mValid = false; // DONE
         }
     }

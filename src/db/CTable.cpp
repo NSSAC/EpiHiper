@@ -102,7 +102,7 @@ void CTable::fromJSON(const json_t * json)
         }
       else
         {
-          CLogger::error() << "Table: Invalid field for item '" << i << "'.";
+          CLogger::error("Table: Invalid field for item '{}'.", i);
           return;
         }
     }
