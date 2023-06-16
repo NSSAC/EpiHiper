@@ -215,7 +215,7 @@ void CTrait::fromJSON(const json_t * json)
       // Augmenting or redefining a feature is not supported supported
       if (pFeature!= NULL)
         {
-          CLogger::warn() << "Trait: Duplicate definition of '" << mId << "[" << pFeature->getId() << "]'.";
+          CLogger::warn("Trait: Duplicate definition of '{}[{}]'.", mId, pFeature->getId());
           continue;
         }
 
@@ -228,7 +228,7 @@ void CTrait::fromJSON(const json_t * json)
         }
       else
         {
-          CLogger::error() << "Trait: Invalid value for item '" << i << "'.";
+          CLogger::error("Trait: Invalid value for item '{}'.", i);
           return;
         }
     }
@@ -345,7 +345,7 @@ bool CTrait::fromString(const char * str, CTraitData::base & data) const
     }
 
   if (!success)
-    CLogger::error() << "CTrait: Invalid trait encoding '" << str << "'.";
+    CLogger::error("CTrait: Invalid trait encoding '{}'.", str);
 
   mTextDecoding[str] = data;
 

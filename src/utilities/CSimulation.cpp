@@ -109,7 +109,7 @@ bool CSimulation::run()
     CVariableList::INSTANCE.synchronizeChangedVariables();
   }
 
-  CLogger::info() << "CSimulation::initialization: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
+  CLogger::info("CSimulation::initialization: duration = '{}' \xc2\xb5s.", std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000);
 
   Start = std::chrono::steady_clock::now();
 
@@ -122,12 +122,12 @@ bool CSimulation::run()
   CModel::UpdateGlobalStateCounts();
   CModel::WriteGlobalStateCounts();
 
-  CLogger::info() << "CSimulation::output: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
+  CLogger::info("CSimulation::output: duration = '{}' \xc2\xb5s.", std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000);
   Start = std::chrono::steady_clock::now();
 
   CNetwork::Context.Master().broadcastChanges();
 
-  CLogger::info() << "CSimulation::synchronize: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
+  CLogger::info("CSimulation::synchronize: duration = '{}' \xc2\xb5s.", std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000);
 
   CNetwork::dumpActiveNetwork();
 
@@ -143,13 +143,13 @@ bool CSimulation::run()
 #pragma omp atomic
           success &= false;
 
-        CLogger::info() << "CSimulation::applyUpdateOrder: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
+        CLogger::info("CSimulation::applyUpdateOrder: duration = '{}' \xc2\xb5s.", std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000);
 
         Start = std::chrono::steady_clock::now();
 
         CModel::ProcessTransmissions();
 
-        CLogger::info() << "CSimulation::ProcessTransmissions: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
+        CLogger::info("CSimulation::ProcessTransmissions: duration = '{}' \xc2\xb5s.", std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000);
 
         Start = std::chrono::steady_clock::now();
 
@@ -161,7 +161,7 @@ bool CSimulation::run()
 #pragma omp atomic
           success &= false;
 
-        CLogger::info() << "CSimulation::ProcessIntervention: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
+        CLogger::info("CSimulation::ProcessIntervention: duration = '{}' \xc2\xb5s.", std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000);
 
         Start = std::chrono::steady_clock::now();
 
@@ -171,7 +171,7 @@ bool CSimulation::run()
 #pragma omp atomic
           success &= false;
         
-        CLogger::info() << "CSimulation::processCurrentActions: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
+        CLogger::info("CSimulation::processCurrentActions: duration = '{}' \xc2\xb5s.", std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000);
 
         CVariableList::INSTANCE.synchronizeChangedVariables();
       }
@@ -186,12 +186,12 @@ bool CSimulation::run()
       CModel::UpdateGlobalStateCounts();
       CModel::WriteGlobalStateCounts();
 
-      CLogger::info() << "CSimulation::output: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
+      CLogger::info("CSimulation::output: duration = '{}' \xc2\xb5s.", std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000);
       Start = std::chrono::steady_clock::now();
 
       CNetwork::Context.Master().broadcastChanges();
 
-      CLogger::info() << "CSimulation::synchronize: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' ms.";
+      CLogger::info("CSimulation::synchronize: duration = '{}' \xc2\xb5s.", std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000);
 
       CNetwork::dumpActiveNetwork();
 

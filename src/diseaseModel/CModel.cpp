@@ -157,7 +157,7 @@ void CModel::fromJSON(const json_t * json)
         }
       else
         {
-          CLogger::error() << "Model: Invalid state for item '" << i << "'.";
+          CLogger::error("Model: Invalid state for item '{}'.", i);
           return;
         }
     }
@@ -205,7 +205,7 @@ void CModel::fromJSON(const json_t * json)
         }
       else
         {
-          CLogger::error() << "Model: Invalid transmission for item '" << i << "'.";
+          CLogger::error("Model: Invalid transmission for item '{}'.", i);
           return;
         }
     }
@@ -226,7 +226,7 @@ void CModel::fromJSON(const json_t * json)
         }
       else
         {
-          CLogger::error() << "Model: Invalid transition for item '" << i << "'.";
+          CLogger::error("Model: Invalid transition for item '{}'.", i);
           return;
         }
     }
@@ -355,7 +355,7 @@ bool CModel::processTransmissions() const
               }
             catch (...)
               {
-                CLogger::error() << "CModel:: Failed to create transmission for '" << pNode->id << "'.";
+                CLogger::error("CModel:: Failed to create transmission for '{}'.", pNode->id);
               }
           }
       }
@@ -382,7 +382,7 @@ void CModel::stateChanged(CNode * pNode) const
         }
       catch (...)
         {
-          CLogger::error() << "CModel:: Failed to create progression for '" << pNode->id << "'.";
+          CLogger::error("CModel:: Failed to create progression for '{}'.", pNode->id);
         }
     }
 }

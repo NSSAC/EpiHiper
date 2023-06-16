@@ -122,7 +122,7 @@ CSetContent::shared_pointer CSetContent::create(const json_t * json)
         }
       else
         {
-          CLogger::error() << "Set content: Invalid value for 'elementType'. " << CSimConfig::jsonToString(json);
+          CLogger::error("Set content: Invalid value for 'elementType'. {}", CSimConfig::jsonToString(json));
         }
     }
   else
@@ -145,7 +145,7 @@ CSetContent::shared_pointer CSetContent::create(const json_t * json)
         }
 
       if (pNew == NULL)
-        CLogger::error() << "Set content: Invalid." << CSimConfig::jsonToString(json);
+        CLogger::error("Set content: Invalid. {}", CSimConfig::jsonToString(json));
     }
 
   // Assure unique CSetContent is returned

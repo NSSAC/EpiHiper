@@ -38,13 +38,8 @@ CTransmissionAction::CTransmissionAction(const CTransmission * pTransmission, co
   , mStateAtScheduleTime(pTarget->healthState)
   , mpEdge(pEdge)
 {
-  CLogger::trace Trace;
-  Trace << "CTransmissionAction: Add node "
-          << mpTarget->id
-          << " healthState = "
-          << mpTransmission->getExitState()->getId()
-          << ", contact: "
-          << mpEdge->pSource->id;
+  ENABLE_TRACE(CLogger::trace("CTransmissionAction: Add node '{}' healthState = '{}', contact: '{}'.",
+                 mpTarget->id, mpTransmission->getExitState()->getId(), mpEdge->pSource->id););
 
 #ifdef USE_LOATION_ID
   if (CEdge::HasLocationId)
@@ -91,7 +86,7 @@ bool CTransmissionAction::execute() const
     }
   catch (...)
     {
-      CLogger::error() << "CTransmissionAction: Unable to execute action for '" << mpTarget->id << "'.";
+      CLogger::error("CTransmissionAction: Unable to execute action for '{}'.", mpTarget->id);
       success = false;
     }
 

@@ -264,7 +264,7 @@ void CValueList::fromJSON(const json_t * json)
 
           if (pTrait == NULL)
             {
-              CLogger::error() << "Value list: Invalid trait '" << json_string_value(pValue) << "'.";
+              CLogger::error("Value list: Invalid trait '{}'.", json_string_value(pValue));
               return;
             }
         }
@@ -282,13 +282,13 @@ void CValueList::fromJSON(const json_t * json)
 
           if (pFeature == NULL)
             {
-              CLogger::error() << "Value list: Invalid feature '" << json_string_value(pValue) << "' for trait '" << pTrait->getId() << "'.";
+              CLogger::error("Value list: Invalid feature '{}' for trait '{}'.", json_string_value(pValue), pTrait->getId());
               return;
             }
         }
       else
         {
-          CLogger::error() << "Value list: Missing feature for trait '" << pTrait->getId() << "'.";
+          CLogger::error("Value list: Missing feature for trait '{}'.", pTrait->getId());
           return;
         }
     }
@@ -305,7 +305,7 @@ void CValueList::fromJSON(const json_t * json)
             std::set< CValue >::insert(json_is_true(pValue) ? true : false);
           else
             {
-              CLogger::error() << "Value list (Boolean): Invalid value for item '" << i << "'.";
+              CLogger::error("Value list (Boolean): Invalid value for item '{}'.", i);
               return;
             }
         }
@@ -320,7 +320,7 @@ void CValueList::fromJSON(const json_t * json)
             std::set< CValue >::insert(json_real_value(pValue));
           else
             {
-              CLogger::error() << "Value list (number): Invalid value for item '" << i << "'.";
+              CLogger::error("Value list (number): Invalid value for item '{}'.", i);
               return;
             }
         }
@@ -336,7 +336,7 @@ void CValueList::fromJSON(const json_t * json)
             std::set< CValue >::insert((int) json_real_value(pValue));
           else
             {
-              CLogger::error() << "Value list (integer): Invalid value for item '" << i << "'.";
+              CLogger::error("Value list (integer): Invalid value for item '{}'.", i);
               return;
             }
         }
@@ -353,7 +353,7 @@ void CValueList::fromJSON(const json_t * json)
 
               if (pHealthState == NULL)
                 {
-                  CLogger::error() << "Value list (health state): Invalid value for item '" << i << "'.";
+                  CLogger::error("Value list (health state): Invalid value for item '{}'.", i);
                   return;
                 }
 
@@ -366,7 +366,7 @@ void CValueList::fromJSON(const json_t * json)
             }
           else
             {
-              CLogger::error() << "Value list (health state): Invalid value for item '" << i << "'.";
+              CLogger::error("Value list (health state): Invalid value for item '{}'.", i);
               return;
             }
         }
@@ -383,7 +383,7 @@ void CValueList::fromJSON(const json_t * json)
 
               if (pEnum == NULL)
                 {
-                  CLogger::error() << "Value list: Invalid enum '" << json_string_value(pValue) << "' for feature '" << pFeature->getId() << "' for trait '" << pTrait->getId() << "'.";
+                  CLogger::error("Value list: Invalid enum '{}' for feature '{}' for trait '{}'.", json_string_value(pValue), pFeature->getId(), pTrait->getId());
                   return;
                 }
 
@@ -391,7 +391,7 @@ void CValueList::fromJSON(const json_t * json)
             }
           else
             {
-              CLogger::error() << "Value list: Missing enum for item '" << i << "' for feature '" << pFeature->getId() << "' for trait '" << pTrait->getId() << "'.";
+              CLogger::error("Value list: Missing enum for item '{}' for feature '{}' for trait '{}'.", i, pFeature->getId(), pTrait->getId());
               return;
             }
         }

@@ -215,7 +215,7 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
   if (json_is_string(pValue)
       && strcmp(json_string_value(pValue), "edge") != 0)
     {
-      CLogger::error() << "Edge selector: Invalid or missing value 'elementType' for " << CSimConfig::jsonToString(json);
+      CLogger::error("Edge selector: Invalid or missing value 'elementType' for {}", CSimConfig::jsonToString(json));
       return;
     }
 
@@ -300,7 +300,7 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
               if (mpValueList != NULL
                   && !mpValueList->isValid())
                 {
-                  CLogger::error() << "Edge selector: Invalid or missing value 'right' for " << CSimConfig::jsonToString(json);
+                  CLogger::error("Edge selector: Invalid or missing value 'right' for {}", CSimConfig::jsonToString(json));
                   return;
                 }
 
@@ -341,7 +341,7 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
             }
           else
             {
-              CLogger::error() << "Edge selector: Invalid or missing value 'left' for " << CSimConfig::jsonToString(json);
+              CLogger::error("Edge selector: Invalid or missing value 'left' for {}", CSimConfig::jsonToString(json));
               return;
             }
          }
@@ -388,7 +388,7 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
           return;
         }
 
-      CLogger::error() << "Edge selector: Invalid or missing value 'operator' for " << CSimConfig::jsonToString(json);
+      CLogger::error("Edge selector: Invalid or missing value 'operator' for {}", CSimConfig::jsonToString(json));
       return;
     }
 
@@ -455,7 +455,7 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
 
       if (!Table.isValid())
         {
-          CLogger::error() << "Edge selector: Invalid or missing value 'table' for " << CSimConfig::jsonToString(json);
+          CLogger::error("Edge selector: Invalid or missing value 'table' for {}", CSimConfig::jsonToString(json));
           return;
         }
 
@@ -463,7 +463,7 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
 
       if (!Field.isValid())
         {
-          CLogger::error() << "Edge selector: Invalid or missing value 'field' for " << CSimConfig::jsonToString(json);
+          CLogger::error("Edge selector: Invalid or missing value 'field' for {}", CSimConfig::jsonToString(json));
           return;
         }
 
@@ -488,7 +488,7 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
 
       mpSelector.reset();
 
-      CLogger::error() << "Edge selector: Invalid or missing value 'right' for " << CSimConfig::jsonToString(json);
+      CLogger::error("Edge selector: Invalid or missing value 'right' for {}", CSimConfig::jsonToString(json));
       return;
     }
 
@@ -507,7 +507,7 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
 
       mpSelector.reset();
 
-      CLogger::error() << "Edge selector: Invalid or missing value 'selector' for " << CSimConfig::jsonToString(json);
+      CLogger::error("Edge selector: Invalid or missing value 'selector' for {}", CSimConfig::jsonToString(json));
       return;
     }
 
@@ -561,7 +561,7 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
               return;
             }
 
-          CLogger::error() << "Edge selector: Invalid or missing value 'right' for " << CSimConfig::jsonToString(json);
+          CLogger::error("Edge selector: Invalid or missing value 'right' for {}", CSimConfig::jsonToString(json));
           return;
         }
 
@@ -613,7 +613,7 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
 
       if (!Table.isValid())
         {
-          CLogger::error() << "Edge selector: Invalid or missing value 'table' for " << CSimConfig::jsonToString(json);
+          CLogger::error("Edge selector: Invalid or missing value 'table' for {}", CSimConfig::jsonToString(json));
           return;
         }
 
@@ -621,7 +621,7 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
 
       if (!Field.isValid())
         {
-          CLogger::error() << "Edge selector: Invalid or missing value 'field' for " << CSimConfig::jsonToString(json);
+          CLogger::error("Edge selector: Invalid or missing value 'field' for {}", CSimConfig::jsonToString(json));
           return;
         }
 
@@ -667,7 +667,7 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
         }
     }
 
-  CLogger::error() << "Edge selector: Invalid or missing value 'operator' for " << CSimConfig::jsonToString(json);
+  CLogger::error("Edge selector: Invalid or missing value 'operator' for {}", CSimConfig::jsonToString(json));
   return;
 }
 
@@ -819,7 +819,7 @@ bool CEdgeElementSelector::all()
         *it = pEdge;
     }
 
-  CLogger::debug() << "CEdgeElementSelector: all returned '" << Edges.size() << "' edges.";
+  CLogger::debug("CEdgeElementSelector: all returned '{}' edges.", Edges.size());
   return true;
 
 }
@@ -836,7 +836,7 @@ bool CEdgeElementSelector::propertySelection()
       Edges.push_back(pEdge);
 
 
-  CLogger::debug() << "CEdgeElementSelector: propertySelection returned '" << Edges.size() << "' edges.";
+  CLogger::debug("CEdgeElementSelector: propertySelection returned '{}' edges.", Edges.size());
   return true;
 }
 
@@ -857,7 +857,7 @@ bool CEdgeElementSelector::propertyIn()
     if (filterPropertyIn(pEdge))
       Edges.push_back(pEdge);
 
-  CLogger::debug() << "CEdgeElementSelector: propertyIn returned '" << Edges.size() << "' edges.";
+  CLogger::debug("CEdgeElementSelector: propertyIn returned '{}' edges.", Edges.size());
   return true;
 }
 
@@ -878,7 +878,7 @@ bool CEdgeElementSelector::propertyNotIn()
     if (filterPropertyNotIn(pEdge))
       Edges.push_back(pEdge);
 
-  CLogger::debug() << "CEdgeElementSelector: propertyNotIn returned '" << Edges.size() << "' edges.";
+  CLogger::debug("CEdgeElementSelector: propertyNotIn returned '{}' edges.", Edges.size());
   return true;
 }
 
@@ -893,7 +893,7 @@ bool CEdgeElementSelector::withTargetNodeIn()
   Edges.clear();
 
   const std::vector< CNode * > & Nodes = mpSelector->getNodes();
-  CLogger::debug() << "CEdgeElementSelector: withTargetNodeIn nodes " << Nodes.size();
+  CLogger::debug("CEdgeElementSelector: withTargetNodeIn nodes {}", Nodes.size());
   const CNetwork & Active = CNetwork::Context.Active();
 
   if (!Nodes.empty())
@@ -918,7 +918,7 @@ bool CEdgeElementSelector::withTargetNodeIn()
       // std::sort(Edges.begin(), Edges.end());
     }
 
-  CLogger::debug() << "CEdgeElementSelector: withTargetNodeIn returned " << Edges.size() << " edges.";
+  CLogger::debug("CEdgeElementSelector: withTargetNodeIn returned '{}' edges.", Edges.size());
   return true;
 }
 
@@ -928,7 +928,7 @@ bool CEdgeElementSelector::withSourceNodeIn()
   Edges.clear();
 
   const std::vector< CNode * > & Nodes = mpSelector->getNodes();
-  CLogger::debug() << "CEdgeElementSelector: withSourceNodeIn nodes " << Nodes.size();
+  CLogger::debug("CEdgeElementSelector: withSourceNodeIn nodes {}", Nodes.size());
 
   if (!Nodes.empty())
     {
@@ -948,7 +948,7 @@ bool CEdgeElementSelector::withSourceNodeIn()
       std::sort(Edges.begin(), Edges.end());
     }
 
-  CLogger::debug() << "CEdgeElementSelector: withSourceNodeIn returned " << Edges.size() << " edges.";
+  CLogger::debug("CEdgeElementSelector: withSourceNodeIn returned '{}' edges.", Edges.size());
   return true;
 }
 
@@ -969,7 +969,7 @@ bool CEdgeElementSelector::dbAll()
     if (FieldValueList.contains(pEdge->locationId))
       Edges.push_back(pEdge);
 
-  CLogger::debug() << "CEdgeElementSelector: dbAll returned " << Edges.size() << " edges.";
+  CLogger::debug("CEdgeElementSelector: dbAll returned '{}' edges.", Edges.size());
 #endif
 
   return success;
@@ -998,7 +998,7 @@ bool CEdgeElementSelector::dbSelection()
     if (FieldValueList.contains(pEdge->locationId))
       Edges.push_back(pEdge);
 
-  CLogger::debug() << "CEdgeElementSelector: dbSelection returned '" << Edges.size() << "' edges.";
+  CLogger::debug("CEdgeElementSelector: dbSelection returned '{}' edges.", Edges.size());
 #endif
 
   return success;
@@ -1033,7 +1033,7 @@ bool CEdgeElementSelector::dbIn()
     if (FieldValueList.contains(pEdge->locationId))
       Edges.push_back(pEdge);
 
-  CLogger::debug() << "CEdgeElementSelector: dbIn returned '" << Edges.size() << "' edges.";
+  CLogger::debug("CEdgeElementSelector: dbIn returned '{}' edges.", Edges.size());
 #endif
 
   return success;
@@ -1067,7 +1067,7 @@ bool CEdgeElementSelector::dbNotIn()
     if (FieldValueList.contains(pEdge->locationId))
       Edges.push_back(pEdge);
 
-  CLogger::debug() << "CEdgeElementSelector: dbNotIn returned '" << Edges.size() << "' edges.";
+  CLogger::debug("CEdgeElementSelector: dbNotIn returned '{}' edges.", Edges.size());
 #endif
 
   return success;

@@ -74,14 +74,14 @@ void CVariableList::fromJSON(const json_t * json)
 
       if (!pVariable->isValid())
         {
-          CLogger::error() << "Variable list: Invalid value for item '" << i << "'.";
+          CLogger::error("Variable list: Invalid value for item '{}'.", i);
           delete pVariable;
           return;
         }
 
       if (!append(pVariable))
         {
-          CLogger::error() << "Variable list: Duplicate variable ID '" << pVariable->getId() << "'.";
+          CLogger::error("Variable list: Duplicate variable ID '{}'.", pVariable->getId());
           delete pVariable;
           return;
         }

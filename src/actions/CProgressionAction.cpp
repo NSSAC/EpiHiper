@@ -37,10 +37,7 @@ CProgressionAction::CProgressionAction(const CProgression * pProgression, CNode 
   , mpTarget(pTarget)
   , mStateAtScheduleTime(pTarget->healthState)
 {
-  ENABLE_TRACE(CLogger::trace() << "CProgressionAction: Add action Node "
-                                << mpTarget->id
-                                << " healthState = "
-                                << mpProgression->getExitState()->getId();)
+  ENABLE_TRACE(CLogger::trace("CProgressionAction: Add action Node '{}' healthState = '{}'.", mpTarget->id, mpProgression->getExitState()->getId()););
 }
 
 // virtual
@@ -70,7 +67,7 @@ bool CProgressionAction::execute() const
     }
   catch (...)
     {
-      CLogger::error() << "CProgressionAction: Unable to execute action for '" << mpTarget->id << "'.";
+      CLogger::error("CProgressionAction: Unable to execute action for '{}'.", mpTarget->id);
       success = false;
     }
 

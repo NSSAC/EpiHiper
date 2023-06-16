@@ -211,13 +211,13 @@ void CDistribution::fromJSON(const json_t * json)
 
                   if (it->first < 0)
                     {
-                      CLogger::error() << "Distribution discrete: Negative value 'probability' for item '" << i << "'.";
+                      CLogger::error("Distribution discrete: Negative value 'probability' for item '{}'.", i);
                       return;
                     };
                 }
               else
                 {
-                  CLogger::error() << "Distribution discrete: Invalid or missing 'probability' for item '" << i << "'.";
+                  CLogger::error("Distribution discrete: Invalid or missing 'probability' for item '{}'.", i);
                   return;
                 }
 
@@ -230,14 +230,14 @@ void CDistribution::fromJSON(const json_t * json)
 
                   if (value < 0)
                     {
-                      CLogger::error() << "Distribution discrete: Negative value 'value' for item '" << i << "'.";
+                      CLogger::error("Distribution discrete: Negative value 'value' for item '{}'.", i);
                       return;
                     };
                   
                 }
               else
                 {
-                  CLogger::error() << "Distribution discrete: Invalid or missing 'value' for item '" << i << "'.";
+                  CLogger::error("Distribution discrete: Invalid or missing 'value' for item '{}'.", i);
                   return;
                 }
             }
@@ -251,7 +251,7 @@ void CDistribution::fromJSON(const json_t * json)
         }
       else
         {
-          CLogger::error() << "Distribution discrete: The sum of probabilities '" << Total << "' is not 1.";
+          CLogger::error("Distribution discrete: The sum of probabilities '{}' is not 1.", Total);
         }
 
       return;
@@ -279,13 +279,13 @@ void CDistribution::fromJSON(const json_t * json)
 
               if (value < 0)
                 {
-                  CLogger::error() << "Distribution uniform: Negative value for item '" << i << "'.";
+                  CLogger::error("Distribution uniform: Negative value for item '{}'.", i);
                   return;
                 };
             }
           else
             {
-              CLogger::error() << "Distribution uniform: Invalid value for item '" << i << "'.";
+              CLogger::error("Distribution uniform: Invalid value for item '{}'.", i);
               return;
             }
         }
@@ -327,7 +327,7 @@ void CDistribution::fromJSON(const json_t * json)
 
           if (max <= min)
             {
-              CLogger::error() << "Distribution uniform: Invalid interval [" << min << ", " << max << "].";
+              CLogger::error("Distribution uniform: Invalid interval [{}, {}].", min, max);
               return;
             }
         }

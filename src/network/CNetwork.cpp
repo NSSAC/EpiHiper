@@ -543,7 +543,7 @@ void CNetwork::partition(const int & parts, const bool & save, const std::string
   if (!save
       && mTotalEdgesSize >= CSimConfig::getPartitionEdgeLimit())
     {
-      CLogger::error() << "CNetwork: No valid partition (" << parts << ") found and partition edge limit (" << CSimConfig::getPartitionEdgeLimit() << ") exceded.";
+      CLogger::error("CNetwork: No valid partition ({}) found and partition edge limit ({}) exceded.", parts, CSimConfig::getPartitionEdgeLimit());
       return; 
     }
 
@@ -922,13 +922,7 @@ void CNetwork::load()
       }
   }
 
-  // CLogger::info() << "CNetwork::load: " << mFirstLocalNode << ", " << mBeyondLocalNode << ", " << mLocalNodesSize << ", " << mEdgesSize << std::endl;
-
-  {
-    CLogger::info Info;
-    Info.imbue(std::locale(""));
-    Info << "Network: Allocating nodes '" << mLocalNodesSize << "' (" << mLocalNodesSize * sizeof(CNode) << " bytes).";
-  }
+  CLogger::info("Network: Allocating nodes '{:L}' ({:L} bytes).", mLocalNodesSize, mLocalNodesSize * sizeof(CNode));
 
   try
     {
@@ -937,18 +931,12 @@ void CNetwork::load()
 
   catch (...)
     {
-      CLogger::error Error;
-      Error.imbue(std::locale(""));
-      Error << "Network: Allocating nodes failed '" << mLocalNodesSize << "' (" << mLocalNodesSize * sizeof(CNode) << " bytes).";
+      CLogger::error Error("Network: Allocating nodes failed '{:L}' ({:L} bytes).", mLocalNodesSize, mLocalNodesSize * sizeof(CNode));
 
       return;
     }
 
-  {
-    CLogger::info Info;
-    Info.imbue(std::locale(""));
-    Info << "Network: Allocating edges '" << mEdgesSize << "' (" << mEdgesSize * sizeof(CEdge) << " bytes).";
-  }
+  CLogger::info("Network: Allocating edges '{:L}' ({:L} bytes).", mEdgesSize, mEdgesSize * sizeof(CEdge));
 
   try
     {
@@ -957,9 +945,7 @@ void CNetwork::load()
 
   catch (...)
     {
-      CLogger::error Error;
-      Error.imbue(std::locale(""));
-      Error << "Network: Allocating edges failed '" << mEdgesSize << "' (" << mEdgesSize * sizeof(CEdge) << " bytes).";
+      CLogger::error("Network: Allocating edges failed '{:L}' ({:L} bytes).", mEdgesSize, mEdgesSize * sizeof(CEdge));
 
       return;
     }
@@ -1033,7 +1019,7 @@ void CNetwork::load()
 
         if (!Active.loadEdge(pEdge, is))
           {
-            CLogger::error() << "Network file: '" << mFile << "' invalid edge (" << pEdge - mEdges << ").";
+            CLogger::error("Network file: '{}' invalid edge ({}).", mFile, pEdge - Active.beginEdge());
 
             Active.mValid = false; // DONE
             break;
@@ -1201,8 +1187,7 @@ void CNetwork::initOutgoingEdges()
 
             if (pEdge->pSource == NULL)
               {
-                CLogger::error() << "Network file: '" << Active.mFile << "' Source not found "
-                                 << pEdge << ", " << pEdge->targetId << ", " << pEdge->sourceId << ".";
+                CLogger::error("Network file: '{}' Source not found {}, {}, {}.", Active.mFile, pEdge - Active.beginEdge(), pEdge->targetId, pEdge->sourceId);
                 mValid = false; // DONE
               }
           }
@@ -1551,7 +1536,7 @@ bool CNetwork::loadEdge(CEdge * pEdge, std::istream & is) const
 
       success = is.good() && (mFirstLocalNode == 0 || (mFirstLocalNode <= pEdge->targetId && pEdge->targetId < mBeyondLocalNode));
       if (!success)
-        CLogger::error() << "CEdge: Invalid binary edge encoding.";
+        CLogger::error("CEdge: Invalid binary edge encoding.");
     }
   else
     {
@@ -1640,7 +1625,7 @@ bool CNetwork::loadEdge(CEdge * pEdge, std::istream & is) const
         success = (*ptr == 0 || *ptr == '\r');
 
       if (!success)
-        CLogger::error() << "CEdge: Invalid edge encoding '" << Line << "'.";
+        CLogger::error("CEdge: Invalid edge encoding '{}'.", Line);
     }
 
 
@@ -1724,7 +1709,7 @@ CCommunicate::ErrorCode CNetwork::receiveNodes(std::istream & is, int sender)
       if (pNode != NULL)
         {
           Count++;
-          ENABLE_TRACE(CLogger::trace() << "CChanges: updating node '" << pNode->id << "'.";)
+          ENABLE_TRACE(CLogger::trace("CChanges: updating node '{}'.", pNode->id););
 
           pNode->susceptibilityFactor = Node.susceptibilityFactor;
           pNode->susceptibility = Node.susceptibility;
@@ -1735,7 +1720,7 @@ CCommunicate::ErrorCode CNetwork::receiveNodes(std::istream & is, int sender)
         }
     }
 
-  CLogger::debug() << "CChanges::receiveNodes: Receiving '" << Count << "' nodes from: '" << sender << "'.";
+  CLogger::debug("CChanges::receiveNodes: Receiving '{}' nodes from: '{}'.", Count, sender);
 
   return CCommunicate::ErrorCode::Success;
 }

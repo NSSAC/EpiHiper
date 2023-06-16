@@ -123,80 +123,63 @@ void CEdge::fromBinary(std::istream & is)
 
 bool CEdge::setTargetActivity(const CTraitData::value & value, CValueInterface::pOperator ENABLE_TRACE(pOperator), const CMetadata & ENABLE_TRACE(metadata))
 {
-  ENABLE_TRACE(CLogger::trace() << "CEdge [ActionDefinition:"
-                                << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
-                                << "]: Edge ("
-                                << targetId
-                                << ", "
-                                << sourceId
-                                << ") targetActivity "
-                                << CValueInterface::operatorToString(pOperator)
-                                << " "
-                                << CTrait::ActivityTrait->toString(value);)
+  ENABLE_TRACE(CLogger::trace("CEdge [ActionDefinition:{}]: Edge ({}, {}) targetActivity {} {}",
+                              metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1,
+                              targetId,
+                              sourceId,
+                              CValueInterface::operatorToString(pOperator),
+                              CTrait::ActivityTrait->toString(value)););
   CTraitData::setValue(targetActivity, value);
   return true;
 }
 
 bool CEdge::setSourceActivity(const CTraitData::value & value, CValueInterface::pOperator ENABLE_TRACE(pOperator), const CMetadata & ENABLE_TRACE(metadata))
 {
-  ENABLE_TRACE(CLogger::trace() << "CEdge [ActionDefinition:"
-                                << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
-                                << "]: Edge ("
-                                << targetId
-                                << ", "
-                                << sourceId
-                                << ") sourceActivity "
-                                << CValueInterface::operatorToString(pOperator)
-                                << " "
-                                << CTrait::ActivityTrait->toString(value);)
+  ENABLE_TRACE(CLogger::trace("CEdge [ActionDefinition:{}]: Edge ({}, {}) sourceActivity {} {}",
+                              metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1,
+                              targetId,
+                              sourceId,
+                              CValueInterface::operatorToString(pOperator),
+                              CTrait::ActivityTrait->toString(value)););
   CTraitData::setValue(sourceActivity, value);
+
   return true;
 }
 
 bool CEdge::setEdgeTrait(const CTraitData::value & value, CValueInterface::pOperator ENABLE_TRACE(pOperator), const CMetadata & ENABLE_TRACE(metadata))
 {
-  ENABLE_TRACE(CLogger::trace() << "CEdge [ActionDefinition:"
-                                << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
-                                << "]: Edge ("
-                                << targetId
-                                << ", "
-                                << sourceId
-                                << ") edgeTrait "
-                                << CValueInterface::operatorToString(pOperator)
-                                << " "
-                                << CTrait::EdgeTrait->toString(value);)
+  ENABLE_TRACE(CLogger::trace("CEdge [ActionDefinition:{}]: Edge ({}, {}) edgeTrait {} {}",
+                              metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1,
+                              targetId,
+                              sourceId,
+                              CValueInterface::operatorToString(pOperator),
+                              CTrait::EdgeTrait->toString(value)););
   CTraitData::setValue(edgeTrait, value);
+
   return true;
 }
 
 bool CEdge::setActive(const bool & value, CValueInterface::pOperator ENABLE_TRACE(pOperator), const CMetadata & ENABLE_TRACE(metadata))
 {
-  ENABLE_TRACE(CLogger::trace() << "CEdge [ActionDefinition:"
-                                << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
-                                << "]: Edge ("
-                                << targetId
-                                << ", "
-                                << sourceId
-                                << ") active "
-                                << CValueInterface::operatorToString(pOperator)
-                                << " "
-                                << (value ? "true" : "false");)
+  ENABLE_TRACE(CLogger::trace("CEdge [ActionDefinition:{}]: Edge ({}, {}) active {} {}",
+                              metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1,
+                              targetId,
+                              sourceId,
+                              CValueInterface::operatorToString(pOperator),
+                              value ? "true" : "false"););
   active = value;
+
   return true;
 }
 
 bool CEdge::setWeight(const double & value, CValueInterface::pOperator pOperator, const CMetadata & ENABLE_TRACE(metadata))
 {
-  ENABLE_TRACE(CLogger::trace() << "CEdge [ActionDefinition:"
-                                << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
-                                << "]: Edge ("
-                                << targetId
-                                << ", "
-                                << sourceId
-                                << ") weight "
-                                << CValueInterface::operatorToString(pOperator)
-                                << " "
-                                << value;)
+  ENABLE_TRACE(CLogger::trace("CEdge [ActionDefinition:{}]: Edge ({}, {}) weight {} {}",
+                              metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1,
+                              targetId,
+                              sourceId,
+                              CValueInterface::operatorToString(pOperator),
+                              value););
   (*pOperator)(weight, value);
 
   return true;

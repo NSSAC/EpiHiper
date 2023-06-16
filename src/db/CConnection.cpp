@@ -92,12 +92,12 @@ void CConnection::init()
                && Message.find("Could not obtain client encoding") == std::string::npos)
               || Tries == 0)
             {
-              CLogger::error() << Message;
+              CLogger::error("{}", Message);
               Tries = 0;
             } 
           else
             {
-              CLogger::warn() << Message << " tries left: " << Tries;
+              CLogger::warn("{} tries left: '{}'", Message, Tries);
             }
         }
     }
@@ -128,7 +128,7 @@ pqxx::read_transaction * CConnection::work()
 
   catch (const std::exception & e)
     {
-      CLogger::error() << "CConnection: " << CLogger::sanitize(e.what());
+      CLogger::error("CConnection: {}", CLogger::sanitize(e.what()));
       pWork = NULL;
     }
 

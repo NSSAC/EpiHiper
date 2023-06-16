@@ -279,14 +279,11 @@ bool CVariable::getValue()
 bool CVariable::setValue(const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & ENABLE_TRACE(metadata))
 {
   const double & OperatorValue = value.toNumber();
-  ENABLE_TRACE(CLogger::trace() << "CVariable [ActionDefinition:"
-                                << (metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1)
-                                << "]: Variable ("
-                                << mId
-                                << ") value "
-                                << CValueInterface::operatorToString(pOperator)
-                                << " "
-                                << OperatorValue;)
+  ENABLE_TRACE(CLogger::trace("CVariable [ActionDefinition: {}]: Variable ({}) value {} {}",
+                              metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1,
+                              mId,
+                              CValueInterface::operatorToString(pOperator),
+                              OperatorValue););
 
   double & Value = mLocalValue.Active();
   const double OldValue = Value;

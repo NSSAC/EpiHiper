@@ -499,7 +499,7 @@ void CSampling::fromJSON(const json_t * json)
     {
       if (mpVariable->getScope() == CVariable::Scope::global)
         {
-          CLogger::error() << "Sampling: The variable '" << mpVariable->getId() << "' must have scope local.";
+          CLogger::error("Sampling: The variable '{}' must have scope local.", mpVariable->getId());
           return;
         }
     }
@@ -603,18 +603,18 @@ void CSampling::process(const CSetContent & targets)
       mpTargets->samplePercent(mPercentage, mSampledTargets, mNotSampledTargets);
     }
 
-  CLogger::info() << "CSampling: Sampled set size: '" << mSampledTargets.size() << "', Not sampled set size: '" << mNotSampledTargets.size() << "'";
+  CLogger::info("CSampling: Sampled set size: '{}', Not sampled set size: '{}'.", mSampledTargets.size(), mNotSampledTargets.size());
 
   if (mpSampled != NULL)
     mpSampled->process(mSampledTargets);
   else
-    CLogger::info() << "CActionEnsemble: Target set contains '" << mSampledTargets.size() << "' ignored items.";
+    CLogger::info("CActionEnsemble: Target set contains '{}' ignored items.", mSampledTargets.size());
   
 
   if (mpNotSampled != NULL)
     mpNotSampled->process(mNotSampledTargets);
   else
-    CLogger::info() << "CActionEnsemble: Target set contains '" << mNotSampledTargets.size() << "' ignored items.";
+    CLogger::info("CActionEnsemble: Target set contains '{}' ignored items.", mNotSampledTargets.size());
 }
 
 int CSampling::broadcastCount()
