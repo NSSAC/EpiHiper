@@ -118,9 +118,9 @@ bool CSimulation::run()
   CLogger::updateTick();
   CCommunicate::memUsage();
 
-  CChanges::writeDefaultOutput();
+  success &= CChanges::writeDefaultOutput();
   CModel::UpdateGlobalStateCounts();
-  CModel::WriteGlobalStateCounts();
+  success &= CModel::WriteGlobalStateCounts();
 
   CLogger::info("CSimulation::output: duration = '{}' \xc2\xb5s.", std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000);
   Start = std::chrono::steady_clock::now();
@@ -182,9 +182,9 @@ bool CSimulation::run()
       CLogger::updateTick();
       CCommunicate::memUsage();
 
-      CChanges::writeDefaultOutput();
+      success &= CChanges::writeDefaultOutput();
       CModel::UpdateGlobalStateCounts();
-      CModel::WriteGlobalStateCounts();
+      success &= CModel::WriteGlobalStateCounts();
 
       CLogger::info("CSimulation::output: duration = '{}' \xc2\xb5s.", std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000);
       Start = std::chrono::steady_clock::now();

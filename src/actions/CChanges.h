@@ -55,7 +55,7 @@ public:
   static void record(const CVariable * pVariable, const CMetadata & metadata);
 
   static void initDefaultOutput();
-  static void writeDefaultOutput();
+  static bool writeDefaultOutput();
   static CCommunicate::ErrorCode writeDefaultOutputData();
   static CCommunicate::ErrorCode sendNodesRequested(std::ostream & os, int sender);
   static CCommunicate::ErrorCode determineNodesRequested();

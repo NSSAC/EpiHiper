@@ -529,7 +529,7 @@ void CModel::InitGlobalStateCountOutput()
 }
 
 // static
-void CModel::WriteGlobalStateCounts()
+bool CModel::WriteGlobalStateCounts()
 {
   if (CCommunicate::MPIRank == 0)
     {
@@ -537,7 +537,12 @@ void CModel::WriteGlobalStateCounts()
 
       out.open(CSimConfig::getSummaryOutput().c_str(), std::ios_base::app);
 
-      if (out.good())
+      if (out.fail())
+        {
+          CLogger::error() << "CModel::WriteGlobalStateCounts: Failed to open '" << CSimConfig::getSummaryOutput() << "'.";
+          return false;
+        }
+      else
         {
           std::vector< CHealthState >::iterator pState = INSTANCE->mStates.begin();
           std::vector< CHealthState >::iterator pStateEnd = INSTANCE->mStates.end();
@@ -545,30 +550,39 @@ void CModel::WriteGlobalStateCounts()
           out << CActionQueue::getCurrentTick();
 
           // Loop through all states
-          for (; pState != pStateEnd; ++pState)
-            {
-              const CHealthState::Counts & Counts = pState->getGlobalCounts();
+          for (; pState != pStateEnd && out.good(); ++pState)
+              {
+                const CHealthState::Counts & Counts = pState->getGlobalCounts();
 
-              out << "," << Counts.Current << "," << Counts.In << "," << Counts.Out;
-            }
+                out << "," << Counts.Current << "," << Counts.In << "," << Counts.Out;
+              }
 
           // We also add variables
           CVariableList::const_iterator it = CVariableList::INSTANCE.begin();
           CVariableList::const_iterator end = CVariableList::INSTANCE.end();
 
-          for (; it != end; ++it)
-            {
-              out << "," << (*it)->toValue().toNumber();
-            }
+          for (; it != end && out.good(); ++it)
+              {
+                out << "," << (*it)->toValue().toNumber();
+              }
 
           out << "," << CRandom::getSeed() << std::endl;
         }
-      else
+
+      if (out.fail())
         {
-          CLogger::error("Error (Rank 0): Failed to open file '" + CSimConfig::getSummaryOutput() + "'.");
-          exit(EXIT_FAILURE);
+          CLogger::error() << "CModel::WriteGlobalStateCounts: Failed to write '" << CSimConfig::getSummaryOutput() << "'.";
+          return false;
         }
 
       out.close();
+
+      if (out.fail())
+        {
+          CLogger::error() << "CModel::WriteGlobalStateCounts: Failed to close '" << CSimConfig::getSummaryOutput() << "'.";
+          return false;
+        }
     }
+
+    return true;
 }
