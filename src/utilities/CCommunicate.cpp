@@ -320,7 +320,7 @@ int CCommunicate::sequential(int firstRank, CCommunicate::SequentialProcessInter
 
   if (MPIRank == firstRank)
     {
-      (*pSequential)();
+      Result = (*pSequential)();
 
       signal = 1;
 
@@ -334,7 +334,7 @@ int CCommunicate::sequential(int firstRank, CCommunicate::SequentialProcessInter
     {
       receive(&signal, sizeof(int), MPIPreviousRank, &status, MPI_COMM_WORLD);
 
-      (*pSequential)();
+      Result = (*pSequential)();
 
       send(&signal, sizeof(int), MPINextRank, MPI_COMM_WORLD);
     }

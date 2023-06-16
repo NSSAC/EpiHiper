@@ -48,6 +48,8 @@ public:
     InvalidArguments = MPI_ERR_LASTCODE + 1,
     AllocationError,
     FileOpenError,
+    FileWriteError,
+    FileCloseError,
     TypeMissmatch,
     InvalidOperation
   };
