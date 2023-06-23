@@ -134,7 +134,7 @@ void COperationDefinition::fromJSON(const json_t * json)
    
   if (!mTarget.isValid())
     {
-              CLogger::error() << "Operation: Invalid target '" << CSimConfig::jsonToString(json) << "'.";
+      CLogger::error("Operation: Invalid target '{}'.", CSimConfig::jsonToString(json));
       return;
     }
 
@@ -142,7 +142,7 @@ void COperationDefinition::fromJSON(const json_t * json)
 
   if (!json_is_string(pValue))
     {
-      CLogger::error() << "Operation: Invalid operator '" << CSimConfig::jsonToString(json) << "'.";
+      CLogger::error("Operation: Invalid operator '{}'.", CSimConfig::jsonToString(json));
       return;
     }
 
@@ -170,14 +170,14 @@ void COperationDefinition::fromJSON(const json_t * json)
     }
   else
     {
-      CLogger::error() << "Operation: Invalid operator '" << CSimConfig::jsonToString(json) << "'.";
+      CLogger::error("Operation: Invalid operator '{}'.", CSimConfig::jsonToString(json));
     }
 
   if (mpOperator != &CValueInterface::equal
       && mTarget.interfaceType() != CValueInterface::Type::number 
       && mTarget.interfaceType() != CValueInterface::Type::integer)
     {
-      CLogger::error() << "Operation: Target value type must be numeric for operator '" << CSimConfig::jsonToString(json) << "'.";
+      CLogger::error("Operation: Target value type must be numeric for operator '{}'.", CSimConfig::jsonToString(json));
       return;
     }
 
@@ -194,7 +194,7 @@ void COperationDefinition::fromJSON(const json_t * json)
 
   if (!CValueInterface::compatible(mTarget.interfaceType(), mSource.interfaceType()))
     {
-      CLogger::error() << "Operation: Incompatible value types for '" << CSimConfig::jsonToString(json) << "'.";
+      CLogger::error("Operation: Incompatible value types for '{}'.", CSimConfig::jsonToString(json));
       return;
     }
 

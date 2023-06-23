@@ -35,9 +35,6 @@
 #include "network/CEdge.h"
 #include "network/CNode.h"
 
-// Uncomment this line below to get debug print out.
-// #define DEBUG_OUTPUT 1
-
 // static
 void CDependencyGraph::buildGraph()
 {
@@ -129,12 +126,12 @@ bool CDependencyGraph::applyComputableSequence(CComputable::Sequence & updateSeq
           {
             case CSetContent::FilterType::edge:
               EdgeFilter.push_back(CSetContent::Filter< CEdge >(pSetContent));
-              CLogger::debug() << "CComputable: Adding '" << pSetContent->getComputableId() << "' to EdgeFilter.";
+              CLogger::debug("CComputable: Adding '{}' to EdgeFilter.", pSetContent->getComputableId());
               break;
 
             case CSetContent::FilterType::node:
               NodeFilter.push_back(CSetContent::Filter< CNode >(pSetContent));
-              CLogger::debug() << "CComputable: Adding '" << pSetContent->getComputableId() << "' to NodeFilter.";
+              CLogger::debug("CComputable: Adding '{}' to NodeFilter.", pSetContent->getComputableId());
               break;
 
             case CSetContent::FilterType::none:
@@ -356,30 +353,12 @@ bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
 
   std::vector<CComputable*> UpdateSequence;
 
-#ifdef DEBUG_OUTPUT
-  std::cout << "Changed:" << std::endl;
-#endif // DEBUG_OUTPUT
-
   CComputableSet::const_iterator it = changedComputables.begin();
   CComputableSet::const_iterator end = changedComputables.end();
 
   // Mark all nodes which are changed or need to be calculated
   for (; it != end && success; ++it)
     {
-      // Issue 1170: We need to add elements of the stoichiometry, reduced stoichiometry,
-      // and link matrices, i.e., we have data objects which may change
-#ifdef DEBUG_OUTPUT
-      if (it->second->getDataComputable() != it->second)
-        {
-          std::cout << *static_cast< const CMathComputable * >(it->second) << std::endl;
-        }
-      else
-        {
-          std::cout << *static_cast< const CDataComputable * >(it->second) << std::endl;
-        }
-
-#endif // DEBUG_OUTPUT
-
       found = mComputables2Nodes.find(it->second);
 
       if (found != notFound)
@@ -394,29 +373,9 @@ bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
   it = calculatedComputables.begin();
   end = calculatedComputables.end();
 
-#ifdef DEBUG_OUTPUT
-  std::cout << "Up To Date:" << std::endl;
-#endif // DEBUG_OUTPUT
-
   // Mark all nodes which are requested and its prerequisites.
   for (; it != end && success; ++it)
     {
-#ifdef DEBUG_OUTPUT
-
-      // Issue 1170: We need to add elements of the stoichiometry, reduced stoichiometry,
-      // and link matrices, i.e., we have data objects which may change
-      if (it->second->getDataComputable() != it->second)
-        {
-          std::cout << *static_cast< const CMathComputable * >(it->second) << std::endl;
-        }
-      else
-        {
-          std::cout << *static_cast< const CDataComputable * >(it->second) << std::endl;
-        }
-
-      std::cout << *static_cast< const CMathComputable * >(it->second) << std::endl;
-#endif // DEBUG_OUTPUT
-
       found = mComputables2Nodes.find(it->second);
 
       if (found != notFound)
@@ -429,26 +388,14 @@ bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
   it = requestedComputables.begin();
   end = requestedComputables.end();
 
-#ifdef DEBUG_OUTPUT
-  std::cout << "Requested:" << std::endl;
-#endif // DEBUG_OUTPUT
-
   // Mark all nodes which are requested and its prerequisites.
   for (; it != end && success; ++it)
     {
-#ifdef DEBUG_OUTPUT
-      std::cout << it->second << std::endl;
-#endif // DEBUG_OUTPUT
-
       if (it->second == NULL)
         {
           success = false; // we should not have NULL elements here
           break;
         }
-
-#ifdef DEBUG_OUTPUT
-      std::cout << *static_cast< const CMathComputable * >(it->second) << std::endl;
-#endif // DEBUG_OUTPUT
 
       found = mComputables2Nodes.find(it->second);
 
@@ -460,14 +407,6 @@ bool CDependencyGraph::getUpdateSequence(CComputable::Sequence & updateSequence,
     }
 
   if (!success) goto finish;
-
-#ifdef DEBUG_OUTPUT
-  {
-    std::ofstream GetUpdateSequence("GetUpdateSequence.dot");
-    exportDOTFormat(GetUpdateSequence, "GetUpdateSequence");
-    GetUpdateSequence.close();
-  }
-#endif // DEBUG_OUTPUT
 
   it = requestedComputables.begin();
   end = requestedComputables.end();
@@ -505,27 +444,6 @@ finish:
 
   updateSequence = UpdateSequence;
 
-#ifdef DEBUG_OUTPUT
-  CComputable::Sequence::const_iterator itSeq = updateSequence.begin();
-  CComputable::Sequence::const_iterator endSeq = updateSequence.end();
-
-  std::cout << std::endl <<  "Start" << std::endl;
-
-  for (; itSeq != endSeq; ++itSeq)
-    {
-      if (dynamic_cast< const CMathComputable * >(*itSeq))
-        {
-          std::cout << *static_cast< const CMathComputable * >(*itSeq);
-        }
-      else
-        {
-          std::cout << (*itSeq)->getCN() << std::endl;
-        }
-    }
-
-  std::cout << "End" << std::endl;
-#endif // DEBUG_OUTPUT
-
   return success;
 }
 
@@ -541,30 +459,12 @@ bool CDependencyGraph::getProcessGroups(std::vector< CComputable::Sequence > & p
 
   std::vector< CComputable::Sequence > ProcessGroups;
 
-#ifdef DEBUG_OUTPUT
-  std::cout << "Changed:" << std::endl;
-#endif // DEBUG_OUTPUT
-
   CComputableSet::const_iterator it = changedComputables.begin();
   CComputableSet::const_iterator end = changedComputables.end();
 
   // Mark all nodes which are changed or need to be calculated
   for (; it != end && success; ++it)
     {
-      // Issue 1170: We need to add elements of the stoichiometry, reduced stoichiometry,
-      // and link matrices, i.e., we have data objects which may change
-#ifdef DEBUG_OUTPUT
-      if (it->second->getDataComputable() != it->second)
-        {
-          std::cout << *static_cast< const CMathComputable * >(it->second) << std::endl;
-        }
-      else
-        {
-          std::cout << *static_cast< const CDataComputable * >(it->second) << std::endl;
-        }
-
-#endif // DEBUG_OUTPUT
-
       found = mComputables2Nodes.find(it->second);
 
       if (found != notFound)
@@ -579,29 +479,9 @@ bool CDependencyGraph::getProcessGroups(std::vector< CComputable::Sequence > & p
   it = calculatedComputables.begin();
   end = calculatedComputables.end();
 
-#ifdef DEBUG_OUTPUT
-  std::cout << "Up To Date:" << std::endl;
-#endif // DEBUG_OUTPUT
-
   // Mark all nodes which are requested and its prerequisites.
   for (; it != end && success; ++it)
     {
-#ifdef DEBUG_OUTPUT
-
-      // Issue 1170: We need to add elements of the stoichiometry, reduced stoichiometry,
-      // and link matrices, i.e., we have data objects which may change
-      if (it->second->getDataComputable() != it->second)
-        {
-          std::cout << *static_cast< const CMathComputable * >(it->second) << std::endl;
-        }
-      else
-        {
-          std::cout << *static_cast< const CDataComputable * >(it->second) << std::endl;
-        }
-
-      std::cout << *static_cast< const CMathComputable * >(it->second) << std::endl;
-#endif // DEBUG_OUTPUT
-
       found = mComputables2Nodes.find(it->second);
 
       if (found != notFound)
@@ -614,26 +494,14 @@ bool CDependencyGraph::getProcessGroups(std::vector< CComputable::Sequence > & p
   it = requestedComputables.begin();
   end = requestedComputables.end();
 
-#ifdef DEBUG_OUTPUT
-  std::cout << "Requested:" << std::endl;
-#endif // DEBUG_OUTPUT
-
   // Mark all nodes which are requested and its prerequisites.
   for (; it != end && success; ++it)
     {
-#ifdef DEBUG_OUTPUT
-      std::cout << it->second << std::endl;
-#endif // DEBUG_OUTPUT
-
       if (it->second == NULL)
         {
           success = false; // we should not have NULL elements here
           break;
         }
-
-#ifdef DEBUG_OUTPUT
-      std::cout << *static_cast< const CMathComputable * >(it->second) << std::endl;
-#endif // DEBUG_OUTPUT
 
       found = mComputables2Nodes.find(it->second);
 
@@ -645,14 +513,6 @@ bool CDependencyGraph::getProcessGroups(std::vector< CComputable::Sequence > & p
     }
 
   if (!success) goto finish;
-
-#ifdef DEBUG_OUTPUT
-  {
-    std::ofstream GetUpdateSequence("GetUpdateSequence.dot");
-    exportDOTFormat(GetUpdateSequence, "GetUpdateSequence");
-    GetUpdateSequence.close();
-  }
-#endif // DEBUG_OUTPUT
 
   it = requestedComputables.begin();
   end = requestedComputables.end();
@@ -689,18 +549,6 @@ finish:
     }
 
   processGroups = ProcessGroups;
-
-#ifdef DEBUG_OUTPUT
-  size_t Level = 0;
-
-  for (const CComputable::Sequence & sequence : processGroups)
-    {
-      CLogger::debug() << "Level: " << Level++;
-
-      for (const CComputable * pComputable : sequence)
-        CLogger::debug() << "  " << pComputable->getComputableId();
-    }
-#endif // DEBUG_OUTPUT
 
   return success;
 }
@@ -814,27 +662,9 @@ bool CDependencyGraph::appendAllDependents(const CComputableSet & changedComputa
   CComputableSet::const_iterator it = changedComputables.begin();
   CComputableSet::const_iterator end = changedComputables.end();
 
-#ifdef DEBUG_OUTPUT
-  std::cout << "Changed:" << std::endl;
-#endif // DEBUG_OUTPUT
-
   // Mark all nodes which are changed or need to be calculated
   for (; it != end && success; ++it)
     {
-      // Issue 1170: We need to add elements of the stoichiometry, reduced stoichiometry,
-      // and link matrices, i.e., we have data objects which may change
-#ifdef DEBUG_OUTPUT
-      if (it->second->getDataComputable() != it->second)
-        {
-          std::cout << *static_cast< const CMathComputable * >(it->second) << std::endl;
-        }
-      else
-        {
-          std::cout << *static_cast< const CDataComputable * >(it->second) << std::endl;
-        }
-
-#endif // DEBUG_OUTPUT
-
       found = mComputables2Nodes.find(it->second);
 
       if (found != notFound)
@@ -847,28 +677,9 @@ bool CDependencyGraph::appendAllDependents(const CComputableSet & changedComputa
   it = ignoredComputables.begin();
   end = ignoredComputables.end();
 
-#ifdef DEBUG_OUTPUT
-  std::cout << "Ignored:" << std::endl;
-#endif // DEBUG_OUTPUT
-
   // Mark all nodes which are requested and its prerequisites.
   for (; it != end && success; ++it)
     {
-#ifdef DEBUG_OUTPUT
-
-      // Issue 1170: We need to add elements of the stoichiometry, reduced stoichiometry,
-      // and link matrices, i.e., we have data objects which may change
-      if (it->second->getDataComputable() != it->second)
-        {
-          std::cout << *static_cast< const CMathComputable * >(it->second) << std::endl;
-        }
-      else
-        {
-          std::cout << *static_cast< const CDataComputable * >(it->second) << std::endl;
-        }
-
-#endif // DEBUG_OUTPUT
-
       found = mComputables2Nodes.find(it->second);
 
       if (found != notFound)
@@ -876,14 +687,6 @@ bool CDependencyGraph::appendAllDependents(const CComputableSet & changedComputa
           success &= found->second->updateIgnoredState(changedComputables, true);
         }
     }
-
-#ifdef DEBUG_OUTPUT
-  {
-    std::ofstream AppendAllDependents("AppendAllDependents.dot");
-    exportDOTFormat(AppendAllDependents, "AppendAllDependents");
-    AppendAllDependents.close();
-  }
-#endif // DEBUG_OUTPUT
 
   const_iterator itCheck = mComputables2Nodes.begin();
   const_iterator endCheck = mComputables2Nodes.end();

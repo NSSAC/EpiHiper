@@ -116,7 +116,7 @@ void CCommunicate::init(int /* argc */ , char ** /* argv */)
             int Size = 1024;
             char Error[1024];
             MPI_Error_string(Result, Error, &Size);
-            CLogger::error() << "CCommunicate::init: " << Error;
+            CLogger::error("CCommunicate::init: {}", Error);
           }
 
         if (color != MPI_UNDEFINED)
@@ -128,7 +128,7 @@ void CCommunicate::init(int /* argc */ , char ** /* argv */)
             MPI_Group_size(Group, & Size);
 
             if (Size != 2)
-              CLogger::error() << "CCommunicate::init: Group Size " << Size;
+              CLogger::error("CCommunicate::init: Group Size {}", Size);
           }
       }
   #endif // USE_MPI
@@ -162,7 +162,7 @@ int CCommunicate::TotalProcesses()
 // static
 int CCommunicate::abortMessage(ErrorCode err, const std::string & msg, const char * file, int line)
 {
-  CLogger::error() << "Rank: " << MPIRank << ", " << file << "(" << line << "): " << msg << std::endl;
+  CLogger::error("Rank: {}, {}({}): {}", MPIRank, file, line, msg);
 
   return abort(err);
 }
@@ -206,7 +206,7 @@ int CCommunicate::send(const void * buf,
   if (MPIProcesses == 1)
     return MPI_SUCCESS;
 
-  CLogger::debug() << "CCommunicate::send: '" << count << "' bytes to '" << dest << "'.";
+  CLogger::debug("CCommunicate::send: '{}' bytes to '{}'.", count, dest);
   return MPI_Send(buf, count, MPI_CHAR, dest, 0, comm);
 }
 #else
@@ -230,7 +230,7 @@ int CCommunicate::receive(void * buf,
   if (MPIProcesses == 1)
     return MPI_SUCCESS;
 
-  CLogger::debug() << "CCommunicate::receive: '" << count << "' bytes from '" << source << "'.";
+  CLogger::debug("CCommunicate::receive: '{}' bytes from '{}'.", count, source);
   return MPI_Recv(buf, count, MPI_CHAR, source, 0, comm, status);
 }
 #else
@@ -253,7 +253,7 @@ int CCommunicate::broadcast(void * buffer,
   if (MPIProcesses == 1)
     return MPI_SUCCESS;
 
-  CLogger::debug() << "CCommunicate::broadcast: '" << count << "' bytes from '" << root << "'.";
+  CLogger::debug("CCommunicate::broadcast: '{}' bytes from '{}'.", count, root);
   return MPI_Bcast(buffer, count, MPI_CHAR, root, MPI_COMM_WORLD);
 }
 #else
@@ -339,7 +339,7 @@ int CCommunicate::sequential(int firstRank, CCommunicate::SequentialProcessInter
       send(&signal, sizeof(int), MPINextRank, MPI_COMM_WORLD);
     }
 
-  CLogger::info() << "CCommunicate::sequential: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
+  CLogger::info("CCommunicate::sequential: duration = '{}' \xc2\xb5s.", std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000);
 
   return (int) Result;
 }
@@ -392,7 +392,7 @@ int CCommunicate::master(int masterRank,
       Result = (*pReceive)(is, masterRank);
     }
 
-  CLogger::info() << "CCommunicate::master: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
+  CLogger::info("CCommunicate::master: duration = '{}' \xc2\xb5s.", std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000);
 
   return (int) Result;
 }
@@ -480,7 +480,7 @@ int CCommunicate::roundRobinFixed(const void * buffer,
           break;
 
         case Schedule::proceed:
-          CLogger::debug() << "CCommunicate::roundRobinFixed: self: " << MPIRank << ", other: " << other;
+          CLogger::debug("CCommunicate::roundRobinFixed: self: {}, other: {}", MPIRank, other);
 
           if (other < MPIRank)
             {
@@ -525,7 +525,7 @@ int CCommunicate::roundRobinFixed(const void * buffer,
         }
     }
 
-  CLogger::info() << "CCommunicate::roundRobinFixed: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
+  CLogger::info("CCommunicate::roundRobinFixed: duration = '{}' \xc2\xb5s.", std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000);
 
   return (int) Result;
 }
@@ -559,7 +559,7 @@ int CCommunicate::roundRobin(const void * buffer,
           break;
 
         case Schedule::proceed:
-          CLogger::debug() << "CCommunicate::roundRobin: self: " << MPIRank << ", other: " << other;
+          CLogger::debug("CCommunicate::roundRobin: self: {}, other: {}", MPIRank, other);
 
           if (other < MPIRank)
             {
@@ -614,7 +614,7 @@ int CCommunicate::roundRobin(const void * buffer,
         }
     }
 
-  CLogger::info() << "CCommunicate::roundRobin: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
+  CLogger::info("CCommunicate::roundRobin: duration = '{}' \xc2\xb5s.", std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000);
 
   return (int) Result;
 }
@@ -646,7 +646,7 @@ int CCommunicate::roundRobin(SendInterface * pSend,
           break;
 
         case Schedule::proceed:
-          CLogger::debug() << "CCommunicate::roundRobin: self: " << MPIRank << ", other: " << other;
+          CLogger::debug("CCommunicate::roundRobin: self: {}, other: {}", MPIRank, other);
 
           if (other < MPIRank)
             {
@@ -707,7 +707,7 @@ int CCommunicate::roundRobin(SendInterface * pSend,
         }
     }
 
-  CLogger::info() << "CCommunicate::roundRobin: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "' \xc2\xb5s.";
+  CLogger::info("CCommunicate::roundRobin: duration = '{}' \xc2\xb5s.", std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000);
 
   return (int) Result;
 }
@@ -757,7 +757,7 @@ int CCommunicate::barrierRMA()
 #pragma omp single
       result = MPI_Win_fence(0, MPIWin);
 
-      CLogger::debug() << "CCommunicate::barrierRMA: duration = '" << std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000  << "'\xc2\xb5s.";
+      CLogger::debug("CCommunicate::barrierRMA: duration = '{}' \xc2\xb5s.",std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000);
     }
 #endif // USE_MPI
 
@@ -839,7 +839,7 @@ void CCommunicate::memUsage()
   vm_usage = vsize / 1024.0;
   resident_set = rss * page_size_kb;
 
-  CLogger::info() << "Memory VM: " << (size_t) vm_usage << "; RSS: " << (size_t) resident_set;
+  CLogger::info("Memory VM: {}; RSS: {}", (size_t) vm_usage, (size_t) resident_set);
 }
 
 CCommunicate::~CCommunicate()

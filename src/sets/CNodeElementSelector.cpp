@@ -287,7 +287,7 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
   if (json_is_string(pValue)
       && strcmp(json_string_value(pValue), "node") != 0)
     {
-      CLogger::error() << "Node selector: Invalid or missing value 'elementType' for " << CSimConfig::jsonToString(json);
+      CLogger::error("Node selector: Invalid or missing value 'elementType' for {}", CSimConfig::jsonToString(json));
       return;
     }
 
@@ -306,7 +306,7 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
     }
   else
     {
-      CLogger::error() << "Node selector: Invalid or missing value 'scope' for " << CSimConfig::jsonToString(json);
+      CLogger::error("Node selector: Invalid or missing value 'scope' for {}", CSimConfig::jsonToString(json));
       return;
     }
 
@@ -389,7 +389,7 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
               if (mpValueList != NULL
                   && !mpValueList->isValid())
                 {
-                  CLogger::error() << "Node selector: Invalid or missing value 'right' for " << CSimConfig::jsonToString(json);
+                  CLogger::error("Node selector: Invalid or missing value 'right' for {}", CSimConfig::jsonToString(json));
                   return;
                 }
 
@@ -433,7 +433,7 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
             }
           else
             {
-              CLogger::error() << "Node selector: Invalid or missing value 'left' for " << CSimConfig::jsonToString(json);
+              CLogger::error("Node selector: Invalid or missing value 'left' for {}", CSimConfig::jsonToString(json));
               return;
             }
         }
@@ -441,7 +441,7 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
         {
           if (!mLocalScope)
             {
-              CLogger::error() << "Node selector: Invalid or missing value 'scope' for " << CSimConfig::jsonToString(json);
+              CLogger::error("Node selector: Invalid or missing value 'scope' for {}", CSimConfig::jsonToString(json));
               return;
             }
 
@@ -476,7 +476,7 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
 
           mpSelector.reset();
 
-          CLogger::error() << "Node selector: Invalid or missing value 'selector' for " << CSimConfig::jsonToString(json);
+          CLogger::error("Node selector: Invalid or missing value 'selector' for {}", CSimConfig::jsonToString(json));
           return;
         }
     }
@@ -511,7 +511,7 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
         {
           if (!mLocalScope)
             {
-              CLogger::error() << "Node selector: Invalid or missing value 'scope' for " << CSimConfig::jsonToString(json);
+              CLogger::error("Node selector: Invalid or missing value 'scope' for {}", CSimConfig::jsonToString(json));
               return;
             }
 
@@ -520,7 +520,7 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
           return;
         }
 
-      CLogger::error() << "Node selector: Invalid or missing value 'operator' for " << CSimConfig::jsonToString(json);
+      CLogger::error("Node selector: Invalid or missing value 'operator' for {}", CSimConfig::jsonToString(json));
       return;
     }
 
@@ -587,7 +587,7 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
 
       if (!Table.isValid())
         {
-          CLogger::error() << "Node selector: Invalid or missing value 'table' for " << CSimConfig::jsonToString(json);
+          CLogger::error("Node selector: Invalid or missing value 'table' for {}", CSimConfig::jsonToString(json));
           return;
         }
 
@@ -595,7 +595,7 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
 
       if (!Field.isValid())
         {
-          CLogger::error() << "Node selector: Invalid or missing value 'field' for " << CSimConfig::jsonToString(json);
+          CLogger::error("Node selector: Invalid or missing value 'field' for {}", CSimConfig::jsonToString(json));
           return;
         }
 
@@ -620,7 +620,7 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
 
       mpSelector.reset();
 
-      CLogger::error() << "Node selector: Invalid or missing value 'right' for " << CSimConfig::jsonToString(json);
+      CLogger::error("Node selector: Invalid or missing value 'right' for {}", CSimConfig::jsonToString(json));
       return;
     }
 
@@ -677,7 +677,7 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
               return;
             }
 
-          CLogger::error() << "Node selector: Invalid or missing value 'right' for " << CSimConfig::jsonToString(json);
+          CLogger::error("Node selector: Invalid or missing value 'right' for {}", CSimConfig::jsonToString(json));
           return;
         }
 
@@ -729,7 +729,7 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
 
       if (!Table.isValid())
         {
-          CLogger::error() << "Node selector: Invalid or missing value 'table' for " << CSimConfig::jsonToString(json);
+          CLogger::error("Node selector: Invalid or missing value 'table' for {}", CSimConfig::jsonToString(json));
           return;
         }
 
@@ -737,7 +737,7 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
 
       if (!Field.isValid())
         {
-          CLogger::error() << "Node selector: Invalid or missing value 'field' for " << CSimConfig::jsonToString(json);
+          CLogger::error("Node selector: Invalid or missing value 'field' for {}", CSimConfig::jsonToString(json));
           return;
         }
 
@@ -782,7 +782,7 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
         }
     }
 
-  CLogger::error() << "Node selector: Invalid or missing value 'operator' for " << CSimConfig::jsonToString(json);
+  CLogger::error("Node selector: Invalid or missing value 'operator' for {}", CSimConfig::jsonToString(json));
 }
 
 // virtual 
@@ -936,7 +936,7 @@ bool CNodeElementSelector::all()
         *it = pNode;
     }
 
-  CLogger::debug() << "CNodeElementSelector: all returned '" << Nodes.size() << "' nodes.";
+  CLogger::debug("CNodeElementSelector: all returned '{}' nodes.", Nodes.size());
   return true;
 }
 
@@ -952,7 +952,7 @@ bool CNodeElementSelector::propertySelection()
     if (filterPropertySelection(pNode))
       Nodes.push_back(pNode);
 
-  CLogger::debug() << "CNodeElementSelector: propertySelection returned '" << Nodes.size() << "' nodes.";
+  CLogger::debug("CNodeElementSelector: propertySelection returned '{}' nodes.", Nodes.size());
 
   if (!mLocalScope)
     {
@@ -971,7 +971,7 @@ bool CNodeElementSelector::propertySelection()
       if (sort)
         std::sort(Nodes.begin(), Nodes.end());
 
-      CLogger::debug() << "CNodeElementSelector: propertySelection returned '" << Nodes.size() << "' nodes.";
+      CLogger::debug("CNodeElementSelector: propertySelection returned '{}' nodes.", Nodes.size());
     }
 
   return true;
@@ -994,7 +994,7 @@ bool CNodeElementSelector::propertyIn()
     if (mpValueList->contains(mNodeProperty.propertyOf(pNode)))
       Nodes.push_back(pNode);
 
-  CLogger::debug() << "CNodeElementSelector: propertyIn returned '" << Nodes.size() << "' nodes.";
+  CLogger::debug("CNodeElementSelector: propertyIn returned '{}' nodes.", Nodes.size());
 
   if (!mLocalScope)
     {
@@ -1014,7 +1014,7 @@ bool CNodeElementSelector::propertyIn()
       if (sort)
         std::sort(Nodes.begin(), Nodes.end());
 
-      CLogger::debug() << "CNodeElementSelector: propertyIn returned '" << Nodes.size() << "' nodes.";
+      CLogger::debug("CNodeElementSelector: propertyIn returned '{}' nodes.", Nodes.size());
     }
   return true;
 }
@@ -1036,7 +1036,7 @@ bool CNodeElementSelector::propertyNotIn()
     if (!mpValueList->contains(mNodeProperty.propertyOf(pNode)))
       Nodes.push_back(pNode);
 
-  CLogger::debug() << "CNodeElementSelector: propertyNotIn returned '" << Nodes.size() << "' nodes.";
+  CLogger::debug("CNodeElementSelector: propertyNotIn returned '{}' nodes.", Nodes.size());
 
   if (!mLocalScope)
     {
@@ -1056,7 +1056,7 @@ bool CNodeElementSelector::propertyNotIn()
       if (sort)
         std::sort(Nodes.begin(), Nodes.end());
 
-      CLogger::debug() << "CNodeElementSelector: propertyNotIn returned '" << Nodes.size() << "' nodes.";
+      CLogger::debug("CNodeElementSelector: propertyNotIn returned '{}' nodes.", Nodes.size());
     }
 
   return true;
@@ -1085,7 +1085,7 @@ bool CNodeElementSelector::withIncomingEdge()
 
   std::sort(Nodes.begin(), Nodes.end());
 
-  CLogger::debug() << "CNodeElementSelector: withIncomingEdge returned '" << Nodes.size() << "' nodes.";
+  CLogger::debug("CNodeElementSelector: withIncomingEdge returned '{}' nodes.", Nodes.size());
   return true;
 }
 
@@ -1110,7 +1110,7 @@ bool CNodeElementSelector::dbAll()
   if (!mLocalScope)
     std::sort(Nodes.begin(), Nodes.end());
 
-  CLogger::debug() << "CNodeElementSelector: dbAll returned '" << Nodes.size() << "' nodes.";
+  CLogger::debug("CNodeElementSelector: dbAll returned '{}' nodes.", Nodes.size());
   return success;
 }
 
@@ -1142,7 +1142,7 @@ bool CNodeElementSelector::dbSelection()
   if (!mLocalScope)
     std::sort(Nodes.begin(), Nodes.end());
 
-  CLogger::debug() << "CNodeElementSelector: dbSelection returned '" << Nodes.size() << "' nodes.";
+  CLogger::debug("CNodeElementSelector: dbSelection returned '{}' nodes.", Nodes.size());
   return success;
 }
 
@@ -1179,7 +1179,7 @@ bool CNodeElementSelector::dbIn()
   if (!mLocalScope)
     std::sort(Nodes.begin(), Nodes.end());
 
-  CLogger::debug() << "CNodeElementSelector: dbIn returned '" << Nodes.size() << "' nodes.";
+  CLogger::debug("CNodeElementSelector: dbIn returned '{}' nodes.", Nodes.size());
   return success;
 }
 
@@ -1216,6 +1216,6 @@ bool CNodeElementSelector::dbNotIn()
   if (!mLocalScope)
     std::sort(Nodes.begin(), Nodes.end());
 
-  CLogger::debug() << "CNodeElementSelector: dbNotIn returned '" << Nodes.size() << "' nodes.";
+  CLogger::debug("CNodeElementSelector: dbNotIn returned '{}' nodes.", Nodes.size());
   return success;
 }

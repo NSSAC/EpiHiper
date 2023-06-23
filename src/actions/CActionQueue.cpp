@@ -185,7 +185,7 @@ void CActionQueue::addRemoteAction(const size_t & actionId, const CNode * pNode)
         }
       catch (...)
         {
-          CLogger::error() << "CActionQueue: Add remote action failed for action '" << index << "' node '" << pNode->id << "'.";
+          CLogger::error("CActionQueue: Add remote action failed for action '{}' node '{}'.", index, pNode->id);
         }
     }
   else
@@ -225,7 +225,7 @@ void CActionQueue::addRemoteAction(const size_t & actionId, const CEdge * pEdge)
         }
       catch (...)
         {
-          CLogger::error() << "CActionQueue: Add remote action failed for action '" << index << "' edge '" << pEdge->targetId << "', '" << pEdge->sourceId << "'.";
+          CLogger::error("CActionQueue: Add remote action failed for action '{}' edge '{}', '{}'.", index, pEdge->targetId, pEdge->sourceId);
         }
     }
   else

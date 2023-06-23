@@ -111,7 +111,7 @@ int CSizeOf::broadcastSize()
     CLogger::setSingle(false);
   }
 
-  CLogger::debug() << "CSizeOf: Returned '" << *static_cast< double * >(mpValue) << "' for " << mIdentifier;
+  CLogger::debug("CSizeOf: Returned '{}' for {}", *static_cast< double * >(mpValue), mIdentifier);
   return (int) CCommunicate::ErrorCode::Success;
 }
 

@@ -192,7 +192,7 @@ void CChanges::record(const CNode * pNode, const CMetadata & metadata)
 
     if (out.fail())
       {
-        CLogger::error() << "CChanges::writeDefaultOutputData: Failed to open '" << CSimConfig::getOutput() << "'.";
+        CLogger::error("CChanges::writeDefaultOutputData: Failed to open '{}'.", CSimConfig::getOutput());
         return CCommunicate::ErrorCode::FileOpenError;
       }
     else
@@ -209,7 +209,7 @@ void CChanges::record(const CNode * pNode, const CMetadata & metadata)
 
     if (out.fail())
       {
-        CLogger::error() << "CChanges::writeDefaultOutputData: Failed to write '" << CSimConfig::getOutput() << "'.";
+        CLogger::error("CChanges::writeDefaultOutputData: Failed to write '{}'.", CSimConfig::getOutput());
         return CCommunicate::ErrorCode::FileWriteError;
       }
 
@@ -217,7 +217,7 @@ void CChanges::record(const CNode * pNode, const CMetadata & metadata)
 
     if (out.fail())
       {
-        CLogger::error() << "CChanges::writeDefaultOutputData: Failed to close '" << CSimConfig::getOutput() << "'.";
+        CLogger::error("CChanges::writeDefaultOutputData: Failed to close '{}'.", CSimConfig::getOutput());
         return CCommunicate::ErrorCode::FileCloseError;
       }
 
@@ -236,7 +236,7 @@ void CChanges::record(const CNode * pNode, const CMetadata & metadata)
 
     for (; it != end; ++it, ++pId)
       {
-        ENABLE_TRACE(CLogger::trace() << "CChanges: request node '" << it->first << "'.";)
+        ENABLE_TRACE(CLogger::trace("CChanges: request node '{}'.", it->first););
         *pId = it->first;
       }
 
@@ -279,7 +279,7 @@ void CChanges::record(const CNode * pNode, const CMetadata & metadata)
           }
         else
           {
-            ENABLE_TRACE(CLogger::trace() << "CChanges: send node '" << it->id << "'.";)
+            ENABLE_TRACE(CLogger::trace("CChanges: send node '{}'.", it->id););
 
             if (it->changed)
               it->toBinary(OutStream);
@@ -293,7 +293,7 @@ void CChanges::record(const CNode * pNode, const CMetadata & metadata)
       os << OutStream.str();
     }
 
-  CLogger::debug() << "CChanges: Sending '" << Count << "' nodes to: '" << receiver << "'.";
+  CLogger::debug("CChanges: Sending '{}' nodes to: '{}'.", Count, receiver);
 
   return CCommunicate::ErrorCode::Success;
 }
@@ -320,10 +320,8 @@ CCommunicate::ErrorCode CChanges::receiveNodesRequested(std::istream & is, int s
         Requested.insert(pNode);
     }
 
-  CLogger::debug() << "CChanges::receiveNodesRequested: rank "
-                   << sender << " requested " << Requested.size() << " of "
-                   << Master.getLocalNodeCount() << " ("
-                   << 100.0 * Requested.size() / Master.getLocalNodeCount() << ")";
+  CLogger::debug("CChanges::receiveNodesRequested: rank {} requested {} of {} ({}\\%)",
+                 sender, Requested.size(), Master.getLocalNodeCount(), 100.0 * Requested.size() / Master.getLocalNodeCount());
 
   return CCommunicate::ErrorCode::Success;
 }

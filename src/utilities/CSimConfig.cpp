@@ -788,7 +788,7 @@ json_t * CSimConfig::loadJsonPreamble(const std::string & jsonFile, int flags)
 
   if (pRoot == NULL)
     {
-      CLogger::error() << "JSON Preamble file: '" << jsonFile << "' error on line " << error.line << ": " << error.text << std::endl;
+      CLogger::error("JSON Preamble file: '{}' error on line {}: {}", jsonFile, error.line, error.text);
     }
 
   return pRoot;
@@ -807,13 +807,13 @@ json_t * CSimConfig::loadJson(const std::string & jsonFile, int flags)
 
   if (!CDirEntry::isFile(jsonFile))
     {
-      CLogger::error() << "JSON file '" <<  jsonFile << "' not found.";
+      CLogger::error("JSON file '{}' not found.", jsonFile);
       return pRoot;
     }
 
   if (!CDirEntry::isReadable(jsonFile))
     {
-      CLogger::error() << "JSON file '" <<  jsonFile << "' is not readable.";
+      CLogger::error("JSON file '{}' is not readable.", jsonFile);
       return pRoot;
     }
 
@@ -823,7 +823,7 @@ json_t * CSimConfig::loadJson(const std::string & jsonFile, int flags)
 
   if (pRoot == NULL)
     {
-      CLogger::error() << "JSON file: '" << jsonFile << "' error on line " << error.line << ": " << error.text << std::endl;
+      CLogger::error("JSON file: '{}' error on line {}: {}", jsonFile, error.line, error.text);
     }
 
   return pRoot;

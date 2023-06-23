@@ -92,10 +92,7 @@ public:
 
     void addMatching(element_type * pType);
 
-    void report()
-    {
-      CLogger::debug() << "CSetContent: '" << mpSetContent->getComputableId() << "' contains '" << mpSet->size() << "' elements.";
-    }
+    void report() const;
   };
 
 protected:
@@ -232,6 +229,12 @@ void CSetContent::Filter< element_type >::addMatching(element_type * pType)
 {
   if (mpSetContent->filter(pType))
     mpSet->push_back(pType);
+}
+
+template < class element_type >
+void CSetContent::Filter< element_type >::report() const
+{
+  CLogger::debug("CSetContent: '{}' contains '{}' elements.", mpSetContent->getComputableId(), mpSet->size());
 }
 
 #endif /* SRC_INTERVENTION_CSETCONTENT_H_ */

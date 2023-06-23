@@ -22,6 +22,8 @@
 // SOFTWARE 
 // END: Copyright 
 
+#include <sstream>
+
 #include "math/CComputable.h"
 #include "utilities/CLogger.h"
 
@@ -73,7 +75,7 @@ bool CComputable::compute()
   if (mStatic && mComputedOnce.Active())
     return true;
 
-  CLogger::debug() << "CComputable: Computing '" << getComputableId() << "'" <<  (mStatic ? " (static)" : "") << ".";
+  CLogger::debug("CComputable: Computing '{}'{}.", getComputableId(), mStatic ? " (static)" : "");
   bool success = computeProtected();
 
   mComputedOnce.Active() = true;

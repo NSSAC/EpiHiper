@@ -75,7 +75,7 @@ void CSchema::fromJSON(const json_t * json)
         if (!addTable(json_array_get(json, i)))
           {
             mValid = false; // DONE
-            CLogger::error() << "Schema: Invalid table for item '" << i << "'.";
+            CLogger::error("Schema: Invalid table for item '{}'.", i);
             return;
           }
     }

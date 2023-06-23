@@ -22,6 +22,7 @@
 // SOFTWARE 
 // END: Copyright 
 
+#include <sstream>
 #include <cstring>
 #include <algorithm>
 #include <jansson.h>
@@ -81,7 +82,7 @@ void CSetOperation::fromJSONProtected(const json_t * json)
 
   if (!json_is_string(pValue))
     {
-      CLogger::error() << "Set operation: Invalid or missing value for 'operation'. " << CSimConfig::jsonToString(json);
+      CLogger::error("Set operation: Invalid or missing value for 'operation'. {}", CSimConfig::jsonToString(json));
       return;
     }
 
@@ -95,7 +96,7 @@ void CSetOperation::fromJSONProtected(const json_t * json)
     }
   else
     {
-      CLogger::error() << "Set operation: Invalid value for 'operation'. " << CSimConfig::jsonToString(json);
+      CLogger::error("Set operation: Invalid value for 'operation'. {}", CSimConfig::jsonToString(json));
       return;
     }
 
@@ -103,7 +104,7 @@ void CSetOperation::fromJSONProtected(const json_t * json)
 
   if (!json_is_array(pValue))
     {
-      CLogger::error() << "Set operation: Invalid or missing value for 'sets'. " << CSimConfig::jsonToString(json);
+      CLogger::error("Set operation: Invalid or missing value for 'sets'. {}", CSimConfig::jsonToString(json));
       return;
     }
 
@@ -121,7 +122,7 @@ void CSetOperation::fromJSONProtected(const json_t * json)
         {
           pSetContent.reset();
 
-          CLogger::error() << "Set operation: Invalid value for item '" << i << "'. " << CSimConfig::jsonToString(json);
+          CLogger::error("Set operation: Invalid value for item '{}'. {}", i, CSimConfig::jsonToString(json));
           return;
         }
     }
@@ -211,19 +212,23 @@ bool CSetOperation::computeUnion()
       Nodes = *pInNodes;
     }
 
-  CLogger::debug Debug;
-  Debug << "CSetOperation: computeUnion (";
-  std::string Separator;
-
-  for (it = mSets.begin(); it != end; ++it)
+  if (CLogger::level() <= CLogger::LogLevel::debug)
     {
-      Debug << Separator << (*it)->getComputableId() << ": " << (*it)->size();
+      std::string Separator;
+      std::ostringstream Message;
+      Message << "CSetOperation: computeUnion (";
 
-      if (Separator.empty())
-        Separator = ", ";
+      for (it = mSets.begin(); it != end; ++it)
+        {
+          Message << Separator << (*it)->getComputableId() << ": " << (*it)->size();
+
+          if (Separator.empty())
+            Separator = ", ";
+        }
+
+      Message << ") returned '" << size() << "'.";
+      CLogger::debug(Message.str());
     }
-
-  Debug << ") returned '" << size() << "'.";
 
   return true;
 }
@@ -289,19 +294,23 @@ bool CSetOperation::computeIntersection()
   getNodes() = *pNin;
   getDBFieldValues() = *pDBin;
 
-  CLogger::debug Debug;
-  Debug << "CSetOperation: computeIntersection (";
-  std::string Separator;
-
-  for (it = mSets.begin(); it != end; ++it)
+  if (CLogger::level() <= CLogger::LogLevel::debug)
     {
-      Debug << Separator << (*it)->CComputable::getComputableId() << ": " << (*it)->size();
+      std::string Separator;
+      std::ostringstream Message;
+      Message << "CSetOperation: computeIntersection (";
 
-      if (Separator.empty())
-        Separator = ", ";
+      for (it = mSets.begin(); it != end; ++it)
+        {
+          Message << Separator << (*it)->getComputableId() << ": " << (*it)->size();
+
+          if (Separator.empty())
+            Separator = ", ";
+        }
+
+      Message << ") returned '" << size() << "'.";
+      CLogger::debug(Message.str());
     }
-
-  Debug << ") returned '" << size() << "'.";
 
   return true;
 }

@@ -31,7 +31,7 @@ CRandom::result_t CRandom::debug_generator::operator()()
 {
   result_t r = std::mt19937_64::operator()();
 
-  ENABLE_TRACE(CLogger::trace() << "CRandom::CGenerator::operator " << r;)
+  ENABLE_TRACE(CLogger::trace("CRandom::CGenerator::operator {}", r););
 
   return r;
 }
@@ -96,7 +96,7 @@ void CRandom::seed(CRandom::result_t value)
   for (; pIt != pEnd; ++pIt)
     {
       if (mHaveSeed)
-        CLogger::debug() << "CRandom::seed: Seeding thread " << G.globalIndex(pIt) << " with: " << Seeds[G.globalIndex(pIt)];
+        CLogger::debug("CRandom::seed: Seeding thread {} with: {}", G.globalIndex(pIt), Seeds[G.globalIndex(pIt)]);
 
       pIt->seed(Seeds[G.globalIndex(pIt)]);
     }  

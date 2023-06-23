@@ -155,7 +155,7 @@ void CActionEnsemble::fromJSON(const json_t * json)
 
   if (!mSampling.isValid())
     {
-      CLogger::error() << "Action ensemble: Invalid value for 'sampling': " << CSimConfig::jsonToString(json);
+      CLogger::error("Action ensemble: Invalid value for 'sampling': {}", CSimConfig::jsonToString(json));
       return;
     }
 
@@ -169,20 +169,20 @@ const bool & CActionEnsemble::isValid() const
 
 bool CActionEnsemble::process(const CSetContent & targets)
 {
-  CLogger::info() << "CActionEnsemble: Target set contains '" << targets.size() << "' items.";
+  CLogger::info("CActionEnsemble: Target set contains '{}' items.", targets.size());
   
   std::vector< CActionDefinition * >::const_iterator it = mOnce.begin();
   std::vector< CActionDefinition * >::const_iterator end = mOnce.end();
 
   if (!mOnce.empty())
-    CLogger::info() << "CActionEnsemble: Process '" << mOnce.size() << "' action definitions in 'once'.";
+    CLogger::info("CActionEnsemble: Process '{}' action definitions in 'once'.", mOnce.size());
 
   for (; it != end; ++it)
     (*it)->process();
 
   if (!mForEach.empty())
     {
-      CLogger::info() << "CActionEnsemble: Process '" << mForEach.size() << "' action definitions in 'forEach'.";
+      CLogger::info("CActionEnsemble: Process '{}' action definitions in 'forEach'.", mForEach.size());
       end = mForEach.end();
 
       std::vector< CEdge * >::const_iterator itEdges = targets.beginEdges();

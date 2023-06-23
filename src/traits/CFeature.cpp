@@ -129,7 +129,7 @@ void CFeature::fromJSON(const json_t * json)
         }
       else
         {
-          CLogger::error() << "Feature: Invalid value for item '" << i << "'.";
+          CLogger::error("Feature: Invalid value for item '{}'.", i);
           return;
         }
     }
@@ -152,7 +152,7 @@ void CFeature::fromJSON(const json_t * json)
 
   if (mEnumMap.find(mDefaultId) == mEnumMap.end())
     {
-      CLogger::error() << "Feature: Invalid default '" << mDefaultId << "'.";
+      CLogger::error("Feature: Invalid default '{}'.", mDefaultId);
       return;
     }
 

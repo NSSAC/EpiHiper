@@ -246,7 +246,7 @@ bool CIntervention::process()
 
   if (IsTriggered > 0)
     {
-      CLogger::info() << "CIntervention: Process '" << mId << "'."; 
+      CLogger::info("CIntervention: Process '{}'.", mId); 
 
       success &= CInitialization::process();
 
@@ -259,7 +259,7 @@ bool CIntervention::process()
 
 void CIntervention::trigger()
 {
-  CLogger::info() << "CIntervention: Intervention '" << mId << "' has been triggered."; 
+  CLogger::info("CIntervention: Intervention '{}' has been triggered.", mId); 
 
   mIsTriggered = CCommunicate::LocalProcesses();
 }

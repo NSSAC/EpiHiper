@@ -22,6 +22,7 @@
 // SOFTWARE 
 // END: Copyright 
 
+#include <sstream>
 #include <jansson.h>
 
 #include "sets/CSetReference.h"
@@ -126,7 +127,7 @@ bool CSetReference::resolve()
         {
           (*it)->mpSet = NULL;
           (*it)->mValid = false;
-          CLogger::error() << "Set reference: Unresolved idRef '" << (*it)->mIdRef << "'.";
+          CLogger::error("Set reference: Unresolved idRef '{}'.", (*it)->mIdRef);
           success = false;
         }
     }

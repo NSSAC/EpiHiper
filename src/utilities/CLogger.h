@@ -25,7 +25,6 @@
 #ifndef UTILITIES_CLOGGER_H
 #define UTILITIES_CLOGGER_H
 
-#include <sstream>
 #include <stack>
 
 #include <spdlog/spdlog.h>
@@ -42,16 +41,13 @@ class CLogger
 {
 private:
   template < int level >
-  class CStream : public std::ostringstream
+  class CStream
   {
   public:
-    CStream();
-    CStream(const std::string & msg);
+    CStream() = delete;
+    template< class ... Arguments >
+    CStream(const std::string & format, Arguments ... arguments);
     virtual ~CStream();
-    void flush();
-
-  private:
-    static void flush(const std::string & msg);
   };
 
 public : 
@@ -76,6 +72,8 @@ public :
   static void pushLevel(LogLevel level);
 
   static void popLevel();
+
+  static LogLevel level();
 
   static void setTask(int rank, int processes);
 
@@ -107,45 +105,12 @@ private:
 };
 
 template < int level >
-CLogger::CStream< level >::CStream()
-  : std::ostringstream()
+template< class ... Arguments >
+  CLogger::CStream< level >::CStream(const std::string & format, Arguments ... arguments)
 {
   if (Context.Active().levels.top() > level)
-    setstate(std::ios_base::badbit);
-}
-
-template < int level >
-CLogger::CStream< level >::CStream(const std::string & msg)
-  : std::ostringstream()
-{
-  if (Context.Active().levels.top() <= level)
-    flush(msg);
-
-  setstate(std::ios_base::badbit);
-}
-
-// virtual
-template < int level >
-CLogger::CStream< level >::~CStream()
-{
-  flush();
-}
-
-template < int level >
-void CLogger::CStream< level >::flush()
-{
-  if (bad()
-      || tellp() == 0)
     return;
 
-  flush(str());
-  str("");
-}
-
-// static
-template < int level >
-void CLogger::CStream< level >::flush(const std::string & msg)
-{
   LoggerData * pIt = NULL;
   LoggerData * pEnd = NULL;
 
@@ -167,26 +132,26 @@ void CLogger::CStream< level >::flush(const std::string & msg)
       switch (static_cast< LogLevel >(level))
         {
         case spdlog::level::trace:
-          pIt->pLogger->trace(pIt->task + " " + pIt->tick + " " + msg);
+          pIt->pLogger->trace(pIt->task + " " + pIt->tick + " " + format, arguments ...);
           break;
         case spdlog::level::debug:
-          pIt->pLogger->debug(pIt->task + " " + pIt->tick + " " + msg);
+          pIt->pLogger->debug(pIt->task + " " + pIt->tick + " " + format, arguments ...);
           break;
         case spdlog::level::info:
-          pIt->pLogger->info(pIt->task + " " + pIt->tick + " " + msg);
+          pIt->pLogger->info(pIt->task + " " + pIt->tick + " " + format, arguments ...);
           break;
         case spdlog::level::warn:
-          pIt->pLogger->warn(pIt->task + " " + pIt->tick + " " + msg);
+          pIt->pLogger->warn(pIt->task + " " + pIt->tick + " " + format, arguments ...);
           break;
         case spdlog::level::err:
 #pragma omp atomic
           haveErrors |= true;
-          pIt->pLogger->error(pIt->task + " " + pIt->tick + " " + msg);
+          pIt->pLogger->error(pIt->task + " " + pIt->tick + " " + format, arguments ...);
           break;
         case spdlog::level::critical:
 #pragma omp atomic
           haveErrors |= true;
-          pIt->pLogger->critical(pIt->task + " " + pIt->tick + " " + msg);
+          pIt->pLogger->critical(pIt->task + " " + pIt->tick + " " + format, arguments ...);
           break;
         case spdlog::level::off:
           break;
@@ -195,6 +160,12 @@ void CLogger::CStream< level >::flush(const std::string & msg)
       if (Context.Active().levels.top() == spdlog::level::trace)
         pIt->pLogger->flush();
     }
+
 }
+
+// virtual
+template < int level >
+CLogger::CStream< level >::~CStream()
+{}
 
 #endif // UTILITIES_CLOGGER_H

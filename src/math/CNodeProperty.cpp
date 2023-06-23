@@ -118,7 +118,7 @@ void CNodeProperty::fromJSON(const json_t * json)
         }
       else
         {
-          CLogger::error() << "Node property: Invalid property '" << Property << "'";
+          CLogger::error("Node property: Invalid property '{}'", Property);
           return;
         }
 
@@ -191,7 +191,7 @@ CValueInterface CNodeProperty::nodeTrait(CNode * pNode) const
 
 bool CNodeProperty::setId(CNode * pNode, const CValueInterface & /* value */, CValueInterface::pOperator /* pOperator */, const CMetadata & /* info */)
 {
-  CLogger::critical() << "Invalid operation 'setId' for node: " << pNode->id;
+  CLogger::critical("Invalid operation 'setId' for node: '{}'", pNode->id);
   return false;
 }
 
@@ -221,7 +221,7 @@ bool CNodeProperty::setNodeTrait(CNode * pNode, const CValueInterface & value, C
 void CNodeProperty::registerSetCollector(std::shared_ptr< CSetCollectorInterface > pCollector) const
 {
   Collectors[(size_t) mProperty].insert(pCollector);
-  CLogger::debug() << "CNodeProperty::registerSetCollector: property '" << (size_t) mProperty << "'. size '" << Collectors[(size_t) mProperty].size() << "'";
+  CLogger::debug("CNodeProperty::registerSetCollector: property '{}'. size '{}'", (size_t) mProperty, Collectors[(size_t) mProperty].size());
 }    
 
 void CNodeProperty::deregisterSetCollector(std::shared_ptr< CSetCollectorInterface > pCollector) const
@@ -229,6 +229,6 @@ void CNodeProperty::deregisterSetCollector(std::shared_ptr< CSetCollectorInterfa
   if (!Collectors[(size_t) mProperty].empty())
     {
       Collectors[(size_t) mProperty].erase(pCollector);
-      CLogger::debug() << "CNodeProperty::deregisterSetCollector: property '" << (size_t) mProperty << "'. size '" << Collectors[(size_t) mProperty].size() << "'";
+      CLogger::debug("CNodeProperty::deregisterSetCollector: property '{}'. size '{}'", (size_t) mProperty, Collectors[(size_t) mProperty].size());
     }
 }    

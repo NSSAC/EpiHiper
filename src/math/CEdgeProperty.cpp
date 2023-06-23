@@ -145,7 +145,7 @@ void CEdgeProperty::fromJSON(const json_t * json)
         }
       else
         {
-          CLogger::error() << "Edge property: Invalid property '" << Property << "'";
+          CLogger::error("Edge property: Invalid property '{}'", Property);
           return;
         }
 
@@ -256,13 +256,13 @@ CValueInterface CEdgeProperty::duration(CEdge * pEdge) const
 
 bool CEdgeProperty::setTargetId(CEdge * pEdge, const CValueInterface & /* value */, CValueInterface::pOperator /* pOperator */, const CMetadata & /* info */)
 {
-  CLogger::critical() << "Invalid operation 'setTargetId' for edge: " << pEdge->targetId << ", " << pEdge->sourceId;
+  CLogger::critical("Invalid operation 'setTargetId' for edge: {}, {}" , pEdge->targetId, pEdge->sourceId);
   return false;
 }
 
 bool CEdgeProperty::setSourceId(CEdge * pEdge, const CValueInterface & /* value */, CValueInterface::pOperator /* pOperator */, const CMetadata & /* info */)
 {
-  CLogger::critical() << "Invalid operation 'setSourceId' for edge: " << pEdge->targetId << ", " << pEdge->sourceId;
+  CLogger::critical("Invalid operation 'setSourceId' for edge: {}, {}" , pEdge->targetId, pEdge->sourceId);
   return false;
 }
 
@@ -278,7 +278,7 @@ bool CEdgeProperty::setSourceActivity(CEdge * pEdge, const CValueInterface & val
 
 bool CEdgeProperty::setLocationId(CEdge * pEdge, const CValueInterface & /* value */, CValueInterface::pOperator /* pOperator */, const CMetadata & /* info */)
 {
-  CLogger::critical() << "Invalid operation 'setLocationId' for edge: " << pEdge->targetId << ", " << pEdge->sourceId;
+  CLogger::critical("Invalid operation 'setLocationId' for edge: {}, {}" , pEdge->targetId, pEdge->sourceId);
   return false;
 }
 
@@ -299,14 +299,14 @@ bool CEdgeProperty::setWeight(CEdge * pEdge, const CValueInterface & value, CVal
 
 bool CEdgeProperty::setDuration(CEdge * pEdge, const CValueInterface & /* value */, CValueInterface::pOperator /* pOperator */, const CMetadata & /* info */)
 {
-  CLogger::critical() << "Invalid operation 'setDuration' for edge: " << pEdge->targetId << ", " << pEdge->sourceId;
+  CLogger::critical("Invalid operation 'setDuration' for edge: {}, {}" , pEdge->targetId, pEdge->sourceId);
   return false;
 }
 
 void CEdgeProperty::registerSetCollector(std::shared_ptr< CSetCollectorInterface > pCollector) const
 {
   Collectors[(size_t) mProperty].insert(pCollector);
-  CLogger::debug() << "CEdgeProperty::registerSetCollector: property '" << (size_t) mProperty << "'. size '" << Collectors[(size_t) mProperty].size() << "'";
+  CLogger::debug("CEdgeProperty::registerSetCollector: property '{}'. size '{}'", (size_t) mProperty, Collectors[(size_t) mProperty].size());
 }
 
 void CEdgeProperty::deregisterSetCollector(std::shared_ptr< CSetCollectorInterface > pCollector) const
@@ -314,7 +314,7 @@ void CEdgeProperty::deregisterSetCollector(std::shared_ptr< CSetCollectorInterfa
   if (!Collectors[(size_t) mProperty].empty())
     {
       Collectors[(size_t) mProperty].erase(pCollector);
-      CLogger::debug() << "CEdgeProperty::deregisterSetCollector: property '" << (size_t) mProperty << "'. size '" << Collectors[(size_t) mProperty].size() << "'";
+      CLogger::debug("CEdgeProperty::deregisterSetCollector: property '{}'. size '{}'",(size_t) mProperty, Collectors[(size_t) mProperty].size());
     }
 }
 

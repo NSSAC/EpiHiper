@@ -89,7 +89,7 @@ void CFieldValueList::fromJSON(const json_t * json)
             std::set< CValue >::insert(CFieldValue((size_t) json_real_value(pValue)));
           else
             {
-              CLogger::error() << "Field value list: Invalid type for index '" << i << "'.";
+              CLogger::error("Field value list: Invalid type for index '{}'.", i);
               mValid = false; // DONE
             }
         }
@@ -105,7 +105,7 @@ void CFieldValueList::fromJSON(const json_t * json)
             std::set< CValue >::insert(CFieldValue((int) json_real_value(pValue)));
           else
             {
-              CLogger::error() << "Field value list: Invalid type for index '" << i << "'.";
+              CLogger::error("Field value list: Invalid type for index '{}'.", i);
               mValid = false; // DONE
             }
         }
@@ -120,7 +120,7 @@ void CFieldValueList::fromJSON(const json_t * json)
             std::set< CValue >::insert(CFieldValue(json_real_value(pValue)));
           else
             {
-              CLogger::error() << "Field value list: Invalid type for index '" << i << "'.";
+              CLogger::error("Field value list: Invalid type for index '{}'.", i);
               mValid = false; // DONE
             }
         }
@@ -135,7 +135,7 @@ void CFieldValueList::fromJSON(const json_t * json)
             std::set< CValue >::insert(CFieldValue(json_string_value(pValue)));
           else
             {
-              CLogger::error() << "Field value list: Invalid type for index '" << i << "'.";
+              CLogger::error("Field value list: Invalid type for index '{}'.", i);
               mValid = false; // DONE
             }
         }

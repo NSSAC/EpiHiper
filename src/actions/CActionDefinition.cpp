@@ -231,7 +231,7 @@ void CActionDefinition::fromJSON(const json_t * json)
 
       if (!OperationDefinition.isValid())
         {
-          CLogger::error() << "Action : Invalid value for operations item '" << i << "'.";
+          CLogger::error("Action: Invalid value for operations item '{}'.", i);
           return;
         }
 
@@ -278,12 +278,12 @@ void CActionDefinition::process() const
 {
   try
     {
-      ENABLE_TRACE(CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] node and edge independent action.";)
+      ENABLE_TRACE(ENABLE_TRACE(ENABLE_TRACE(ENABLE_TRACE(CLogger::trace("CActionDefinition::process: [ActionDefinition: {}] node and edge independent action.", mIndex);););););
       CActionQueue::addAction(mDelay, new CVariableAction(this));
     }
   catch (...)
     {
-      CLogger::error() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Failed to create node and edge independent action.";
+      CLogger::error("CActionDefinition::process: [ActionDefinition: {}] Failed to create node and edge independent action.", mIndex);
     }
 }
 
@@ -294,19 +294,19 @@ void CActionDefinition::process(const CEdge * pEdge) const
 
   if (CNetwork::Context.Active().isRemoteNode(pEdge->pTarget))
     {
-      CLogger::warn() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Add remote action for edge '" << pEdge->targetId << "," << pEdge->sourceId << "'.";
+      CLogger::warn("CActionDefinition::process: [ActionDefinition: {}] Add remote action for edge '{}, {}'.", mIndex, pEdge->targetId, pEdge->sourceId);
       CActionQueue::addRemoteAction(mIndex, pEdge);
       return;
     }
 
   try
     {
-      ENABLE_TRACE(CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Add action for edge '" << pEdge->targetId << "," << pEdge->sourceId << "'.";)
+      ENABLE_TRACE(CLogger::trace("CActionDefinition::process: [ActionDefinition: {}] Add action for edge '{}, {}'.", mIndex, pEdge->targetId, pEdge->sourceId););
       CActionQueue::addAction(mDelay, new CEdgeAction(this, pEdge));
     }
   catch (...)
     {
-      CLogger::error() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Failed to create action for edge '" << pEdge->targetId << "," << pEdge->sourceId << "'.";
+      CLogger::error("CActionDefinition::process: [ActionDefinition: {}] Failed to create action for edge '{}, {}'.", mIndex, pEdge->targetId, pEdge->sourceId);
     }
 }
 
@@ -317,19 +317,19 @@ void CActionDefinition::process(const CNode * pNode) const
 
   if (CNetwork::Context.Active().isRemoteNode(pNode))
     {
-      ENABLE_TRACE(CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Add remote action for node '" << pNode->id << "'.";)
+      ENABLE_TRACE(CLogger::trace("CActionDefinition::process: [ActionDefinition: {}] Add remote action for node '{}'.", mIndex, pNode->id););
       CActionQueue::addRemoteAction(mIndex, pNode);
       return;
     }
 
   try
     {
-      ENABLE_TRACE(CLogger::trace() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Add action for node '" << pNode->id << "'.";)
+      ENABLE_TRACE(CLogger::trace("CActionDefinition::process: [ActionDefinition: {}] Add action for node '{}'.", mIndex, pNode->id););
       CActionQueue::addAction(mDelay, new CNodeAction(this, pNode));
     }
   catch (...)
     {
-      CLogger::error() << "CActionDefinition::process: [ActionDefinition:" << mIndex << "] Failed to create action for node '" << pNode->id << "'.";
+      CLogger::error("CActionDefinition::process: [ActionDefinition: {}] Failed to create action for node '{}'.", mIndex, pNode->id);
     }
 }
 
@@ -351,7 +351,7 @@ bool CActionDefinition::execute() const
     }
   catch (...)
     {
-      CLogger::error() << "CActionDefinition::execute: [ActionDefinition:" << mIndex << "] Failed to execute action.";
+      CLogger::error("CActionDefinition::execute: [ActionDefinition: {}] Failed to execute action.", mIndex);
       success = false;
     }
 
@@ -376,7 +376,7 @@ bool CActionDefinition::execute(CEdge * pEdge) const
     }
   catch (...)
     {
-      CLogger::error() << "CActionDefinition::execute: [ActionDefinition:" << mIndex << "] Failed to execute action for edge '" << pEdge->targetId << "," << pEdge->sourceId << "'.";
+      CLogger::error("CActionDefinition::execute: [ActionDefinition: {}] Failed to execute action for edge '{}, {}'.", mIndex, pEdge->targetId, pEdge->sourceId);
       success = false;
     }
 
@@ -401,7 +401,7 @@ bool CActionDefinition::execute(CNode * pNode) const
     }
   catch (...)
     {
-      CLogger::error() << "CActionDefinition::execute: [ActionDefinition:" << mIndex << "] Failed to execute action for node '" << pNode->id << "'.";
+      CLogger::error("CActionDefinition::execute: [ActionDefinition: {}] Failed to execute action for node '{}'.", mIndex, pNode->id);
       success = false;
     }
 
