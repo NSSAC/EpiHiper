@@ -922,7 +922,7 @@ void CNetwork::load()
       }
   }
 
-  CLogger::info("Network: Allocating nodes '{:L}' ({:L} bytes).", mLocalNodesSize, mLocalNodesSize * sizeof(CNode));
+  CLogger::info("Network: Allocating nodes '{}' ({} bytes).", mLocalNodesSize, mLocalNodesSize * sizeof(CNode));
 
   try
     {
@@ -931,12 +931,12 @@ void CNetwork::load()
 
   catch (...)
     {
-      CLogger::error Error("Network: Allocating nodes failed '{:L}' ({:L} bytes).", mLocalNodesSize, mLocalNodesSize * sizeof(CNode));
+      CLogger::error Error("Network: Allocating nodes failed '{}' ({} bytes).", mLocalNodesSize, mLocalNodesSize * sizeof(CNode));
 
       return;
     }
 
-  CLogger::info("Network: Allocating edges '{:L}' ({:L} bytes).", mEdgesSize, mEdgesSize * sizeof(CEdge));
+  CLogger::info("Network: Allocating edges '{}' ({} bytes).", mEdgesSize, mEdgesSize * sizeof(CEdge));
 
   try
     {
@@ -945,7 +945,7 @@ void CNetwork::load()
 
   catch (...)
     {
-      CLogger::error("Network: Allocating edges failed '{:L}' ({:L} bytes).", mEdgesSize, mEdgesSize * sizeof(CEdge));
+      CLogger::error("Network: Allocating edges failed '{}' ({} bytes).", mEdgesSize, mEdgesSize * sizeof(CEdge));
 
       return;
     }
