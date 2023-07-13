@@ -70,6 +70,11 @@ const CComputableSet & CComputable::getPrerequisites() const
   return mPrerequisites;
 }
 
+bool CComputable::needsCompute() const
+{
+  return !mStatic || !mComputedOnce.Active();
+}
+
 bool CComputable::compute()
 {
   if (mStatic && mComputedOnce.Active())

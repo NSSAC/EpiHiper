@@ -120,24 +120,27 @@ bool CDependencyGraph::applyComputableSequence(CComputable::Sequence & updateSeq
 #ifdef USE_PROCESS_GROUPS
       if (dynamic_cast< CSetContent * >(*it))
         {
-          CSetContent * pSetContent = static_cast< CSetContent * >(*it);
+          if ((*it)->needsCompute())
+            {
+              CSetContent * pSetContent = static_cast< CSetContent * >(*it);
 
-          switch (pSetContent->filterType())
-          {
-            case CSetContent::FilterType::edge:
-              EdgeFilter.push_back(CSetContent::Filter< CEdge >(pSetContent));
-              CLogger::debug("CComputable: Adding '{}' to EdgeFilter.", pSetContent->getComputableId());
-              break;
+              switch (pSetContent->filterType())
+                {
+                case CSetContent::FilterType::edge:
+                  EdgeFilter.push_back(CSetContent::Filter< CEdge >(pSetContent));
+                  CLogger::debug("CComputable: Adding '{}' to EdgeFilter.", pSetContent->getComputableId());
+                  break;
 
-            case CSetContent::FilterType::node:
-              NodeFilter.push_back(CSetContent::Filter< CNode >(pSetContent));
-              CLogger::debug("CComputable: Adding '{}' to NodeFilter.", pSetContent->getComputableId());
-              break;
+                case CSetContent::FilterType::node:
+                  NodeFilter.push_back(CSetContent::Filter< CNode >(pSetContent));
+                  CLogger::debug("CComputable: Adding '{}' to NodeFilter.", pSetContent->getComputableId());
+                  break;
 
-            case CSetContent::FilterType::none:
-              success &= (*it)->compute();
-              break;
-          }
+                case CSetContent::FilterType::none:
+                  success &= (*it)->compute();
+                  break;
+                }
+            }
         }
       else
         success &= (*it)->compute();
