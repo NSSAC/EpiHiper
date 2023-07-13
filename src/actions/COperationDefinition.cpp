@@ -22,7 +22,6 @@
 // SOFTWARE 
 // END: Copyright 
 
-#include <cstring>
 #include <jansson.h>
 
 #include "actions/COperationDefinition.h"
@@ -127,7 +126,7 @@ void COperationDefinition::fromJSON(const json_t * json)
     ]
   */
 
-  mValid = false; // DONE
+  mValid = false;
   json_t * pValue = json_object_get(json, "target");
 
   mTarget.fromJSON(pValue, true);
@@ -181,7 +180,13 @@ void COperationDefinition::fromJSON(const json_t * json)
       return;
     }
 
-  mSource.fromJSON(json, false);
+  // Try the new format
+  pValue = json_object_get(json, "source");
+
+  if (json_is_object(pValue))
+    mSource.fromJSON(pValue, false);
+  else
+    mSource.fromJSON(json, false);
 
   if (!mSource.isValid())
     {
@@ -216,6 +221,9 @@ bool COperationDefinition::execute(CNode * pNode, const CMetadata & info) const
 
   switch (mSource.getType())
     {
+    case CValueInstance::ValueType::HealthStateProperty:
+    case CValueInstance::ValueType::TransmissionProperty:
+    case CValueInstance::ValueType::ProgressionProperty:
     case CValueInstance::ValueType::Variable:
     case CValueInstance::ValueType::Observable:
     case CValueInstance::ValueType::SizeOf:
@@ -240,6 +248,9 @@ bool COperationDefinition::execute(CEdge * pEdge, const CMetadata & info) const
 
   switch (mSource.getType())
     {
+    case CValueInstance::ValueType::HealthStateProperty:
+    case CValueInstance::ValueType::TransmissionProperty:
+    case CValueInstance::ValueType::ProgressionProperty:
     case CValueInstance::ValueType::Variable:
     case CValueInstance::ValueType::Observable:
     case CValueInstance::ValueType::SizeOf:
@@ -257,18 +268,41 @@ bool COperationDefinition::execute(CEdge * pEdge, const CMetadata & info) const
 
 bool COperationDefinition::execute(const CMetadata & info) const
 {
-  CVariable * pVariable = mTarget.variable();
-
-  if (pVariable == NULL)
-    return false;
-
   switch (mSource.getType())
     {
+    case CValueInstance::ValueType::HealthStateProperty:
+    case CValueInstance::ValueType::TransmissionProperty:
+    case CValueInstance::ValueType::ProgressionProperty:
     case CValueInstance::ValueType::Variable:
     case CValueInstance::ValueType::Observable:
     case CValueInstance::ValueType::SizeOf:
     case CValueInstance::ValueType::Value:
-      return COperation::execute< CVariable, CValueInterface >(pVariable, mSource.value(), mpOperator, &CVariable::setValue, info);
+      switch (mTarget.getType())
+        {
+        case CValueInstance::ValueType::HealthStateProperty:
+          if (mTarget.healthStateProperty()!= nullptr)
+            return mTarget.healthStateProperty()->execute(mSource.value(), mpOperator, info);
+
+          break;
+
+        case CValueInstance::ValueType::TransmissionProperty:
+          if (mTarget.transmissionProperty()!= nullptr)
+            return mTarget.transmissionProperty()->execute(mSource.value(), mpOperator, info);
+          break;
+
+        case CValueInstance::ValueType::ProgressionProperty:
+          if (mTarget.progressionProperty()!= nullptr)
+            return mTarget.progressionProperty()->execute(mSource.value(), mpOperator, info);
+          break;
+
+        case CValueInstance::ValueType::Variable:
+          if (mTarget.variable() != nullptr)
+            return COperation::execute< CVariable, CValueInterface >(mTarget.variable(), mSource.value(), mpOperator, &CVariable::setValue, info);
+          break;
+
+        default:
+          break;
+        }
       break;
 
     default:

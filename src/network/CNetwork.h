@@ -73,7 +73,7 @@ public:
   static CContext< CNetwork > Context;
 
   static void init();
-  static void release();
+  static void clear();
   static int index(const CNode * pNode);
   static int index(const size_t & id);
   static bool dumpActiveNetwork();

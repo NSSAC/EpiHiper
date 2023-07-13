@@ -27,17 +27,20 @@
 
 #include "diseaseModel/CFactorOperation.h"
 #include "utilities/CLogger.h"
+#include "utilities/CSimConfig.h"
 
 CFactorOperation::CFactorOperation()
   : mType(Type::__NONE)
-  , mValue()
+  , mValue(0.0)
   , mValid(false)
+  , mNormalizedJSON("{}")
 {}
 
 CFactorOperation::CFactorOperation(const CFactorOperation & src)
   : mType(src.mType)
   , mValue(src.mValue)
   , mValid(src.mValid)
+  , mNormalizedJSON(src.mNormalizedJSON)
 {}
 
 // virtual
@@ -46,8 +49,17 @@ CFactorOperation::~CFactorOperation()
 
 void CFactorOperation::fromJSON(const json_t * json)
 {
-  mValid = false; // DONE
+  mValid = false;
+  mNormalizedJSON = "{}";
+  mType = Type::__NONE;
 
+
+  if (json_object_size(json) == 0)
+    {
+      mValid = true;
+      return;
+    }
+    
   json_t * pValue = json_object_get(json, "operator");
 
   if (json_is_string(pValue))
@@ -83,6 +95,7 @@ void CFactorOperation::fromJSON(const json_t * json)
     }
 
   mValid = true;
+  normalizeJSON();
 }
 
 const bool & CFactorOperation::isValid() const
@@ -110,3 +123,53 @@ void CFactorOperation::apply(double & value) const
       break;
     }
 }
+
+void CFactorOperation::normalizeJSON()
+{
+  if (mType == Type::__NONE)
+    mNormalizedJSON = "{}";
+
+  json_error_t error;
+  json_t * pJson = json_loads("{}", JSON_DECODE_INT_AS_REAL, &error);
+
+  switch (mType)
+    {
+    case Type::assign:
+      json_object_set_new(pJson, "operator", json_string("="));
+      break;
+
+    case Type::multiply:
+      json_object_set_new(pJson, "operator", json_string("*="));
+      break;
+
+    case Type::divide:
+      json_object_set_new(pJson, "operator", json_string("/="));
+      break;
+
+    case Type::__NONE:
+      break;
+    }
+
+  json_object_set_new(pJson, "value", json_real(mValue));
+  mNormalizedJSON = CSimConfig::jsonToString(pJson);
+  json_decref(pJson);
+}
+
+std::string & CFactorOperation::getJson()
+{
+  return mNormalizedJSON;
+}
+
+bool CFactorOperation::setJson(const std::string & json)
+{
+  if (json == mNormalizedJSON)
+    return false;
+
+  json_error_t error;
+  json_t * pJson = json_loads(json.c_str(), JSON_DECODE_INT_AS_REAL, &error);
+  fromJSON(pJson);
+  json_decref(pJson);
+
+  return true;
+}
+

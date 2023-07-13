@@ -170,7 +170,7 @@ int main(int argc, char * argv[])
 
       CCommunicate::abort(CCommunicate::ErrorCode::InvalidArguments);
       CCommunicate::finalize();
-      CLogger::release();
+      CLogger::finalize();
 
       exit(EXIT_FAILURE);
     }
@@ -181,7 +181,7 @@ int main(int argc, char * argv[])
 
       CCommunicate::abort(CCommunicate::ErrorCode::InvalidArguments);
       CCommunicate::finalize();
-      CLogger::release();
+      CLogger::finalize();
 
       exit(EXIT_FAILURE);
     }
@@ -197,7 +197,7 @@ int main(int argc, char * argv[])
     }
 
   CCommunicate::finalize();
-  CLogger::release();
+  CLogger::finalize();
 
   exit(EXIT);
 }

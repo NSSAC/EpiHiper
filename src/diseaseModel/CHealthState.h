@@ -31,10 +31,12 @@
 #include "utilities/CAnnotation.h"
 #include "utilities/CContext.h"
 #include "plugins/CCustomMethod.h"
+#include "math/CValueInterface.h"
 
 class CProgression;
 class pNode;
 struct json_t;
+class CMetadata;
 
 class CHealthState: public CAnnotation, public CCustomMethod< CCustomMethodType::state_progression >
 {
@@ -74,9 +76,23 @@ public:
 
   const double & getInfectivity() const;
 
+  std::string & getId();
+
+  size_t & getIndex();
+  
+  double & getSusceptibility();
+
+  double & getInfectivity();
+
+  bool setSusceptibility(const double & value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+
+  bool setInfectivity(const double & value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+
   const PossibleProgressions & getPossibleProgressions() const;
 
   void addProgression(const CProgression * pProgression);
+
+  void updatePossibleProgression();
 
   const CProgression * nextProgression(const CNode * pNode) const;
 

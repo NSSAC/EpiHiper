@@ -84,7 +84,7 @@ void CConnection::init()
 
       catch (const pqxx::pqxx_exception & e)
         {
-          release();
+          clear();
 
           std::string Message = CLogger::sanitize(e.base().what());
 
@@ -104,7 +104,7 @@ void CConnection::init()
 }
 
 // static
-void CConnection::release()
+void CConnection::clear()
 {
   if (pINSTANCE != NULL)
     {

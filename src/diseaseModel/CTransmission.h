@@ -30,9 +30,11 @@
 #include "utilities/CAnnotation.h"
 #include "diseaseModel/CFactorOperation.h"
 #include "plugins/CCustomMethod.h"
+#include "math/CValueInterface.h"
 
 struct json_t;
 class CHealthState;
+class CMetadata;
 
 class CTransmission: public CAnnotation, public CCustomMethod< CCustomMethodType::transmission_propensity >
 {
@@ -56,6 +58,26 @@ public:
   const CHealthState * getExitState() const;
 
   const double & getTransmissibility() const;
+
+  std::string & getId();
+
+  CHealthState * getEntryState();
+
+  CHealthState * getContactState();
+
+  CHealthState * getExitState();
+
+  double & getTransmissibility();
+
+  std::string & getSusceptibilityFactorOperation();
+
+  std::string & getInfectivityFactorOperation();
+
+  bool setTransmissibility(const double & value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+
+  bool setSusceptibilityFactorOperation(const std::string & value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+
+  bool setInfectivityFactorOperation(const std::string & value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
 
   const bool & isValid() const;
 

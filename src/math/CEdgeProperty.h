@@ -72,8 +72,6 @@ public:
 
   CValueInterface propertyOf(const CEdge * pEdge) const;
 
-  COperation * createOperation(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
-
   bool execute(CEdge * pEdge, const CValueInterface & value, CValueInterface::pOperator pOperator, const CMetadata & info);
 
   bool isReadOnly() const;

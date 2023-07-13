@@ -44,49 +44,42 @@ void CActionQueue::init(const int & firstTick)
 }
 
 // static
-void CActionQueue::release()
+void CActionQueue::clear()
 {
-  if (Context.size() > 1)
+  if (Context.size())
     {
       queue::iterator itAction = Context.Master().actionQueue.begin();
       queue::iterator endAction = Context.Master().actionQueue.end();
 
       for (; itAction != endAction; ++itAction)
-        {
-          delete *itAction;
-        }
+        delete *itAction;
 
       queue::iterator itLocal = Context.Master().locallyAdded.begin();
       queue::iterator endLocal = Context.Master().locallyAdded.end();
 
       for (; itLocal != endLocal; ++itLocal)
-        {
-          delete *itLocal;
-        }
+        delete *itLocal;
+
+      sActionQueue * pActionQueue = Context.beginThread();
+      sActionQueue * pEndActionQueue = Context.endThread();
+
+      for (; pActionQueue != pEndActionQueue; ++pActionQueue)
+        if (Context.isThread(pActionQueue))
+          {
+            queue::iterator itAction = pActionQueue->actionQueue.begin();
+            queue::iterator endAction = pActionQueue->actionQueue.end();
+
+            for (; itAction != endAction; ++itAction)
+              delete *itAction;
+
+            queue::iterator itLocal = pActionQueue->locallyAdded.begin();
+            queue::iterator endLocal = pActionQueue->locallyAdded.end();
+
+            for (; itLocal != endLocal; ++itLocal)
+              delete *itLocal;
+          }
     }
 
-  sActionQueue * pActionQueue = Context.beginThread();
-  sActionQueue * pEndActionQueue = Context.endThread();
-
-  for (; pActionQueue != pEndActionQueue; ++pActionQueue)
-    {
-      queue::iterator itAction = pActionQueue->actionQueue.begin();
-      queue::iterator endAction = pActionQueue->actionQueue.end();
-
-      for (; itAction != endAction; ++itAction)
-        {
-          delete *itAction;
-        }
-
-      queue::iterator itLocal = pActionQueue->locallyAdded.begin();
-      queue::iterator endLocal = pActionQueue->locallyAdded.end();
-
-      for (; itLocal != endLocal; ++itLocal)
-        {
-          delete *itLocal;
-        }
-    }
-    
   Context.release();
 }
 

@@ -49,10 +49,17 @@ public:
 
   void apply(double & value) const;
 
+  std::string & getJson();
+
+  bool setJson(const std::string & json);
+
 private:
+  void normalizeJSON();
+
   Type mType;
   double mValue;
   bool mValid;
+  std::string mNormalizedJSON;
 };
 
 #endif /* SRC_DISEASEMODEL_CFACTOROPERATION_H_ */

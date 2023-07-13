@@ -26,7 +26,8 @@
 
 #include "math/CComputableSet.h"
 #include "math/CComputable.h"
-
+#include "actions/CActionQueue.h"
+#include "sets/CSetList.h"
 // virtual
 CComputableSet::~CComputableSet()
 {}
@@ -64,6 +65,14 @@ void CComputableSet::erase(const CComputable * pComputable)
 void CComputableSet::clear()
 {
   std::map< size_t, const CComputable * >::clear();
+}
+
+void CComputableSet::reset()
+{
+  clear();
+
+  insert(&CActionQueue::getCurrentTick());
+  insert(CSetList::INSTANCE[0]);
 }
 
 bool CComputableSet::empty() const

@@ -40,8 +40,10 @@ public:
   CSetList(const CSetList & src);
 
   virtual ~CSetList();
-
+  
   virtual void fromJSON(const json_t * json);
+
+  void reset();
 
   void toBinary(std::ostream & os) const;
 

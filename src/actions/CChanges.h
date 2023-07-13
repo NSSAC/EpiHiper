@@ -38,21 +38,19 @@
 
 #include "utilities/CCommunicate.h"
 #include "utilities/CContext.h"
-
-class CNode;
-class CEdge;
-class CVariable;
-class CMetadata;
-
+#include "network/CNode.h"
+#include "network/CEdge.h"
+#include "diseaseModel/CHealthState.h"
+#include "utilities/CMetadata.h"
 
 class CChanges
 {
 public:
   static void init();
   static void release();
-  static void record(const CNode * pNode, const CMetadata & metadata);
-  static void record(const CEdge * pEdge, const CMetadata & metadata);
-  static void record(const CVariable * pVariable, const CMetadata & metadata);
+
+  template < class Entity >
+  static  void record(const Entity * pEntity, const CMetadata & metadata);
 
   static void initDefaultOutput();
   static bool writeDefaultOutput();
@@ -62,7 +60,7 @@ public:
   static CCommunicate::ErrorCode receiveNodesRequested(std::istream & is, int sender);
   static void setCurrentTick(size_t tick);
   static void incrementTick();
-  static void clear();
+  static void reset();
 
 private:
   struct Changes
@@ -74,5 +72,50 @@ private:
   static std::map< size_t, std::set< const CNode * > > RankToNodesRequested;
   static size_t Tick;
 };
+
+template <>
+// static 
+inline void CChanges::record(const CNode * pNode, const CMetadata & metadata)
+  {
+    if (pNode == NULL)
+      return;
+
+    pNode->changed = true;
+    Changes & Active = Context.Active();
+
+    if (metadata.getBool("StateChange"))
+      {
+        // "tick,pid,exit_state,contact_pid,[locationId]"
+        (*Active.pDefaultOutput) << (int) Tick << "," << pNode->id << "," << pNode->getHealthState()->getAnnId() << ",";
+
+        if (metadata.contains("ContactNode"))
+          {
+            (*Active.pDefaultOutput) << (size_t) metadata.getInt("ContactNode");
+          }
+        else
+          {
+            (*Active.pDefaultOutput) << -1;
+          }
+
+        if (CEdge::HasLocationId)
+          {
+            if (metadata.contains("LocationId"))
+              {
+                (*Active.pDefaultOutput) << "," << (size_t) metadata.getInt("LocationId");
+              }
+            else
+              {
+                (*Active.pDefaultOutput) << "," << -1;
+              }
+          }
+
+        (*Active.pDefaultOutput) << std::endl;
+      }
+  }
+
+template < class Entity >
+// static 
+inline void CChanges::record(const Entity * /* pEntity */, const CMetadata & /* metadata */)
+{}
 
 #endif /* SRC_ACTIONS_CHANGES_H_ */

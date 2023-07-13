@@ -31,9 +31,11 @@
 #include "diseaseModel/CDistribution.h"
 #include "diseaseModel/CFactorOperation.h"
 #include "plugins/CCustomMethod.h"
+#include "math/CValueInterface.h"
 
 struct json_t;
 class CHealthState;
+class CMetadata;
 
 class CProgression: public CAnnotation, public CCustomMethod< CCustomMethodType::progression_dwell_time >
 {
@@ -54,7 +56,29 @@ public:
 
   const CHealthState * getExitState() const;
 
-  const double & getProbability() const;
+  const double & getPropensity() const;
+
+  std::string & getId();
+
+  CHealthState * getEntryState();
+
+  CHealthState * getExitState();
+
+  double & getPropensity();
+
+  std::string & getDwellTime();
+
+  std::string & getSusceptibilityFactorOperation();
+
+  std::string & getInfectivityFactorOperation();
+
+  bool setPropensity(const double & value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+
+  bool setDwellTime(const std::string & value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+
+  bool setSusceptibilityFactorOperation(const std::string & value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
+
+  bool setInfectivityFactorOperation(const std::string & value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
 
   unsigned int dwellTime(const CNode * pNode) const;
 
@@ -70,7 +94,7 @@ private:
   std::string mId;
   const CHealthState * mpEntryState;
   const CHealthState * mpExitState;
-  double mProbability;
+  double mPropensity;
   CDistribution mDwellTime;
   CFactorOperation mSusceptibilityFactorOperation;
   CFactorOperation mInfectivityFactorOperation;

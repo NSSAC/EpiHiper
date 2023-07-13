@@ -98,7 +98,7 @@ private:
 
 public:
   static void load(const std::string & configFile);
-  static void release();
+  static void clear();
 
   static bool isValid();
   static int getStartTick();

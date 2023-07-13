@@ -1,10 +1,13 @@
 #ifndef SRC_MATH_CCValueInstance_H_
-#  define SRC_MATH_CCValueInstance_H_
+#define SRC_MATH_CCValueInstance_H_
 
-#  include <memory>
+#include <memory>
 
 #include "math/CEdgeProperty.h"
 #include "math/CNodeProperty.h"
+#include "math/CHealthStateProperty.h"
+#include "math/CTransmissionProperty.h"
+#include "math/CProgressionProperty.h"
 #include "math/CValueList.h"
 #include "math/CComputableSet.h"
 
@@ -24,6 +27,9 @@ public:
     Observable,
     NodeProperty,
     EdgeProperty,
+    HealthStateProperty,
+    TransmissionProperty,
+    ProgressionProperty,
     Variable,
     SizeOf,
     __SIZE
@@ -61,6 +67,12 @@ public:
 
   CNodeProperty * nodeProperty() const;
 
+  CHealthStateProperty * healthStateProperty() const;
+
+  CTransmissionProperty * transmissionProperty() const;
+
+  CProgressionProperty * progressionProperty() const;
+
   CVariable * variable() const;
 
 private:
@@ -74,6 +86,9 @@ private:
   CObservable * mpObservable;
   std::shared_ptr< CNodeProperty > mpNodeProperty;
   std::shared_ptr< CEdgeProperty > mpEdgeProperty;
+  std::shared_ptr< CHealthStateProperty > mpHealthStateProperty;
+  std::shared_ptr< CTransmissionProperty > mpTransmissionsProperty;
+  std::shared_ptr< CProgressionProperty > mpProgressionProperty;
   CVariable * mpVariable;
   std::shared_ptr< CSizeOf > mpSizeOf;
 };

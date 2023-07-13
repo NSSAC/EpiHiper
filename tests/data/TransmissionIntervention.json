@@ -1,0 +1,107 @@
+{
+  "$schema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/interventionSchema.json",
+  "epiHiperSchema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/interventionSchema.json",
+  "triggers": [],
+  "interventions": [
+    {
+      "ann:id": "transmission_tick_0",
+      "trigger": {
+        "left": {
+          "observable": "time"
+        },
+        "operator": "==",
+        "right": {
+          "value": {
+            "number": 0
+          }
+        }
+      },
+      "target": {
+        "set": {
+          "idRef": "%empty%"
+        }
+      },
+      "once": [
+        {
+          "operations": [
+            {
+              "target": {
+                "transmission": {
+                  "idRef": "infection_I_wanedS",
+                  "property": "transmissibility"
+                }
+              },
+              "operator": "*=",
+              "source": {
+                "value": {
+                  "number": 0.5
+                }
+              }
+            },
+            {
+              "target": {
+                "transmission": {
+                  "idRef": "infection_I_wanedV",
+                  "property": "infectivityFactorOperation"
+                }
+              },
+              "operator": "=",
+              "source": {
+                "operator": "*=",
+                "value": 2.0
+              }
+            },
+            {
+              "target": {
+                "transmission": {
+                  "idRef": "infection_I_V",
+                  "property": "susceptibilityFactorOperation"
+                }
+              },
+              "operator": "=",
+              "source": {
+                "operator": "=",
+                "value": 0.5
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ann:id": "transmission_tick_1",
+      "trigger": {
+        "left": {
+          "observable": "time"
+        },
+        "operator": "==",
+        "right": {
+          "value": {
+            "number": 1
+          }
+        }
+      },
+      "target": {
+        "set": {
+          "idRef": "%empty%"
+        }
+      },
+      "once": [
+        {
+          "operations": [
+            {
+              "target": {
+                "transmission": {
+                  "idRef": "infection_I_V",
+                  "property": "susceptibilityFactorOperation"
+                }
+              },
+              "operator": "=",
+              "source": {}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

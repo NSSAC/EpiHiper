@@ -1,26 +1,26 @@
-// BEGIN: Copyright 
-// MIT License 
-//  
-// Copyright (C) 2020 - 2023 Rector and Visitors of the University of Virginia 
-//  
-// Permission is hereby granted, free of charge, to any person obtaining a copy 
-// of this software and associated documentation files (the "Software"), to deal 
-// in the Software without restriction, including without limitation the rights 
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-// copies of the Software, and to permit persons to whom the Software is 
-// furnished to do so, subject to the following conditions: 
-//  
-// The above copyright notice and this permission notice shall be included in all 
-// copies or substantial portions of the Software. 
-//  
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
-// SOFTWARE 
-// END: Copyright 
+// BEGIN: Copyright
+// MIT License
+//
+// Copyright (C) 2020 - 2023 Rector and Visitors of the University of Virginia
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE
+// END: Copyright
 
 /*
  * CChanges.cpp
@@ -34,13 +34,9 @@
 #include "actions/CChanges.h"
 
 #include "utilities/CSimConfig.h"
-#include "diseaseModel/CHealthState.h"
-#include "network/CEdge.h"
-#include "network/CNode.h"
 #include "network/CNetwork.h"
-#include "utilities/CMetadata.h"
 
-// static 
+// static
 void CChanges::init()
 {
   Context.init();
@@ -54,19 +50,22 @@ void CChanges::init()
       pIt->pDefaultOutput = new std::stringstream;
 }
 
-// static 
+// static
 void CChanges::release()
 {
-  delete Context.Master().pDefaultOutput;
+  if (Context.size())
+    {
+      delete Context.Master().pDefaultOutput;
 
-  Changes * pIt = Context.beginThread();
-  Changes * pEnd = Context.endThread();
+      Changes * pIt = Context.beginThread();
+      Changes * pEnd = Context.endThread();
 
-  for (; pIt != pEnd; ++pIt)
-    if (Context.isThread(pIt))
-      delete pIt->pDefaultOutput;
+      for (; pIt != pEnd; ++pIt)
+        if (Context.isThread(pIt))
+          delete pIt->pDefaultOutput;
+    }
 
-  Context.release();
+   Context.release();
 }
 
 // static
@@ -81,8 +80,8 @@ void CChanges::incrementTick()
   ++Tick;
 }
 
-// static 
-void CChanges::clear()
+// static
+void CChanges::reset()
 {
 #pragma omp parallel
   {
@@ -95,205 +94,151 @@ void CChanges::clear()
 }
 
 // static
-void CChanges::record(const CNode * pNode, const CMetadata & metadata)
-  {
-    if (pNode == NULL)
-      return;
+void CChanges::initDefaultOutput()
+{
+  if (CCommunicate::MPIRank == 0)
+    {
+      std::ofstream out;
 
-    pNode->changed = true;
-    Changes & Active = Context.Active();
+      out.open(CSimConfig::getOutput().c_str());
 
-    if (metadata.getBool("StateChange"))
-      {
-        // "tick,pid,exit_state,contact_pid,[locationId]"
-        (*Active.pDefaultOutput) << (int) Tick << "," << pNode->id << "," << pNode->getHealthState()->getAnnId() << ",";
+      if (out.good())
+        {
+          out << "tick,pid,exit_state,contact_pid";
 
-        if (metadata.contains("ContactNode"))
-          {
-            (*Active.pDefaultOutput) << (size_t) metadata.getInt("ContactNode");
-          }
-        else
-          {
-            (*Active.pDefaultOutput) << -1;
-          }
+          if (CEdge::HasLocationId)
+            out << ",location_id";
 
-        if (CEdge::HasLocationId)
-          {
-            if (metadata.contains("LocationId"))
-              {
-                (*Active.pDefaultOutput) << "," << (size_t) metadata.getInt("LocationId");
-              }
-            else
-              {
-                (*Active.pDefaultOutput) << "," << -1;
-              }
-          }
+          out << std::endl;
+        }
+      else
+        {
+          CLogger::error("Error (Rank 0): Failed to open file '" + CSimConfig::getOutput() + "'.");
+          exit(EXIT_FAILURE);
+        }
 
-        (*Active.pDefaultOutput) << std::endl;
-      }
-  }
+      out.close();
+    }
+}
 
-  // static
-  void CChanges::record(const CEdge * /* pEdge */, const CMetadata & /* metadata */)
-  {
-    /*
-  if (pEdge == NULL)
-    return;
+// static
+bool CChanges::writeDefaultOutput()
+{
+  CCommunicate::SequentialProcess WriteData(&CChanges::writeDefaultOutputData);
+  return CCommunicate::sequential(0, &WriteData) == (int) CCommunicate::ErrorCode::Success;
+}
 
-  Edges.insert(pEdge);
-  */
-  }
+// static
+CCommunicate::ErrorCode CChanges::writeDefaultOutputData()
+{
+  std::ofstream out;
 
-  // static
-  void CChanges::record(const CVariable * /* pVariable */, const CMetadata & /* metadata */)
-  {}
+  out.open(CSimConfig::getOutput().c_str(), std::ios_base::app);
 
-  // static
-  void CChanges::initDefaultOutput()
-  {
-    if (CCommunicate::MPIRank == 0)
-      {
-        std::ofstream out;
+  if (out.fail())
+    {
+      CLogger::error("CChanges::writeDefaultOutputData: Failed to open '{}'.", CSimConfig::getOutput());
+      return CCommunicate::ErrorCode::FileOpenError;
+    }
+  else
+    {
+      Changes * pIt = Context.beginThread();
+      Changes * pEnd = Context.endThread();
 
-        out.open(CSimConfig::getOutput().c_str());
+      for (; pIt != pEnd && out.good(); ++pIt)
+        {
+          out << pIt->pDefaultOutput->str();
+          pIt->pDefaultOutput->str("");
+        }
+    }
 
-        if (out.good())
-          {
-            out << "tick,pid,exit_state,contact_pid";
+  if (out.fail())
+    {
+      CLogger::error("CChanges::writeDefaultOutputData: Failed to write '{}'.", CSimConfig::getOutput());
+      return CCommunicate::ErrorCode::FileWriteError;
+    }
 
-            if (CEdge::HasLocationId)
-              out << ",location_id";
+  out.close();
 
-            out << std::endl;
-          }
-        else
-          {
-            CLogger::error("Error (Rank 0): Failed to open file '" + CSimConfig::getOutput() + "'.");
-            exit(EXIT_FAILURE);
-          }
+  if (out.fail())
+    {
+      CLogger::error("CChanges::writeDefaultOutputData: Failed to close '{}'.", CSimConfig::getOutput());
+      return CCommunicate::ErrorCode::FileCloseError;
+    }
 
-        out.close();
-      }
-  }
+  return CCommunicate::ErrorCode::Success;
+}
 
-  // static
-  bool CChanges::writeDefaultOutput()
-  {
-    CCommunicate::SequentialProcess WriteData(&CChanges::writeDefaultOutputData);
-    return CCommunicate::sequential(0, &WriteData) == (int) CCommunicate::ErrorCode::Success;
-  }
+// static
+CCommunicate::ErrorCode CChanges::determineNodesRequested()
+{
+  const std::map< size_t, CNode * > & RemoteNodes = CNetwork::Context.Master().getRemoteNodes();
+  std::map< size_t, CNode * >::const_iterator it = RemoteNodes.begin();
+  std::map< size_t, CNode * >::const_iterator end = RemoteNodes.end();
 
-  // static
-  CCommunicate::ErrorCode CChanges::writeDefaultOutputData()
-  {
-    std::ofstream out;
+  size_t * pBuffer = RemoteNodes.size() > 0 ? new size_t[RemoteNodes.size()] : NULL;
+  size_t * pId = pBuffer;
 
-    out.open(CSimConfig::getOutput().c_str(), std::ios_base::app);
+  for (; it != end; ++it, ++pId)
+    {
+      ENABLE_TRACE(CLogger::trace("CChanges: request node '{}'.", it->first););
+      *pId = it->first;
+    }
 
-    if (out.fail())
-      {
-        CLogger::error("CChanges::writeDefaultOutputData: Failed to open '{}'.", CSimConfig::getOutput());
-        return CCommunicate::ErrorCode::FileOpenError;
-      }
-    else
-      {
-        Changes * pIt = Context.beginThread();
-        Changes * pEnd = Context.endThread();
+  CCommunicate::Receive Receive(&CChanges::receiveNodesRequested);
+  CCommunicate::roundRobin(pBuffer, RemoteNodes.size() * sizeof(size_t), &Receive);
 
-        for (; pIt != pEnd && out.good(); ++pIt)
-          {
-            out << pIt->pDefaultOutput->str();
-            pIt->pDefaultOutput->str("");
-          }
-      }
+  if (pBuffer != NULL)
+    delete[] pBuffer;
 
-    if (out.fail())
-      {
-        CLogger::error("CChanges::writeDefaultOutputData: Failed to write '{}'.", CSimConfig::getOutput());
-        return CCommunicate::ErrorCode::FileWriteError;
-      }
+  return CCommunicate::ErrorCode::Success;
+}
 
-    out.close();
-
-    if (out.fail())
-      {
-        CLogger::error("CChanges::writeDefaultOutputData: Failed to close '{}'.", CSimConfig::getOutput());
-        return CCommunicate::ErrorCode::FileCloseError;
-      }
-
-    return CCommunicate::ErrorCode::Success;
-  }
-
-  // static
-  CCommunicate::ErrorCode CChanges::determineNodesRequested()
-  {
-    const std::map< size_t, CNode * > & RemoteNodes = CNetwork::Context.Master().getRemoteNodes();
-    std::map< size_t, CNode * >::const_iterator it = RemoteNodes.begin();
-    std::map< size_t, CNode * >::const_iterator end = RemoteNodes.end();
-
-    size_t * pBuffer = RemoteNodes.size() > 0 ? new size_t[RemoteNodes.size()] : NULL;
-    size_t * pId = pBuffer;
-
-    for (; it != end; ++it, ++pId)
-      {
-        ENABLE_TRACE(CLogger::trace("CChanges: request node '{}'.", it->first););
-        *pId = it->first;
-      }
-
-    CCommunicate::Receive Receive(&CChanges::receiveNodesRequested);
-    CCommunicate::roundRobin(pBuffer, RemoteNodes.size() * sizeof(size_t), &Receive);
-
-    if (pBuffer != NULL)
-      delete[] pBuffer;
-
-    return CCommunicate::ErrorCode::Success;
-  }
-
-  // static
-  CCommunicate::ErrorCode CChanges::sendNodesRequested(std::ostream & os, int receiver)
-  {
-    size_t Count = 0;
+// static
+CCommunicate::ErrorCode CChanges::sendNodesRequested(std::ostream & os, int receiver)
+{
+  size_t Count = 0;
 
 #pragma omp parallel shared(os) reduction(+: Count)
-    {
-      CNode * it = CNetwork::Context.Active().beginNode();
-      CNode * end = CNetwork::Context.Active().endNode();
+  {
+    CNode * it = CNetwork::Context.Active().beginNode();
+    CNode * end = CNetwork::Context.Active().endNode();
 
-      std::ostringstream OutStream;
+    std::ostringstream OutStream;
 
-      // std::set< const CNode * >::const_iterator it = Active.__Nodes.begin();
-      // std::set< const CNode * >::const_iterator end = Active.__Nodes.end();
+    // std::set< const CNode * >::const_iterator it = Active.__Nodes.begin();
+    // std::set< const CNode * >::const_iterator end = Active.__Nodes.end();
 
-      const std::set< const CNode * > & Requested = RankToNodesRequested[receiver];
-      std::set< const CNode * >::const_iterator itRequested = Requested.begin();
-      std::set< const CNode * >::const_iterator endRequested = Requested.end();
+    const std::set< const CNode * > & Requested = RankToNodesRequested[receiver];
+    std::set< const CNode * >::const_iterator itRequested = Requested.begin();
+    std::set< const CNode * >::const_iterator endRequested = Requested.end();
 
-      while (it != end && itRequested != endRequested)
-        if (it < *itRequested)
-          {
-            ++it;
-          }
-        else if (it > *itRequested)
-          {
-            ++itRequested;
-          }
-        else
-          {
-            if (it->changed)
-              {
-                ENABLE_TRACE(CLogger::trace("CChanges: send node '{}'.", it->id););
+    while (it != end && itRequested != endRequested)
+      if (it < *itRequested)
+        {
+          ++it;
+        }
+      else if (it > *itRequested)
+        {
+          ++itRequested;
+        }
+      else
+        {
+          if (it->changed)
+            {
+              ENABLE_TRACE(CLogger::trace("CChanges: send node '{}'.", it->id););
 
-                it->toBinary(OutStream);
-                ++Count;
-              }
+              it->toBinary(OutStream);
+              ++Count;
+            }
 
-            ++it;
-            ++itRequested;
-          }
+          ++it;
+          ++itRequested;
+        }
 
 #pragma omp critical
-      os << OutStream.str();
-    }
+    os << OutStream.str();
+  }
 
   CLogger::debug("CChanges: Sending '{}' nodes to: '{}'.", Count, receiver);
 
@@ -327,4 +272,3 @@ CCommunicate::ErrorCode CChanges::receiveNodesRequested(std::istream & is, int s
 
   return CCommunicate::ErrorCode::Success;
 }
-

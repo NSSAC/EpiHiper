@@ -93,7 +93,7 @@ void CInitialization::load(const std::string & file)
 }
 
 // static
-void CInitialization::release()
+void CInitialization::clear()
 {
   std::vector< CInitialization * >::iterator it = INSTANCES.begin();
   std::vector< CInitialization * >::iterator end = INSTANCES.end();

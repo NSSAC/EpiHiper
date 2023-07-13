@@ -40,7 +40,7 @@ const CProgression * CHealthState::defaultMethod(const CHealthState * pHealthSta
 
       for (const CProgression * pProgression : Progressions.Progressions)
         {
-          alpha -= pProgression->getProbability();
+          alpha -= pProgression->getPropensity();
 
           if (alpha < 0.0)
             return pProgression;
@@ -181,6 +181,51 @@ const double & CHealthState::getInfectivity() const
   return mInfectivity;
 }
 
+std::string & CHealthState::getId()
+{
+  return mId;
+}
+
+size_t & CHealthState::getIndex()
+{
+  return mIndex;
+}
+
+double & CHealthState::getSusceptibility()
+{
+  return mSusceptibility;
+}
+
+double & CHealthState::getInfectivity()
+{
+  return mInfectivity;
+}
+
+bool CHealthState::setSusceptibility(const double & value, CValueInterface::pOperator pOperator, const CMetadata & ENABLE_TRACE(metadata))
+{
+  ENABLE_TRACE(CLogger::trace("CHealthState [ActionDefinition:{}]: Health State ({}) susceptibility {} {}",
+                              metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1,
+                              mId,
+                              CValueInterface::operatorToString(pOperator),
+                              value););
+  (*pOperator)(mSusceptibility, value);
+
+  return true;
+}
+
+bool CHealthState::setInfectivity(const double & value, CValueInterface::pOperator pOperator, const CMetadata & ENABLE_TRACE(metadata))
+{
+  ENABLE_TRACE(CLogger::trace("CHealthState [ActionDefinition:{}]: Health State () infectivity {} {}",
+                              metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1,
+                              mId,
+                              CValueInterface::operatorToString(pOperator),
+                              value););
+  (*pOperator)(mInfectivity, value);
+
+  return true;
+}
+
+
 const CHealthState::PossibleProgressions & CHealthState::getPossibleProgressions() const
 {
   return mProgressions;
@@ -193,8 +238,16 @@ void CHealthState::addProgression(const CProgression * pProgression)
       mProgressions.A0 = 0.0;
     }
 
-  mProgressions.A0 += pProgression->getProbability();
+  mProgressions.A0 += pProgression->getPropensity();
   mProgressions.Progressions.push_back(pProgression);
+}
+
+void CHealthState::updatePossibleProgression()
+{
+  mProgressions.A0 = 0.0;
+
+  for (const CProgression * pProgression : mProgressions.Progressions)
+    mProgressions.A0 += pProgression->getPropensity();
 }
 
 const CProgression * CHealthState::nextProgression(const CNode * pNode) const

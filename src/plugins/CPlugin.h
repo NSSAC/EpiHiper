@@ -40,7 +40,7 @@ public:
   typedef void (*EpiHiperPluginInit)();
 
   static void Init();
-  static void Release();
+  static void clear();
 };
 
 #endif // SRC_UTILITIES_CPLUGIN_H_

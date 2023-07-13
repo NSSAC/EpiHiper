@@ -1,0 +1,134 @@
+{
+  "$schema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/interventionSchema.json",
+  "epiHiperSchema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/interventionSchema.json",
+  "triggers": [],
+  "interventions": [
+    {
+      "ann:id": "transition_tick_0",
+      "trigger": {
+        "left": {
+          "observable": "time"
+        },
+        "operator": "==",
+        "right": {
+          "value": {
+            "number": 0
+          }
+        }
+      },
+      "target": {
+        "set": {
+          "idRef": "%empty%"
+        }
+      },
+      "once": [
+        {
+          "operations": [
+            {
+              "target": {
+                "transition": {
+                  "idRef": "I_to_R",
+                  "property":"propensity"
+                }
+              },
+              "operator": "*=",
+              "source": {
+                "value": {
+                  "number": 2.0
+                }
+              }
+            },
+            {
+              "target": {
+                "transition": {
+                  "idRef": "R_to_wanedS",
+                  "property": "infectivityFactorOperation"
+                }
+              },
+              "operator": "=",
+              "source": {
+                "operator": "*=",
+                "value": 2.0
+              }
+            },
+            {
+              "target": {
+                "transition": {
+                  "idRef": "V_to_wanedV",
+                  "property": "dwellTime"
+                }
+              },
+              "operator": "=",
+              "source": {
+                "normal": {
+                  "mean": 2,
+                  "standardDeviation": 1
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ann:id": "transition_tick_1",
+      "trigger": {
+        "left": {
+          "observable": "time"
+        },
+        "operator": "==",
+        "right": {
+          "value": {
+            "number": 1
+          }
+        }
+      },
+      "target": {
+        "set": {
+          "idRef": "%empty%"
+        }
+      },
+      "once": [
+        {
+          "operations": [
+            {
+              "target": {
+                "transition": {
+                  "idRef": "R_to_wanedS",
+                  "property": "infectivityFactorOperation"
+                }
+              },
+              "operator": "=",
+              "source": {}
+            },
+            {
+              "target": {
+                "transition": {
+                  "idRef": "V_to_wanedV",
+                  "property": "dwellTime"
+                }
+              },
+              "operator": "=",
+              "source": {
+                "discrete": [
+                  {
+                    "probability": 0.2,
+                    "value": 1
+                  },
+                  {
+                    "probability": 0.6,
+                    "value": 2
+                  },
+                  {
+                    "probability": 0.2,
+                    "value": 3
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -56,7 +56,7 @@ void CNetwork::init()
 }
 
 // static
-void CNetwork::release()
+void CNetwork::clear()
 {
   Context.release();
   CChanges::release();
@@ -1683,7 +1683,7 @@ int CNetwork::broadcastChanges()
   CCommunicate::ClassMemberReceive< CNetwork > ReceiveNodes(this, &CNetwork::receiveNodes);
   CCommunicate::roundRobin(&SendNodes, &ReceiveNodes);
 
-  CChanges::clear();
+  CChanges::reset();
 
   return (int) CCommunicate::ErrorCode::Success;
 }

@@ -31,6 +31,8 @@
 #include "variables/CVariable.h"
 #include "variables/CVariableList.h"
 #include "utilities/CSimConfig.h"
+#include "diseaseModel/CFactorOperation.h"
+#include "diseaseModel/CDistribution.h"
 
 // static
 bool CValueInstance::compatible(const CValueInstance & lhs, const CValueInstance & rhs)
@@ -48,6 +50,9 @@ CValueInstance::CValueInstance()
   , mpObservable(NULL)
   , mpNodeProperty(NULL)
   , mpEdgeProperty(NULL)
+  , mpHealthStateProperty(NULL)
+  , mpTransmissionsProperty(NULL)
+  , mpProgressionProperty(NULL)
   , mpVariable(NULL)
   , mpSizeOf(NULL)
 {}
@@ -62,6 +67,9 @@ CValueInstance::CValueInstance(const CValueInstance & src)
   , mpObservable(src.mpObservable)
   , mpNodeProperty(src.mpNodeProperty)
   , mpEdgeProperty(src.mpEdgeProperty)
+  , mpHealthStateProperty(src.mpHealthStateProperty)
+  , mpTransmissionsProperty(src.mpTransmissionsProperty)
+  , mpProgressionProperty(src.mpProgressionProperty)
   , mpVariable(src.mpVariable)
   , mpSizeOf(src.mpSizeOf)
 {}
@@ -104,6 +112,42 @@ void CValueInstance::fromJSON(const json_t * json, bool writable)
     }
 
   mpEdgeProperty.reset();
+
+  mpHealthStateProperty = std::shared_ptr< CHealthStateProperty >(new CHealthStateProperty(json));
+
+  if (mpHealthStateProperty->isValid())
+    {
+      mType = ValueType::HealthStateProperty;
+      mWritable = !mpHealthStateProperty->isReadOnly();
+      mValid = writable ? mWritable : true;
+      goto final;
+    }
+
+  mpHealthStateProperty.reset();
+
+  mpTransmissionsProperty = std::shared_ptr< CTransmissionProperty >(new CTransmissionProperty(json));
+
+  if (mpTransmissionsProperty->isValid())
+    {
+      mType = ValueType::TransmissionProperty;
+      mWritable = !mpTransmissionsProperty->isReadOnly();
+      mValid = writable ? mWritable : true;
+      goto final;
+    }
+
+  mpTransmissionsProperty.reset();
+
+  mpProgressionProperty = std::shared_ptr< CProgressionProperty >(new CProgressionProperty(json));
+
+  if (mpProgressionProperty->isValid())
+    {
+      mType = ValueType::ProgressionProperty;
+      mWritable = !mpProgressionProperty->isReadOnly();
+      mValid = writable ? mWritable : true;
+      goto final;
+    }
+
+  mpProgressionProperty.reset();
 
   mpVariable = &CVariableList::INSTANCE[json];
 
@@ -171,6 +215,31 @@ void CValueInstance::fromJSON(const json_t * json, bool writable)
         }
 
       mpSizeOf.reset();
+
+      // We may have factor operations or dwell time;
+      CDistribution Distribution;
+      Distribution.fromJSON(json);
+
+      if (Distribution.isValid())
+        {
+          mpValue =  std::shared_ptr< CValue >(new CValue(Distribution.getJson()));
+          mType = ValueType::Value;
+          mWritable = false;
+          mValid = true;
+          goto final;
+        }
+
+      CFactorOperation FactorOperation;
+      FactorOperation.fromJSON(json);
+
+      if (FactorOperation.isValid())
+        {
+          mpValue =  std::shared_ptr< CValue >(new CValue(FactorOperation.getJson()));
+          mType = ValueType::Value;
+          mWritable = false;
+          mValid = true;
+          goto final;
+        }
     }
 
 final:
@@ -212,6 +281,23 @@ CValueInterface CValueInstance::value() const
       return *mpObservable;
       break;
 
+    case ValueType::HealthStateProperty:
+      if (mpHealthStateProperty)
+        return mpHealthStateProperty->propertyValue();
+
+      break;
+
+    case ValueType::TransmissionProperty:
+      if (mpTransmissionsProperty)
+        return mpTransmissionsProperty->propertyValue();
+
+      break;
+
+    case ValueType::ProgressionProperty:
+      if (mpProgressionProperty)
+        return mpProgressionProperty->propertyValue();
+
+      break;
     case ValueType::Variable:
       // We need to make sure that the value of a global variable is up to date and we have the correct context.
       return mpVariable->toValue();
@@ -275,6 +361,24 @@ CValueInterface::Type CValueInstance::interfaceType() const
 
       break;
 
+    case ValueType::HealthStateProperty:
+      if (mpHealthStateProperty)
+        return mpHealthStateProperty->getType();
+
+      break;
+
+    case ValueType::TransmissionProperty:
+      if (mpTransmissionsProperty)
+        return mpTransmissionsProperty->getType();
+
+      break;
+
+    case ValueType::ProgressionProperty:
+      if (mpProgressionProperty)
+        return mpProgressionProperty->getType();
+
+      break;
+
     case ValueType::Variable:
       if (mpVariable)
         return mpVariable->getType();
@@ -322,6 +426,21 @@ CEdgeProperty * CValueInstance::edgeProperty() const
 CNodeProperty * CValueInstance::nodeProperty() const
 {
   return mpNodeProperty.get();
+}
+
+CHealthStateProperty * CValueInstance::healthStateProperty() const
+{
+  return mpHealthStateProperty.get();
+}
+
+CTransmissionProperty * CValueInstance::transmissionProperty() const
+{
+  return mpTransmissionsProperty.get();
+}
+
+CProgressionProperty * CValueInstance::progressionProperty() const
+{
+  return mpProgressionProperty.get();
 }
 
 CVariable * CValueInstance::variable() const

@@ -31,6 +31,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 
 include(GNUInstallDirs)
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if (APPLE)
   set(TARGET_MACOSX 1)
@@ -84,6 +85,9 @@ include_directories(BEFORE ${PROJECT_BINARY_DIR}/include)
 add_subdirectory(dependencies)
 add_subdirectory(src)
 add_subdirectory(plugin)
+
+include(CTest)
+add_subdirectory(tests)
 
 message(STATUS "----------------------------------------------------------------
 

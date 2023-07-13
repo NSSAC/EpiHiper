@@ -47,7 +47,7 @@ public:
 
   static void loadJSON(const json_t * json);
 
-  static void release();
+  static void clear();
 
   static bool processAll();
 

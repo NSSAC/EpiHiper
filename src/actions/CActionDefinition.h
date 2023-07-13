@@ -69,6 +69,8 @@ public:
 
   static CActionDefinition * GetActionDefinition(const size_t & index);
 
+  static void clear();
+
 private:
   static std::vector< CActionDefinition * > INSTANCES;
 

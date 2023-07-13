@@ -65,7 +65,7 @@ public :
 
   static void init();
 
-  static void release();
+  static void finalize();
 
   static void setLevel(LogLevel level);
 

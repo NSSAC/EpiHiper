@@ -22,11 +22,11 @@
 // SOFTWARE 
 // END: Copyright 
 
-#include <string>
 #include <jansson.h>
 
 #include "diseaseModel/CDistribution.h"
 #include "utilities/CLogger.h"
+#include "utilities/CSimConfig.h"
 
 CDistribution::CDistribution()
   : mType(Type::__NONE)
@@ -39,6 +39,7 @@ CDistribution::CDistribution()
   , mNormal()
   , mGamma()
   , mValid()
+  , mNormalizedJSON("{}")
 {}
 
 CDistribution::CDistribution(const CDistribution & src)
@@ -52,6 +53,7 @@ CDistribution::CDistribution(const CDistribution & src)
   , mNormal(src.mNormal)
   , mGamma(src.mGamma)
   , mValid(src.mValid)
+  , mNormalizedJSON(src.mNormalizedJSON)
 {}
 
 // virtual
@@ -88,7 +90,7 @@ void CDistribution::fromJSON(const json_t * json)
           "properties": {
             "fixed": {"$ref": "#/definitions/nonNegativeNumber"},
             "discrete": {
-              "description": "A number is sampled from the array with each number having the given propability.",
+              "description": "A number is sampled from the array with each number having the given probability.",
               "type": "array",
               "items": {
                 "type": "object",
@@ -116,7 +118,7 @@ void CDistribution::fromJSON(const json_t * json)
                 },
                 {
                   "type": "object",
-                  "description": "A number is sampled uniformly in the given intervall [min, max]",
+                  "description": "A number is sampled uniformly in the given interval [min, max]",
                   "required": [
                     "min",
                     "max"
@@ -164,7 +166,9 @@ void CDistribution::fromJSON(const json_t * json)
     },
   */
 
-  mValid = false; // DONE
+  mValid = false; 
+  mNormalizedJSON = "{}";
+  mType = Type::__NONE;
 
   json_t * pValue = json_object_get(json, "fixed");
 
@@ -173,15 +177,15 @@ void CDistribution::fromJSON(const json_t * json)
       mType = Type::fixed;
       mpSample = &CDistribution::fixed;
       int Fixed = std::round(json_real_value(pValue)); 
-      mValid = (Fixed >= 0);
       mFixed = Fixed;
 
-      if (!mValid)
+      if (Fixed < 0)
         {
           CLogger::error("Distribution fixed: Invalid value.");
+          return;
         }
-      
-      return;
+
+      mValid = true;
     }
 
   pValue = json_object_get(json, "discrete");
@@ -243,18 +247,14 @@ void CDistribution::fromJSON(const json_t * json)
             }
         }
 
-      mValid = fabs(Total - 1.0) < 100.0 * std::numeric_limits< double >::epsilon();
-
-      if (mValid)
-        {
-          mUniformReal.init(0, std::nextafter(Total, 2.0));
-        }
-      else
+      if (fabs(Total - 1.0) > 100.0 * std::numeric_limits< double >::epsilon())
         {
           CLogger::error("Distribution discrete: The sum of probabilities '{}' is not 1.", Total);
+          return;
         }
 
-      return;
+      mValid = true;
+      mUniformReal.init(0, std::nextafter(Total, 2.0));
     }
 
   pValue = json_object_get(json, "uniform");
@@ -292,7 +292,6 @@ void CDistribution::fromJSON(const json_t * json)
 
       mValid = true;
       mUniformInt.init(0, mUniformSet.size() - 1);
-      return;
     }
   else if (json_is_object(pValue))
     {
@@ -339,7 +338,6 @@ void CDistribution::fromJSON(const json_t * json)
 
       mValid = true;
       mUniformInt.init(min, max);
-      return;
     }
 
   pValue = json_object_get(json, "normal");
@@ -389,7 +387,6 @@ void CDistribution::fromJSON(const json_t * json)
 
       mValid = true;
       mNormal.init(mean, standardDeviation);
-      return;
     }
 
   pValue = json_object_get(json, "gamma");
@@ -439,8 +436,9 @@ void CDistribution::fromJSON(const json_t * json)
 
       mValid = true;
       mGamma.init(alpha, beta);
-      return;
     }
+
+  normalizeJSON();
 }
 
 const bool & CDistribution::isValid() const
@@ -494,4 +492,98 @@ unsigned int CDistribution::normal() const
 unsigned int CDistribution::gamma() const
 {
   return std::round(std::max(0.0, mGamma.sample()));
+}
+
+void CDistribution::normalizeJSON()
+{
+  if (mType == Type::__NONE)
+    mNormalizedJSON = "{}";
+
+  json_error_t error;
+  json_t * pJson = json_loads("{}", JSON_DECODE_INT_AS_REAL, &error);
+  json_t * pDistribution = nullptr;
+
+  switch (mType)
+    {
+    case Type::fixed:
+      json_object_set_new(pJson, "fixed", json_real(mFixed));
+      break;
+
+    case Type::discrete:
+      pDistribution = json_array();
+
+      for (const std::pair< double, unsigned int > & item: mDiscrete) 
+        {
+          json_t * pItem = json_object();
+          json_object_set_new(pItem, "probability", json_real(item.first));
+          json_object_set_new(pItem, "value", json_real(item.second));
+          json_array_append_new(pDistribution, pItem);
+        }
+
+      json_object_set_new(pJson, "discrete", pDistribution);
+      break;
+
+    case Type::uniform:
+      if (mpSample == &CDistribution::uniformSet)
+        {
+          pDistribution = json_array();
+
+          for (const unsigned int & item : mUniformSet)
+            json_array_append_new(pDistribution, json_real(item));
+
+          json_object_set_new(pJson, "uniform", pDistribution);
+        }
+      else
+        {
+          pDistribution = json_object();
+          
+          json_object_set_new(pDistribution, "min", json_real(mUniformInt.Active().distribution.min()));
+          json_object_set_new(pDistribution, "max", json_real(mUniformInt.Active().distribution.max()));
+          
+          json_object_set_new(pJson, "uniform", pDistribution);
+        }
+      break;
+
+    case Type::normal:
+      pDistribution = json_object();
+
+      json_object_set_new(pDistribution, "mean", json_real(mNormal.Active().distribution.mean()));
+      json_object_set_new(pDistribution, "standardDeviation", json_real(mNormal.Active().distribution.stddev()));
+
+      json_object_set_new(pJson, "normal", pDistribution);
+      break;
+
+    case Type::gamma:
+      pDistribution = json_object();
+
+      json_object_set_new(pDistribution, "alpha", json_real(mGamma.Active().distribution.alpha()));
+      json_object_set_new(pDistribution, "beta", json_real(mGamma.Active().distribution.beta()));
+
+      json_object_set_new(pJson, "gamma", pDistribution);
+      break;
+
+    case Type::__NONE:
+      break;
+    }
+
+  mNormalizedJSON = CSimConfig::jsonToString(pJson);
+  json_decref(pJson);
+}
+
+std::string & CDistribution::getJson()
+{
+  return mNormalizedJSON;
+}
+
+bool CDistribution::setJson(const std::string & json)
+{
+  if (json == mNormalizedJSON)
+    return false;
+
+  json_error_t error;
+  json_t * pJson = json_loads(json.c_str(), JSON_DECODE_INT_AS_REAL, &error);
+  fromJSON(pJson);
+  json_decref(pJson);
+
+  return true;
 }
