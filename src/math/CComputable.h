@@ -49,6 +49,8 @@ public:
 
   const CComputableSet & getPrerequisites() const;
 
+  bool needsCompute() const;
+  
   bool compute();
 
   virtual bool isValid() const;

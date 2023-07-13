@@ -55,6 +55,7 @@ public:
   bool setActive(const bool & value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
   bool setWeight(const double & value, CValueInterface::pOperator pOperator, const CMetadata & metadata);
 
+  // start binary data
   size_t targetId;
   CTraitData::base targetActivity;
   size_t sourceId;
@@ -66,6 +67,8 @@ public:
   CTraitData::base edgeTrait;
   bool active;
   double weight;
+  // end binary data
+
   CNode * pTarget;
   CNode * pSource;
 };
