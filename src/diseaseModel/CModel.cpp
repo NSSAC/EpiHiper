@@ -51,7 +51,7 @@ void CModel::Load(const std::string & modelFile)
 }
 
 // static
-void CModel::Release()
+void CModel::clear()
 {
   if (INSTANCE != NULL)
     {
@@ -418,6 +418,21 @@ const std::vector< CTransmission > & CModel::GetTransmissions()
 }
 
 // static 
+CTransmission * CModel::GetTransmission(const std::string & id)
+{
+  CTransmission * pTransmission = nullptr;
+
+  for (const CTransmission & Transmission : CModel::GetTransmissions())
+    if (Transmission.getId() == id)
+      {
+        pTransmission = const_cast< CTransmission * >(&Transmission);
+        break;
+      }
+
+  return pTransmission;
+}
+
+// static 
 const std::vector< CHealthState > & CModel::GetStates()
 {
   return CModel::INSTANCE->getStates();
@@ -427,6 +442,21 @@ const std::vector< CHealthState > & CModel::GetStates()
 const std::vector< CProgression > & CModel::GetProgressions()
 {
   return CModel::INSTANCE->getProgressions();
+}
+
+// static 
+CProgression * CModel::GetProgression(const std::string & id)
+{
+  CProgression * pProgression = nullptr;
+
+  for (const CProgression & Progression : CModel::GetProgressions())
+    if (Progression.getId() == id)
+      {
+        pProgression = const_cast< CProgression * >(&Progression);
+        break;
+      }
+
+  return pProgression;
 }
 
 // static

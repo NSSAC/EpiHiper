@@ -65,6 +65,24 @@ CSetList::~CSetList()
     }
 }
 
+void CSetList::reset()
+{
+  CSet * pEmpty = at(0);
+
+  std::vector< CSet * >::const_iterator it = begin();
+  std::vector< CSet * >::const_iterator itEnd = end();
+
+  for (++it; it != itEnd; ++it)
+    delete *it;
+
+  std::vector< CSet * >::clear();
+  mId2Index.clear();
+  mValid = true;
+
+  mId2Index[pEmpty->getId()] = 0;
+  push_back(pEmpty);
+}
+
 void CSetList::fromJSON(const json_t * json)
 {
   if (json == NULL)

@@ -35,7 +35,7 @@ class CConnection
 {
 public:
   static void init();
-  static void release();
+  static void clear();
   static pqxx::read_transaction * work();
   static void setRequired(const bool & required);
   

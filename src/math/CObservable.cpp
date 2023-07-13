@@ -78,6 +78,15 @@ CObservable * CObservable::get(const json_t * json)
   return pExisting;
 }
 
+// static 
+void CObservable::clear()
+{
+  for (ObservableMap::value_type & Observable : Observables)
+    delete Observable.second;
+
+  Observables.clear();
+}
+
 CObservable::CObservable()
   : CValue(false)
   , CComputable()

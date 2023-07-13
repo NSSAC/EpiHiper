@@ -62,6 +62,8 @@ public:
 
   static CObservable * get(const json_t * json);
 
+  static void clear();
+
   CObservable();
 
   CObservable(const CObservable & src);

@@ -58,7 +58,7 @@ void CTrigger::loadJSON(const json_t * json)
 }
 
 // static
-void CTrigger::release()
+void CTrigger::clear()
 {
   std::vector< CTrigger * >::iterator it = INSTANCES.begin();
   std::vector< CTrigger * >::iterator end = INSTANCES.end();
@@ -70,9 +70,10 @@ void CTrigger::release()
 
   INSTANCES.clear();
 
-  if (pGlobalTriggered != NULL)
+  if (pGlobalTriggered != nullptr)
     {
       delete [] pGlobalTriggered;
+      pGlobalTriggered = nullptr;
     }
 }
 
@@ -86,7 +87,7 @@ bool CTrigger::processAll()
     CLogger::setSingle(true);
     RequiredTargets.clear();
     
-    if (pGlobalTriggered == NULL)
+    if (pGlobalTriggered == nullptr)
       {
         pGlobalTriggered = new bool[INSTANCES.size()];
       }

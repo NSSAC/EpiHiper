@@ -25,6 +25,7 @@
 #ifndef SRC_DISEASEMODEL_CDISTRIBUTION_H_
 #define SRC_DISEASEMODEL_CDISTRIBUTION_H_
 
+#include <string>
 #include <vector>
 #include <utility>
 
@@ -57,7 +58,13 @@ public:
 
   unsigned int sample() const;
 
+  std::string & getJson();
+
+  bool setJson(const std::string & json);
+
 private:
+  void normalizeJSON();
+
   Type mType;
   std::vector< std::pair <double, unsigned int > > mDiscrete;
   std::vector< unsigned int > mUniformSet;
@@ -70,6 +77,7 @@ private:
   CRandom::Distribution< CRandom::gamma > mGamma;
 
   bool mValid;
+  std::string mNormalizedJSON;
 
   unsigned int fixed() const;
   unsigned int discrete() const;

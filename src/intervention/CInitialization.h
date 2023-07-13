@@ -40,7 +40,7 @@ public:
 
   static void load(const std::string & file);
 
-  static void release();
+  static void clear();
 
   static bool processAll();
 

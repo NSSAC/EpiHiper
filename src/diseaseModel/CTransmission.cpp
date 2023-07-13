@@ -210,9 +210,78 @@ const double & CTransmission::getTransmissibility() const
   return mTransmissibility;
 }
 
+std::string & CTransmission::getId()
+{
+  return mId;
+}
+
+CHealthState * CTransmission::getEntryState()
+{
+  return const_cast< CHealthState * >(mpEntryState);
+}
+
+CHealthState * CTransmission::getContactState()
+{
+  return const_cast< CHealthState * >(mpContactState);
+}
+
+CHealthState * CTransmission::getExitState()
+{
+  return const_cast< CHealthState * >(mpExitState);
+}
+
+double & CTransmission::getTransmissibility()
+{
+  return mTransmissibility;
+}
+
+std::string & CTransmission::getSusceptibilityFactorOperation()
+{
+  return mSusceptibilityFactorOperation.getJson();
+}
+
+std::string & CTransmission::getInfectivityFactorOperation()
+{
+  return mInfectivityFactorOperation.getJson();
+}
+
 const bool & CTransmission::isValid() const
 {
   return mValid;
+}
+
+bool CTransmission::setTransmissibility(const double & value, CValueInterface::pOperator pOperator, const CMetadata & ENABLE_TRACE(metadata))
+{
+  ENABLE_TRACE(CLogger::trace("CTransmission [ActionDefinition:{}]: transmission ({}) transmissibility {} {}",
+                              metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1,
+                              mId,
+                              CValueInterface::operatorToString(pOperator),
+                              value););
+  (*pOperator)(mTransmissibility, value);
+
+  return true;
+}
+
+bool CTransmission::setSusceptibilityFactorOperation(const std::string & value, CValueInterface::pOperator ENABLE_TRACE(pOperator), const CMetadata & ENABLE_TRACE(metadata))
+{
+  ENABLE_TRACE(CLogger::trace("CTransmission [ActionDefinition:{}]: transmission ({}) susceptibility factor operation {} {}",
+                              metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1,
+                              mId,
+                              CValueInterface::operatorToString(pOperator),
+                              value););
+
+  return mSusceptibilityFactorOperation.setJson(value);
+}
+
+bool CTransmission::setInfectivityFactorOperation(const std::string & value, CValueInterface::pOperator ENABLE_TRACE(pOperator), const CMetadata & ENABLE_TRACE(metadata))
+{
+  ENABLE_TRACE(CLogger::trace("CTransmission [ActionDefinition:{}]: transmission ({}) infectivity factor operation {} {}",
+                              metadata.contains("CActionDefinition") ? metadata.getInt("CActionDefinition") : -1,
+                              mId,
+                              CValueInterface::operatorToString(pOperator),
+                              value););
+
+  return mInfectivityFactorOperation.setJson(value);
 }
 
 void CTransmission::updateSusceptibilityFactor(double & factor) const

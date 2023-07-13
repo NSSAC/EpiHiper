@@ -81,9 +81,9 @@ void CIntervention::load(const std::string & file)
 }
 
 // static
-void CIntervention::release()
+void CIntervention::clear()
 {
-  CTrigger::release();
+  CTrigger::clear();
 
   std::map< std::string, CIntervention * >::iterator it = INSTANCES.begin();
   std::map< std::string, CIntervention * >::iterator end = INSTANCES.end();

@@ -44,7 +44,7 @@ void CSimConfig::load(const std::string & configFile)
 }
 
 // static
-void CSimConfig::release()
+void CSimConfig::clear()
 {
   if (CSimConfig::INSTANCE != NULL)
     {
@@ -836,7 +836,7 @@ std::string CSimConfig::jsonToString(const json_t * pJson)
 
   if (pJson != nullptr)
     {
-      char * str = json_dumps(pJson, JSON_COMPACT | JSON_INDENT(0));
+      char * str = json_dumps(pJson, JSON_COMPACT | JSON_INDENT(0) | JSON_REAL_PRECISION(16));
       JSON = str;
       free(str);
     }

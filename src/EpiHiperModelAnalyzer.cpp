@@ -56,7 +56,7 @@ int main(int argc, char * argv[])
 
       CCommunicate::abort(CCommunicate::ErrorCode::InvalidArguments);
       CCommunicate::finalize();
-      CLogger::release();
+      CLogger::finalize();
 
       exit(EXIT_FAILURE);
     }
@@ -107,7 +107,7 @@ failed:
 success:
   CAnalyzer::Release();
   CCommunicate::finalize();
-  CLogger::release();
+  CLogger::finalize();
 
   exit(EXIT);
 }

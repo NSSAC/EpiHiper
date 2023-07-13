@@ -51,6 +51,8 @@ public:
 
   void clear();
 
+  void reset();
+
   bool empty() const;
 
   size_t size() const;

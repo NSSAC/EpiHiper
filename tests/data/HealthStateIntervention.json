@@ -1,0 +1,50 @@
+{
+  "$schema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/interventionSchema.json",
+  "epiHiperSchema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/interventionSchema.json",
+  "triggers": [],
+  "interventions": [
+    {
+      "ann:id": "susceptibility",
+      "trigger": {
+        "value": true
+      },
+      "target": {
+        "set": {
+          "idRef": "%empty%"
+        }
+      },
+      "once": [
+        {
+          "operations": [
+            {
+              "target": {
+                "healthState": {
+                  "idRef": "S",
+                  "property": "susceptibility"
+                }
+              },
+              "operator": "*=",
+              "source": {
+                "value": {
+                  "number": 0.5
+                }
+              }
+            },
+            {
+              "target": {
+                "healthState": {
+                  "idRef": "I",
+                  "property": "infectivity"
+                }
+              },
+              "operator": "/=",
+              "value": {
+                "number": 0.5
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

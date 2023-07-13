@@ -80,7 +80,7 @@ void CPlugin::Init()
 }
 
 // static
-void CPlugin::Release()
+void CPlugin::clear()
 {
   for (auto Library : Libraries)
     if (Library.second != nullptr)

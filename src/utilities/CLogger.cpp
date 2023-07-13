@@ -85,7 +85,7 @@ void CLogger::releaseData(LoggerData & loggerData)
 }
 
 // static
-void CLogger::release()
+void CLogger::finalize()
 {
   spdlog::shutdown();
 }

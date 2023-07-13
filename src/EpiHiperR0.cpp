@@ -67,7 +67,7 @@ int main(int argc, char * argv[])
 
       CCommunicate::abort(CCommunicate::ErrorCode::InvalidArguments);
       CCommunicate::finalize();
-      CLogger::release();
+      CLogger::finalize();
 
       exit(EXIT_FAILURE);
     }
@@ -188,15 +188,15 @@ failed:
   CCommunicate::abort((CCommunicate::ErrorCode) MPI_ERR_UNKNOWN);
 
 success:
-  CModel::Release();
-  CInitialization::release();
-  CIntervention::release();
-  CNetwork::release();
-  CConnection::release();
-  CActionQueue::release();
-  CSimConfig::release();
+  CModel::clear();
+  CInitialization::clear();
+  CIntervention::clear();
+  CNetwork::clear();
+  CConnection::clear();
+  CActionQueue::clear();
+  CSimConfig::clear();
   CCommunicate::finalize();
-  CLogger::release();
+  CLogger::finalize();
 
   exit(EXIT);
 }

@@ -48,7 +48,7 @@ public:
     mutable generator_t * pGenerator;
   };
 
-  template < class CType > class Distribution : private ::CContext< DistributionContext< CType > >
+  template < class CType > class Distribution : public ::CContext< DistributionContext< CType > >
   {
     typedef DistributionContext< CType > context_type;
     typedef ::CContext< context_type > base;

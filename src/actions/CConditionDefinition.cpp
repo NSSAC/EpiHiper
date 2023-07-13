@@ -126,7 +126,7 @@ bool CConditionDefinition::valueFromJSON(const json_t * json)
     },
    */
 
-  mValid = false; // DONE
+  mValid = false;
   json_t * pValue = json_object_get(json, "value");
 
   if (pValue != NULL)
@@ -396,7 +396,7 @@ bool CConditionDefinition::comparisonFromJSON(const json_t * json)
   */
 
   mType = BooleanOperationType::Comparison;
-  mValid = false; // DONE
+  mValid = false;
 
   json_t * pValue = json_object_get(json, "operator");
 
@@ -458,7 +458,7 @@ bool CConditionDefinition::comparisonFromJSON(const json_t * json)
   if (!mLeft.isValid())
     {
       CLogger::error("Condition: Invalid left operant for comparison operator '{}'.", CSimConfig::jsonToString(json));
-      mValid = false; // DONE
+      mValid = false;
     }
 
   mRight.fromJSON(json_object_get(json, "right"), false);
@@ -466,7 +466,7 @@ bool CConditionDefinition::comparisonFromJSON(const json_t * json)
   if (!mRight.isValid())
     {
       CLogger::error("Condition: Invalid right operant for comparison operator '{}'.", CSimConfig::jsonToString(json));
-      mValid = false; // DONE
+      mValid = false;
     }
 
   if (mComparison != ComparisonType::Within
@@ -475,42 +475,39 @@ bool CConditionDefinition::comparisonFromJSON(const json_t * json)
       if (mLeft.getType() == CValueInstance::ValueType::ValueList)
         {
           CLogger::error("Condition: Invalid value type for left operant for comparison operator '{}'.", CSimConfig::jsonToString(json));
-          mValid = false; // DONE
+          mValid = false;
         }
 
       if (mRight.getType() == CValueInstance::ValueType::ValueList)
         {
           CLogger::error("Condition: Invalid value type for right operant for comparison operator '{}'.", CSimConfig::jsonToString(json));
-          mValid = false; // DONE
+          mValid = false;
         }
 
       if (!CValueInstance::compatible(mLeft, mRight))
         {
           CLogger::error("Condition: Incompatible values for comparison: '{}'.", CSimConfig::jsonToString(json));
-          mValid = false; // DONE
+          mValid = false;
         }
     }
   else
     {
-      if (mLeft.getType() != CValueInstance::ValueType::NodeProperty
-          && mLeft.getType() != CValueInstance::ValueType::EdgeProperty
-          && mLeft.getType() != CValueInstance::ValueType::Observable
-          && mLeft.getType() != CValueInstance::ValueType::Variable)
+      if (mLeft.getType() == CValueInstance::ValueType::ValueList)
         {
           CLogger::error("Condition: Invalid value type for left operant for comparison operator '{}'.", CSimConfig::jsonToString(json));
-          mValid = false; // DONE
+          mValid = false;
         }
 
       if (mRight.getType() != CValueInstance::ValueType::ValueList)
         {
           CLogger::error("Condition: Invalid value type for right operant for comparison operator '{}'.", CSimConfig::jsonToString(json));
-          mValid = false; // DONE
+          mValid = false;
         }
 
       if (!CValueInstance::compatible(mLeft, mRight))
         {
           CLogger::error("Condition: Incompatible values for comparison: '{}'.", CSimConfig::jsonToString(json));
-          mValid = false; // DONE
+          mValid = false;
         }
     }
 

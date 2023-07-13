@@ -72,7 +72,7 @@ const CProgression * EpiHiperPlugin::state_progression(const CHealthState * pHea
 
       for (const CProgression * pProgression : Progressions.Progressions)
         {
-          alpha -= pProgression->getProbability();
+          alpha -= pProgression->getPropensity();
 
           if (alpha < 0.0)
             return pProgression;

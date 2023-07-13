@@ -42,7 +42,7 @@ class CActionQueue
   public:
     static void init(const int & firstTick);
 
-    static void release();
+    static void clear();
 
     static void addAction(size_t deltaTick, CAction * pAction);
 

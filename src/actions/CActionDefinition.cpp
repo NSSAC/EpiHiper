@@ -66,8 +66,6 @@ size_t CActionDefinition::OrderSize()
   return Priorities.size();
 }
 
-
-
 // static
 CActionDefinition * CActionDefinition::GetActionDefinition(const size_t & index)
 {
@@ -75,6 +73,12 @@ CActionDefinition * CActionDefinition::GetActionDefinition(const size_t & index)
     return INSTANCES[index];
 
   return NULL;
+}
+
+// static 
+void CActionDefinition::clear()
+{
+  INSTANCES.clear();
 }
 
 CActionDefinition::CActionDefinition()

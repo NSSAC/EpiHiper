@@ -66,7 +66,7 @@ public:
   typedef size_t state_t;
 
   static void Load(const std::string & modelFile);
-  static void Release();
+  static void clear();
 
   virtual void fromJSON(const json_t * json) override;
 
@@ -84,9 +84,13 @@ public:
 
   static const std::vector< CTransmission > & GetTransmissions();
 
+  static CTransmission * GetTransmission(const std::string & id);
+
   static const std::vector< CHealthState > & GetStates();
 
   static const std::vector< CProgression > & GetProgressions();
+
+  static CProgression * GetProgression(const std::string & id);
 
   static int UpdateGlobalStateCounts();
 
