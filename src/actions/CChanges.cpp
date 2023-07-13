@@ -279,14 +279,16 @@ void CChanges::record(const CNode * pNode, const CMetadata & metadata)
           }
         else
           {
-            ENABLE_TRACE(CLogger::trace("CChanges: send node '{}'.", it->id););
-
             if (it->changed)
-              it->toBinary(OutStream);
+              {
+                ENABLE_TRACE(CLogger::trace("CChanges: send node '{}'.", it->id););
+
+                it->toBinary(OutStream);
+                ++Count;
+              }
 
             ++it;
             ++itRequested;
-            ++Count;
           }
 
 #pragma omp critical
