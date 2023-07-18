@@ -29,6 +29,7 @@
 #include "network/CEdge.h"
 #include "network/CNode.h"
 #include "utilities/CLogger.h"
+#include "utilities/CMetadata.h"
 
 // static
 double CTransmission::defaultMethod(const CTransmission * pTransmission, const CEdge * pEdge)
