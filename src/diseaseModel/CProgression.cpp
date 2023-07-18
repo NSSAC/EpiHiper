@@ -27,6 +27,7 @@
 #include "diseaseModel/CProgression.h"
 #include "diseaseModel/CHealthState.h"
 #include "utilities/CLogger.h"
+#include "utilities/CMetadata.h"
 
 // static
 unsigned int CProgression::defaultMethod(const CProgression * pProgression, const CNode * /* pNode */)
