@@ -47,7 +47,7 @@ CProgressionAction::~CProgressionAction()
 // virtual
 size_t CProgressionAction::getOrder() const
 {
-  return 1;
+  return DefaultOrder;
 }
 
 // virtual

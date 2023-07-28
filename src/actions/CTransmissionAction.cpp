@@ -57,7 +57,7 @@ CTransmissionAction::~CTransmissionAction()
 // virtual
 size_t CTransmissionAction::getOrder() const
 {
-  return 1;
+  return DefaultOrder;
 }
 
 // virtual

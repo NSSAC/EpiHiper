@@ -45,11 +45,17 @@ void CActionDefinition::convertPrioritiesToOrder()
 {
   size_t Order = 0;
 
+  // This is the default priority used for progression and transmission actions
+  Priorities.insert(std::make_pair(1.0, std::set< CActionDefinition * >()));
+
   std::map< double, std::set< CActionDefinition * > >::const_iterator it = Priorities.begin();
   std::map< double, std::set< CActionDefinition * > >::const_iterator end = Priorities.end();
   
   for (; it != end; ++it)
     {
+      if (it->first == 1.0)
+        CAction::setDefaultOrder(Order);
+
       std::set< CActionDefinition * >::const_iterator itSet = it->second.begin();
       std::set< CActionDefinition * >::const_iterator endSet = it->second.end();
 
