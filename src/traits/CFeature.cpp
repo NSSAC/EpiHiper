@@ -125,7 +125,7 @@ void CFeature::fromJSON(const json_t * json)
       if (Enum.isValid())
         {
           Enum.setMask(CTraitData(i).to_ulong());
-          mEnums.push_back(Enum);
+          addEnum(Enum);
         }
       else
         {
@@ -147,8 +147,6 @@ void CFeature::fromJSON(const json_t * json)
       if (operator[]("notSet") == NULL)
         addEnum(CEnum("notSet"));
     }
-
-  updateEnumMap();
 
   if (mEnumMap.find(mDefaultId) == mEnumMap.end())
     {
