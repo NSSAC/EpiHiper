@@ -25,7 +25,7 @@
 cmake_minimum_required (VERSION 3.11)
 cmake_policy(SET CMP0074 NEW)
 
-project (EpiHiper VERSION 2.1.0)
+project (EpiHiper VERSION 2.1.1)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 
