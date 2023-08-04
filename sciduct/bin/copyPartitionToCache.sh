@@ -3,7 +3,7 @@
 # BEGIN: Copyright 
 # MIT License 
 #  
-# Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+# Copyright (C) 2019 - 2022 Rector and Visitors of the University of Virginia 
 #  
 # Permission is hereby granted, free of charge, to any person obtaining a copy 
 # of this software and associated documentation files (the "Software"), to deal 
@@ -24,33 +24,10 @@
 # SOFTWARE 
 # END: Copyright 
 
-jobId=${SLURM_JOB_ID:-222222}
-jobName=${SLURM_JOB_NAME:-testEpiHiper}
-CONFIG_FILE=$1
-CONFIG_FILE=${CONFIG_FILE:-"/input/runParameters"}
-statusFile=`cat $CONFIG_FILE | jq -r .status`
-statusFile=${statusFile:-"/job/sciduct.status.json"}
+PARTITION_NAME=$1
 
-echo "Config File: $CONFIG_FILE"
-echo "Status File: $statusFile"
-echo "MPI Rank: $PMI_RANK"
-
-if [ _$PMI_RANK == _0 ]; then
-  [ -e ${statusFile} ] || \
-    /epihiper/bin/epiHiperStatus -i "${jobId}" -n "${jobName}" -s running -p 0 ${statusFile}  
-
-  /epihiper/bin/epiHiperStatus -d "Running EpiHiper Simulation" ${statusFile}
-
-  /epihiper/bin/EpiHiper --config $CONFIG_FILE
-
-  let retval=$?
-
-  if [ ${retval} != 0 ]; then
-    /epihiper/bin/epiHiperStatus -s failed ${statusFile}
-    exit ${retval}
-  fi
-
-  /epihiper/bin/epiHiperStatus -s completed -d "Finished" -p 100 ${statusFile}
-else
-  /epihiper/bin/EpiHiper --config $CONFIG_FILE
-fi
+mkdir -p /cache/partitions/_$PARTITION_NAME && 
+echo "Tmp Cache Folder Created: /cache/partitions/_$PARTITION_NAME" &&
+cp /input/contactNetwork.* /cache/partitions/_$PARTITION_NAME/ && 
+mv /cache/partitions/_$PARTITION_NAME /cache/partitions/$PARTITION_NAME &&
+echo "Cache files added to /cache/partitions/$PARTITION_NAME"

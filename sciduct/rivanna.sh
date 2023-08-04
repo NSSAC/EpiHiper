@@ -25,11 +25,35 @@
 # END: Copyright 
 
 SINGULARITY=${SINGULARITY:-"$(which singularity)"}
+JSONSCHEMA=${JSONSCHEMA:-"$(which jsonschema)"}
 DEF=rivanna.def
-IMAGE=epihiper.rivanna.sif
+IMAGE=epihiper.rivanna
 ID=$(id -u)
 
 [ -e $IMAGE ] && rm $IMAGE
+
+[ -e generated_config.json ] && rm generated_config.json
+BUILD_DATE=`node -e "console.log(new Date().toISOString())"`
+cat config.json | jq --arg build_date $BUILD_DATE '. + {build_date: $build_date}' > generated_config.json
+VERSION=`cat config.json | jq -r .version`
+
+if [ -n "$JOBSERVICE_SCHEMA_DIR" ]; then
+        if [ -n "$JSONSCHEMA" ]; then
+                echo $JSONSCHEMA -i generated_config.json $JOBSERVICE_SCHEMA_DIR/image_configuration.json
+                $JSONSCHEMA -i generated_config.json $JOBSERVICE_SCHEMA_DIR/image_configuration.json
+                if [ $? -eq 0 ]; then
+                        echo "Generated Configuration appears to be valid"
+                else
+                        echo "Generated Configuration failed validation"
+                        exit 1
+                fi
+        else
+                echo "Please install https://github.com/Julian/jsonschema to validate schemas during build"
+                exit 1
+        fi
+else
+        echo "Please install https://github.com/Julian/jsonschema to validate schemas during build and set the JOBSERVICE_SCHEMA_DIR to the location of image_configuratin.json schema to define the location of the schema"
+fi
 
 # Local cache.rivanna
 [ -e cache.rivanna ] || mkdir -p cache.rivanna
@@ -38,8 +62,8 @@ cd cache.rivanna
 
 # EpiHiper
 if [ ! -e EpiHiper ] || [ _$1 == _fetch ]; then
-    scp rivanna:/project/biocomplexity/nssac/EpiHiper/build/src/EpiHiper* . 
-    scp rivanna:/project/biocomplexity/nssac/EpiHiper/build/src/libEpiHiper* . 
+    scp rivanna:/project/bii_nssac/EpiHiper/bin/* . 
+    scp rivanna:/project/bii_nssac/EpiHiper/build/src/libEpiHiper* . 
 fi
 
 # Assure that the files are readable and executable by all
@@ -50,7 +74,7 @@ chmod 775 libEpiHiper*
 [ -e l_comp_lib_2018.5.274_comp.cpp_redist.tgz ] || \
     scp rivanna:/project/bii_nssac/EpiHiper/intel/src/l_comp_lib_2018.5.274_comp.cpp_redist.tgz .
 
-# Intel MPI
+ Intel MPI
 [ -e l_mpi_2018.5.288.tgz ] || \
     scp rivanna:/project/bii_nssac/EpiHiper/intel/src/l_mpi_2018.5.288.tgz .
     
@@ -60,7 +84,10 @@ chmod 775 libEpiHiper*
     
 cd ..
 
-sudo "${SINGULARITY}" build $IMAGE $DEF | tee rivanna.log
+[ -e "build.def" ] && rm build.def
+cp $DEF build.def
 
-[ -e cache.rivanna ] && sudo chown -R $ID cache.rivanna
-[ -e $IMAGE ] && sudo chown -R $ID $IMAGE
+sudo "${SINGULARITY}" build output_image.sif build.def && mv output_image.sif $IMAGE-$VERSION.sif
+
+[ -e cache.rivanna ] && chown -R $ID cache.rivanna
+[ -e $IMAGE ] && chown -R $ID $IMAGE

@@ -14,13 +14,12 @@ From: centos:7.6.1810
     [ -e ${SINGULARITY_ROOTFS}/src ] || mkdir ${SINGULARITY_ROOTFS}/src
 
 %files
-    config.json /sciduct
+    generated_config.json /sciduct/config.json
     cache.rivanna/l_comp_lib_2018.5.274_comp.cpp_redist.tgz /src
     cache.rivanna/l_mpi_2018.5.288.tgz /src
     cache.rivanna/IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz /src
     cache.rivanna/EpiHiper /epihiper/bin
-    cache.rivanna/EpiHiperPartition /epihiper/bin
-    cache.rivanna/EpiHiperModelAnalyzer /epihiper/bin
+    cache.rivanna/EpiHiper* /epihiper/bin
     cache.rivanna/libEpiHiperLib.so /epihiper/lib
     bin/epiHiper.sh /epihiper/bin
     bin/partition.sh /epihiper/bin
@@ -28,13 +27,15 @@ From: centos:7.6.1810
     bin/validateSchema.sh /epihiper/bin
     bin/validateRules.sh /epihiper/bin
     bin/addNoiseApp.sh /epihiper/bin
+    bin/copyPartitionToCache.sh /epihiper/bin
     CentOS-Base.repo /etc/yum.repos.d
     
 %post
     # Ensure the the CentOS release is the same as on rivanna
     echo 7.6.1810 > /etc/yum/vars/releasever
     yum -y update
-        
+    yum install epel-release -y
+
     echo "Installing development tools using YUM"
     yum -y install \
         atlas \
@@ -100,7 +101,8 @@ From: centos:7.6.1810
     yum install -y nodejs
 
     # jq is a processor for helping with json from bash
-    npm install --unsafe-perm -g jq-cli-wrapper
+    #npm install --unsafe-perm -g jq-cli-wrapper
+    yum install -y jq
 
     # Install the EpiHiper validator
     npm install --unsafe-perm -g @shoops/epi-hiper-validator
@@ -127,6 +129,57 @@ From: centos:7.6.1810
     echo Adding Noise
     echo Job ID: ${SLURM_JOB_ID:-222222}
     /epihiper/bin/addNoiseApp.sh $@
+
+%apprun epiHiper_sciduct.pre
+    echo "Build Configuration"
+    START=`cat /job/job.json | jq -r .input.startTick`
+    END=`cat /job/job.json | jq -r .input.endTick`
+    SEED=`cat /job/job.json | jq -r .input.seed`
+    DBHOST=`cat /job/job.json | jq -r .input.dbHost`
+    CONTACT_NETWORK_ID=`cat /input/.contactNetwork | jq -r .id`
+    PARTITION_NAME=${CONTACT_NETWORK_ID}_partitionX${SCIDUCT_TASKS}
+
+    echo '{"epiHiperSchema": "https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/modelScenarioSchema.json","personTraitDB": ["/input/personTraitDB"],"diseaseModel": "/input/diseaseModel","initialization":"/input/initialization","intervention":"/input/intervention","contactNetwork":"/input/contactNetwork","traits":"/input/traits"}' > /input/scenario.json
+    echo '{"epiHiperSchema": "https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/runParametersSchema.json","modelScenario": "/input/scenario.json","output": "/output/output.csv", "startTick":'$START',"endTick":'$END',"seed":'$SEED',"dbHost":"'$DBHOST'","summaryOutput":"/output/outputSummary.csv","status":"/job/primary.status.json"}' > /input/runParameters.json
+    echo '{"epiHiperSchema": "https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/partitionSchema.json","contactNetwork": "/input/contactNetwork","outputDirectory": "/input", "numberOfParts":'$SCIDUCT_TASKS',"status": "/job/primary.status.json"}' > /input/partitionConfig.json
+
+    echo "Partition Network"
+
+    if [ -d /cache/partitions/$PARTITION_NAME ]
+    then
+        echo "Found cached files in /cache/partitions/$PARTITION_NAME"
+        for I in /cache/partitions/$PARTITION_NAME/contactNetwork.*; do
+            N=`basename $I`
+            ln -s $I /input/$N 
+        done
+ 
+    else
+        source /opt/intel/impi/2018.5.288/bin64/mpivars.sh
+        /epihiper/bin/partition.sh /input/partitionConfig.json
+
+        let retval=$?
+        if [ ${retval} != 0 ]
+        then
+            echo "Partitioning failed."
+            exit ${retval}
+        fi
+
+        if [ -d /cache/partitions/$PARTITION_NAME ]
+        then
+            echo "Cache already populated"
+        else
+            echo "Attempt to add partition to cache"
+            flock -n -x /cache/partitions/${PARTITION_NAME}.lock --command "/epihiper/bin/copyPartitionToCache.sh $PARTITION_NAME" || echo "Cache files not added"
+        fi
+    fi
+
+    echo "Configuration Completed"
+
+%apprun epiHiper_sciduct
+    echo Rank $PMI_RANK: Running EpiHiper Simulation
+    echo Rank $PMI_RANK: Job ID: ${SLURM_JOB_ID:-222222}
+    source /opt/intel/impi/2018.5.288/bin64/mpivars.sh
+    /epihiper/bin/epiHiper.sh /input/runParameters.json
 	
 %apprun epiHiper
     echo Rank $PMI_RANK: Running EpiHiper Simulation
@@ -139,6 +192,14 @@ From: centos:7.6.1810
     echo Job ID: ${SLURM_JOB_ID:-222222}
     source /opt/intel/impi/2018.5.288/bin64/mpivars.sh
     /epihiper/bin/partition.sh $@
+
+%apprun partition_sciduct
+    echo Partitioning Network
+    echo Job ID: ${SLURM_JOB_ID:-222222}
+    source /opt/intel/impi/2018.5.288/bin64/mpivars.sh
+    PARTITIONS=`cat /job/job.json | jq -r .input.partitions`
+    echo '{"$schema": "../../schema/partitionSchema.json","epiHiperSchema": "https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/partitionSchema.json","contactNetwork": "self://../input/contactNetwork","numberOfParts": '$PARTITIONS',"status": "/job/primary.status.json"}' > /output/partitionConfig.json
+    /epihiper/bin/partition.sh /output/partitionConfig.json
 
 %apprun analyze
     echo Analyzing Disease Model
