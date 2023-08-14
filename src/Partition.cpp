@@ -177,7 +177,7 @@ int main(int argc, char * argv[])
 
   if (!loadJson(CArgs::getConfig()))
     {
-      CLogger::error("Invalid paramters in: " + CArgs::getConfig());
+      CLogger::error("Invalid parameters in: " + CArgs::getConfig());
 
       CCommunicate::abort(CCommunicate::ErrorCode::InvalidArguments);
       CCommunicate::finalize();

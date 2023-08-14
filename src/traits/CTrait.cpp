@@ -212,7 +212,7 @@ void CTrait::fromJSON(const json_t * json)
     {
       const CFeature * pFeature = operator[](json_array_get(pValue, i));
 
-      // Augmenting or redefining a feature is not supported supported
+      // Augmenting or redefining a feature is not supported 
       if (pFeature!= NULL)
         {
           CLogger::warn("Trait: Duplicate definition of '{}[{}]'.", mId, pFeature->getId());
@@ -224,7 +224,7 @@ void CTrait::fromJSON(const json_t * json)
 
       if (Feature.isValid())
         {
-          mFeatures.push_back(Feature);
+          addFeature(Feature);
         }
       else
         {

@@ -24,6 +24,15 @@
 
 #include "actions/CAction.h"
 
+// static
+size_t CAction::DefaultOrder = 0;
+
+// static
+void CAction::setDefaultOrder(const size_t & defaultOrder)
+{
+  DefaultOrder = defaultOrder;
+}
+
 CAction::CAction()
 {}
 

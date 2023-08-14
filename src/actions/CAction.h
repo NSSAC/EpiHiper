@@ -32,7 +32,11 @@ class CAction
 protected:
   CAction();
 
+  static size_t DefaultOrder;
+
 public:
+  static void setDefaultOrder(const size_t & defaultOrder);
+
   CAction(const CAction & src) = delete;
 
   virtual ~CAction();

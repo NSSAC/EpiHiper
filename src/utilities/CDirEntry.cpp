@@ -159,7 +159,7 @@ std::string CDirEntry::dirName(const std::string & path)
 #endif
     }
 
-  if (end == std::string::npos) return "";
+  if (end == std::string::npos) return ".";
 
   return path.substr(0, end);
 }

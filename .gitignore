@@ -9,8 +9,12 @@ sciduct/build.log
 sciduct/job/
 sciduct/input/
 sciduct/bin/EpiHiper
+sciduct/build.def
+sciduct/generated_config.json
+sciduct/resource_calculator.py
 src/git-commit.h
 src/EpiHiperConfig.h
+blob/
 
 tools/2019-nCoV_vax
 
