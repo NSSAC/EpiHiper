@@ -1,0 +1,27 @@
+# Base Image
+FROM opensuse/leap:latest 
+
+# Update system
+RUN zypper refresh
+RUN zypper --non-interactive dup
+
+# required
+RUN zypper --non-interactive install patterns-devel-base-devel_basis
+RUN zypper --non-interactive install patterns-devel-C-C++-devel_C_C++
+RUN zypper --non-interactive install gcc-c++ git
+RUN zypper --non-interactive install cmake libpq5 postgresql-devel
+
+# OpenMPI (optional)
+RUN zypper --non-interactive install openmpi4-devel
+
+# OpenMP (optional)
+RUN zypper --non-interactive install libgomp1
+
+# Build EpiHiper
+CMD cd /home && \
+    git clone https://github.com/NSSAC/EpiHiper.git && \
+    mkdir build && \
+    cd build && \
+    cmake -G "Unix Makefiles" -DENABLE_MPI=ON -DENABLE_OMP=ON -DENABLE_LOCATION_ID=ON ../EpiHiper && \
+    make -j 4 && \
+    make test
