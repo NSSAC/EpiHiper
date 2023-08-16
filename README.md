@@ -58,10 +58,13 @@ make -l
 __Note__: It is possible to combine OpenMP and MPI
 
 ### Configuration options:
- - `-DCMAKE_BUILD_TYPE=[Debug|Release]` Enable debug build. (default: Release)
- - `-DENABLE_LOCATION_ID=[ON|OFF]` Enable location Id support for networks. (default: OFF)
- - `-DENABLE_MPI==[ON|OFF]` Enable MPI parallelization. (default: ON)
- - `-DENABLE_OMP==[ON|OFF]` Enable OpenMP parallelization. (default: OFF)
+| Option | Values | Default | Description |
+| :---- | :---: | :---- | :---- |
+| -DCMAKE_BUILD_TYPE | Debug \| Release | Release | Enable debug build. |
+| -DENABLE_LOCATION_ID | ON \| OFF | ON | Enable location Id support for networks. |
+| -DENABLE_MPI | ON \| OFF | ON | Enable MPI parallelization. |
+| -DENABLE_OMP | ON \| OFF | ON | Enable OpenMP parallelization. |
+| -DENABLE_LOGLEVEL_TRACE | ON \| OFF | OFF | Enable support for log level trace. |
 
 ### Example
 This repository contains a small example which can be run in seconds on regular laptop or desktop.
@@ -89,7 +92,7 @@ build/src/EpiHiper --config example/config.json
 ### Runing as multi-threaded multi-process executable
 From the root directory of the repository execute:
 ```
-mpirun -np #MPI --bind-to none -x OMP_NUM_THREADS=#OMP build/src/ --config example/config.json
+mpirun -np #MPI --bind-to none -x OMP_NUM_THREADS=#OMP build/src/EpiHiper --config example/config.json
 ```
 Here `#MPI` is the number of MPI tasks and `#OMP` is the number of threads per task.
 
