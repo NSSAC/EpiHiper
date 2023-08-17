@@ -40,7 +40,7 @@
 class CLogger
 {
 private:
-  template < int level >
+  template < int LEVEL >
   class CStream
   {
   public:
@@ -104,11 +104,11 @@ private:
   static CContext< LoggerData > Context;
 };
 
-template < int level >
+template < int LEVEL >
 template< class ... Arguments >
-  CLogger::CStream< level >::CStream(const std::string & format, Arguments ... arguments)
+  CLogger::CStream< LEVEL >::CStream(const std::string & format, Arguments ... arguments)
 {
-  if (Context.Active().levels.top() > level)
+  if (Context.Active().levels.top() > static_cast< LogLevel >(LEVEL))
     return;
 
   LoggerData * pIt = NULL;
@@ -129,7 +129,7 @@ template< class ... Arguments >
 
   for (; pIt != pEnd; ++pIt)
     {
-      switch (static_cast< LogLevel >(level))
+      switch (static_cast< LogLevel >(LEVEL))
         {
         case spdlog::level::trace:
           pIt->pLogger->trace(pIt->task + " " + pIt->tick + " " + format, arguments ...);
@@ -164,8 +164,8 @@ template< class ... Arguments >
 }
 
 // virtual
-template < int level >
-CLogger::CStream< level >::~CStream()
+template < int LEVEL >
+CLogger::CStream< LEVEL >::~CStream()
 {}
 
 #endif // UTILITIES_CLOGGER_H
