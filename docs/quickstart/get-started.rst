@@ -59,43 +59,6 @@ From the root directory of the repository execute:
 
 *Note*: It is possible to combine OpenMP and MPI
 
-Configuration options:
-^^^^^^^^^^^^^^^^^^^^^^
-
-.. list-table:: Configuration options. 
-  :name: get-started-options
-  :header-rows: 1
-
-  * - | Option
-    - | Values
-    - | Default
-    - | Description
-  * - | -DCMAKE_BUILD_TYPE
-    - | Debug 
-      | Release
-    - | Release  
-    - | Enable debug build.
-  * - | -DENABLE_LOCATION_ID
-    - | ON 
-      | OFF
-    - | ON 
-    - | Enable location Id support for networks.
-  * - | -DENABLE_MPI
-    - | ON 
-      | OFF
-    - | ON 
-    - | Enable MPI parallelization.
-  * - | -DENABLE_OMP
-    - | ON 
-      | OFF
-    - | ON 
-    - | Enable OpenMP parallelization.
-  * - | -DENABLE_LOGLEVEL_TRACE
-    - | ON 
-      | OFF
-    - | OFF 
-    - | Enable support for log level trace.
-
 Dependencies
 ^^^^^^^^^^^^
 
@@ -177,3 +140,40 @@ All other dependencies are provided through git submodules, which are automatica
   - `jansson <https://github.com/akheron/jansson.git>`_
   - `libpqxx <https://github.com/jtv/libpqxx.git>`_
   - `spdlog <https://github.com/gabime/spdlog.git>`_
+
+Configuration options:
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. list-table:: Configuration options. 
+  :name: get-started-options
+  :header-rows: 1
+
+  * - | Option
+    - | Values
+    - | Default
+    - | Description
+  * - | -DCMAKE_BUILD_TYPE
+    - | Debug 
+      | Release
+    - | Release  
+    - | Enable debug build.
+  * - | -DENABLE_LOCATION_ID
+    - | ON 
+      | OFF
+    - | ON 
+    - | Enable location Id support for networks.
+  * - | -DENABLE_MPI
+    - | ON 
+      | OFF
+    - | ON 
+    - | Enable MPI parallelization.
+  * - | -DENABLE_OMP
+    - | ON 
+      | OFF
+    - | ON 
+    - | Enable OpenMP parallelization.
+  * - | -DENABLE_LOGLEVEL_TRACE
+    - | ON 
+      | OFF
+    - | OFF 
+    - | Enable support for log level trace.
