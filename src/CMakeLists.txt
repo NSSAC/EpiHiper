@@ -68,6 +68,7 @@ endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
 add_library (EpiHiperLib SHARED $<TARGET_OBJECTS:EpiHiperLib-core>)
 add_dependencies(EpiHiperLib jansson libpqxx spdlog GIT_COMMIT)
+target_link_libraries(EpiHiperLib ${CMAKE_BINARY_DIR}/lib/libjansson.a ${CMAKE_BINARY_DIR}/lib/libpqxx.a)
 
 if(APPLE)
   set_target_properties(EpiHiperLib PROPERTIES LINK_FLAGS "-undefined dynamic_lookup -flat_namespace")
@@ -79,8 +80,6 @@ add_dependencies(EpiHiper EpiHiperLib)
 if (ENABLE_OMP)
 	set (EPIHIPER_LIBARIES 
 		EpiHiperLib
-		${CMAKE_BINARY_DIR}/lib/libjansson.a 
-		${CMAKE_BINARY_DIR}/lib/libpqxx.a
 		${MPI_LIBRARIES}
 		${PostgreSQL_LIBRARY} 
 		OpenMP::OpenMP_CXX
@@ -90,8 +89,6 @@ if (ENABLE_OMP)
 else ()
 	set (EPIHIPER_LIBARIES 
 		EpiHiperLib
-		${CMAKE_BINARY_DIR}/lib/libjansson.a 
-		${CMAKE_BINARY_DIR}/lib/libpqxx.a
 		${MPI_LIBRARIES}
 		${PostgreSQL_LIBRARY} 
 		-lpthread

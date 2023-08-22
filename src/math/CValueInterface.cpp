@@ -359,7 +359,13 @@ std::string CValueInterface::operatorToString(CValueInterface::pOperator pOperat
 bool operator<(const CValueInterface & lhs, const CValueInterface & rhs)
 {
   if (lhs.mType != rhs.mType)
-    return lhs.mType < rhs.mType;
+    {
+        if (lhs.mType == CValueInterface::Type::__SIZE
+            || rhs.mType == CValueInterface::Type::__SIZE)
+        return false;
+
+        return lhs.mType < rhs.mType;
+    }
 
   switch (lhs.mType)
   {
@@ -395,13 +401,19 @@ bool operator<(const CValueInterface & lhs, const CValueInterface & rhs)
       break;
   }
 
-  return lhs.mpValue < rhs.mpValue;
+  return false;
 }
 
 bool operator<=(const CValueInterface & lhs, const CValueInterface & rhs)
 {
   if (lhs.mType != rhs.mType)
-    return lhs.mType <= rhs.mType;
+    {
+        if (lhs.mType == CValueInterface::Type::__SIZE
+            || rhs.mType == CValueInterface::Type::__SIZE)
+        return false;
+
+      return lhs.mType <= rhs.mType;
+    }
 
   switch (lhs.mType)
   {
@@ -437,19 +449,105 @@ bool operator<=(const CValueInterface & lhs, const CValueInterface & rhs)
       break;
   }
 
-  return lhs.mpValue <= rhs.mpValue;
+  return false;
 }
 
 // static
 bool operator>(const CValueInterface & lhs, const CValueInterface & rhs)
 {
-  return operator<(rhs, lhs);
+  if (lhs.mType != rhs.mType)
+    {
+        if (lhs.mType == CValueInterface::Type::__SIZE
+            || rhs.mType == CValueInterface::Type::__SIZE)
+        return false;
+
+      return lhs.mType > rhs.mType;
+    }
+
+  switch (lhs.mType)
+  {
+    case CValueInterface::Type::boolean:
+      return * static_cast< const bool * >(lhs.mpValue) > * static_cast< const bool * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::number:
+      return * static_cast< const double * >(lhs.mpValue) > * static_cast< const double * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::integer:
+      return * static_cast< const int * >(lhs.mpValue) > * static_cast< const int * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::id:
+      return * static_cast< const size_t * >(lhs.mpValue) > * static_cast< const size_t * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::traitData:
+      return * static_cast< const CTraitData::base * >(lhs.mpValue) > * static_cast< const CTraitData::base * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::traitValue:
+      return * static_cast< const CTraitData::value * >(lhs.mpValue) > * static_cast< const CTraitData::value * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::string:
+      return * static_cast< std::string * >(lhs.mpValue) > * static_cast< const std::string * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::__SIZE:
+      break;
+  }
+
+  return false;
 }
 
 // static
 bool operator>=(const CValueInterface & lhs, const CValueInterface & rhs)
 {
-  return operator<=(rhs, lhs);
+   if (lhs.mType != rhs.mType)
+    {
+        if (lhs.mType == CValueInterface::Type::__SIZE
+            || rhs.mType == CValueInterface::Type::__SIZE)
+        return false;
+
+      return lhs.mType >= rhs.mType;
+    }
+
+  switch (lhs.mType)
+  {
+    case CValueInterface::Type::boolean:
+      return * static_cast< const bool * >(lhs.mpValue) >= * static_cast< const bool * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::number:
+      return * static_cast< const double * >(lhs.mpValue) >= * static_cast< const double * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::integer:
+      return * static_cast< const int * >(lhs.mpValue) >= * static_cast< const int * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::id:
+      return * static_cast< const size_t * >(lhs.mpValue) >= * static_cast< const size_t * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::traitData:
+      return * static_cast< const CTraitData::base * >(lhs.mpValue) >= * static_cast< const CTraitData::base * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::traitValue:
+      return * static_cast< const CTraitData::value * >(lhs.mpValue) >= * static_cast< const CTraitData::value * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::string:
+      return * static_cast< std::string * >(lhs.mpValue) >= * static_cast< const std::string * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::__SIZE:
+      break;
+  }
+
+  return false;
 }
 
 bool operator==(const CValueInterface & lhs, const CValueInterface & rhs)
@@ -466,8 +564,8 @@ bool operator==(const CValueInterface & lhs, const CValueInterface & rhs)
                                    * static_cast< const CTraitData::value * >(lhs.mpValue));
     }
 
-  if (lhs.mType != rhs.mType)
-    return false;
+   if (lhs.mType != rhs.mType)
+      return false;
 
   switch (lhs.mType)
   {
@@ -503,12 +601,61 @@ bool operator==(const CValueInterface & lhs, const CValueInterface & rhs)
       break;
   }
 
-  return lhs.mpValue == rhs.mpValue;
+  return false;
 }
 
 bool operator!=(const CValueInterface & lhs, const CValueInterface & rhs)
 {
-  return !operator==(lhs, rhs);
+  if (lhs.mType == CValueInterface::Type::traitData && rhs.mType == CValueInterface::Type::traitValue)
+    {
+      return !CTraitData::hasValue(* static_cast< const CTraitData::base * >(lhs.mpValue),
+                                   * static_cast< const CTraitData::value * >(rhs.mpValue));
+    }
+
+  if (lhs.mType == CValueInterface::Type::traitValue && rhs.mType == CValueInterface::Type::traitData)
+    {
+      return !CTraitData::hasValue(* static_cast< const CTraitData::base * >(rhs.mpValue),
+                                   * static_cast< const CTraitData::value * >(lhs.mpValue));
+    }
+
+  if (lhs.mType != rhs.mType)
+    return true;
+
+  switch (lhs.mType)
+  {
+    case CValueInterface::Type::boolean:
+      return * static_cast< const bool * >(lhs.mpValue) != * static_cast< const bool * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::number:
+      return * static_cast< const double * >(lhs.mpValue) != * static_cast< const double * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::integer:
+      return * static_cast< const int * >(lhs.mpValue) != * static_cast< const int * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::id:
+      return * static_cast< const size_t * >(lhs.mpValue) != * static_cast< const size_t * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::traitData:
+      return * static_cast< const CTraitData::base * >(lhs.mpValue) != * static_cast< const CTraitData::base * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::traitValue:
+      return * static_cast< const CTraitData::value * >(lhs.mpValue) != * static_cast< const CTraitData::value * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::string:
+      return * static_cast< std::string * >(lhs.mpValue) != * static_cast< const std::string * >(rhs.mpValue);
+      break;
+
+    case CValueInterface::Type::__SIZE:
+      break;
+  }
+
+  return true;
 }
 
 /*
