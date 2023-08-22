@@ -47,9 +47,6 @@ typedef struct stat STAT;
 #include "utilities/CDirEntry.h"
 
 #include "EpiHiperConfig.h"
-#ifdef TARGET_MACOSX
-# include <Carbon/Carbon.h>
-#endif
 
 #ifdef WIN32
 const std::string CDirEntry::Separator = "\\";
