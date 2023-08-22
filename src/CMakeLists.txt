@@ -80,8 +80,6 @@ add_dependencies(EpiHiper EpiHiperLib)
 if (ENABLE_OMP)
 	set (EPIHIPER_LIBARIES 
 		EpiHiperLib
-#		${CMAKE_BINARY_DIR}/lib/libjansson.a 
-#		${CMAKE_BINARY_DIR}/lib/libpqxx.a
 		${MPI_LIBRARIES}
 		${PostgreSQL_LIBRARY} 
 		OpenMP::OpenMP_CXX
@@ -91,8 +89,6 @@ if (ENABLE_OMP)
 else ()
 	set (EPIHIPER_LIBARIES 
 		EpiHiperLib
-#		${CMAKE_BINARY_DIR}/lib/libjansson.a 
-#		${CMAKE_BINARY_DIR}/lib/libpqxx.a
 		${MPI_LIBRARIES}
 		${PostgreSQL_LIBRARY} 
 		-lpthread
