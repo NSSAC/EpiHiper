@@ -17,7 +17,7 @@ set_target_properties(EpiHiperTest PROPERTIES
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   target_compile_options(EpiHiperTest PRIVATE -Werror -Wall -Wextra -Wformat=0 -Wno-c++20-compat ${OpenMP_CXX_FLAGS})
 else(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  target_compile_options(EpiHiperTest PRIVATE -Wall -Wextra ${OpenMP_CXX_FLAGS})
+  target_compile_options(EpiHiperTest PRIVATE -Wall -Wextra -Wno-cast-function-type -Wformat=0 ${OpenMP_CXX_FLAGS})
 endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
 if (ENABLE_OMP)
