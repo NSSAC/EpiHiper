@@ -120,23 +120,26 @@ size_t CQuery::Limit = 100000;
 // static
 void CQuery::init()
 {
-  if (LocalConstraint.size())
-    return;
-
+  if (LocalConstraint.size() == 0)
 #pragma omp single
-  {
-    LocalConstraint.init();
-    Limit = CSimConfig::getDBConnection().maxRecords;
-  }
+    {
+      LocalConstraint.init();
+      Limit = CSimConfig::getDBConnection().maxRecords;
+    }
+
 
   std::string & Active = LocalConstraint.Active();
-  std::ostringstream Query;
 
-  CNode * pBegin = CNetwork::Context.Active().beginNode();
-  CNode * pEnd = CNetwork::Context.Active().endNode() - 1;
-  Query << "pid BETWEEN " << pBegin->id << " AND " << pEnd->id;
+  if (Active.empty())
+    {
+      std::ostringstream Query;
 
-  Active = Query.str();
+      CNode * pBegin = CNetwork::Context.Active().beginNode();
+      CNode * pEnd = CNetwork::Context.Active().endNode() - 1;
+      Query << "pid BETWEEN " << pBegin->id << " AND " << pEnd->id;
+
+      Active = Query.str();
+    }
 }
 
 // static
