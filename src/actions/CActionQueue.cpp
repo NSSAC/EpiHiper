@@ -169,7 +169,7 @@ void CActionQueue::addRemoteAction(const size_t & actionId, const CNode * pNode)
     {
       try
         {
-#pragma omp critical
+#pragma omp critical (add_remote_action)
           {
             RemoteActions.write(reinterpret_cast< const char * >(&actionId), sizeof(size_t));
             RemoteActions << 'N';
@@ -189,7 +189,7 @@ void CActionQueue::addRemoteAction(const size_t & actionId, const CNode * pNode)
 
       try
         {
-#pragma omp critical
+#pragma omp critical (add_local_action)
           addAction((Context.beginThread() + index)->locallyAdded, deltaTick, pAction);
         }
       catch (...)
@@ -208,7 +208,7 @@ void CActionQueue::addRemoteAction(const size_t & actionId, const CEdge * pEdge)
     {
       try
         {
-#pragma omp critical
+#pragma omp critical (add_remote_action)
           {
             RemoteActions.write(reinterpret_cast< const char * >(&actionId), sizeof(size_t));
             RemoteActions << 'E';
@@ -229,7 +229,7 @@ void CActionQueue::addRemoteAction(const size_t & actionId, const CEdge * pEdge)
 
       try
         {
-#pragma omp critical
+#pragma omp critical (add_local_action)
           addAction((Context.beginThread() + index)->locallyAdded, deltaTick, pAction);
         }
       catch (...)

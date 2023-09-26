@@ -28,6 +28,7 @@
 #include <map>
 
 #include "intervention/CInitialization.h"
+#include "utilities/CContext.h"
 
 class CIntervention : public CInitialization
 {
@@ -58,7 +59,7 @@ public:
 
 private:
   std::string mId;
-  size_t mIsTriggered;
+  CContext< size_t > mIsTriggered;
 };
 
 #endif /* SRC_INTERVENTION_CINTERVENTION_H_ */

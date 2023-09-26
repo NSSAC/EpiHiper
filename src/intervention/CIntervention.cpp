@@ -239,19 +239,14 @@ void CIntervention::fromJSON(const json_t * json)
 bool CIntervention::process()
 {
   bool success = true;
-  size_t IsTriggered = 0;
 
-# pragma omp atomic read
-  IsTriggered = mIsTriggered;
-
-  if (IsTriggered > 0)
+  if (mIsTriggered.Active())
     {
       CLogger::info("CIntervention: Process '{}'.", mId); 
 
       success &= CInitialization::process();
 
-#pragma omp critical
-      --mIsTriggered;
+      mIsTriggered.Active() = false;
     }
 
   return success;

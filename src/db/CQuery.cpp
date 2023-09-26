@@ -120,24 +120,23 @@ size_t CQuery::Limit = 100000;
 // static
 void CQuery::init()
 {
+  if (LocalConstraint.size())
+    return;
+
 #pragma omp single
-  LocalConstraint.init();
+  {
+    LocalConstraint.init();
+    Limit = CSimConfig::getDBConnection().maxRecords;
+  }
 
   std::string & Active = LocalConstraint.Active();
+  std::ostringstream Query;
 
-  if (Active.empty())
-    {
-      std::ostringstream Query;
+  CNode * pBegin = CNetwork::Context.Active().beginNode();
+  CNode * pEnd = CNetwork::Context.Active().endNode() - 1;
+  Query << "pid BETWEEN " << pBegin->id << " AND " << pEnd->id;
 
-      CNode * pBegin = CNetwork::Context.Active().beginNode();
-      CNode * pEnd = CNetwork::Context.Active().endNode() - 1;
-      Query << "pid BETWEEN " << pBegin->id << " AND " << pEnd->id;
-
-      Active = Query.str();
-
-#pragma omp critical
-      Limit = CSimConfig::getDBConnection().maxRecords;
-    }
+  Active = Query.str();
 }
 
 // static
@@ -190,7 +189,7 @@ bool CQuery::all(const std::string & table,
 
   bool success = true;
 
-#pragma omp critical
+#pragma omp critical (sql_query)
   {
     pqxx::read_transaction * pWork = CConnection::work();
 
@@ -346,7 +345,7 @@ bool CQuery::in(const std::string & table,
 
   bool success = true;
 
-#pragma omp critical
+#pragma omp critical (sql_query)
   {
     pqxx::read_transaction * pWork = CConnection::work();
 
@@ -475,7 +474,7 @@ bool CQuery::where(const std::string & table,
 
   bool success = true;
 
-#pragma omp critical
+#pragma omp critical (sql_query)
   {
     pqxx::read_transaction * pWork = CConnection::work();
 
