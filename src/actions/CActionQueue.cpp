@@ -260,17 +260,15 @@ int CActionQueue::broadcastPendingActions()
     }
 
   ActionQueue.locallyAdded.clear();
+  size_t PendingActions = pendingActions();
 
 #pragma omp single
   TotalPendingActions = 0;
 
-  size_t PendingActions = pendingActions();
-
 #pragma omp atomic
   TotalPendingActions += PendingActions;
 
-  CCommunicate::barrierRMA();
-
+#pragma omp barrier
 #pragma omp single
   {
     CLogger::setSingle(true);

@@ -121,12 +121,14 @@ size_t CQuery::Limit = 100000;
 void CQuery::init()
 {
   if (LocalConstraint.size() == 0)
-#pragma omp single
     {
-      LocalConstraint.init();
-      Limit = CSimConfig::getDBConnection().maxRecords;
+#pragma omp barrier
+#pragma omp single
+      {
+        LocalConstraint.init();
+        Limit = CSimConfig::getDBConnection().maxRecords;
+      }
     }
-
 
   std::string & Active = LocalConstraint.Active();
 
