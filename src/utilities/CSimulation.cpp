@@ -80,12 +80,12 @@ bool CSimulation::run()
   CCommunicate::memUsage();
 
   CChanges::determineNodesRequested();
+
   CChanges::initDefaultOutput();
   CModel::InitGlobalStateCountOutput();
   CDependencyGraph::buildGraph();
 
 #pragma omp parallel reduction(&: success)
-
   {
     CVariableList::INSTANCE.resetAll(true);
 
@@ -116,6 +116,7 @@ bool CSimulation::run()
   CCommunicate::memUsage();
 
   success &= CChanges::writeDefaultOutput();
+
   CModel::UpdateGlobalStateCounts();
   success &= CModel::WriteGlobalStateCounts();
 

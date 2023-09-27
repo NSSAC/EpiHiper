@@ -269,11 +269,12 @@ int CActionQueue::broadcastPendingActions()
 #pragma omp atomic
   TotalPendingActions += PendingActions;
 
-#pragma omp barrier
+  CCommunicate::barrierRMA();
+
 #pragma omp single
   {
     CLogger::setSingle(true);
-
+  
     std::ostringstream os;
     os.write(reinterpret_cast< const char * >(&TotalPendingActions), sizeof(size_t));
     os << RemoteActions.str();

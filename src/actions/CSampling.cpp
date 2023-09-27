@@ -579,7 +579,8 @@ void CSampling::process(const CSetContent & targets)
       mLocalLimit.Active() = mpTargets->size();
 
       // This barrier is required since we have to have all threads determine the number of samples they require 
-#pragma omp barrier
+  CCommunicate::barrierRMA();
+
 #pragma omp single
       {
         CLogger::setSingle(true);

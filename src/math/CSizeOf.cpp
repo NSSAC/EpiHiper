@@ -99,7 +99,9 @@ bool CSizeOf::computeProtected()
 int CSizeOf::broadcastSize()
 {
   // This barrier is necessary since all threads must have finished computing the set.
-#pragma omp barrier
+  CCommunicate::barrierRMA();
+
+
 #pragma omp single
   {
     CLogger::setSingle(true);
@@ -112,6 +114,7 @@ int CSizeOf::broadcastSize()
   }
 
   CLogger::debug("CSizeOf: Returned '{}' for {}", *static_cast< double * >(mpValue), mIdentifier);
+
   return (int) CCommunicate::ErrorCode::Success;
 }
 
