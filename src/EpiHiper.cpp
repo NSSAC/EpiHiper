@@ -45,6 +45,7 @@
 #include "intervention/CIntervention.h"
 #include "variables/CVariableList.h"
 #include "sets/CSetReference.h"
+#include "sets/CSetList.h"
 #include "math/CSizeOf.h"
 
 // Uncomment the following line if you want to attache a debugger
@@ -203,6 +204,7 @@ success:
   CIntervention::clear();
   CSizeOf::Unique.clear();
   CSetContent::Unique.clear();
+  CSetList::INSTANCE.reset();
   CComputable::Instances.clear();
   CNetwork::clear();
   CConnection::clear();
