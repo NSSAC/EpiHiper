@@ -55,8 +55,10 @@ template < class Data > class CContext
 public:
   CContext(); 
   CContext(const CContext & src);
+  CContext(const Data & data);
   ~CContext(); 
   CContext & operator = (const CContext & rhs);
+  CContext & operator = (const Data &);
   bool operator == (const CContext & rhs) const;
 
   void init();
@@ -105,6 +107,24 @@ template < class Data > CContext< Data >::CContext(const CContext & src)
       *pIt = *pSrc;
 }
 
+
+template < class Data > CContext< Data >::CContext(const Data & data)
+  : MasterData(NULL)
+  , ThreadData(NULL)
+  , Size(0)
+{
+  init();
+
+  *MasterData = data;
+
+  Data * pIt = ThreadData;
+  Data * pEnd = ThreadData + Size;
+
+  for (; pIt != pEnd; ++pIt)
+    if (isThread(pIt))
+      *pIt = data;
+}
+
 template < class Data > CContext< Data >::~CContext()
 {
   release();
@@ -126,6 +146,22 @@ template < class Data > CContext< Data > & CContext< Data >::operator = (const C
         if (isThread(pIt))
           *pIt = *pRhs;
     }
+
+  return *this;
+}
+
+template < class Data > CContext< Data > & CContext< Data >::operator = (const Data & data)
+{
+  init();
+
+  *MasterData = data;
+
+  Data * pIt = ThreadData;
+  Data * pEnd = ThreadData + Size;
+
+  for (; pIt != pEnd; ++pIt)
+    if (isThread(pIt))
+      *pIt = data;
 
   return *this;
 }

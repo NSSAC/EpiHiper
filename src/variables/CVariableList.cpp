@@ -185,26 +185,29 @@ void CVariableList::resetAll(const bool & force)
   CCommunicate::barrierRMA();
 
 #pragma omp single
+  {
     INSTANCE.mChangedVariables.Master().clear();
 
     base::iterator it;
     base::iterator itEnd = base::end();
 
     for (it = base::begin(); it != itEnd; ++it)
-#pragma omp single nowait
-      if ((*it)->reset(force)
-          || (*it)->getValue())
-        INSTANCE.mChangedVariables.Master().insert(*it);
+      {
+        if ((*it)->reset(force)
+            || (*it)->getValue())
+          INSTANCE.mChangedVariables.Master().insert(*it);
+      }
+  }
 }
 
 void CVariableList::synchronizeChangedVariables()
 {
   CCommunicate::barrierRMA();
 
-  CComputableSet * pSet = INSTANCE.mChangedVariables.beginThread();
-
 #pragma omp single
   {
+    CComputableSet * pSet = INSTANCE.mChangedVariables.beginThread();
+
     // Consolidate local changes from all threads.
     if (INSTANCE.mChangedVariables.isThread(pSet))
       {
@@ -231,6 +234,7 @@ void CVariableList::synchronizeChangedVariables()
           }
       }
   }
+  
 }
 
 bool CVariableList::append(CVariable * pVariable)

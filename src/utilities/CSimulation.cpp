@@ -80,30 +80,27 @@ bool CSimulation::run()
   CCommunicate::memUsage();
 
   CChanges::determineNodesRequested();
+
   CChanges::initDefaultOutput();
   CModel::InitGlobalStateCountOutput();
   CDependencyGraph::buildGraph();
 
-#pragma omp parallel
+#pragma omp parallel reduction(&: success)
   {
     CVariableList::INSTANCE.resetAll(true);
 
     if (!CDependencyGraph::applyComputeOnceOrder())
-#pragma omp atomic
       success &= false;
 
     if (!CDependencyGraph::applyUpdateOrder())
-#pragma omp atomic
       success &= false;
 
     if (!CInitialization::processAll())
-#pragma omp atomic
       success &= false;
 
     CVariableList::INSTANCE.resetAll();
 
     if (!CActionQueue::processCurrentActions())
-#pragma omp atomic
       success &= false;
 
     CVariableList::INSTANCE.synchronizeChangedVariables();
@@ -119,6 +116,7 @@ bool CSimulation::run()
   CCommunicate::memUsage();
 
   success &= CChanges::writeDefaultOutput();
+
   CModel::UpdateGlobalStateCounts();
   success &= CModel::WriteGlobalStateCounts();
 
@@ -135,12 +133,11 @@ bool CSimulation::run()
 
   while (CActionQueue::getCurrentTick() < endTick && success)
     {
-#pragma omp parallel
+#pragma omp parallel reduction(&: success)
       {
         std::chrono::time_point<std::chrono::steady_clock> Start = std::chrono::steady_clock::now();
 
         if (!CDependencyGraph::applyUpdateOrder())
-#pragma omp atomic
           success &= false;
 
         CLogger::info("CSimulation::applyUpdateOrder: duration = '{}' \xc2\xb5s.", std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000);
@@ -154,11 +151,9 @@ bool CSimulation::run()
         Start = std::chrono::steady_clock::now();
 
         if (!CTrigger::processAll())
-#pragma omp atomic
           success &= false;
 
         if (!CIntervention::processAll())
-#pragma omp atomic
           success &= false;
 
         CLogger::info("CSimulation::ProcessIntervention: duration = '{}' \xc2\xb5s.", std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000);
@@ -168,7 +163,6 @@ bool CSimulation::run()
         CVariableList::INSTANCE.resetAll();
 
         if (!CActionQueue::processCurrentActions())
-#pragma omp atomic
           success &= false;
         
         CLogger::info("CSimulation::processCurrentActions: duration = '{}' \xc2\xb5s.", std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000);

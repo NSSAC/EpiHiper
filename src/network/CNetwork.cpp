@@ -912,7 +912,7 @@ void CNetwork::load()
       }
 
     if (Context.isThread(&Active))
-#pragma omp critical
+#pragma omp critical (load_network_master_data)
       {
         mFirstLocalNode = std::min(mFirstLocalNode, Active.mFirstLocalNode);
         mLocalNodesSize += Active.mLocalNodesSize;
@@ -1086,7 +1086,7 @@ void CNetwork::load()
 
             if (CCommunicate::LocalProcesses() > 1)
               if (pEdge->sourceId < mFirstLocalNode || mBeyondLocalNode <= pEdge->sourceId)
-#pragma omp critical
+#pragma omp critical (load_network_master_remote_nodes)
                 mRemoteNodes[pEdge->sourceId] = NULL;
           }
 
@@ -1698,7 +1698,7 @@ CCommunicate::ErrorCode CNetwork::receiveNodes(std::istream & is, int sender)
     {
       CNode Node;
 
-#pragma omp critical
+#pragma omp critical (receive_changes)
       Node.fromBinary(is);
 
       CNode * pNode = lookupNode(Node.id, false);

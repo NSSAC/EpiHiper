@@ -169,7 +169,7 @@ void CActionQueue::addRemoteAction(const size_t & actionId, const CNode * pNode)
     {
       try
         {
-#pragma omp critical
+#pragma omp critical (add_remote_action)
           {
             RemoteActions.write(reinterpret_cast< const char * >(&actionId), sizeof(size_t));
             RemoteActions << 'N';
@@ -189,7 +189,7 @@ void CActionQueue::addRemoteAction(const size_t & actionId, const CNode * pNode)
 
       try
         {
-#pragma omp critical
+#pragma omp critical (add_local_action)
           addAction((Context.beginThread() + index)->locallyAdded, deltaTick, pAction);
         }
       catch (...)
@@ -208,7 +208,7 @@ void CActionQueue::addRemoteAction(const size_t & actionId, const CEdge * pEdge)
     {
       try
         {
-#pragma omp critical
+#pragma omp critical (add_remote_action)
           {
             RemoteActions.write(reinterpret_cast< const char * >(&actionId), sizeof(size_t));
             RemoteActions << 'E';
@@ -229,7 +229,7 @@ void CActionQueue::addRemoteAction(const size_t & actionId, const CEdge * pEdge)
 
       try
         {
-#pragma omp critical
+#pragma omp critical (add_local_action)
           addAction((Context.beginThread() + index)->locallyAdded, deltaTick, pAction);
         }
       catch (...)
@@ -260,11 +260,10 @@ int CActionQueue::broadcastPendingActions()
     }
 
   ActionQueue.locallyAdded.clear();
+  size_t PendingActions = pendingActions();
 
 #pragma omp single
   TotalPendingActions = 0;
-
-  size_t PendingActions = pendingActions();
 
 #pragma omp atomic
   TotalPendingActions += PendingActions;
@@ -273,7 +272,7 @@ int CActionQueue::broadcastPendingActions()
 #pragma omp single
   {
     CLogger::setSingle(true);
-
+  
     std::ostringstream os;
     os.write(reinterpret_cast< const char * >(&TotalPendingActions), sizeof(size_t));
     os << RemoteActions.str();

@@ -770,7 +770,7 @@ double CCommunicate::getRMA(const int & index)
   double Value = std::numeric_limits< double >::quiet_NaN();
 
   if (index < (int) MPIWinSize)
-#pragma omp critical
+#pragma omp critical (access_rma)
     {
 #ifdef USE_MPI
       MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, MPIWin);
@@ -789,7 +789,7 @@ double CCommunicate::updateRMA(const int & index, CCommunicate::Operator pOperat
   double Value = std::numeric_limits< double >::quiet_NaN();
 
   if (index < (int) MPIWinSize)
-#pragma omp critical
+#pragma omp critical (access_rma)
     {
 #ifdef USE_MPI
       MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, MPIWin);
