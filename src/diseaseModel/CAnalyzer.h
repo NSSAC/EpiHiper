@@ -52,6 +52,8 @@ public:
 
   static void Load(const std::string & jsonFile);
 
+  static void LoadModel();
+
   static void Run();
 
   static void Release();
@@ -67,6 +69,8 @@ private:
 
   CAnalyzer(const std::string & file);
 
+  void loadModel();
+
   void run();
 
   static CAnalyzer * INSTANCE;
@@ -78,6 +82,7 @@ private:
   CModel * mpModel;
   std::string mOutput;
   std::string mStatus;
+  std::string mModel;
   CLogger::LogLevel mLogLevel;
 };
 
