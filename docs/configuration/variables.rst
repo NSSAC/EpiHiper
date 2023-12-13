@@ -51,7 +51,7 @@ Variables can be defined in :doc:`initialization` and :doc:`intervention`
     - | Type 
     - | Description
   * - | id
-    - | |schema_unique_id|_ 
+    - | :doc:`uniqueId </schema/uniqueId>` 
     - | An id which has to be unique within the list of variables
   * - | scope
     - | local|global
@@ -64,7 +64,7 @@ Variables can be defined in :doc:`initialization` and :doc:`intervention`
     - | Optionally the variable may be reset to the initial value ever :math:`n` 
       | simulation steps
   * - | ann:* 
-    - | |schema_annotation|_
+    - | :doc:`annotation </schema/annotation>`
     - | Optional annotation of the variable
 
 

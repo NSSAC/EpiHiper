@@ -1,30 +1,3 @@
-.. |schema_edges| replace:: edges
-.. _schema_edges: https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L680
-
-.. |schema_nodes| replace:: nodes
-.. _schema_nodes: https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L637
-
-.. |schema_annotation| replace:: annotation
-.. _schema_annotation: https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L96
-
-.. |schema_unique_id| replace:: unique id
-.. _schema_unique_id: https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L6
-
-.. |schema_states| replace:: states
-.. _schema_states: https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/diseaseModelSchema.json#L19
-
-.. |schema_operation| replace:: operation
-.. _schema_operation: https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L111
-
-.. |schema_distribution| replace:: distribution
-.. _schema_distribution: https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L133
-
-.. |schema_transitions| replace:: transitions
-.. _schema_transitions: https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/diseaseModelSchema.json#L80
-
-.. |schema_transmissions| replace:: transmissions
-.. _schema_transmissions: https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/diseaseModelSchema.json#L47
-
 .. |schema_trait_object| replace:: trait object
 .. _schema_trait_object: https://github.com/NSSAC/EpiHiper-Schema/blob/master/schema/typeRegistry.json#L2141
 

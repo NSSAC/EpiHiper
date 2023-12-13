@@ -50,7 +50,7 @@ An intervention mus either have unique id so that it can be referenced by an ext
     - | Type 
     - | Description
   * - | id
-    - | |schema_unique_id|_ 
+    - | :doc:`uniqueId </schema/uniqueId>` 
     - | An id which has to be unique within the list of interventions
   * - | trigger
     - | object
@@ -63,7 +63,7 @@ An intervention mus either have unique id so that it can be referenced by an ext
     - | object
     - | The :doc:`actions` applied to the target set .
   * - | ann:* 
-    - | |schema_annotation|_
+    - | :doc:`annotation </schema/annotation>`
     - | Optional annotation of the intervention
 
 .. _intervention-examples:

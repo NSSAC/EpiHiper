@@ -55,7 +55,7 @@ Definition
     - | object
     - | The :doc:`actions` applied to the target set .
   * - | ann:* 
-    - | |schema_annotation|_
+    - | :doc:`annotation </schema/annotation>`
     - | Optional annotation of the initialization
     
 .. _initialization-examples:

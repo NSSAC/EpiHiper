@@ -58,6 +58,7 @@ extensions = [
   "sphinx.ext.mathjax",
   "sphinx.ext.autosectionlabel",
   "sphinxcontrib.bibtex",
+  "sphinx-jsonschema"
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -86,3 +87,10 @@ bibtex_bibfiles = ['refs.bib']
 numfig = True
 autosectionlabel_prefix_document = True
 autosectionlabel_maxdepth = 2
+
+jsonschema_options = { 
+  'lift_definitions': True, 
+  'lift_description': True, 
+  'auto_reference': False, 
+  'auto_target': True
+}

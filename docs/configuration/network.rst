@@ -64,13 +64,13 @@ Each edge in the contact network has the attributes given in :numref:`network-ed
     - | :math:`n \in \mathbb{N}_0`
     - | The PID of the target node
   * - | targetActivity
-    - | `activityTrait <traits>`_
+    - | :doc:`activityTrait <traits>`
     - | The activity of the target node at time of contact
   * - | sourcePID
     - | :math:`n \in \mathbb{N}_0`
     - | The PID of the source node
   * - | sourceActivity
-    - | `activityTrait <traits>`_
+    - | :doc:`activityTrait <traits>`
     - | The activity of the source node at time of contact
   * - | duration
     - | :math:`n \in \mathbb{N}_0`
@@ -79,7 +79,7 @@ Each edge in the contact network has the attributes given in :numref:`network-ed
     - | :math:`n \in \mathbb{N}_0`
     - | The location ID where the contact takes place
   * - | [edgeTrait]
-    - | `edgeTrait <traits>`_
+    - | :doc:`edgeTrait <traits>`
     - | A per-network customizable bit-field of edge parameters
   * - | [active]
     - | Boolean
@@ -143,7 +143,7 @@ To define the meta data of the contact network, the following syntax is used:
   * - | hasLocationIDField 
     - | Boolean flag stating if a location ID is included as edge field
   * - | ann:* 
-    - | |schema_annotation|_ for the network
+    - | :doc:`annotation </schema/annotation>` for the network
 
 
 .. |network-encoding-synopsis| replace:: Encoding: EpiHiper supports a binary format and an ASCII format.

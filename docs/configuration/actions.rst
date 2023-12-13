@@ -82,7 +82,7 @@ Definition
     - | An action to be performed.
   * - | target
     - | object
-    - | Writable properties of |schema_edges|_ or |schema_nodes|_ or a variable.
+    - | Writable properties of :doc:`edges </schema/edgeProperty>` or :doc:`nodes </schema/nodeProperty>` or a variable.
   * - | operator
     - | string
     - | The operator used for calculating the assigned value:
@@ -125,7 +125,7 @@ Definition
     - | object
     - | Action ensemble for the non-sampled subset of the target set.
   * - | ann:* 
-    - | |schema_annotation|_
+    - | :doc:`annotation </schema/annotation>`
     - | Optional annotation of the set.
 
 .. _actions-examples:
