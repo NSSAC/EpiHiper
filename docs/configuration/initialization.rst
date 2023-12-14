@@ -1,8 +1,6 @@
 Initialization
 ==============
 
-.. include:: _schema_links.rst
-
 **Contents:**
 
 * |initialization-introduction-synopsis|_

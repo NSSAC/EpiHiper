@@ -7,8 +7,6 @@
 Traits
 ======
 
-.. include:: _schema_links.rst
-
 **Contents:**
 
 * |traits-introduction-synopsis|_
@@ -68,9 +66,9 @@ Here ``featureId`` is the unique id of a feature within the specified trait coll
 
 The normative JSON schema can be found at:
 
-  * |schema_trait|_
-  * |schema_feature|_
-  * |schema_enum|_
+  * :doc:`trait </schema/trait>`
+  * `feature <../schema/trait.html#traitfeature>`__
+  * `enum <../schema/trait.html#featureenum>`__
 
 .. |traits-text-encoding-synopsis| replace:: Text encoding: format of traits utilized in csv files.
 .. _`traits-text-encoding-synopsis`: `traits-text-encoding`_
@@ -90,7 +88,7 @@ Text encoding of traits is is required for text format of the :doc:`network`.
 
   featureIndex_1:enumIndex_1|featureIndex_2|enumIndex_2, ..., featureIndex_n|enumIndex_n
 
-Here the index starts with ``1`` for the first feature or enum defined in JSON according to the |schema_trait_schema|_. If a feature is omitted in the encoding the default value is used.
+Here the index starts with ``1`` for the first feature or enum defined in JSON according to the :doc:`schema </schema/trait>`. If a feature is omitted in the encoding the default value is used.
 
 
 .. _traits-examples:

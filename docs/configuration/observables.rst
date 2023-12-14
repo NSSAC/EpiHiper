@@ -1,8 +1,6 @@
 Observables
 ===========
 
-.. include:: _schema_links.rst
-
 **Contents:**
 
 * |observables-introduction-synopsis|_
@@ -62,7 +60,7 @@ Specification
       | or are currently in the state.
 
 
-The normative JSON schema can be found at:  |schema_observables|_ 
+The normative JSON schema can be found at:  :doc:`observable </schema/observable>` 
 
 .. _observables-examples:
 

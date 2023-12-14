@@ -1,8 +1,6 @@
 Interventions
 =============
 
-.. include:: _schema_links.rst
-
 **Contents:**
 
 * |intervention-introduction-synopsis|_

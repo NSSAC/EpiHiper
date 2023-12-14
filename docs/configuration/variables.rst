@@ -1,8 +1,6 @@
 Variables
 =========
 
-.. include:: _schema_links.rst
-
 **Contents:**
 
 * |variables-introduction-synopsis|_
@@ -68,7 +66,7 @@ Variables can be defined in :doc:`initialization` and :doc:`intervention`
     - | Optional annotation of the variable
 
 
-The normative JSON schema can be found at:  |schema_variables|_ 
+The normative JSON schema can be found at: :doc:`variable </schema/variable>`
 
 .. _variables-examples:
 

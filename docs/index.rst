@@ -47,13 +47,18 @@ EpiHiper captures a discrete-time, contagion model evolving over a network. For 
    :maxdepth: 2
    :caption: Schema
    
+   schema/actionEnsemble.rst
    schema/annotation.rst
    schema/edgeProperty.rst
    schema/nodeProperty.rst
+   schema/network.rst
+   schema/observable.rst
    schema/operation.rst
    schema/state.rst
+   schema/trait.rst
    schema/transmission.rst
    schema/transition.rst
+   schema/variable.rst
 
 Indices and tables
 ==================
