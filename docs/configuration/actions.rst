@@ -1,8 +1,6 @@
 Action Ensemble
 ===============
 
-.. include:: _schema_links.rst
-
 **Contents:**
 
 * |actions-introduction-synopsis|_
@@ -127,6 +125,8 @@ Definition
   * - | ann:* 
     - | :doc:`annotation </schema/annotation>`
     - | Optional annotation of the set.
+
+The normative schema is: :doc:`actionEnsemble </schema/actionEnsemble>`
 
 .. _actions-examples:
 

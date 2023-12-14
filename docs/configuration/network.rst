@@ -1,8 +1,6 @@
 Contact Network
 ===============
 
-.. include:: _schema_links.rst
-
 **Contents:**
 
 * |network-introduction-synopsis|_
@@ -131,11 +129,11 @@ To define the meta data of the contact network, the following syntax is used:
   * - | sizeofActivity 
     - | The size of the activities measured in bytes (currently 4)
   * - | activityEncoding 
-    - | JSON |schema_trait_object|_ for encoding of activity type
+    - | JSON `trait <../schema/trait.html#trait>`__ for encoding of activity type
   * - | sizeofEdgeTrait  
     - | The size of the edgeTrait measured in bytes  (currently 0 or 4)
   * - | traitEncoding 
-    - | JSON |schema_trait_object|_ for encoding of edge features
+    - | JSON `trait <../schema/trait.html#trait>`__ for encoding of edge features
   * - | hasActiveField 
     - | Boolean flag stating if active is included as edge field
   * - | hasWeightField 
@@ -158,7 +156,7 @@ Encoding
 
    |network-encoding-synopsis|
 
-EpiHiper supports a binary format and an ASCII format, both of which have common meta data. This appears as the first line of the file in both formats; it is a standardized JSON |schema_network|_ with all newline characters and redundant whitespace characters omitted. Furthermore the second line contains the column headers in both format. Optional attributes ([...]) are omitted when encoding the contact network.
+EpiHiper supports a binary format and an ASCII format, both of which have common meta data. This appears as the first line of the file in both formats; it is a standardized JSON :doc:`network </schema/network>` with all newline characters and redundant whitespace characters omitted. Furthermore the second line contains the column headers in both format. Optional attributes ([...]) are omitted when encoding the contact network.
 
 .. code-block:: text
 

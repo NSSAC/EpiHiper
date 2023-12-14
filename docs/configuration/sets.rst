@@ -1,8 +1,6 @@
 Sets
 ====
 
-.. include:: _schema_links.rst
-
 **Contents:**
 
 * |sets-introduction-synopsis|_
@@ -62,7 +60,7 @@ Definition
     - | Optional annotation of the set
 
 The attribute ``scope`` is used to enhance performance. Local content is faster to compute and suffices in most situations.
-The normative JSON schema can be found at:  |schema_set|_ 
+The normative JSON schema can be found at:  :doc:`set </schema/set>` 
 
 .. |sets-content-synopsis| replace:: Content: specification of the elements contained in a set.
 
@@ -132,10 +130,10 @@ We have several alternative syntaxes to specify the content. The third specifies
     - | Properties of :doc:`edges </schema/edgeProperty>` or :doc:`nodes </schema/nodeProperty>`
   * - | right 
     - | object
-    - | A |schema_value|_ or |schema_value_list|_ depending on the operator
+    - | A :doc:`value </schema/value>` or :doc:`valueList </schema/valueList>` depending on the operator
   * - | selector 
     - | object
-    - | |schema_set_content|_ used to filter nodes or edges based on attributes which are lists.
+    - | :doc:`setContent </schema/setContent>` used to filter nodes or edges based on attributes which are lists.
   * - | operation
     - | string
     - | A set operation either union or intersection
@@ -149,7 +147,7 @@ We have several alternative syntaxes to specify the content. The third specifies
     - | string 
     - | A reference of an id of a existing set .
 
-The normative JSON schema can be found at:  |schema_setcontent|_ 
+The normative JSON schema can be found at: :doc:`setContent </schema/setContent>`
 
 .. _sets-examples:
 

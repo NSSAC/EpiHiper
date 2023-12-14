@@ -1,8 +1,6 @@
 Trigger
 =======
 
-.. include:: _schema_links.rst
-
 **Contents:**
 
 * |trigger-introduction-synopsis|_
@@ -129,21 +127,21 @@ EpiHiper allows for the definition of complex Boolean expressions utilizing the 
       | this must be either a value or a valueList.
   * - | value
     - | object
-    - | A |schema_value|_
+    - | A :doc:`value </schema/value>`
   * - | valueList
     - | object
-    - | A |schema_value_list|_ 
+    - | A :doc:`valueList </schema/valueList>` 
   * - | node 
     - | object
-    - | A |schema_node_property|_
+    - | A :doc:`nodeProperty </schema/nodeProperty>`
   * - | edge 
     - | object
-    - | An |schema_edge_property|_
+    - | An :doc:`edgeProperty </schema/edgeProperty>`
   * - | sizeof
     - | object
     - | Function to determine the size of the given :ref:`set content <sets-content>`.
 
-The normative JSON schema can be found at:  |schema_boolean|_ 
+The normative JSON schema can be found at:  :doc:`boolean </schema/boolean>`
 
 .. _trigger-examples:
 

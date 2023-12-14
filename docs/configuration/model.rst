@@ -1,8 +1,6 @@
 Contagion Model
 ===============
 
-.. include:: _schema_links.rst
-
 **Contents:**
 
 * |model-introduction-synopsis|_

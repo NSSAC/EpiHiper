@@ -2,8 +2,6 @@
 Trait Databases
 ===============
 
-.. include:: _schema_links.rst
-
 **Contents:**
 
 * |traitdb-introduction-synopsis|_
