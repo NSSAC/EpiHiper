@@ -1,7 +1,7 @@
 Value
 =====
 
-.. jsonschema:: /raid/shoops/git/EpiHiper-Schema/schema/typeRegistry.json#/definitions/value
+.. jsonschema:: https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/typeRegistry.json#/definitions/value
 
 
 

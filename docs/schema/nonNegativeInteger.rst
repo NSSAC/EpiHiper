@@ -1,7 +1,7 @@
 Non negative Integer
 ====================
 
-.. jsonschema:: /raid/shoops/git/EpiHiper-Schema/schema/typeRegistry.json#/definitions/nonNegativeInteger
+.. jsonschema:: https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/typeRegistry.json#/definitions/nonNegativeInteger
 
 
 
