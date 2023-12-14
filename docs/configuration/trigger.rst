@@ -56,7 +56,7 @@ Definition
     - | list(id)
     - | A list of ids referencing :doc:`intervention` to be performed.
   * - | ann:* 
-    - | |schema_annotation|_
+    - | :doc:`annotation </schema/annotation>`
     - | Optional annotation of the trigger.
 
 

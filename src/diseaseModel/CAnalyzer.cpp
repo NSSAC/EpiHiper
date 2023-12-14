@@ -44,6 +44,12 @@ void CAnalyzer::Load(const std::string & file)
   INSTANCE = new CAnalyzer(file);
 }
 
+// static 
+void CAnalyzer::LoadModel()
+{
+  INSTANCE->loadModel();
+}
+
 // static
 void CAnalyzer::Run()
 {
@@ -221,8 +227,7 @@ CAnalyzer::CAnalyzer(const std::string & jsonFile)
 
   if (json_is_string(pValue))
     {
-      std::string DiseaseModel = CDirEntry::resolve(json_string_value(pValue), jsonFile);
-      mpModel = new CModel(DiseaseModel);
+      mModel = CDirEntry::resolve(json_string_value(pValue), jsonFile);
     }
   else
     {
@@ -265,6 +270,11 @@ CAnalyzer::CAnalyzer(const std::string & jsonFile)
     {
       mSeed = json_real_value(pValue);
     }
+}
+
+void CAnalyzer::loadModel()
+{
+  mpModel = new CModel(mModel);
 
   if (!CLogger::hasErrors())
     {
@@ -282,6 +292,7 @@ CAnalyzer::CAnalyzer(const std::string & jsonFile)
         }
     }
 }
+
 
 void CAnalyzer::run()
 {

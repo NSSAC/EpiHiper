@@ -49,7 +49,7 @@ Definition
     - | Type 
     - | Description
   * - | id
-    - | |schema_unique_id|_ 
+    - | :doc:`uniqueId </schema/uniqueId>` 
     - | An id which has to be unique within the list of sets
   * - | scope
     - | local|global
@@ -58,7 +58,7 @@ Definition
     - | :ref:`sets-content`
     - | The content of the set
   * - | ann:* 
-    - | |schema_annotation|_
+    - | :doc:`annotation </schema/annotation>`
     - | Optional annotation of the set
 
 The attribute ``scope`` is used to enhance performance. Local content is faster to compute and suffices in most situations.
@@ -129,7 +129,7 @@ We have several alternative syntaxes to specify the content. The third specifies
     - | The left operant of the comparison
   * - | property
     - | string
-    - | Properties of |schema_edges|_ or |schema_nodes|_
+    - | Properties of :doc:`edges </schema/edgeProperty>` or :doc:`nodes </schema/nodeProperty>`
   * - | right 
     - | object
     - | A |schema_value|_ or |schema_value_list|_ depending on the operator

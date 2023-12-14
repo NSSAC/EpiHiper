@@ -22,7 +22,7 @@ Introduction
 
    |model-introduction-synopsis|
 
-The contagion model is fully programmable, and starts from a set :math:`\mathcal{X} = \{X_1, X_2, \ldots, X_m\}` of **states**. The **progression**, which captures the evolution of states whithin a person, is represented using a probabilistic timed transition system (PTTS) over :math:`\mathcal{X}`. These are an extension of finite state machines with the additional features that state progressions are probabilistic and timed. 
+The contagion model is fully programmable, and starts from a set :math:`\mathcal{X} = \{X_1, X_2, \ldots, X_m\}` of **states**. The **progression**, which captures the evolution of states within a person, is represented using a probabilistic timed transition system (PTTS) over :math:`\mathcal{X}`. These are an extension of finite state machines with the additional features that state progressions are probabilistic and timed. 
 
 A PTTS is a set of states, where each state has an :math:`id`, a common set of attributes values, and one or more labeled sets of weighted progressions with dwell time distributions to other states. The label on the progression sets is used to select the appropriate set of progressions, factoring in for example pharmaceutical treatments that have been applied to an individual. The attributes of a state describe the levels of infectivity, susceptibility, and symptoms an individual who is in that state possess. Once an individual enters a state, the amount of time that they will remain in that state is drawn from the dwell time distribution. Using the notion of **contact configurations**, one may succinctly specify the contact between individuals, factoring in the disease states that can cause a **transmission**.
 
@@ -176,7 +176,7 @@ To define the states of the contagion model, the following syntax is used:
     - | Type 
     - | Description
   * - | id
-    - | |schema_unique_id|_ 
+    - | :doc:`uniqueId </schema/uniqueId>` 
     - | An id which has to be unique within the list of states
   * - | susceptibility
     - | :math:`0 \le x \in \mathbb{R}` 
@@ -185,10 +185,10 @@ To define the states of the contagion model, the following syntax is used:
     - | :math:`0 \le x \in \mathbb{R}` 
     - | The infectivity of the state
   * - | ann:* 
-    - | |schema_annotation|_
+    - | :doc:`annotation </schema/annotation>`
     - | Optional annotation of the state
 
-The ``idRef`` property of the ``initalState`` must refer to an existing id in the list of the states. The normative JSON schema can be found at:  |schema_states|_
+The ``idRef`` property of the ``initalState`` must refer to an existing id in the list of the states. The normative JSON schema can be found at:  :doc:`state </schema/state>`
 
 .. _model-states-examples:
 
@@ -270,7 +270,7 @@ To define the progressions between states of the contagion model, the following 
     - | Type 
     - | Description
   * - | id
-    - | |schema_unique_id|_ 
+    - | :doc:`uniqueId </schema/uniqueId>` 
     - | An id which has to be unique within the list 
       | of transitions
   * - | entryState
@@ -286,23 +286,23 @@ To define the progressions between states of the contagion model, the following 
     - | The probability that the entry state changes to the 
       | exit state 
   * - | dwellTime
-    - | |schema_distribution|_ 
+    - | :doc:`distribution </schema/distribution>` 
     - | The time before the state change occurs
   * - | susceptibilityFactorOperation
-    - | |schema_operation|_ 
+    - | :doc:`operation </schema/operation>` 
     - | The numeric operation to be performed on an  
       | individuals susceptibility factor when the 
       | state change occurs
   * - | infectivityFactorOperation
-    - | |schema_operation|_ 
+    - | :doc:`operation </schema/operation>` 
     - | The numeric operation to be performed on an  
       | individuals infectivity factor when the 
       | state change occurs
   * - | ann:* 
-    - | |schema_annotation|_
+    - | :doc:`annotation </schema/annotation>`
     - | Optional annotation of the state
 
-If the optional ``susceptibilityFactorOperation`` or ``infectivityFactorOperation`` are missing no operation will be exectuted, i.e., the current factor will be preserved. The normative JSON schema can be found at:  |schema_transitions|_
+If the optional ``susceptibilityFactorOperation`` or ``infectivityFactorOperation`` are missing no operation will be exectuted, i.e., the current factor will be preserved. The normative JSON schema can be found at:  :doc:`transitions </schema/transition>`
 
 .. _model-progressions-examples:
 
@@ -405,7 +405,7 @@ To define possible transmission between occurring between individuals in the con
     - | Type 
     - | Description
   * - | id
-    - | |schema_unique_id|_ 
+    - | :doc:`uniqueId </schema/uniqueId>` 
     - | An id which has to be unique within the list 
       | of transmissions
   * - | entryState
@@ -424,20 +424,20 @@ To define possible transmission between occurring between individuals in the con
     - | :math:`0 \le x \in \mathbb{R}` 
     - | The transmissibility of the for each contact. 
   * - | susceptibilityFactorOperation
-    - | |schema_operation|_ 
+    - | :doc:`operation </schema/operation>` 
     - | The numeric operation to be performed on an  
       | individuals susceptibility factor when the 
       | state change occurs
   * - | infectivityFactorOperation
-    - | |schema_operation|_ 
+    - | :doc:`operation </schema/operation>` 
     - | The numeric operation to be performed on an  
       | individuals infectivity factor when the 
       | state change occurs
   * - | ann:* 
-    - | |schema_annotation|_
+    - | :doc:`annotation </schema/annotation>`
     - | Optional annotation of the state
 
-If the optional ``susceptibilityFactorOperation`` or ``infectivityFactorOperation`` are missing no operation will be executed, i.e., the current factor will be preserved. The normative JSON schema can be found at:  |schema_transmissions|_. The optional model attribute `transmissibility` is used to scale all individual transmissibilities. Its default value is :math:`1.0`
+If the optional ``susceptibilityFactorOperation`` or ``infectivityFactorOperation`` are missing no operation will be executed, i.e., the current factor will be preserved. The normative JSON schema can be found at:  :doc:`transmissions </schema/transmission>`. The optional model attribute `transmissibility` is used to scale all individual transmissibilities. Its default value is :math:`1.0`
 
 Examples
 ^^^^^^^^

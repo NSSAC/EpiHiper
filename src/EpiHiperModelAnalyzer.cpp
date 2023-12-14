@@ -88,6 +88,13 @@ int main(int argc, char * argv[])
       goto failed;
     }
 
+  CAnalyzer::LoadModel();
+
+  if (CLogger::hasErrors())
+    {
+      goto failed;
+    }
+
   CAnalyzer::Run();
 
   if (CLogger::hasErrors())

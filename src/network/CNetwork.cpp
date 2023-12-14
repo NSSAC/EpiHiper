@@ -653,8 +653,6 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
     {
       std::ostringstream NodeBuffer;
 
-      // TODO CRITICAL This is broken since the edges are not sorted by source node Id
-      // sort the edges by source node id in the node buffer
       std::ostringstream PartitionBuffer;
 
       size_t * pPartition = Partition;
@@ -1005,8 +1003,6 @@ void CNetwork::load()
     CNode * pNodeEnd = pNode + Active.mLocalNodesSize;
     *pNode = DefaultNode;
 
-    // TODO CRITICAL This is broken since the edges are not sorted by source node Id
-    // sort the edges by source node id per node before adding them to data.
     CEdge * pEdge = Active.mEdges;
     CEdge * pEdgeEnd = pEdge + Active.mEdgesSize;
     CEdge DefaultEdge = CEdge::getDefault();
@@ -1501,6 +1497,7 @@ CEdge * CNetwork::lookupEdge(const size_t & targetId, const size_t & sourceId) c
     return NULL;
 
   // TODO CRITICAL This is broken since the edges are not sorted by source node Id
+  // furthermore the targetNodeId, sourceNodeId is not a unique index
   CEdge * pLeft = pTargetNode->Edges;
   CEdge * pRight = pLeft + pTargetNode->EdgesSize;
   CEdge * pCurrent = pLeft + (pRight - pLeft) / 2;

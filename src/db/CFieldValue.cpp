@@ -72,7 +72,7 @@ void CFieldValue::fromJSON(const json_t * json)
     {
     case Type::id:
       if (json_is_real(pValue) 
-          && json_real_value(pValue) - (size_t) json_real_value(pValue) < json_real_value(pValue) * 100.0 * std::numeric_limits< double >::epsilon())
+          && abs(json_real_value(pValue) - (size_t) json_real_value(pValue)) <= abs(json_real_value(pValue)) * 100.0 * std::numeric_limits< double >::epsilon())
         {
           mpValue = new size_t((size_t) json_real_value(pValue));
           mValid = true;
@@ -85,7 +85,7 @@ void CFieldValue::fromJSON(const json_t * json)
 
     case Type::integer:
       if (json_is_real(pValue) 
-          && json_real_value(pValue) - (int) json_real_value(pValue) < json_real_value(pValue) * 100.0 * std::numeric_limits< double >::epsilon())
+          && abs(json_real_value(pValue) - (int) json_real_value(pValue)) <= abs(json_real_value(pValue)) * 100.0 * std::numeric_limits< double >::epsilon())
         {
           mpValue = new int((int) json_real_value(pValue));
           mValid = true;
