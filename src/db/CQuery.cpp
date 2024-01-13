@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -182,14 +182,14 @@ bool CQuery::all(const std::string & table,
     return false;
 
   std::ostringstream Query;
-  Query << "SELECT DISTINCT " << resultField << " FROM " << table;
+  Query << "SELECT DISTINCT " << CConnection::quote(resultField) << " FROM " << CConnection::quote(table);
 
   if (local)
     {
       Query << " WHERE " << LocalConstraint.Active();
     }
 
-  Query << " ORDER BY " << resultField;
+  Query << " ORDER BY " << CConnection::quote(resultField);
   // std::cout << Query.str() << std::endl;
 
   bool success = true;
@@ -295,7 +295,7 @@ bool CQuery::in(const std::string & table,
 
   std::ostringstream Query;
 
-  Query << "SELECT DISTINCT " << resultField << " FROM " << table << " WHERE " << constraintField << ((!in) ? " NOT  IN (" : " IN (");
+  Query << "SELECT DISTINCT " << CConnection::quote(resultField) << " FROM " << CConnection::quote(table) << " WHERE " << CConnection::quote(constraintField) << ((!in) ? " NOT  IN (" : " IN (");
 
   bool FirstTime = true;
   CFieldValueList::const_iterator it = constraints.begin();
@@ -345,7 +345,7 @@ bool CQuery::in(const std::string & table,
       Query << " AND " << LocalConstraint.Active();
     }
 
-  Query << " ORDER BY " << resultField;
+  Query << " ORDER BY " << CConnection::quote(resultField);
   // std::cout << Query.str() << std::endl;
 
   bool success = true;
@@ -442,7 +442,7 @@ bool CQuery::where(const std::string & table,
     }
 
   std::ostringstream Query;
-  Query << "SELECT DISTINCT " << resultField << " FROM " << table << " WHERE " << constraintField << " " << cmp << " ";
+  Query << "SELECT DISTINCT " << CConnection::quote(resultField) << " FROM " << CConnection::quote(table) << " WHERE " << CConnection::quote(constraintField) << " " << cmp << " ";
 
   switch (constraint.getType())
     {
@@ -474,7 +474,7 @@ bool CQuery::where(const std::string & table,
       Query << " AND " << LocalConstraint.Active();
     }
 
-  Query << " ORDER BY " << resultField;
+  Query << " ORDER BY " << CConnection::quote(resultField);
   // std::cout << Query.str() << std::endl;
 
   bool success = true;

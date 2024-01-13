@@ -666,7 +666,7 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
       size_t PartitionEdgeCount = 0;
       size_t LastNodeEdgeCount = 0;
 
-      size_t PartitionIndex(1);
+      size_t PartitionIndex = 1;
       std::set< size_t >::const_iterator itSourceOnlyNode = mSourceOnlyNodes.begin();
 
       CEdge Edge = CEdge::getDefault();
@@ -786,7 +786,15 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
           Node = *++itSourceOnlyNode;
         }
 
-      *(pPartition + 3) = Node + 1;
+      // Handling the rare case where we have more nodes than parts.
+      for (; PartitionIndex != (size_t) parts; ++PartitionIndex)
+        {
+          Partition[3 * PartitionIndex] = Node + 1;
+          Partition[3 * PartitionIndex + 1] = 0;
+          Partition[3 * PartitionIndex + 2] = 0;
+        }
+
+      Partition[3 * PartitionIndex] = Node + 1;
 
       if (save)
         {
@@ -1001,7 +1009,15 @@ void CNetwork::load()
 
     CNode * pNode = Active.mLocalNodes;
     CNode * pNodeEnd = pNode + Active.mLocalNodesSize;
-    *pNode = DefaultNode;
+
+    CNode DummyNode = DefaultNode;
+
+    // Handle a partition without any nodes
+    if (Active.mLocalNodesSize == 0)
+      {
+        pNode = &DummyNode;
+        pNodeEnd = pNode;
+      }
 
     CEdge * pEdge = Active.mEdges;
     CEdge * pEdgeEnd = pEdge + Active.mEdgesSize;
@@ -1107,7 +1123,8 @@ void CNetwork::load()
             ++itSourceOnlyNode;
           }
 
-        assert(Active.mBeyondLocalNode > pNode->id);
+        assert(Active.mBeyondLocalNode > pNode->id
+               || pNode->id == std::numeric_limits< size_t >::max());
       }
 
 #pragma omp atomic
