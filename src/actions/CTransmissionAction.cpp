@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2020 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -38,16 +38,14 @@ CTransmissionAction::CTransmissionAction(const CTransmission * pTransmission, co
   , mStateAtScheduleTime(pTarget->healthState)
   , mpEdge(pEdge)
 {
-  ENABLE_TRACE(CLogger::trace("CTransmissionAction: Add node '{}' healthState = '{}', contact: '{}'.",
-                 mpTarget->id, mpTransmission->getExitState()->getId(), mpEdge->pSource->id););
-
-#ifdef USE_LOATION_ID
-  if (CEdge::HasLocationId)
-    {
-      Trace << ", location: "
-            << mpEdge->locationId;
-    }
-#endif
+  ENABLE_TRACE(
+    if (CEdge::HasLocationId)
+      CLogger::trace("CTransmissionAction: Add node '{}' healthState = '{}', contact: '{}', location: {}.",
+                      mpTarget->id, mpTransmission->getExitState()->getId(), mpEdge->pSource->id, mpEdge->locationId);
+    else 
+      CLogger::trace("CTransmissionAction: Add node '{}' healthState = '{}', contact: '{}'.",
+                      mpTarget->id, mpTransmission->getExitState()->getId(), mpEdge->pSource->id);
+  );
 }
 
 // virtual
@@ -74,12 +72,10 @@ bool CTransmissionAction::execute() const
           CMetadata Info("StateChange", true);
           Info.set("ContactNode", (int) mpEdge->pSource->id);
 
-#ifdef USE_LOCATION_ID
           if (CEdge::HasLocationId)
             {
               Info.set("LocationId", (int) mpEdge->locationId);
             }
-#endif
 
           success &= COperation::execute< CNode, const CTransmission * >(pTarget, mpTransmission, &CNode::set, CNodeProperty::Collectors[(size_t) CNodeProperty::Property::healthState], Info);
         }
