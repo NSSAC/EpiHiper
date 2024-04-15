@@ -26,6 +26,8 @@
 
 SINGULARITY=${SINGULARITY:-"$(which singularity)"}
 JSONSCHEMA=${JSONSCHEMA:-"$(which jsonschema)"}
+JOBSERVICE_SCHEMA_DIR=${JOBSERVICE_SCHEMA_DIR:-$(dirname $0)}
+
 DEF=rivanna.def
 IMAGE=epihiper.rivanna
 ID=$(id -u)
@@ -77,7 +79,7 @@ chmod 775 libEpiHiper*
 
 # Intel Runtime Libraries
 if [ ! -e l_comp_lib_2018.5.274_comp.cpp_redist.tgz ]; then
-    if [ -d /project/bii_nssac/EpiHiper/intel/src ]
+    if [ -d /project/bii_nssac/EpiHiper/intel/src ]; then
         cp /project/bii_nssac/EpiHiper/intel/src/l_comp_lib_2018.5.274_comp.cpp_redist.tgz .
     else
         scp rivanna:/project/bii_nssac/EpiHiper/intel/src/l_comp_lib_2018.5.274_comp.cpp_redist.tgz .
@@ -86,7 +88,7 @@ fi
 
 # Intel MPI
 if [ ! -e l_mpi_2018.5.288.tgz ]; then
-    if [ -d /project/bii_nssac/EpiHiper/intel/src ]
+    if [ -d /project/bii_nssac/EpiHiper/intel/src ]; then
         cp /project/bii_nssac/EpiHiper/intel/src/l_mpi_2018.5.288.tgz .
     else
         scp rivanna:/project/bii_nssac/EpiHiper/intel/src/l_mpi_2018.5.288.tgz .
@@ -95,7 +97,7 @@ fi
 
 # IntelOPA
 if [ ! -e IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz ]; then
-    if [ -d /project/bii_nssac/EpiHiper/intel/src ]
+    if [ -d /project/bii_nssac/EpiHiper/intel/src ]; then
         cp /project/bii_nssac/EpiHiper/intel/src/IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz .
     else
         scp rivanna:/project/bii_nssac/EpiHiper/intel/src/IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz .
