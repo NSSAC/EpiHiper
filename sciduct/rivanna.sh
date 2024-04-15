@@ -3,7 +3,7 @@
 # BEGIN: Copyright 
 # MIT License 
 #  
-# Copyright (C) 2020 - 2023 Rector and Visitors of the University of Virginia 
+# Copyright (C) 2020 - 2024 Rector and Visitors of the University of Virginia 
 #  
 # Permission is hereby granted, free of charge, to any person obtaining a copy 
 # of this software and associated documentation files (the "Software"), to deal 
@@ -61,9 +61,14 @@ fi
 cd cache.rivanna
 
 # EpiHiper
-if [ ! -e EpiHiper ] || [ _$1 == _fetch ]; then
-    scp rivanna:/project/bii_nssac/EpiHiper/bin/* . 
-    scp rivanna:/project/bii_nssac/EpiHiper/build/src/libEpiHiper* . 
+if [ ! -e EpiHiper ]; then
+    if [ -d /project/bii_nssac/EpiHiper/build/src ]; then
+        cp /project/bii_nssac/EpiHiper/build/src/Epi* .
+        cp /project/bii_nssac/EpiHiper/build/src/libEpiHiper* . 
+    else
+        scp rivanna:/project/bii_nssac/EpiHiper/build/src/Epi* .
+        scp rivanna:/project/bii_nssac/EpiHiper/build/src/libEpiHiper* . 
+    fi
 fi
 
 # Assure that the files are readable and executable by all
@@ -71,17 +76,32 @@ chmod 775 EpiHiper*
 chmod 775 libEpiHiper*
 
 # Intel Runtime Libraries
-[ -e l_comp_lib_2018.5.274_comp.cpp_redist.tgz ] || \
-    scp rivanna:/project/bii_nssac/EpiHiper/intel/src/l_comp_lib_2018.5.274_comp.cpp_redist.tgz .
+if [ ! -e l_comp_lib_2018.5.274_comp.cpp_redist.tgz ]; then
+    if [ -d /project/bii_nssac/EpiHiper/intel/src ]
+        cp /project/bii_nssac/EpiHiper/intel/src/l_comp_lib_2018.5.274_comp.cpp_redist.tgz .
+    else
+        scp rivanna:/project/bii_nssac/EpiHiper/intel/src/l_comp_lib_2018.5.274_comp.cpp_redist.tgz .
+    fi
+fi
 
- Intel MPI
-[ -e l_mpi_2018.5.288.tgz ] || \
-    scp rivanna:/project/bii_nssac/EpiHiper/intel/src/l_mpi_2018.5.288.tgz .
-    
+# Intel MPI
+if [ ! -e l_mpi_2018.5.288.tgz ]; then
+    if [ -d /project/bii_nssac/EpiHiper/intel/src ]
+        cp /project/bii_nssac/EpiHiper/intel/src/l_mpi_2018.5.288.tgz .
+    else
+        scp rivanna:/project/bii_nssac/EpiHiper/intel/src/l_mpi_2018.5.288.tgz .
+    fi
+fi
+
 # IntelOPA
-[ -e IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz ] || \
-    scp rivanna:/project/bii_nssac/EpiHiper/intel/src/IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz .
-    
+if [ ! -e IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz ]; then
+    if [ -d /project/bii_nssac/EpiHiper/intel/src ]
+        cp /project/bii_nssac/EpiHiper/intel/src/IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz .
+    else
+        scp rivanna:/project/bii_nssac/EpiHiper/intel/src/IntelOPA-Basic.RHEL76-x86_64.10.9.3.1.1.tgz .
+    fi
+fi
+
 cd ..
 
 [ -e "build.def" ] && rm build.def

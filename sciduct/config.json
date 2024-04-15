@@ -205,5 +205,6 @@
   ],
   "description": "EpiHiper Simulation Engine and related utilities",
   "license": "commercial",
-  "version": "1.1.0-1-37cpn"
+  "image_type": "apptainer",
+  "version": "1.1.1-1-37cpn"
 }
