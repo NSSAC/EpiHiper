@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -72,7 +72,7 @@ void CStatus::load(const std::string & id, const std::string & name, const std::
 
   if (CDirEntry::exist(fileName))
     {
-      pJSON = CSimConfig::loadJson(fileName, JSON_DECODE_INT_AS_REAL);
+      pJSON = CSimConfig::loadJson< CLogger::warn >(fileName, JSON_DECODE_INT_AS_REAL);
     }
 
   if (pJSON == NULL)
@@ -96,7 +96,7 @@ void CStatus::load(const std::string & id, const std::string & name, const std::
   if (strcmp(json_string_value(pId), id.c_str()) == 0 &&
       CDirEntry::exist(CDirEntry::dirName(fileName) + "/job.json"))
     {
-      json_t * pRoot = CSimConfig::loadJson(CDirEntry::dirName(fileName) + "/job.json", JSON_DECODE_INT_AS_REAL);
+      json_t * pRoot = CSimConfig::loadJson< CLogger::error >(CDirEntry::dirName(fileName) + "/job.json", JSON_DECODE_INT_AS_REAL);
       json_t * pValue = json_object_get(pRoot, "id");
 
       if (json_is_string(pValue))

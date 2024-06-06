@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -30,6 +30,7 @@
 #include <string>
 
 #include "utilities/CLogger.h"
+#include "utilities/CDirEntry.h"
 
 struct json_t;
 
@@ -120,9 +121,51 @@ public:
   static CLogger::LogLevel getLogLevel();
   static const db_connection & getDBConnection();
   static const dump_active_network & getDumpActiveNetwork();
+  template < class Severity >
   static json_t * loadJson(const std::string & jsonFile, int flags);
   static json_t * loadJsonPreamble(const std::string & jsonFile, int flags);
   static std::string jsonToString(const json_t * pJson);
 };
+
+#ifdef HAVE_SYS_TYPES_H
+# undef HAVE_SYS_TYPES_H
+#endif
+
+#include <jansson.h>
+
+template < class Severity >
+json_t * CSimConfig::loadJson(const std::string & jsonFile, int flags)
+{
+  json_t * pRoot = NULL;
+
+  if (jsonFile.empty())
+    {
+      CLogger::error("JSON file is not specified.");
+      return pRoot;
+    }
+
+  if (!CDirEntry::isFile(jsonFile))
+    {
+      Severity("JSON file '{}' not found.", jsonFile);
+      return pRoot;
+    }
+
+  if (!CDirEntry::isReadable(jsonFile))
+    {
+      Severity("JSON file '{}' is not readable.", jsonFile);
+      return pRoot;
+    }
+
+  json_error_t error;
+
+  pRoot = json_load_file(jsonFile.c_str(), flags, &error);
+
+  if (pRoot == NULL)
+    {
+      Severity("JSON file: '{}' error on line {}: {}", jsonFile, error.line, error.text);
+    }
+
+  return pRoot;
+}
 
 #endif
