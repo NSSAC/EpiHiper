@@ -34,7 +34,7 @@ while getopts "rsp" opt; do
   case ${opt} in
     r ) # process option o
       Tool=accumulateReplicates
-      Columns="experiment,total,totalSD,rawCommunication,rawCommunicationSD,initialization,initializationSD,output,outputSD,synchronize,synchronizeSD,ProcessTransmissions,ProcessTransmissionsSD,ProcessIntervention,ProcessInterventionSD,processCurrentActions,processCurrentActionsSD"
+      Columns=experiment,total,totalSD,rawCommunication,rawCommunicationSD,initialization,initializationSD,output,outputSD,synchronize,synchronizeSD,ProcessTransmissions,ProcessTransmissionsSD,ProcessIntervention,ProcessInterventionSD,processCurrentActions,processCurrentActionsSD
       ;;
     s )  # process option s
       Tool=accumulateSimulation
@@ -58,7 +58,7 @@ accumulateReplicates () {
   pushd $1 > /dev/null 2>&1
 
   for f in $(find . -type d); do
-    [ $1 == $f ] || accumulateSimulation $f
+    accumulateSimulation $f
   done | gawk -F',' -- '
   BEGIN {
     count = 0
@@ -115,9 +115,9 @@ accumulateReplicates () {
     total += delta/count
     totalSD += delta * ($7 - total)
     
-    rawCommunication = $8 - rawCommunication
-    total += rawCommunication/count
-    rawCommunicationSD += rawCommunication * ($8 - total)
+    delta = $8 - rawCommunication
+    rawCommunication += rawCommunication/count
+    rawCommunicationSD += rawCommunication * ($8 - rawCommunication)
   }
   '
 
@@ -127,7 +127,7 @@ accumulateReplicates () {
 accumulateSimulation () {
   pushd $1 > /dev/null 2>&1
 
-  for f in EpiHiper.*.log; do
+  for f in $(ls EpiHiper.*.log 2>/dev/null); do
     accumulateProcess $f
   done | gawk -F',' -- '
   BEGIN {
