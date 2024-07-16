@@ -39,10 +39,12 @@ CTransmissionAction::CTransmissionAction(const CTransmission * pTransmission, co
   , mpEdge(pEdge)
 {
   ENABLE_TRACE(
+#ifdef USE_LOCATION_ID
     if (CEdge::HasLocationId)
       CLogger::trace("CTransmissionAction: Add node '{}' healthState = '{}', contact: '{}', location: {}.",
                       mpTarget->id, mpTransmission->getExitState()->getId(), mpEdge->pSource->id, mpEdge->locationId);
     else 
+#endif // USE_LOCATION_ID
       CLogger::trace("CTransmissionAction: Add node '{}' healthState = '{}', contact: '{}'.",
                       mpTarget->id, mpTransmission->getExitState()->getId(), mpEdge->pSource->id);
   );
@@ -72,10 +74,12 @@ bool CTransmissionAction::execute() const
           CMetadata Info("StateChange", true);
           Info.set("ContactNode", (int) mpEdge->pSource->id);
 
+#ifdef USE_LOCATION_ID
           if (CEdge::HasLocationId)
             {
               Info.set("LocationId", (int) mpEdge->locationId);
             }
+#endif // USE_LOCATION_ID
 
           success &= COperation::execute< CNode, const CTransmission * >(pTarget, mpTransmission, &CNode::set, CNodeProperty::Collectors[(size_t) CNodeProperty::Property::healthState], Info);
         }
