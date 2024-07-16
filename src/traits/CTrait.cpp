@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -70,7 +70,7 @@ const CTrait * CTrait::find(const std::string & id)
 // static
 void CTrait::load(const std::string & jsonFile)
 {
-  json_t * pRoot = CSimConfig::loadJson(jsonFile, JSON_DECODE_INT_AS_REAL);
+  json_t * pRoot = CSimConfig::loadJson< CLogger::error >(jsonFile, JSON_DECODE_INT_AS_REAL);
 
   if (pRoot == NULL)
     {

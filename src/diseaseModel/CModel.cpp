@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -75,7 +75,7 @@ CModel::CModel(const std::string & modelFile)
   CVariableList::INSTANCE.append(CVariable::transmissibility());
   mpTransmissibility = &CVariableList::INSTANCE["%transmissibility%"];
 
-  json_t * pRoot = CSimConfig::loadJson(modelFile, JSON_DECODE_INT_AS_REAL);
+  json_t * pRoot = CSimConfig::loadJson< CLogger::error >(modelFile, JSON_DECODE_INT_AS_REAL);
 
   if (pRoot != NULL)
     {

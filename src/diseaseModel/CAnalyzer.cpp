@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2020 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -174,7 +174,7 @@ CAnalyzer::CAnalyzer(const std::string & jsonFile)
   }
   */
 
-  json_t * pRoot = CSimConfig::loadJson(jsonFile, JSON_DECODE_INT_AS_REAL);
+  json_t * pRoot = CSimConfig::loadJson< CLogger::error >(jsonFile, JSON_DECODE_INT_AS_REAL);
 
   if (pRoot == NULL)
     {

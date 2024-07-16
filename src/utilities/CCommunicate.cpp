@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -22,6 +22,7 @@
 // SOFTWARE 
 // END: Copyright 
 
+#include <iomanip>
 #include <fstream>
 #include <algorithm>
 #include <unistd.h>
@@ -88,50 +89,59 @@ void CCommunicate::init(int /* argc */ , char ** /* argv */)
 
 #ifdef USE_MPI
   MPICommunicator = new MPI_Comm[MPIProcesses];
+  int other = -1;
+  bool Proceed = true;
+  int color = MPI_UNDEFINED;
   int Shift = sizeof(int) * 4;
+  MPI_Comm * pComm = nullptr;
   MPI_Comm Dummy;
 
-  // Initialize pairwise communicators for round robin tournament messaging
-  for (int i = 0; i < MPIProcesses; ++i)
-    for (int j = i + 1; j < MPIProcesses; ++j)
+  startRoundRobin();
+
+  while (Proceed)
+  {
+    switch (nextRoundRobin(other))
       {
-        MPI_Comm * pComm = &Dummy;
-        int color = MPI_UNDEFINED;
+      case Schedule::finished:
+        Proceed = false;
+        continue;
+        break;
 
-        if (i == MPIRank)
-          {
-            color = (std::min(MPIRank, j) << Shift) + std::max(MPIRank, j);
-            pComm = &MPICommunicator[j];
-          }
-        else if (j == MPIRank)
-          {
-            color = (std::min(MPIRank, i) << Shift) + std::max(MPIRank, i);
-            pComm = &MPICommunicator[i];
-          }
+      case Schedule::skip:
+        color = MPI_UNDEFINED;
+        pComm = &Dummy;
+        break;
 
-        int Result = MPI_Comm_split(MPI_COMM_WORLD, color, MPIRank, pComm);
-
-        if (Result != MPI_SUCCESS)
-          {
-            int Size = 1024;
-            char Error[1024];
-            MPI_Error_string(Result, Error, &Size);
-            CLogger::error("CCommunicate::init: {}", Error);
-          }
-
-        if (color != MPI_UNDEFINED)
-          {
-            MPI_Group Group;
-            MPI_Comm_group(*pComm, &Group);
-
-            int Size;
-            MPI_Group_size(Group, & Size);
-
-            if (Size != 2)
-              CLogger::error("CCommunicate::init: Group Size {}", Size);
-          }
+      case Schedule::proceed:
+        color = (std::min(other, MPIRank) << Shift) + std::max(other, MPIRank);
+        pComm = &MPICommunicator[other];
+        break;
       }
-  #endif // USE_MPI
+
+    int Result = MPI_Comm_split(MPI_COMM_WORLD, color, MPIRank, pComm);
+
+    if (Result != MPI_SUCCESS)
+      {
+        int Size = 1024;
+        char Error[1024];
+        MPI_Error_string(Result, Error, &Size);
+        CLogger::error("CCommunicate::init: {}", Error);
+      }
+
+    if (color != MPI_UNDEFINED)
+      {
+        MPI_Group Group;
+        MPI_Comm_group(*pComm, &Group);
+
+        int Size;
+        MPI_Group_size(Group, &Size);
+
+        if (Size != 2)
+          CLogger::error("CCommunicate::init: Group Size: {}, Pair[{}, {}], Color: {}", Size, std::min(other, MPIRank), std::max(other, MPIRank), color);
+      }
+  }
+
+#endif // USE_MPI
 }
 
 // static 
@@ -404,7 +414,7 @@ int CCommunicate::RoundRobinRound;
 int CCommunicate::RoundRobinEven;
 
 
-void CCommunicate::initRoundRobin()
+void CCommunicate::startRoundRobin()
 {
   RoundRobinRound = 0;
   RoundRobinEven = true;
@@ -464,7 +474,7 @@ int CCommunicate::roundRobinFixed(const void * buffer,
 
   int other = -1;
 
-  initRoundRobin();
+  startRoundRobin();
 
   bool Proceed = true;
 
@@ -543,7 +553,7 @@ int CCommunicate::roundRobin(const void * buffer,
   int Count;
   int other = -1;
 
-  initRoundRobin();
+  startRoundRobin();
 
   bool Proceed = true;
 
@@ -631,7 +641,7 @@ int CCommunicate::roundRobin(SendInterface * pSend,
   int Count;
   int other = -1;
 
-  initRoundRobin();
+  startRoundRobin();
 
   while (true)
     {

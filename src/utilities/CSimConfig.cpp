@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -26,13 +26,10 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include <jansson.h>
 #include <limits>
 #include <cstring>
 
 #include "utilities/CSimConfig.h"
-#include "utilities/CDirEntry.h"
-#include "utilities/CLogger.h"
 
 // static
 void CSimConfig::load(const std::string & configFile)
@@ -207,7 +204,7 @@ CSimConfig::CSimConfig(const std::string & configFile)
 
   CDirEntry::makePathAbsolute(mRunParameters, CDirEntry::getPWD());
 
-  json_t * pRoot = loadJson(configFile, JSON_DECODE_INT_AS_REAL);
+  json_t * pRoot = loadJson< CLogger::error >(configFile, JSON_DECODE_INT_AS_REAL);
 /*
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
@@ -698,7 +695,7 @@ CSimConfig::~CSimConfig()
 
 bool CSimConfig::loadScenario()
 {
-  json_t * pRoot = loadJson(mModelScenario, JSON_DECODE_INT_AS_REAL);
+  json_t * pRoot = loadJson< CLogger::error >(mModelScenario, JSON_DECODE_INT_AS_REAL);
 
   if (pRoot == NULL)
     return false;
@@ -789,41 +786,6 @@ json_t * CSimConfig::loadJsonPreamble(const std::string & jsonFile, int flags)
   if (pRoot == NULL)
     {
       CLogger::error("JSON Preamble file: '{}' error on line {}: {}", jsonFile, error.line, error.text);
-    }
-
-  return pRoot;
-}
-
-// static
-json_t * CSimConfig::loadJson(const std::string & jsonFile, int flags)
-{
-  json_t * pRoot = NULL;
-
-  if (jsonFile.empty())
-    {
-      CLogger::error("JSON file is not specified.");
-      return pRoot;
-    }
-
-  if (!CDirEntry::isFile(jsonFile))
-    {
-      CLogger::error("JSON file '{}' not found.", jsonFile);
-      return pRoot;
-    }
-
-  if (!CDirEntry::isReadable(jsonFile))
-    {
-      CLogger::error("JSON file '{}' is not readable.", jsonFile);
-      return pRoot;
-    }
-
-  json_error_t error;
-
-  pRoot = json_load_file(jsonFile.c_str(), flags, &error);
-
-  if (pRoot == NULL)
-    {
-      CLogger::error("JSON file: '{}' error on line {}: {}", jsonFile, error.line, error.text);
     }
 
   return pRoot;
