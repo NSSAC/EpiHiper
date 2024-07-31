@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -99,7 +99,7 @@ CEdgeElementSelector::CEdgeElementSelector(const json_t * json)
 
 CEdgeElementSelector::~CEdgeElementSelector()
 {
- if (mpValue != NULL)
+  if (mpValue != NULL)
     delete mpValue;
 
   if (mpValueList != NULL)
@@ -107,12 +107,12 @@ CEdgeElementSelector::~CEdgeElementSelector()
 
   if (mpDBFieldValue != NULL)
     delete mpDBFieldValue;
-    
+
   if (mpDBFieldValueList != NULL)
     delete mpDBFieldValueList;
 
   if (mpCollector)
-    mEdgeProperty.deregisterSetCollector(mpCollector);    
+    mEdgeProperty.deregisterSetCollector(mpCollector);
 }
 
 // virtual
@@ -180,7 +180,16 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
                     "edge": {"$ref": "#/definitions/edgeProperty"}
                   }
                 },
-                "right": {"$ref": "#/definitions/valueList"}
+                "right": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/definitions/valueList"
+                    },
+                    {
+                      "$ref": "#/definitions/setContent"
+                    }
+                  ]
+                }
               }
             },
             {
@@ -262,97 +271,141 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
                || strcmp(Operator, "not in") == 0)
         {
           /*
-         {
-           "description": "",
-           "required": [
-             "operator",
-             "left",
-             "right"
-           ],
-           "properties": {
-             "operator": {
-               "description": "",
-               "type": "string",
-                  "enum": [
-                    "withPropertyIn",
-                    "in",
-                    "not in"
-                  ]
-             },
-             "left": {
-               "type": "object",
-               "required": ["node"],
-               "properties": {
-                 "node": {"$ref": "#/definitions/nodeProperty"}
-               }
-             },
-             "right": {"$ref": "#/definitions/valueList"}
-           }
-         },
-           */
+          {
+            "description": "",
+            "required": [
+              "operator",
+              "left",
+              "right"
+            ],
+            "properties": {
+              "operator": {
+                "description": "",
+                "type": "string",
+                   "enum": [
+                     "withPropertyIn",
+                     "in",
+                     "not in"
+                   ]
+              },
+              "left": {
+                "type": "object",
+                "required": ["node"],
+                "properties": {
+                  "node": {"$ref": "#/definitions/nodeProperty"}
+                }
+              },
+              "right": {
+                "oneOf": [
+                  {
+                    "$ref": "#/definitions/valueList"
+                  },
+                  {
+                    "$ref": "#/definitions/setContent"
+                  }
+                ]
+              }
+            }
+          }, 
+          */
 
           mEdgeProperty.fromJSON(json_object_get(json, "left"));
 
           if (mEdgeProperty.isValid())
             {
+              // We may have value list or a set.
               mpValueList = new CValueList(json_object_get(json, "right"));
 
-              if (mpValueList != NULL
-                  && !mpValueList->isValid())
+              if (mpValueList != NULL)
                 {
-                  CLogger::error("Edge selector: Invalid or missing value 'right' for {}", CSimConfig::jsonToString(json));
-                  return;
-                }
+                  if (mpValueList->isValid())
+                    {
+                      if (strcmp(Operator, "not in") == 0)
+                        {
+                          mpCompute = &CEdgeElementSelector::propertyNotIn;
+                          mpFilter = &CEdgeElementSelector::filterPropertyNotIn;
+                        }
+                      else
+                        {
+                          mpCompute = &CEdgeElementSelector::propertyIn;
+                          mpFilter = &CEdgeElementSelector::filterPropertyIn;
+                        }
 
-              if (strcmp(Operator, "not in") == 0)
-                {
-                  mpCompute = &CEdgeElementSelector::propertyNotIn;
-                  mpFilter = &CEdgeElementSelector::filterPropertyNotIn;
-                }
-              else
-                {
-                  mpCompute = &CEdgeElementSelector::propertyIn;
-                  mpFilter = &CEdgeElementSelector::filterPropertyIn;
-                }
-
-              if (!mEdgeProperty.isReadOnly())
-                {
-                  mPrerequisites.insert(&CActionQueue::getCurrentTick()); // DONE
+                      if (!mEdgeProperty.isReadOnly())
+                        {
+                          mPrerequisites.insert(&CActionQueue::getCurrentTick()); // DONE
 
 #ifdef USE_CSETCOLLECTOR
-                  mpCollector = std::shared_ptr< CSetCollectorInterface >(new CSetCollector< CEdge, CEdgeElementSelector >(this));
-                  mEdgeProperty.registerSetCollector(mpCollector);
-#endif                  
+                          mpCollector = std::shared_ptr< CSetCollectorInterface >(new CSetCollector< CEdge, CEdgeElementSelector >(this));
+                          mEdgeProperty.registerSetCollector(mpCollector);
+#endif
+                        }
+
+                      mValid = true;
+                      return;
+                    }
+
+                  if (mEdgeProperty.getProperty() == CEdgeProperty::Property::targetId)
+                    {
+                      if (strcmp(Operator, "not in") == 0)
+                        mpCompute = &CEdgeElementSelector::withTargetNodeNotIn;
+                      else
+                        mpCompute = &CEdgeElementSelector::withTargetNodeIn;
+                    }
+                  else if (mEdgeProperty.getProperty() != CEdgeProperty::Property::sourceId)
+                    {
+                      if (strcmp(Operator, "not in") == 0)
+                        mpCompute = &CEdgeElementSelector::withSourceNodeNotIn;
+                      else
+                        mpCompute = &CEdgeElementSelector::withSourceNodeIn;
+                    }
+                  else
+                    {
+                      CLogger::error("Edge selector: Invalid or missing value 'right' for {}", CSimConfig::jsonToString(json));
+                      return;
+                    }
+
+                  mpSelector = CSetContent::create(json_object_get(json, "right"));
+                  
+                  if (mpSelector
+                      && mpSelector->isValid())
+                    {
+                      mPrerequisites.insert(mpSelector.get()); // DONE
+                      mValid = true;
+                      return;
+                    }
+
+                  mpSelector.reset();
+
+                  CLogger::error("Edge selector: Invalid or missing value 'selector' for {}", CSimConfig::jsonToString(json));
+                  return;
                 }
-
-              mValid = true;
-              return;
             }
 
-          if (strcmp(Operator, "in") == 0)
-            {
-              CConnection::setRequired(true);
-              mpCompute = &CEdgeElementSelector::dbIn;
-            }
-          else if (strcmp(Operator, "not in") == 0)
-            {
-              CConnection::setRequired(true);
-              mpCompute = &CEdgeElementSelector::dbNotIn;
-            }
-          else
-            {
-              CLogger::error("Edge selector: Invalid or missing value 'left' for {}", CSimConfig::jsonToString(json));
-              return;
-            }
-         }
-      else if (strcmp(json_string_value(pValue), "withTargetNodeIn") == 0)
+      if (strcmp(Operator, "in") == 0)
         {
-          mpCompute = &CEdgeElementSelector::withTargetNodeIn;
+          CConnection::setRequired(true);
+          mpCompute = &CEdgeElementSelector::dbIn;
         }
-      else if (strcmp(json_string_value(pValue), "withSourceNodeIn") == 0)
+      else if (strcmp(Operator, "not in") == 0)
         {
-          mpCompute = &CEdgeElementSelector::withSourceNodeIn;
+          CConnection::setRequired(true);
+          mpCompute = &CEdgeElementSelector::dbNotIn;
         }
+      else
+        {
+          CLogger::error("Edge selector: Invalid or missing value 'left' for {}", CSimConfig::jsonToString(json));
+          return;
+        }
+    }
+  else if (strcmp(json_string_value(pValue), "withTargetNodeIn") == 0)
+    {
+      mpCompute = &CEdgeElementSelector::withTargetNodeIn;
+    }
+  else if (strcmp(json_string_value(pValue), "withSourceNodeIn") == 0)
+    {
+      mpCompute = &CEdgeElementSelector::withSourceNodeIn;
+    }
     }
   else
     {
@@ -536,7 +589,7 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
        */
 
       mEdgeProperty.fromJSON(json_object_get(json, "left"));
-      
+
       if (mEdgeProperty.isValid())
         {
           mpValue = new CValue(json_object_get(json, "right"));
@@ -625,7 +678,6 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
           return;
         }
 
-
       CConnection::setRequired(true);
       mpCompute = &CEdgeElementSelector::dbSelection;
 
@@ -671,16 +723,16 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
   return;
 }
 
-// virtual 
+// virtual
 bool CEdgeElementSelector::lessThanProtected(const CSetContent & rhs) const
 {
   const CEdgeElementSelector * pRhs = static_cast< const CEdgeElementSelector * >(&rhs);
 
-  if (mEdgeProperty != pRhs->mEdgeProperty)  
+  if (mEdgeProperty != pRhs->mEdgeProperty)
     return mEdgeProperty < pRhs->mEdgeProperty;
 
   switch (comparePointer(mpValue, pRhs->mpValue))
-  {
+    {
     case -1:
       return true;
       break;
@@ -688,10 +740,10 @@ bool CEdgeElementSelector::lessThanProtected(const CSetContent & rhs) const
     case 1:
       return false;
       break;
-  }
+    }
 
   switch (comparePointer(mpValueList, pRhs->mpValueList))
-  {
+    {
     case -1:
       return true;
       break;
@@ -699,19 +751,19 @@ bool CEdgeElementSelector::lessThanProtected(const CSetContent & rhs) const
     case 1:
       return false;
       break;
-  }
+    }
 
-  if (mpSelector != pRhs->mpSelector)  
+  if (mpSelector != pRhs->mpSelector)
     return mpSelector < pRhs->mpSelector;
 
-  if (mDBTable != pRhs->mDBTable)  
+  if (mDBTable != pRhs->mDBTable)
     return mDBTable < pRhs->mDBTable;
 
-  if (mDBField != pRhs->mDBField)  
+  if (mDBField != pRhs->mDBField)
     return mDBField < pRhs->mDBField;
 
   switch (comparePointer(mpObservable, pRhs->mpObservable))
-  {
+    {
     case -1:
       return true;
       break;
@@ -719,10 +771,10 @@ bool CEdgeElementSelector::lessThanProtected(const CSetContent & rhs) const
     case 1:
       return false;
       break;
-  }
+    }
 
   switch (comparePointer(mpVariable, pRhs->mpVariable))
-  {
+    {
     case -1:
       return true;
       break;
@@ -730,10 +782,10 @@ bool CEdgeElementSelector::lessThanProtected(const CSetContent & rhs) const
     case 1:
       return false;
       break;
-  }
+    }
 
   switch (comparePointer(mpDBFieldValue, pRhs->mpDBFieldValue))
-  {
+    {
     case -1:
       return true;
       break;
@@ -741,10 +793,10 @@ bool CEdgeElementSelector::lessThanProtected(const CSetContent & rhs) const
     case 1:
       return false;
       break;
-  }
+    }
 
   switch (comparePointer(mpDBFieldValueList, pRhs->mpDBFieldValueList))
-  {
+    {
     case -1:
       return true;
       break;
@@ -752,15 +804,15 @@ bool CEdgeElementSelector::lessThanProtected(const CSetContent & rhs) const
     case 1:
       return false;
       break;
-  }
+    }
 
-  if (mSQLComparison != pRhs->mSQLComparison)  
+  if (mSQLComparison != pRhs->mSQLComparison)
     return mSQLComparison < pRhs->mSQLComparison;
 
   return pointerLessThan(mpCompute, pRhs->mpCompute);
 }
 
-// virtual 
+// virtual
 void CEdgeElementSelector::determineIsStatic()
 {
   CComputable::determineIsStatic();
@@ -788,7 +840,7 @@ bool CEdgeElementSelector::computeProtected()
   return false;
 }
 
-// virtual 
+// virtual
 CSetContent::FilterType CEdgeElementSelector::filterType() const
 {
   if (mpFilter != NULL
@@ -821,7 +873,6 @@ bool CEdgeElementSelector::all()
 
   CLogger::debug("CEdgeElementSelector: all returned '{}' edges.", Edges.size());
   return true;
-
 }
 bool CEdgeElementSelector::propertySelection()
 {
@@ -834,7 +885,6 @@ bool CEdgeElementSelector::propertySelection()
   for (; pEdge != pEdgeEnd; ++pEdge)
     if (filterPropertySelection(pEdge))
       Edges.push_back(pEdge);
-
 
   CLogger::debug("CEdgeElementSelector: propertySelection returned '{}' edges.", Edges.size());
   return true;
@@ -910,12 +960,59 @@ bool CEdgeElementSelector::withTargetNodeIn()
           CEdge * pEdge = (*itNode)->Edges;
           CEdge * pEdgeEnd = pEdge + (*itNode)->EdgesSize;
 
-          for (;pEdge != pEdgeEnd; ++pEdge)
+          for (; pEdge != pEdgeEnd; ++pEdge)
             Edges.push_back(pEdge);
         }
 
       // Sorting is not necessary since the nodes are sorted
       // std::sort(Edges.begin(), Edges.end());
+    }
+
+  CLogger::debug("CEdgeElementSelector: withTargetNodeIn returned '{}' edges.", Edges.size());
+  return true;
+}
+
+bool CEdgeElementSelector::withTargetNodeNotIn()
+{
+  std::vector< CEdge * > & Edges = getEdges();
+  Edges.clear();
+
+  const std::vector< CNode * > & Nodes = mpSelector->getNodes();
+  CLogger::debug("CEdgeElementSelector: withTargetNodeNotIn nodes {}", Nodes.size());
+  
+  if (!Nodes.empty())
+    {
+      CNetwork & Active = CNetwork::Context.Active();
+
+      CEdge * pEdge = Active.beginEdge();
+      CEdge * pEdgeEnd = Active.endEdge();
+      std::vector< CNode * >::const_iterator itNode = Nodes.begin();
+      std::vector< CNode * >::const_iterator endNode = Nodes.end();
+
+      while (pEdge < pEdgeEnd && itNode != endNode)
+        {
+          if (pEdge->pTarget < *itNode)
+            {
+              Edges.push_back(pEdge);
+              ++pEdge;
+            }
+          else if (pEdge->pTarget > *itNode)
+            {
+              ++itNode;
+            }
+          else
+            {
+              ++pEdge;
+            }
+        }
+
+      while (pEdge < pEdgeEnd)
+        {
+          Edges.push_back(pEdge);
+          ++pEdge;
+        }
+
+      // Since the edges are sorted we have no need to sort
     }
 
   CLogger::debug("CEdgeElementSelector: withTargetNodeIn returned '{}' edges.", Edges.size());
@@ -941,7 +1038,7 @@ bool CEdgeElementSelector::withSourceNodeIn()
           CEdge ** pEdge = OutgoingEdges.pEdges;
           CEdge ** pEdgeEnd = pEdge + OutgoingEdges.Size;
 
-          for (;pEdge != pEdgeEnd; ++pEdge)
+          for (; pEdge != pEdgeEnd; ++pEdge)
             Edges.push_back(*pEdge);
         }
 
@@ -949,6 +1046,53 @@ bool CEdgeElementSelector::withSourceNodeIn()
     }
 
   CLogger::debug("CEdgeElementSelector: withSourceNodeIn returned '{}' edges.", Edges.size());
+  return true;
+}
+
+bool CEdgeElementSelector::withSourceNodeNotIn()
+{
+  std::vector< CEdge * > & Edges = getEdges();
+  Edges.clear();
+
+  const std::vector< CNode * > & Nodes = mpSelector->getNodes();
+  CLogger::debug("CEdgeElementSelector: withTargetNodeNotIn nodes {}", Nodes.size());
+  
+  if (!Nodes.empty())
+    {
+      CNetwork & Active = CNetwork::Context.Active();
+
+      CEdge * pEdge = Active.beginEdge();
+      CEdge * pEdgeEnd = Active.endEdge();
+      std::vector< CNode * >::const_iterator itNode = Nodes.begin();
+      std::vector< CNode * >::const_iterator endNode = Nodes.end();
+
+      while (pEdge < pEdgeEnd && itNode != endNode)
+        {
+          if (pEdge->pSource < *itNode)
+            {
+              Edges.push_back(pEdge);
+              ++pEdge;
+            }
+          else if ((pEdge->pSource > *itNode))
+            {
+              ++itNode;
+            }
+          else
+            {
+              ++pEdge;
+            }
+        }
+
+      while (pEdge < pEdgeEnd)
+        {
+          Edges.push_back(pEdge);
+          ++pEdge;
+        }
+
+      // Since the edges are sorted we have no need to sort
+    }
+
+  CLogger::debug("CEdgeElementSelector: withSourceNodeNotIn returned '{}' edges.", Edges.size());
   return true;
 }
 
