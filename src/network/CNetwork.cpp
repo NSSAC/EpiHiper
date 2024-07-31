@@ -44,6 +44,7 @@
 #include "utilities/CSimConfig.h"
 #include "utilities/CDirEntry.h"
 #include "network/CNode.h"
+#include "CNetwork.h"
 
 // static
 void CNetwork::init()
@@ -62,7 +63,7 @@ void CNetwork::clear()
   CChanges::release();
 }
 
-// static 
+// static
 int CNetwork::index(const CNode * pNode)
 {
   if (Context.Master().isRemoteNode(pNode))
@@ -93,7 +94,7 @@ int CNetwork::index(const CNode * pNode)
   return -1;
 }
 
-// static 
+// static
 int CNetwork::index(const size_t & id)
 {
   if (Context.Master().isRemoteNode(id))
@@ -124,12 +125,12 @@ int CNetwork::index(const size_t & id)
   return -1;
 }
 
-// static 
-double  CNetwork::timeResolution()
+// static
+double CNetwork::timeResolution()
 {
   return Context.Master().mTimeResolution;
 }
-  
+
 CNetwork::CNetwork()
   : CAnnotation()
   , mFile()
@@ -137,8 +138,6 @@ CNetwork::CNetwork()
   , mFirstLocalNode(std::numeric_limits< size_t >::max())
   , mBeyondLocalNode(0)
   , mLocalNodesSize(0)
-  , mExternalNodes(NULL)
-  , mExternalNodesSize(0)
   , mRemoteNodes()
   , mSourceOnlyNodes()
   , mEdges(NULL)
@@ -191,12 +190,6 @@ CNetwork::~CNetwork()
     {
       delete[] mEdges;
       mEdges = NULL;
-    }
-
-  if (mExternalNodes != NULL)
-    {
-      delete [] mExternalNodes;
-      mExternalNodes = NULL;
     }
 }
 
@@ -347,7 +340,7 @@ void CNetwork::fromJSON(const json_t * json)
   */
 
   mValid = false;
-  
+
   json_t * pValue = json_object_get(json, "encoding");
 
   if (json_is_string(pValue))
@@ -440,7 +433,6 @@ void CNetwork::fromJSON(const json_t * json)
       return;
     }
 
-
   pValue = json_object_get(json, "activityEncoding");
 
   if (json_is_object(pValue))
@@ -462,7 +454,7 @@ void CNetwork::fromJSON(const json_t * json)
     }
   else
     {
-      CEdge::HasLocationId =  false;
+      CEdge::HasLocationId = false;
     }
 
 #ifndef USE_LOCATION_ID
@@ -544,7 +536,7 @@ void CNetwork::partition(const int & parts, const bool & save, const std::string
       && mTotalEdgesSize >= CSimConfig::getPartitionEdgeLimit())
     {
       CLogger::error("CNetwork: No valid partition ({}) found and partition edge limit ({}) exceded.", parts, CSimConfig::getPartitionEdgeLimit());
-      return; 
+      return;
     }
 
   std::ifstream is(mFile.c_str());
@@ -655,9 +647,13 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
 
       std::ostringstream PartitionBuffer;
 
-      size_t * pPartition = Partition;
-      size_t * pNodes = pPartition + 1;
-      size_t * pEdges = pPartition + 2;
+      size_t * pFirst = Partition;
+      size_t * pNodes = Partition + 1;
+      size_t * pEdges = Partition + 2;
+
+      *pFirst = std::numeric_limits< size_t >::max();
+      *pNodes = 0;
+      *pEdges = 0;
 
       double DesiredPerComputeNode = (double) mTotalEdgesSize / parts;
 
@@ -674,14 +670,20 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
       while (is.good() && loadEdge(&Edge, is))
         {
           // std::cout << Edge.targetId << ", " << Edge.targetActivity << ", " << Edge.sourceId << ", " << Edge.sourceActivity << ", " << Edge.duration << std::endl;
-          Node = Edge.targetId;
-
           if (PartitionEdgeCount == 0)
             {
-              *pPartition = Node;
-              *pNodes = 0;
-              *pEdges = 0;
+              *pFirst = std::min(Edge.targetId, *itSourceOnlyNode);
+
+              // Account for source only nodes at the very beginning.
+              while (itSourceOnlyNode != mSourceOnlyNodes.end()
+                     && *itSourceOnlyNode < Edge.targetId)
+                {
+                  ++pNodes;
+                  ++itSourceOnlyNode;
+                }
             }
+
+          Node = Edge.targetId;
 
           if (CurrentNode != Node)
             {
@@ -694,35 +696,34 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
               if (PartitionEdgeCount >= PartitionIndex * DesiredPerComputeNode)
                 {
                   // PartitionIndex * DesiredPerComputeNode - LastNodeEdgeCount < PartitionEdgeCount - PartitionIndex * DesiredPerComputeNode
-                  if (2 * PartitionIndex * DesiredPerComputeNode < LastNodeEdgeCount + PartitionEdgeCount 
-                      && *pNodes > 1) // A partition must include a least 1 node
+                  if (2 * PartitionIndex * DesiredPerComputeNode< LastNodeEdgeCount + PartitionEdgeCount && * pNodes > 1) // A partition must include a least 1 node
                     {
                       *pNodes -= 1;
                       *pEdges -= PartitionEdgeCount - LastNodeEdgeCount;
 
-                      *(pPartition + 3) = CurrentNode;
+                      *(pFirst + 3) = CurrentNode;
                       *(pNodes + 3) = 1;
                       *(pEdges + 3) = PartitionEdgeCount - LastNodeEdgeCount;
 
                       // Write partition
                       if (save)
                         {
-                          writePartition(PartitionIndex, parts, *pNodes, *pPartition, *(pPartition + 3), *pEdges, PartitionBuffer.str(), outputDirectory);
+                          writePartition(PartitionIndex, parts, *pNodes, *pFirst, *(pFirst + 3), *pEdges, PartitionBuffer.str(), outputDirectory);
                           PartitionBuffer.str("");
                         }
                     }
                   else
                     {
-                      // Account for source only nodes. 
+                      // Account for source only nodes.
                       // Note: this assures that we always append nodes at the end of the partition.
                       while (itSourceOnlyNode != mSourceOnlyNodes.end()
-                            && *itSourceOnlyNode < Node)
+                             && *itSourceOnlyNode < Node)
                         {
                           ++*pNodes;
                           ++itSourceOnlyNode;
                         }
 
-                      *(pPartition + 3) = Node;
+                      *(pFirst + 3) = Node;
                       *(pNodes + 3) = 0;
                       *(pEdges + 3) = 0;
 
@@ -733,12 +734,12 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
                           NodeBuffer.str("");
 
                           // Write partition
-                          writePartition(PartitionIndex, parts, *pNodes, *pPartition, *(pPartition + 3), *pEdges, PartitionBuffer.str(), outputDirectory);
+                          writePartition(PartitionIndex, parts, *pNodes, *pFirst, *(pFirst + 3), *pEdges, PartitionBuffer.str(), outputDirectory);
                           PartitionBuffer.str("");
                         }
                     }
 
-                  pPartition += 3;
+                  pFirst += 3;
                   pNodes += 3;
                   pEdges += 3;
                   ++PartitionIndex;
@@ -753,7 +754,7 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
 
               ++*pNodes;
 
-              // Account for source only nodes. 
+              // Account for source only nodes.
               while (itSourceOnlyNode != mSourceOnlyNodes.end()
                      && *itSourceOnlyNode < Node)
                 {
@@ -766,11 +767,10 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
               CurrentNode = Node;
             }
 
+          // Write edge to current node buffer
           Edge.toBinary(NodeBuffer);
 
           ++*pEdges;
-
-          // Write edge to current node buffer
           ++PartitionEdgeCount;
         }
 
@@ -782,29 +782,41 @@ void CNetwork::partition(std::istream & is, const int & parts, const bool & save
       // Account for remaining source only nodes
       while (itSourceOnlyNode != mSourceOnlyNodes.end())
         {
+          Node = *itSourceOnlyNode;
+
           ++*pNodes;
-          Node = *++itSourceOnlyNode;
+          ++itSourceOnlyNode;
         }
 
-      // Handling the rare case where we have more nodes than parts.
-      for (; PartitionIndex != (size_t) parts; ++PartitionIndex)
+      *(pFirst + 3) = Node + 1;
+
+      // Handling the rare case where we have fewer nodes than parts.
+      while (PartitionIndex <= (size_t) parts)
         {
-          Partition[3 * PartitionIndex] = Node + 1;
-          Partition[3 * PartitionIndex + 1] = 0;
-          Partition[3 * PartitionIndex + 2] = 0;
-        }
+          if (save)
+            {
+              // Write current node buffer to partition buffer
+              PartitionBuffer << NodeBuffer.str();
+              NodeBuffer.str("");
 
-      Partition[3 * PartitionIndex] = Node + 1;
+              // Write partition
+              writePartition(PartitionIndex, parts, *pNodes, *pFirst, *(pFirst + 3), *pEdges, PartitionBuffer.str(), outputDirectory);
+              PartitionBuffer.str("");
+            }
 
-      if (save)
-        {
-          // Write current node buffer to partition buffer
-          PartitionBuffer << NodeBuffer.str();
-          NodeBuffer.str("");
+          ++PartitionIndex;
 
-          // Write partition
-          writePartition(PartitionIndex, parts, *pNodes, *pPartition, *(pPartition + 3), *pEdges, PartitionBuffer.str(), outputDirectory);
-          PartitionBuffer.str("");
+          // We must not write beyond the Partition buffer.
+          if (PartitionIndex < (size_t) parts)
+            {
+              pFirst += 3;
+              pNodes += 3;
+              pEdges += 3;
+
+              *pNodes = 0;
+              *pEdges = 0;
+              *(pFirst + 3) = *pFirst;
+            }
         }
     }
 
@@ -918,7 +930,7 @@ void CNetwork::load()
       }
 
     if (Context.isThread(&Active))
-#pragma omp critical (load_network_master_data)
+#pragma omp critical(load_network_master_data)
       {
         mFirstLocalNode = std::min(mFirstLocalNode, Active.mFirstLocalNode);
         mLocalNodesSize += Active.mLocalNodesSize;
@@ -927,20 +939,6 @@ void CNetwork::load()
         mValid &= Active.mValid;
       }
   }
-
-  CLogger::info("Network: Allocating nodes '{}' ({} bytes).", mLocalNodesSize, mLocalNodesSize * sizeof(CNode));
-
-  try
-    {
-      mLocalNodes = new CNode[mLocalNodesSize];
-    }
-
-  catch (...)
-    {
-      CLogger::error Error("Network: Allocating nodes failed '{}' ({} bytes).", mLocalNodesSize, mLocalNodesSize * sizeof(CNode));
-
-      return;
-    }
 
   CLogger::info("Network: Allocating edges '{}' ({} bytes).", mEdgesSize, mEdgesSize * sizeof(CEdge));
 
@@ -956,15 +954,14 @@ void CNetwork::load()
       return;
     }
 
-  CLogger::info("Network: Allocation completed");
-  CNode * pNode = mLocalNodes;
   CEdge * pEdge = mEdges;
 
   for (CNetwork * pIt = Context.beginThread(); pIt != pEnd; ++pIt)
     if (Context.isThread(pIt))
       {
-        pIt->mLocalNodes = pNode;
-        pNode += pIt->mLocalNodesSize;
+        // We need to postpone because the nodes are not yet allocated
+        // pIt->mLocalNodes = pNode;
+        // pNode += pIt->mLocalNodesSize;
         pIt->mEdges = pEdge;
         pEdge += pIt->mEdgesSize;
         pIt->mTotalNodesSize = mTotalNodesSize;
@@ -974,8 +971,6 @@ void CNetwork::load()
         pIt->mTimeResolution = mTimeResolution;
         pIt->mpJson = json_incref(mpJson);
       }
-
-  CNode DefaultNode = CNode::getDefault();
 
 #pragma omp parallel
   {
@@ -1007,24 +1002,15 @@ void CNetwork::load()
 
     std::set< size_t >::const_iterator endSourceOnlyNode = mSourceOnlyNodes.upper_bound(Active.mBeyondLocalNode);
 
-    CNode * pNode = Active.mLocalNodes;
-    CNode * pNodeEnd = pNode + Active.mLocalNodesSize;
-
-    *pNode = DefaultNode;
-
-    // Handle a partition without any nodes
-    if (Active.mLocalNodesSize == 0)
-      {
-        pNodeEnd = pNode;
-      }
+    Active.mLocalNodeIds.resize(Active.mLocalNodesSize);
+    std::vector< size_t >::iterator itLocalNodeId = Active.mLocalNodeIds.begin();
+    size_t Node = std::numeric_limits< size_t >::max();
 
     CEdge * pEdge = Active.mEdges;
     CEdge * pEdgeEnd = pEdge + Active.mEdgesSize;
     CEdge DefaultEdge = CEdge::getDefault();
 
-    bool FirstTime = true;
-
-    while (is.good() && pNode < pNodeEnd && pEdge < pEdgeEnd)
+    while (is.good() && pEdge < pEdgeEnd)
       {
         *pEdge = DefaultEdge;
 
@@ -1039,57 +1025,20 @@ void CNetwork::load()
         if (pEdge->targetId < Active.mFirstLocalNode)
           continue;
 
-        if (FirstTime)
+        if (Node != pEdge->targetId)
           {
-            // Account for source only nodes at the beginning
             while (itSourceOnlyNode != endSourceOnlyNode
-                   && *itSourceOnlyNode < pEdge->targetId
-                   && pNode < pNodeEnd - 1) 
+                   && *itSourceOnlyNode < pEdge->targetId)
               {
-                pNode->id = *itSourceOnlyNode;
-                pNode->Edges = pEdge;
-                pNode->EdgesSize = 0;
+                *itLocalNodeId = *itSourceOnlyNode;
                 ++itSourceOnlyNode;
-
-                ++pNode;
-                *pNode = DefaultNode;
+                ++itLocalNodeId;
               }
 
-            pNode->id = pEdge->targetId;
-            pNode->Edges = pEdge;
-            Active.mFirstLocalNode = pNode->id;
-
-            FirstTime = false;
+            Node = pEdge->targetId;
+            *itLocalNodeId = Node;
+            ++itLocalNodeId;
           }
-        else if (pNode->id != pEdge->targetId)
-          {
-            pNode->EdgesSize = pEdge - pNode->Edges;
-            ++pNode;
-
-            if (pNode < pNodeEnd)
-              {
-                *pNode = DefaultNode;
-
-                // Account for source only nodes
-                while (itSourceOnlyNode != endSourceOnlyNode
-                       && *itSourceOnlyNode < pEdge->targetId
-                       && pNode < pNodeEnd - 1)
-                  {
-                    pNode->id = *itSourceOnlyNode;
-                    pNode->Edges = pEdge;
-                    pNode->EdgesSize = 0;
-                    ++itSourceOnlyNode;
-
-                    ++pNode;
-                    *pNode = DefaultNode;
-                  }
-
-                pNode->id = pEdge->targetId;
-                pNode->Edges = pEdge;
-              }
-          }
-
-        pEdge->pTarget = pNode;
 
         if (pEdge->sourceId < Active.mFirstLocalNode || Active.mBeyondLocalNode <= pEdge->sourceId)
           {
@@ -1097,7 +1046,7 @@ void CNetwork::load()
 
             if (CCommunicate::LocalProcesses() > 1)
               if (pEdge->sourceId < mFirstLocalNode || mBeyondLocalNode <= pEdge->sourceId)
-#pragma omp critical (load_network_master_remote_nodes)
+#pragma omp critical(load_network_master_remote_nodes)
                 mRemoteNodes[pEdge->sourceId] = NULL;
           }
 
@@ -1106,24 +1055,18 @@ void CNetwork::load()
 
     if (Active.mValid)
       {
-        pNode->EdgesSize = pEdge - pNode->Edges;
-
-        // Account for source only nodes
-        while (itSourceOnlyNode != endSourceOnlyNode
-                && *itSourceOnlyNode < pEdge->targetId
-                && pNode < pNodeEnd - 1)
+        while (itSourceOnlyNode != endSourceOnlyNode)
           {
-            ++pNode;
-            *pNode = DefaultNode;
-
-            pNode->id = *itSourceOnlyNode;
-            pNode->Edges = pEdge;
-            pNode->EdgesSize = 0;
+            Node = *itSourceOnlyNode;
+            *itLocalNodeId = Node;
             ++itSourceOnlyNode;
+            ++itLocalNodeId;
           }
 
-        assert(Active.mBeyondLocalNode > pNode->id
-               || pNode->id == std::numeric_limits< size_t >::max());
+        assert(itLocalNodeId == Active.mLocalNodeIds.end());
+        assert(itSourceOnlyNode == endSourceOnlyNode);
+        assert(Active.mBeyondLocalNode > Node
+               || Node == std::numeric_limits< size_t >::max());
       }
 
 #pragma omp atomic
@@ -1134,52 +1077,140 @@ void CNetwork::load()
   if (!mValid)
     return;
 
-  initExternalEdges();
-  initOutgoingEdges();
-}
-
-void CNetwork::initExternalEdges()
-{
-  CNode DefaultNode = CNode::getDefault();
-
-  mExternalNodesSize = mRemoteNodes.size();
-
-  if (mExternalNodesSize > 0)
-    mExternalNodes = new CNode[mExternalNodesSize];
+  initNodes();
 
 #pragma omp parallel
   {
+    CNetwork & Active = Context.Active();
+
+    CNode * pNode = Active.beginNode();
+    CNode * pNodeEnd = Active.endNode();
+    CEdge * pEdge = Active.beginEdge();
+    CEdge * pEdgeEnd = Active.endEdge();
+
+    pNode->Edges = pEdge;
+
+    while (pEdge != pEdgeEnd && pNode != pNodeEnd)
+      {
+        // This loop accounts source only nodes
+        while (pNode->id != pEdge->targetId)
+          {
+            pNode->EdgesSize = pEdge - pNode->Edges;
+            pNode++;
+            pNode->Edges = pEdge;
+          }
+
+        pEdge->pTarget = pNode;
+        pEdge->pSource = Active.lookupNode(pEdge->sourceId, false);
+
+        Active.mOutgoingEdges[pNode].push_back(pEdge);
+        ++pEdge;
+      }
+
+    assert(pEdge == pEdgeEnd);
+
+    while (true)
+      {
+        pNode->EdgesSize = pEdge - pNode->Edges;
+        pNode++;
+
+        if (pNode == pNodeEnd)
+          break;
+
+        pNode->Edges = pEdge;
+      }
+  }
+
+  initOutgoingEdges();
+}
+
+void CNetwork::initNodes()
+{
+  // Now we can determine how many nodes we must allocate.
+  mNodesSize = mLocalNodesSize + mRemoteNodes.size();
+
+  CLogger::info("Network: Allocating nodes '{}' ({} bytes).", mNodesSize, mNodesSize * sizeof(CNode));
+
+  try
+    {
+      mNodes = new CNode[mNodesSize];
+    }
+
+  catch (...)
+    {
+      CLogger::error Error("Network: Allocating nodes failed '{}' ({} bytes).", mNodesSize, mNodesSize * sizeof(CNode));
+
+      return;
+    }
+
+  mLocalNodes = mNodes;
+
+  CNode DefaultNode = CNode::getDefault();
+  CNode * pNode = mNodes;
+
+  // Initialize Remote Nodes which are part of mNodes and thus properly sorted by Id
+#pragma omp parallel
+  {
+    std::map< size_t, CNode * >::iterator it = mRemoteNodes.begin();
+    std::map< size_t, CNode * >::iterator end = mRemoteNodes.end();
+
 #pragma omp single
     {
-      CNode * pExternalNode = mExternalNodes;
-      std::map< size_t, CNode * >::iterator it = mRemoteNodes.begin();
-      std::map< size_t, CNode * >::iterator end = mRemoteNodes.end();
-
-      for (; it != end; ++it, ++pExternalNode)
+      for (; it != end && it->first < mFirstLocalNode; ++it, ++pNode)
 #pragma omp task
         {
-          *pExternalNode = DefaultNode;
-          pExternalNode->id = it->first;
-          it->second = pExternalNode;
+          *pNode = DefaultNode;
+          pNode->id = it->first;
+          it->second = pNode;
+        }
+
+      mLocalNodes = pNode;
+      pNode += mLocalNodesSize;
+
+      for (; it != end; ++it, ++pNode)
+#pragma omp task
+        {
+          *pNode = DefaultNode;
+          pNode->id = it->first;
+          it->second = pNode;
         }
     }
   }
 
-  // If we are running single threaded the above code took care of this,
-  // since mRemoteNodes and Context.Active().mRemoteNodes are identical.
-  if (CCommunicate::LocalProcesses() > 1)
+  pNode = mLocalNodes;
+
+  CNetwork * pEnd = Context.endThread();
+  for (CNetwork * pIt = Context.beginThread(); pIt != pEnd; ++pIt)
+    if (Context.isThread(pIt))
+      {
+        pIt->mLocalNodes = pNode;
+        pNode += pIt->mLocalNodesSize;
+      }
+
 #pragma omp parallel
-    {
-      CNetwork & Active = Context.Active();
+  {
+    CNetwork & Active = Context.Active();
+    CNode * pNode = Active.beginNode();
 
-      std::map< size_t, CNode * >::iterator it = Active.mRemoteNodes.begin();
-      std::map< size_t, CNode * >::iterator end = Active.mRemoteNodes.end();
+    for (const size_t & Id : Active.mLocalNodeIds)
+      {
+        pNode->id = Id;
+        ++pNode;
+      }
 
-      for (; it != end; ++it)
-        {
-          it->second = Active.lookupNode(it->first, false);
-        }
-    }
+    Active.mLocalNodeIds.clear();
+
+    if (Context.isThread(&Active))
+      {
+        std::map< size_t, CNode * >::iterator it = Active.mRemoteNodes.begin();
+        std::map< size_t, CNode * >::iterator end = Active.mRemoteNodes.end();
+
+        for (; it != end; ++it)
+          {
+            it->second = Active.lookupNode(it->first, false);
+          }
+      }
+  }
 }
 
 void CNetwork::initOutgoingEdges()
@@ -1187,28 +1218,8 @@ void CNetwork::initOutgoingEdges()
 #pragma omp parallel
   {
     CNetwork & Active = Context.Active();
-    std::map< CNode *, std::vector< CEdge * > > OutgoingEdges;
-    CEdge * pEdge = Active.beginEdge();
-    CEdge * pEdgeEnd = Active.endEdge();
-
-    for (; pEdge != pEdgeEnd; ++pEdge)
-      {
-        if (pEdge->pSource == NULL)
-          {
-            pEdge->pSource = Active.lookupNode(pEdge->sourceId, false);
-
-            if (pEdge->pSource == NULL)
-              {
-                CLogger::error("Network file: '{}' Source not found {}, {}, {}.", Active.mFile, pEdge - Active.beginEdge(), pEdge->targetId, pEdge->sourceId);
-                mValid = false; // DONE
-              }
-          }
-        else
-          OutgoingEdges[pEdge->pSource].push_back(pEdge);
-      }
-
-    std::map< CNode *, std::vector< CEdge * > >::const_iterator it = OutgoingEdges.begin();
-    std::map< CNode *, std::vector< CEdge * > >::const_iterator end = OutgoingEdges.end();
+    std::map< CNode *, std::vector< CEdge * > >::const_iterator it = Active.mOutgoingEdges.begin();
+    std::map< CNode *, std::vector< CEdge * > >::const_iterator end = Active.mOutgoingEdges.end();
 
     for (; it != end; ++it)
       {
@@ -1224,6 +1235,8 @@ void CNetwork::initOutgoingEdges()
         for (; itEdge != endEdge; ++itEdge, ++ppEdge)
           *ppEdge = *itEdge;
       }
+
+    Active.mOutgoingEdges.clear();
   }
 }
 
@@ -1259,11 +1272,10 @@ void CNetwork::write(const std::string & file, bool binary)
       json_string_set(pValue, mIsBinary ? "binary" : "text");
     }
 
-
   std::ofstream os(file.c_str());
 
   writePreamble(os);
-  
+
   CEdge * pEdge = beginEdge();
   CEdge * pEdgeEnd = endEdge();
 
@@ -1276,11 +1288,11 @@ void CNetwork::write(const std::string & file, bool binary)
 }
 
 bool CNetwork::openPartition(const size_t & partition,
-                             const size_t & partCount,
-                             const size_t & nodeCount,
+                             const size_t & numberOfParts,
+                             const size_t & numberOfNodes,
                              const size_t & firstLocalNode,
                              const size_t & beyondLocalNode,
-                             const size_t & edgeCount,
+                             const size_t & numberOfEdges,
                              const std::string & outputDirectory,
                              std::ofstream & os)
 {
@@ -1303,11 +1315,11 @@ bool CNetwork::openPartition(const size_t & partition,
   json_object_set_new(pJson, "partition", json_object());
 
   pValue = json_object_get(pJson, "partition");
-  json_object_set_new(pValue, "numberOfParts", json_integer(partCount));
-  json_object_set_new(pValue, "numberOfNodes", json_integer(nodeCount));
+  json_object_set_new(pValue, "numberOfParts", json_integer(numberOfParts));
+  json_object_set_new(pValue, "numberOfNodes", json_integer(numberOfNodes));
   json_object_set_new(pValue, "firstLocalNode", json_integer(firstLocalNode));
   json_object_set_new(pValue, "beyondLocalNode", json_integer(beyondLocalNode));
-  json_object_set_new(pValue, "numberOfEdges", json_integer(edgeCount));
+  json_object_set_new(pValue, "numberOfEdges", json_integer(numberOfEdges));
 
   std::ostringstream File;
   File << FileName << "." << partition - 1;
@@ -1330,27 +1342,27 @@ bool CNetwork::openPartition(const size_t & partition,
   os << std::endl;
 
   json_decref(pJson);
-  
+
   return true;
 }
 
 void CNetwork::writePartition(const size_t & partition,
-                              const size_t & partCount,
-                              const size_t & nodeCount,
+                              const size_t & numberOfParts,
+                              const size_t & numberOfNodes,
                               const size_t & firstLocalNode,
                               const size_t & beyondLocalNode,
-                              const size_t & edgeCount,
+                              const size_t & numberOfEdges,
                               const std::string & edges,
                               const std::string & outputDirectory)
 {
   std::ofstream os;
 
   openPartition(partition,
-                partCount,
-                nodeCount,
+                numberOfParts,
+                numberOfNodes,
                 firstLocalNode,
                 beyondLocalNode,
-                edgeCount,
+                numberOfEdges,
                 outputDirectory,
                 os);
 
@@ -1363,7 +1375,8 @@ bool CNetwork::haveValidPartition(const int & parts)
 {
   bool haveValidPartition = (parts > 0);
 
-#pragma omp parallel for reduction(&: haveValidPartition)
+#pragma omp parallel for reduction(& \
+                                   : haveValidPartition)
   for (int i = 0; i < parts; ++i)
     {
       if (!haveValidPartition)
@@ -1435,7 +1448,7 @@ std::map< size_t, CNode * >::const_iterator CNetwork::beginRemoteNodes() const
 {
   return mRemoteNodes.begin();
 }
-  
+
 std::map< size_t, CNode * >::const_iterator CNetwork::endRemoteNodes() const
 {
   return mRemoteNodes.end();
@@ -1641,7 +1654,6 @@ bool CNetwork::loadEdge(CEdge * pEdge, std::istream & is) const
         CLogger::error("CEdge: Invalid edge encoding '{}'.", Line);
     }
 
-
   return success;
 }
 
@@ -1706,12 +1718,13 @@ CCommunicate::ErrorCode CNetwork::receiveNodes(std::istream & is, int sender)
   size_t BufferSize = is.rdbuf()->in_avail() / 56;
   size_t Count = 0;
 
-#pragma omp parallel for shared(is) reduction(+: Count)
+#pragma omp parallel for shared(is) reduction(+ \
+                                              : Count)
   for (size_t i = 0; i < BufferSize; ++i)
     {
       CNode Node;
 
-#pragma omp critical (receive_changes)
+#pragma omp critical(receive_changes)
       Node.fromBinary(is);
 
       CNode * pNode = lookupNode(Node.id, false);
@@ -1773,8 +1786,8 @@ bool CNetwork::dumpActiveNetwork()
   if ((CurrentTick - dumpActiveNetwork.startTick) % dumpActiveNetwork.tickIncrement != 0)
     return true;
 
-  // We need to dump the network
-  // Each thread will write its own part and the master thread will create JSON preample and combine the individual files.
+    // We need to dump the network
+    // Each thread will write its own part and the master thread will create JSON preample and combine the individual files.
 
 #pragma omp parallel
   {
@@ -1852,13 +1865,13 @@ CCommunicate::ErrorCode CNetwork::receiveDump(std::istream & is, int sender)
 {
   if (CCommunicate::MPIRank == 0
       && sender != CCommunicate::MPIRank)
-      {
-        dump_active_network DumpActiveNetwork;
-        is.read(reinterpret_cast< char * >(&DumpActiveNetwork), sizeof(dump_active_network));
+    {
+      dump_active_network DumpActiveNetwork;
+      is.read(reinterpret_cast< char * >(&DumpActiveNetwork), sizeof(dump_active_network));
 
-        mDumpActiveNetwork.Nodes += DumpActiveNetwork.Nodes;
-        mDumpActiveNetwork.Edges += DumpActiveNetwork.Edges;
-      }
+      mDumpActiveNetwork.Nodes += DumpActiveNetwork.Nodes;
+      mDumpActiveNetwork.Edges += DumpActiveNetwork.Edges;
+    }
 
   return CCommunicate::ErrorCode::Success;
 }
@@ -1923,4 +1936,3 @@ bool CNetwork::concatenateDump()
 
   return true;
 }
-
