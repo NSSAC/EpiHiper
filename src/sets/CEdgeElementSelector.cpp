@@ -314,9 +314,11 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
           if (mEdgeProperty.isValid())
             {
               // We may have value list or a set.
+              CLogger::pushLevel(CLogger::LogLevel::off);
               mpValueList = new CValueList(json_object_get(json, "right"));
+              CLogger::popLevel();
 
-              if (mpValueList != NULL)
+              if (mpValueList != NULL)    
                 {
                   if (mpValueList->isValid())
                     {
@@ -352,7 +354,7 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
                       else
                         mpCompute = &CEdgeElementSelector::withTargetNodeIn;
                     }
-                  else if (mEdgeProperty.getProperty() != CEdgeProperty::Property::sourceId)
+                  else if (mEdgeProperty.getProperty() == CEdgeProperty::Property::sourceId)
                     {
                       if (strcmp(Operator, "not in") == 0)
                         mpCompute = &CEdgeElementSelector::withSourceNodeNotIn;
@@ -1055,7 +1057,7 @@ bool CEdgeElementSelector::withSourceNodeNotIn()
   Edges.clear();
 
   const std::vector< CNode * > & Nodes = mpSelector->getNodes();
-  CLogger::debug("CEdgeElementSelector: withTargetNodeNotIn nodes {}", Nodes.size());
+  CLogger::debug("CEdgeElementSelector: withSourceNodeNotIn nodes {}", Nodes.size());
   
   if (!Nodes.empty())
     {
@@ -1063,31 +1065,11 @@ bool CEdgeElementSelector::withSourceNodeNotIn()
 
       CEdge * pEdge = Active.beginEdge();
       CEdge * pEdgeEnd = Active.endEdge();
-      std::vector< CNode * >::const_iterator itNode = Nodes.begin();
-      std::vector< CNode * >::const_iterator endNode = Nodes.end();
 
-      while (pEdge < pEdgeEnd && itNode != endNode)
-        {
-          if (pEdge->pSource < *itNode)
-            {
-              Edges.push_back(pEdge);
-              ++pEdge;
-            }
-          else if ((pEdge->pSource > *itNode))
-            {
-              ++itNode;
-            }
-          else
-            {
-              ++pEdge;
-            }
-        }
-
-      while (pEdge < pEdgeEnd)
-        {
+      // Since edges are not sorted by sourceId we must use find
+      for (; pEdge != pEdgeEnd; ++pEdge)
+        if (std::find(Nodes.begin(), Nodes.end(), pEdge->pSource) == Nodes.end())
           Edges.push_back(pEdge);
-          ++pEdge;
-        }
 
       // Since the edges are sorted we have no need to sort
     }

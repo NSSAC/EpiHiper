@@ -402,7 +402,9 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
 
           if (mNodeProperty.isValid())
             {
+              CLogger::pushLevel(CLogger::LogLevel::off);
               mpValueList = new CValueList(json_object_get(json, "right"));
+              CLogger::popLevel();
 
               if (mpValueList != NULL)
                 {

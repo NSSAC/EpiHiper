@@ -1,0 +1,172 @@
+{
+  "$schema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/initializationSchema.json",
+  "epiHiperSchema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/initializationSchema.json",
+  "sets": [
+    {
+      "id": "population",
+      "scope": "global",
+      "content": {
+        "elementType": "node",
+        "scope": "global",
+        "left": {
+          "node": {
+            "property": "id"
+          }
+        },
+        "operator": "in",
+        "right": {
+          "valueList": {
+            "id": [
+              11,
+              12,
+              13,
+              15,
+              17,
+              19
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "edge_target_in_population",
+      "scope": "local",
+      "content": {
+        "elementType": "edge",
+        "operator": "in",
+        "left": {
+          "edge": {
+            "property": "targetId"
+          }
+        },
+        "right": {
+          "set": {
+            "idRef": "population"
+          }
+        }
+      }
+    },
+    {
+      "id": "edge_target_not_in_population",
+      "scope": "local",
+      "content": {
+        "elementType": "edge",
+        "operator": "not in",
+        "left": {
+          "edge": {
+            "property": "targetId"
+          }
+        },
+        "right": {
+          "set": {
+            "idRef": "population"
+          }
+        }
+      }
+    },
+    {
+      "id": "edge_source_in_population",
+      "scope": "local",
+      "content": {
+        "elementType": "edge",
+        "operator": "in",
+        "left": {
+          "edge": {
+            "property": "sourceId"
+          }
+        },
+        "right": {
+          "set": {
+            "idRef": "population"
+          }
+        }
+      }
+    },
+    {
+      "id": "edge_source_not_in_population",
+      "scope": "local",
+      "content": {
+        "elementType": "edge",
+        "operator": "not in",
+        "left": {
+          "edge": {
+            "property": "sourceId"
+          }
+        },
+        "right": {
+          "set": {
+            "idRef": "population"
+          }
+        }
+      }
+    },
+    {
+      "id": "edge_to_disable",
+      "scope": "local",
+      "content": {
+        "operation": "union",
+        "sets": [
+          {
+            "operation": "intersection",
+            "sets": [
+              {
+                "set": {
+                  "idRef": "edge_target_in_population"
+                }
+              },
+              {
+                "set": {
+                  "idRef": "edge_source_not_in_population"
+                }
+              }
+            ]
+          },
+          {
+            "operation": "intersection",
+            "sets": [
+              {
+                "set": {
+                  "idRef": "edge_source_in_population"
+                }
+              },
+              {
+                "set": {
+                  "idRef": "edge_target_not_in_population"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "initializations": [
+    {
+      "ann:id": "isolate",
+      "target": {
+        "set": {
+          "idRef": "edge_to_disable"
+        }
+      },
+      "foreach": [
+        {
+          "operations": [
+            {
+              "target": {
+                "edge": {
+                  "property": "weight"
+                }
+              },
+              "operator": "/=",
+              "source": {
+                "value": {
+                  "number": 1000000
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -87,7 +87,7 @@ int main(int argc, char * argv[])
     sleep(1);
 #endif
 
-  CSimConfig::load(CArgs::getConfig());
+  CSimConfig::init(CArgs::getConfig());
 
   if (!CSimConfig::isValid()
       || CLogger::hasErrors())
@@ -106,7 +106,7 @@ int main(int argc, char * argv[])
       goto failed;
     }
 
-  CNetwork::init();
+  CNetwork::init(CSimConfig::getContactNetwork());
 
   if (CLogger::hasErrors())
     {

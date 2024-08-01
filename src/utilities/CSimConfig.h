@@ -98,7 +98,7 @@ private:
   bool loadScenario();
 
 public:
-  static void load(const std::string & configFile);
+  static void init(const std::string & configFile = std::string());
   static void clear();
 
   static bool isValid();

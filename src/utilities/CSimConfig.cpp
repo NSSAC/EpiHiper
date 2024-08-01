@@ -32,7 +32,7 @@
 #include "utilities/CSimConfig.h"
 
 // static
-void CSimConfig::load(const std::string & configFile)
+void CSimConfig::init(const std::string & configFile)
 {
   if (CSimConfig::INSTANCE == NULL)
     {
@@ -175,7 +175,7 @@ const CSimConfig::dump_active_network & CSimConfig::getDumpActiveNetwork()
   
 // constructor: parse JSON
 CSimConfig::CSimConfig(const std::string & configFile)
-  : valid(false)
+  : valid(configFile.empty())
   , mRunParameters(configFile)
   , mModelScenario()
   , mDiseaseModel()
@@ -197,10 +197,7 @@ CSimConfig::CSimConfig(const std::string & configFile)
   , mDBConnection()
 {
   if (mRunParameters.empty())
-    {
-      CLogger::error("Simulation configuration file is not specified");
-      return;
-    }
+    return;
 
   CDirEntry::makePathAbsolute(mRunParameters, CDirEntry::getPWD());
 

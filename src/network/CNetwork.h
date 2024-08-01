@@ -73,7 +73,7 @@ private:
 public:
   static CContext< CNetwork > Context;
 
-  static void init();
+  static void init(const std::string & networkFile);
   static void clear();
   static int index(const CNode * pNode);
   static int index(const size_t & id);

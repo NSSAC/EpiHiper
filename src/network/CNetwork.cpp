@@ -47,12 +47,12 @@
 #include "CNetwork.h"
 
 // static
-void CNetwork::init()
+void CNetwork::init(const std::string & networkFile)
 {
   CChanges::init();
   Context.init();
 
-  Context.Master().loadJsonPreamble(CSimConfig::getContactNetwork());
+  Context.Master().loadJsonPreamble(networkFile);
   Context.Master().partition(CCommunicate::TotalProcesses(), false);
 }
 
@@ -1103,7 +1103,7 @@ void CNetwork::load()
         pEdge->pTarget = pNode;
         pEdge->pSource = Active.lookupNode(pEdge->sourceId, false);
 
-        Active.mOutgoingEdges[pNode].push_back(pEdge);
+        Active.mOutgoingEdges[pEdge->pSource].push_back(pEdge);
         ++pEdge;
       }
 
