@@ -65,11 +65,11 @@ cd cache.rivanna
 # EpiHiper
 if [ ! -e EpiHiper ]; then
     if [ -d /project/bii_nssac/EpiHiper/build/src ]; then
-        cp /project/bii_nssac/EpiHiper/build/src/Epi* .
-        cp /project/bii_nssac/EpiHiper/build/src/libEpiHiper* . 
+        cp /project/bii_nssac/EpiHiper/build-EXCEADS/src/Epi* .
+        cp /project/bii_nssac/EpiHiper/build-EXCEADS/src/libEpiHiper* . 
     else
-        scp rivanna:/project/bii_nssac/EpiHiper/build/src/Epi* .
-        scp rivanna:/project/bii_nssac/EpiHiper/build/src/libEpiHiper* . 
+        scp rivanna:/project/bii_nssac/EpiHiper/build-EXCEADS/src/Epi* .
+        scp rivanna:/project/bii_nssac/EpiHiper/build-EXCEADS/src/libEpiHiper* . 
     fi
 fi
 
