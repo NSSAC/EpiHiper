@@ -140,6 +140,8 @@ CNetwork::CNetwork()
   , mLocalNodesSize(0)
   , mRemoteNodes()
   , mSourceOnlyNodes()
+  , mNodes(NULL)
+  , mNodesSize(0)
   , mEdges(NULL)
   , mEdgesSize(0)
   , mTotalNodesSize(0)
@@ -180,10 +182,10 @@ CNetwork::~CNetwork()
     }
 
   // This data is owned by master;
-  if (mLocalNodes != NULL)
+  if (mNodes != NULL)
     {
-      delete[] mLocalNodes;
-      mLocalNodes = NULL;
+      delete[] mNodes;
+      mNodes = NULL;
     }
 
   if (mEdges != NULL)

@@ -39,14 +39,14 @@ class CSimConfig
 public:
   struct db_connection
   {
-    std::string name;
-    std::string host;
-    std::string user;
-    std::string password;
-    size_t maxRecords;
-    size_t connectionTimeout;
-    size_t connectionRetries;
-    size_t connectionMaxDelay;
+    std::string name = "epihiper_db";
+    std::string host = "localhost:5432";
+    std::string user = "epihiper";
+    std::string password = "";
+    size_t maxRecords = 100000;
+    size_t connectionTimeout = 2;
+    size_t connectionRetries = 15;
+    size_t connectionMaxDelay = 500;
   };
 
   struct dump_active_network
