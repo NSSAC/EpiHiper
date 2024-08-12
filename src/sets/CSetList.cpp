@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -101,14 +101,24 @@ void CSetList::fromJSON(const json_t * json)
 
       if (pSet->isValid())
         {
-          mId2Index[pSet->getId()] = size();
+          if (!mId2Index.insert(std::make_pair(pSet->getId(), size())).second)
+            {
+              CLogger::error("Set list: Duplicate set with Id '{}'.", pSet->getId());
+              delete pSet;
+              mValid = false;
+
+              return;
+
+            }
+
           push_back(pSet);
         }
       else
         {
+          CLogger::error("Set list: Invalid set for item '{}'.", i);
           delete pSet;
           mValid = false; // DONE
-          CLogger::error("Set list: Invalid set for item '{}'.", i);
+
           return;
         }
     }
