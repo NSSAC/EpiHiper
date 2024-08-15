@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -196,7 +196,16 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
                     "node": {"$ref": "#/definitions/nodeProperty"}
                   }
                 },
-                "right": {"$ref": "#/definitions/valueList"}
+                "right": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/definitions/valueList"
+                    },
+                    {
+                      "$ref": "#/definitions/setContent"
+                    }
+                  ]
+                }
               }
             },
             {
@@ -351,74 +360,112 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
                || strcmp(Operator, "not in") == 0)
         {
           /*
-         {
-           "description": "",
-           "required": [
-             "operator",
-             "left",
-             "right"
-           ],
-           "properties": {
-             "operator": {
-               "description": "",
-               "type": "string",
-                  "enum": [
-                    "withPropertyIn",
-                    "in",
-                    "not in"
-                  ]
-             },
-             "left": {
-               "type": "object",
-               "required": ["node"],
-               "properties": {
-                 "node": {"$ref": "#/definitions/nodeProperty"}
-               }
-             },
-             "right": {"$ref": "#/definitions/valueList"}
-           }
-         },
-           */
+          {
+            "description": "",
+            "required": [
+              "operator",
+              "left",
+              "right"
+            ],
+            "properties": {
+              "operator": {
+                "description": "",
+                "type": "string",
+                   "enum": [
+                     "withPropertyIn",
+                     "in",
+                     "not in"
+                   ]
+              },
+              "left": {
+                "type": "object",
+                "required": ["node"],
+                "properties": {
+                  "node": {"$ref": "#/definitions/nodeProperty"}
+                }
+              },
+              "right": {
+                "oneOf": [
+                  {
+                    "$ref": "#/definitions/valueList"
+                  },
+                  {
+                    "$ref": "#/definitions/setContent"
+                  }
+                ]
+              }
+            }
+          },
+          */
 
           mNodeProperty.fromJSON(json_object_get(json, "left"));
 
           if (mNodeProperty.isValid())
             {
+              CLogger::pushLevel(CLogger::LogLevel::off);
               mpValueList = new CValueList(json_object_get(json, "right"));
+              CLogger::popLevel();
 
-              if (mpValueList != NULL
-                  && !mpValueList->isValid())
+              if (mpValueList != NULL)
                 {
-                  CLogger::error("Node selector: Invalid or missing value 'right' for {}", CSimConfig::jsonToString(json));
-                  return;
-                }
+                  if (mpValueList->isValid())
+                    {
+                      if (strcmp(Operator, "not in") == 0)
+                        {
+                          mpCompute = &CNodeElementSelector::propertyNotIn;
+                          mpFilter = &CNodeElementSelector::filterPropertyNotIn;
+                        }
+                      else
+                        {
+                          mpCompute = &CNodeElementSelector::propertyIn;
+                          mpFilter = &CNodeElementSelector::filterPropertyIn;
+                        }
 
-              if (strcmp(Operator, "not in") == 0)
-                {
-                  mpCompute = &CNodeElementSelector::propertyNotIn;
-                  mpFilter = &CNodeElementSelector::filterPropertyNotIn;
-                }
-              else
-                {
-                  mpCompute = &CNodeElementSelector::propertyIn;
-                  mpFilter = &CNodeElementSelector::filterPropertyIn;
-                }
-
-              if (!mNodeProperty.isReadOnly())
-                {
-                  mPrerequisites.insert(&CActionQueue::getCurrentTick());
+                      if (!mNodeProperty.isReadOnly())
+                        {
+                          mPrerequisites.insert(&CActionQueue::getCurrentTick());
 
 #ifdef USE_CSETCOLLECTOR
-                  if (mLocalScope)
-                    {
-                      mpCollector = std::shared_ptr< CSetCollectorInterface >(new CSetCollector< CNode, CNodeElementSelector >(this));
-                      mNodeProperty.registerSetCollector(mpCollector);
-                    }
+                          if (mLocalScope)
+                            {
+                              mpCollector = std::shared_ptr< CSetCollectorInterface >(new CSetCollector< CNode, CNodeElementSelector >(this));
+                              mNodeProperty.registerSetCollector(mpCollector);
+                            }
 #endif
-                }
+                        }
 
-              mValid = true;
-              return;
+                      mValid = true;
+                      return;
+                    }
+                  
+                  if (mNodeProperty.getProperty() == CNodeProperty::Property::edges)
+                    {
+                      if (strcmp(Operator, "not in") == 0)
+                        mpCompute = &CNodeElementSelector::withIncomingEdgeNotIn;
+                      else
+                        mpCompute = &CNodeElementSelector::withIncomingEdgeIn;
+                    }
+                  else
+                    {
+                      CLogger::error("Node selector: Invalid or missing value 'right' for {}", CSimConfig::jsonToString(json));
+                      return;
+                    }
+
+                  mpSelector = CSetContent::create(json_object_get(json, "right"));
+                  
+                  if (mpSelector
+                      && mpSelector->isValid())
+                    {
+                      mPrerequisites.insert(mpSelector.get()); // DONE
+                      mValid = true;
+                      return;
+                    }
+
+                  mpSelector.reset();
+
+                  CLogger::error("Node selector: Invalid or missing value 'selector' for {}", CSimConfig::jsonToString(json));
+                  return;
+                }
             }
 
           if (strcmp(Operator, "in") == 0)
@@ -469,7 +516,7 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
               && mpSelector->isValid())
             {
               mPrerequisites.insert(mpSelector.get()); // DONE
-              mpCompute = &CNodeElementSelector::withIncomingEdge;
+              mpCompute = &CNodeElementSelector::withIncomingEdgeIn;
               mValid = true;
               return;
             }
@@ -1067,25 +1114,79 @@ bool CNodeElementSelector::filterPropertyNotIn(const CNode * pNode) const
   return !mpValueList->contains(mNodeProperty.propertyOf(pNode));
 }
 
-bool CNodeElementSelector::withIncomingEdge()
+bool CNodeElementSelector::withIncomingEdgeIn()
 {
   std::vector< CNode * > & Nodes = getNodes();
   Nodes.clear();
 
   CNode * pNode = NULL;
-  std::vector< CEdge * >::const_iterator it = mpSelector->beginEdges();
-  std::vector< CEdge * >::const_iterator end = mpSelector->endEdges();
 
-  for (; it != end; ++it)
-    if ((*it)->pTarget != pNode)
-      {
-        pNode = (*it)->pTarget;
-        Nodes.push_back(pNode);
-      }
+  const std::vector< CEdge * > Edges = mpSelector->getEdges();
+  CLogger::debug("CNodeElementSelector: withIncomingEdgeNotIn edges {}", Edges.size());
 
-  std::sort(Nodes.begin(), Nodes.end());
+  if (!Edges.empty())
+    {
+      std::vector< CEdge * >::const_iterator it = Edges.begin();
+      std::vector< CEdge * >::const_iterator end = Edges.end();
 
-  CLogger::debug("CNodeElementSelector: withIncomingEdge returned '{}' nodes.", Nodes.size());
+      for (; it != end; ++it)
+        if ((*it)->pTarget != pNode)
+          {
+            pNode = (*it)->pTarget;
+            Nodes.push_back(pNode);
+          }
+
+      // The edges are sorted by target node. Therfore, we do not need to sort
+    }
+
+  CLogger::debug("CNodeElementSelector: withIncomingEdgeIn returned '{}' nodes.", Nodes.size());
+  return true;
+}
+
+bool CNodeElementSelector::withIncomingEdgeNotIn()
+{
+  std::vector< CNode * > & Nodes = getNodes();
+  Nodes.clear();
+
+  const std::vector< CEdge * > Edges = mpSelector->getEdges();
+  CLogger::debug("CNodeElementSelector: withIncomingEdgeNotIn edges {}", Edges.size());
+  
+  if (!Edges.empty())
+    {
+      CNetwork & Active = CNetwork::Context.Active();
+
+      CNode * pNode = Active.beginNode();
+      CNode * pNodeEnd = Active.endNode();
+      std::vector< CEdge * >::const_iterator itEdge = Edges.begin();
+      std::vector< CEdge * >::const_iterator endEdge = Edges.end();
+
+      while (pNode < pNodeEnd && itEdge != endEdge)
+        {
+          if (pNode < (*itEdge)->pTarget)
+            {
+              Nodes.push_back(pNode);
+              ++pNode;
+            }
+          else if (pNode > (*itEdge)->pTarget)
+            {
+              ++itEdge;
+            }
+          else
+            {
+              ++pNode;
+            }
+        }
+
+      while (pNode < pNodeEnd)
+        {
+          Nodes.push_back(pNode);
+          ++pNode;
+        }
+
+      // Since the nodes are sorted we have no need to sort
+    }
+
+  CLogger::debug("CNodeElementSelector: withIncomingEdgeNotIn returned '{}' nodes.", Nodes.size());
   return true;
 }
 

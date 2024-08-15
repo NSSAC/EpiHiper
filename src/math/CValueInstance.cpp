@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2023 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -87,7 +87,7 @@ void CValueInstance::fromJSON(const json_t * json, bool writable)
       return;
     }
 
-  CLogger::pushLevel(spdlog::level::off);
+  CLogger::pushLevel(CLogger::LogLevel::off);
 
   mpNodeProperty = std::shared_ptr< CNodeProperty >(new CNodeProperty(json));
 

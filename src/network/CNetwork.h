@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -25,6 +25,7 @@
 #ifndef SRC_NETWORK_CNETWORK_H_
 #define SRC_NETWORK_CNETWORK_H_
 
+#include <vector>
 #include <set>
 #include <map>
 #include <iostream>
@@ -46,20 +47,20 @@ private:
   void partition(std::istream & is, const int & parts, const bool & save, const std::string & outputDirectory);
   void convert(std::istream & is, const std::string & outputDirectory);
   bool openPartition(const size_t & partition,
-                     const size_t & partCount,
-                     const size_t & nodeCount,
+                     const size_t & numberOfParts,
+                     const size_t & numberOfNodes,
                      const size_t & firstLocalNode,
                      const size_t & beyondLocalNode,
-                     const size_t & edgeCount,
+                     const size_t & numberOfEdges,
                      const std::string & outputDirectory,
                      std::ofstream & os);
 
   void writePartition(const size_t & partition,
-                      const size_t & partCount,
-                      const size_t & nodeCount,
+                      const size_t & numberOfParts,
+                      const size_t & numberOfNodes,
                       const size_t & firstLocalNode,
                       const size_t & beyondLocalNode,
-                      const size_t & edgeCount,
+                      const size_t & numberOfEdges,
                       const std::string & edges,
                       const std::string & outputDirectory);
 
@@ -72,7 +73,7 @@ private:
 public:
   static CContext< CNetwork > Context;
 
-  static void init();
+  static void init(const std::string & networkFile);
   static void clear();
   static int index(const CNode * pNode);
   static int index(const size_t & id);
@@ -141,7 +142,7 @@ public:
   bool concatenateDump();
 
 private:
-  void initExternalEdges();
+  void initNodes();
   void initOutgoingEdges();
   
   std::string mFile;
@@ -149,10 +150,12 @@ private:
   size_t mFirstLocalNode;
   size_t mBeyondLocalNode;
   size_t mLocalNodesSize;
-  CNode * mExternalNodes;
-  size_t mExternalNodesSize;
+  std::vector< size_t > mLocalNodeIds;
+  std::map< CNode *, std::vector< CEdge * > > mOutgoingEdges;
   std::map< size_t, CNode *> mRemoteNodes;
   std::set< size_t > mSourceOnlyNodes;
+  CNode * mNodes;
+  size_t mNodesSize;
   CEdge * mEdges;
   size_t mEdgesSize;
   size_t mTotalNodesSize;
