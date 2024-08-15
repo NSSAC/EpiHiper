@@ -1196,6 +1196,7 @@ void CNetwork::initNodes()
 
     for (const size_t & Id : Active.mLocalNodeIds)
       {
+        *pNode = DefaultNode;
         pNode->id = Id;
         ++pNode;
       }
