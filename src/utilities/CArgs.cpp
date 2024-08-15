@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2020 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -89,9 +89,23 @@ void CArgs::printUsage()
 
 void CArgs::printWhoAmI()
 {
+  std::string Commit(GIT_COMMIT);
+  std::string Modified;
+
+  size_t pos  = Commit.find('-');
+
+  if (pos != std::string::npos)
+    {
+      Commit = Commit.substr(0, pos);
+      Modified = ", source: modified";
+    } 
+  
   std::cout << Name << " Version "
-            << EpiHiper_VERSION_MAJOR << "." << EpiHiper_VERSION_MINOR << "." << EpiHiper_VERSION_PATCH
-            << " (build: " << __DATE__ << ", commit: " << GIT_COMMIT
+            << EpiHiper_VERSION_MAJOR << "." 
+            << EpiHiper_VERSION_MINOR << "." 
+            << EpiHiper_VERSION_PATCH << "-" 
+            << Commit 
+            << " (build: " << __DATE__ << Modified
             << ", MPI: "
 #ifdef USE_MPI
             << "ON"
