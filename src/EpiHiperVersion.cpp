@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2020 - 2024 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -22,35 +22,15 @@
 // SOFTWARE 
 // END: Copyright 
 
-#ifndef SRC_CARGS_H_
-#define SRC_CARGS_H_
+#include <iostream>
 
-#include <string>
+#include "utilities/CArgs.h"
 
-class CArgs
+int main(int argc, char * argv[])
 {
-public:
-  static bool parseArgs(int argc, char * argv[]);
+  CArgs::parseArgs(argc, argv);
 
-  static void printUsage();
+  std::cout << CArgs::getVersion() << std::endl;
 
-  static void printWhoAmI();
-
-  static const std::string & getConfig();
-
-  static const std::string & getName();
-
-  static const std::string & getPath();
-
-  static const std::string & getVersion();
-
-private:
-  static std::string Config;
-  static std::string Name;
-  static std::string Path;
-  static std::string Version;
-  static std::string Modified;
-  
-};
-
-#endif // SRC_CARGS_H_
+  return 0;
+}

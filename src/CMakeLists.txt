@@ -1,7 +1,7 @@
 # BEGIN: Copyright 
 # MIT License 
 #  
-# Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+# Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 #  
 # Permission is hereby granted, free of charge, to any person obtaining a copy 
 # of this software and associated documentation files (the "Software"), to deal 
@@ -111,3 +111,6 @@ target_link_libraries (EpiHiperR0 PUBLIC ${EPIHIPER_LIBARIES})
 add_executable (EpiHiperModelAnalyzer EpiHiperModelAnalyzer.cpp EpiHiperConfig.h)
 add_dependencies(EpiHiperModelAnalyzer EpiHiperLib GIT_COMMIT)
 target_link_libraries (EpiHiperModelAnalyzer PUBLIC ${EPIHIPER_LIBARIES})
+
+add_executable (EpiHiperVersion EpiHiperVersion.cpp EpiHiperConfig.h utilities/CArgs.cpp utilities/CDirEntry.cpp utilities/CArgs.h utilities/CDirEntry.h)
+add_dependencies(EpiHiperVersion GIT_COMMIT)

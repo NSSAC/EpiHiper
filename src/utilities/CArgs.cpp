@@ -24,6 +24,7 @@
 
 #include <getopt.h>
 #include <iostream>
+#include <sstream>
 
 #include "EpiHiperConfig.h"
 #include "utilities/CArgs.h"
@@ -38,17 +39,40 @@ std::string CArgs::Name;
 //static 
 std::string CArgs::Path;
 
+//static 
+std::string CArgs::Version;
+
+//static 
+std::string CArgs::Modified;
+
 bool CArgs::parseArgs(int argc, char * argv[])
 {
   Config.clear();
   Path.clear();
   Name.clear();
+  Version.clear();
+  Modified.clear();
 
   if (argc == 0)
     return false; 
 
   Path = argv[0];
   Name = CDirEntry::fileName(Path);
+
+  std::string Commit(GIT_COMMIT);
+
+  size_t pos  = Commit.find('-');
+
+  if (pos != std::string::npos)
+    {
+      Commit = Commit.substr(0, pos);
+      Modified = ", source: modified";
+    } 
+  
+  std::ostringstream Tmp;
+  Tmp << EpiHiper_VERSION_MAJOR << "." << EpiHiper_VERSION_MINOR << "." << EpiHiper_VERSION_PATCH << "-" << Commit;
+
+  Version = Tmp.str();
 
   const char * const short_opts = "c";
 
@@ -89,22 +113,8 @@ void CArgs::printUsage()
 
 void CArgs::printWhoAmI()
 {
-  std::string Commit(GIT_COMMIT);
-  std::string Modified;
-
-  size_t pos  = Commit.find('-');
-
-  if (pos != std::string::npos)
-    {
-      Commit = Commit.substr(0, pos);
-      Modified = ", source: modified";
-    } 
-  
   std::cout << Name << " Version "
-            << EpiHiper_VERSION_MAJOR << "." 
-            << EpiHiper_VERSION_MINOR << "." 
-            << EpiHiper_VERSION_PATCH << "-" 
-            << Commit 
+            << Version 
             << " (build: " << __DATE__ << Modified
             << ", MPI: "
 #ifdef USE_MPI
@@ -150,3 +160,7 @@ const std::string & CArgs::getPath()
   return Path;
 }
 
+const std::string & CArgs::getVersion()
+{
+  return Version;
+}
