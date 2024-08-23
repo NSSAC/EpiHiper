@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -30,6 +30,7 @@
 #include "sets/CSetOperation.h"
 #include "utilities/CLogger.h"
 #include "utilities/CSimConfig.h"
+#include "network/CNetwork.h"
 
 CSetOperation::CSetOperation()
   : CSetContent(CSetContent::Type::operation)
@@ -142,7 +143,7 @@ bool CSetOperation::lessThanProtected(const CSetContent & rhs) const
 }
 
 // virtual
-bool CSetOperation::computeProtected()
+bool CSetOperation::computeSetContent()
 {
   if (mValid
       && mpCompute != NULL)
@@ -151,66 +152,60 @@ bool CSetOperation::computeProtected()
   return false;
 }
 
+// virtual
+void CSetOperation::setScopeProtected()
+{
+  std::set< CSetContent * >::const_iterator it = mSets.begin();
+  std::set< CSetContent * >::const_iterator end = mSets.end();
+
+  for (; it != end; ++it)
+    (*it)->setScope(Scope::global);
+}
+
 bool CSetOperation::computeUnion()
 {
-  std::vector< CNode * > & Nodes = getNodes();
-  std::vector< CEdge * > & Edges = getEdges();
-  CDBFieldValues & DBFieldValues = getDBFieldValues();
+  SetContent & Active = activeContent();
+  CDBFieldValues & DBFieldValues = Active.dBFieldValues;
 
-  Edges.clear();
-  Nodes.clear();
-  DBFieldValues.clear();
+  SetContent C1, C2, *pIn, *pOut;
+  pIn = &C1;
+  pOut = &C2;
 
   bool first = true;
-
-  std::vector< CNode * > TmpNodes;
-  std::vector< CEdge * > TmpEdges;
-
-  std::vector< CNode * > * pInNodes = &TmpNodes;
-  std::vector< CEdge * > * pInEdges = &TmpEdges;
-  std::vector< CNode * > * pOutNodes = &Nodes;
-  std::vector< CEdge * > * pOutEdges = &Edges;
 
   std::set< CSetContent * >::const_iterator it = mSets.begin();
   std::set< CSetContent * >::const_iterator end = mSets.end();
 
   for (; it != end; ++it)
     {
+      SetContent & Active = (*it)->activeContent();
+
       if (first)
         {
-          *pInEdges = (*it)->getEdges();
-          *pInNodes = (*it)->getNodes();
-          DBFieldValues = (*it)->getDBFieldValues();
+          *pOut = Active;
+          DBFieldValues = Active.dBFieldValues;
 
           first = false;
         }
       else
         {
-          pOutEdges->clear();
-          std::set_union((*it)->beginEdges(), (*it)->endEdges(), pInEdges->begin(), pInEdges->end(), std::back_inserter(*pOutEdges));
-          std::swap(pInEdges, pOutEdges);
+          pOut->clear();
 
-          pOutNodes->clear();
-          std::set_union((*it)->beginNodes(), (*it)->endNodes(), pInNodes->begin(), pInNodes->end(), std::back_inserter(*pOutNodes));
-          std::swap(pInNodes, pOutNodes);
+          std::set_union(Active.edges.begin(), Active.edges.end(), pIn->edges.begin(), pIn->edges.end(), std::back_inserter(pOut->edges));
+          std::set_union(Active.mNodes.begin(), Active.mNodes.end(), pIn->mNodes.begin(), pIn->mNodes.end(), std::back_inserter(pOut->mNodes));
 
-          CDBFieldValues::const_iterator itDB = (*it)->getDBFieldValues().begin();
-          CDBFieldValues::const_iterator endDB = (*it)->getDBFieldValues().end();
+          CDBFieldValues::const_iterator itDB = Active.dBFieldValues.begin();
+          CDBFieldValues::const_iterator endDB = Active.dBFieldValues.end();
 
           for (; itDB != endDB; ++itDB)
             DBFieldValues[itDB->first].insert(itDB->second.begin(), itDB->second.end());
         }
+      
+      std::swap(pIn, pOut);
     }
 
-  if (pInEdges != &Edges)
-    {
-      Edges = *pInEdges;
-    }
-
-  if (pInNodes != &Nodes)
-    {
-      Nodes = *pInNodes;
-    }
+  Active.edges = pIn->edges;
+  Active.mNodes = pIn->mNodes;
 
   if (CLogger::level() <= CLogger::LogLevel::debug)
     {
@@ -235,64 +230,52 @@ bool CSetOperation::computeUnion()
 
 bool CSetOperation::computeIntersection()
 {
-  std::vector< CNode * > N1, N2, *pNin, *pNout;
-  std::vector< CEdge * > E1, E2, *pEin, *pEout;
-  CDBFieldValues DB1, DB2, *pDBin, *pDBout;
-
-  pNin = &N1;
-  pNout = &N2;
-  pEin = &E1;
-  pEout = &E2;
-  pDBin = &DB1;
-  pDBout = &DB2;
+  SetContent C1, C2, *pIn, *pOut;
+  pIn = &C1;
+  pOut = &C2;
 
   bool first = true;
+
 
   std::set< CSetContent * >::const_iterator it = mSets.begin();
   std::set< CSetContent * >::const_iterator end = mSets.end();
 
   for (; it != end; ++it)
     {
+      SetContent & Active = (*it)->activeContent();
+
       if (first)
         {
-          *pEout = (*it)->getEdges();
-          *pNout = (*it)->getNodes();
-          *pDBout = (*it)->getDBFieldValues();
-
+          *pOut = Active;
           first = false;
         }
       else
         {
-          pEout->clear();
-          pNout->clear();
-          pDBout->clear();
+          pOut->clear();
 
-          std::set_intersection(pEin->begin(), pEin->end(), (*it)->beginEdges(), (*it)->endEdges(), std::inserter(*pEout, pEout->begin()));
-          std::set_intersection(pNin->begin(), pNin->end(), (*it)->beginNodes(), (*it)->endNodes(), std::inserter(*pNout, pNout->begin()));
+          std::set_intersection(pIn->edges.begin(), pIn->edges.end(), Active.edges.begin(), Active.edges.end(), std::inserter(pOut->edges, pOut->edges.begin()));
+          std::set_intersection(pIn->mNodes.begin(), pIn->mNodes.end(), Active.mNodes.begin(), Active.mNodes.end(), std::inserter(pOut->mNodes, pOut->mNodes.begin()));
 
-          CDBFieldValues::const_iterator itDB = (*it)->getDBFieldValues().begin();
-          CDBFieldValues::const_iterator endDB = (*it)->getDBFieldValues().end();
+          CDBFieldValues::const_iterator itDB = Active.dBFieldValues.begin();
+          CDBFieldValues::const_iterator endDB = Active.dBFieldValues.end();
 
           for (; itDB != endDB; ++itDB)
             {
-              CDBFieldValues::iterator found = pDBin->find(itDB->first);
+              CDBFieldValues::iterator In = pIn->dBFieldValues.find(itDB->first);
 
-              if (found != pDBin->end())
+              if (In != pIn->dBFieldValues.end())
                 {
-                  CValueList & insert = (*pDBout)[itDB->first];
-                  std::set_intersection(found->second.begin(), found->second.end(), itDB->second.begin(), itDB->second.end(), std::inserter(insert, insert.begin()));
+                  CValueList & Out = pOut->dBFieldValues[itDB->first];
+                  std::set_intersection(In->second.begin(), In->second.end(), itDB->second.begin(), itDB->second.end(), std::inserter(Out, Out.begin()));
                 }
             }
         }
 
-      std::swap(pEin, pEout);
-      std::swap(pNin, pNout);
-      std::swap(pDBin, pDBout);
+      std::swap(pIn, pOut);
     }
 
-  getEdges() = *pEin;
-  getNodes() = *pNin;
-  getDBFieldValues() = *pDBin;
+  SetContent & Active = activeContent();
+  Active = *pIn;
 
   if (CLogger::level() <= CLogger::LogLevel::debug)
     {

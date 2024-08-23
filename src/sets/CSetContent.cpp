@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -37,6 +37,7 @@
 #include "utilities/CRandom.h"
 #include "utilities/CLogger.h"
 #include "utilities/CSimConfig.h"
+#include "network/CNetwork.h"
 
 // static
 bool CSetContent::Compare::operator()(const CSetContent::shared_pointer & lhs, const CSetContent::shared_pointer & rhs) const
@@ -59,8 +60,10 @@ size_t CSetContent::CDBFieldValues::size() const
 
 CSetContent::CSetContent(const Type & type)
   : CComputable()
-  , mType(type)
   , mContext()
+  , mType(type)
+  , mJSON()
+  , mScope(CSetContent::Scope::local)
 {
   mContext.init();
   mValid = true;
@@ -68,8 +71,10 @@ CSetContent::CSetContent(const Type & type)
 
 CSetContent::CSetContent(const CSetContent & src)
   : CComputable(src)
-  , mType(src.mType)
   , mContext(src.mContext)
+  , mType(src.mType)
+  , mJSON(src.mJSON)
+  , mScope(src.mScope)
 {}
 
 CSetContent::~CSetContent()
@@ -78,8 +83,69 @@ CSetContent::~CSetContent()
 // virtual
 bool CSetContent::computeProtected()
 {
-  return true;
+  mContext.Active().clear();
+
+  bool success = computeSetContent();
+
+  mContext.Active().sync();
+
+  return success;
 }
+
+void CSetContent::SetContent::clear()
+{
+  edges.clear();
+  mNodes.clear();
+  dBFieldValues.clear();
+
+  globalNodes.mBegin = mNodes.begin();
+  globalNodes.mEnd = mNodes.end();
+  globalNodes.mSize = mNodes.size();
+
+  localNodes = globalNodes;
+}
+
+void CSetContent::SetContent::sync()
+{
+  globalNodes.mBegin = mNodes.begin();
+  globalNodes.mEnd = mNodes.end();
+  globalNodes.mSize = mNodes.size();
+
+  localNodes = globalNodes;
+
+  if (localNodes.mSize)
+    {
+      CNode * pFirstLocalNode = CNetwork::Context.Active().beginNode();
+
+      while (*localNodes.mBegin < pFirstLocalNode)
+        {
+          ++localNodes.mBegin;
+          --localNodes.mSize;
+        }
+
+      CNode * pBeyondLocalNode = CNetwork::Context.Active().endNode();
+
+      // We must be able to dereference the iterator
+      --localNodes.mEnd;
+
+      while (pBeyondLocalNode <= *localNodes.mEnd)
+        {
+          --localNodes.mEnd;
+          --localNodes.mSize;
+        }
+
+      ++localNodes.mEnd;
+    }
+}
+
+CSetContent::SetContent::Nodes & CSetContent::SetContent::nodes(const CSetContent::Scope & scope)
+{
+  if (scope == Scope::local)
+    return localNodes;
+
+  return globalNodes;
+}
+  
 
 // virtual 
 CSetContent::FilterType CSetContent::filterType() const
@@ -159,10 +225,13 @@ CSetContent::shared_pointer CSetContent::create(const json_t * json)
 
 bool CSetContent::lessThan(const CSetContent & rhs) const
 {
-  if (mType == rhs.mType)
-    return lessThanProtected(rhs);
+  if (mType != rhs.mType)
+    return mType < rhs.mType;
 
-  return mType < rhs.mType;
+  if (mScope != rhs.mScope)
+    return mScope < rhs.mScope;
+
+  return lessThanProtected(rhs);
 }
 
 void CSetContent::fromJSON(const json_t * json)
@@ -171,19 +240,29 @@ void CSetContent::fromJSON(const json_t * json)
   fromJSONProtected(json);
 }
 
+const std::string & CSetContent::getJSON() const
+{
+  return mJSON;
+}
+
 bool CSetContent::contains(CNode * pNode) const
 {
-  return binary_search(beginNodes(), endNodes(), pNode);
+  const SetContent & Content = activeContent();
+  const NodeContent & Nodes = (mScope == Scope::local) ? Content.localNodes : Content.globalNodes;
+
+  return binary_search(Nodes.begin(), Nodes.end(), pNode);
 }
 
 bool CSetContent::contains(CEdge * pEdge) const
 {
-  return binary_search(beginEdges(), endEdges(), pEdge);
+  const SetContent & Content = activeContent();
+
+  return binary_search(Content.edges.begin(), Content.edges.end(), pEdge);
 }
 
 bool CSetContent::contains(const CValueInterface & value) const
 {
-  const SetContent & Active = getContext().Active();
+  const SetContent & Active = activeContent();
   CDBFieldValues::const_iterator found = Active.dBFieldValues.find(value.getType());
 
   if (found != Active.dBFieldValues.end())
@@ -192,82 +271,47 @@ bool CSetContent::contains(const CValueInterface & value) const
   return false;
 }
 
-std::vector< CEdge * >::const_iterator CSetContent::beginEdges() const
+const CSetContent::SetContent & CSetContent::activeContent() const
 {
-  return getContext().Active().edges.begin();
+  return getContext().Active();
 }
 
-std::vector< CEdge * >::const_iterator CSetContent::endEdges() const
+CSetContent::SetContent & CSetContent::activeContent()
 {
-  return getContext().Active().edges.end();
+  return getContext().Active();
 }
 
-std::vector< CNode * >::const_iterator CSetContent::beginNodes() const
+const CSetContent::NodeContent & CSetContent::getNodeContent(const CSetContent::Scope & scope) const
 {
-  return getContext().Active().nodes.begin();
-}
+  if (scope == Scope::local)
+    return activeContent().localNodes;
 
-std::vector< CNode * >::const_iterator CSetContent::endNodes() const
-{
-  return getContext().Active().nodes.end();
-}
+  if (mScope != Scope::global)
+    CLogger::error("CSetContent::beginNode: Conflicting scope global requested for '{}'.", mJSON);
 
-// virtual
-const std::vector< CEdge * > & CSetContent::getEdges() const
-{
-  return getContext().Active().edges;
-}
-
-// virtual
-const std::vector< CNode * > & CSetContent::getNodes() const
-{
-  return getContext().Active().nodes;
-}
-
-const CSetContent::CDBFieldValues & CSetContent::getDBFieldValues() const
-{
-  return getContext().Active().dBFieldValues;
-}
-
-// virtual
-std::vector< CEdge * > & CSetContent::getEdges()
-{
-  return getContext().Active().edges;
-}
-
-// virtual
-std::vector< CNode * > & CSetContent::getNodes()
-{
-  return getContext().Active().nodes;
-}
-
-CSetContent::CDBFieldValues & CSetContent::getDBFieldValues()
-{
-  return getContext().Active().dBFieldValues;
+  return activeContent().globalNodes;
 }
 
 void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetContent & notSampled) const
 {
-  SetContent & Sampled = sampled.getContext().Active();
-  SetContent & NotSampled = notSampled.getContext().Active();
+  SetContent & Sampled = sampled.activeContent();
+  SetContent & NotSampled = notSampled.activeContent();
 
-  const std::vector< CNode * > & Nodes = getNodes();
-  const std::vector< CEdge * > & Edges = getEdges();
+  Sampled.clear();
+  NotSampled.clear();
 
-
-  Sampled.edges.clear();
-  Sampled.nodes.clear();
-  Sampled.dBFieldValues.clear();
-
-  NotSampled.edges.clear();
-  NotSampled.nodes.clear();
-  NotSampled.dBFieldValues.clear();
+  if (size() == 0)
+    return;
 
   CRandom::uniform_real Probability(0.0, 1.0);
+  CRandom::generator_t & Generator = CRandom::G.Active();
+  const SetContent & Active = activeContent();
 
   // Sampling is only supported if we have either only nodes or only edges;
-  if (size() == Nodes.size())
+  if (size() == Active.mNodes.size())
     {
+      const NodeContent & Nodes = getNodeContent(Scope::local);
+
       double Requested = max;
       double Available = Nodes.size();
 
@@ -278,19 +322,21 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
         {
           if (Available <= Requested
               || (Requested > 0.5
-                  && Probability(CRandom::G.Active()) < Requested / Available))
+                  && Probability(Generator) < Requested / Available))
             {
-              Sampled.nodes.push_back(*it);
+              Sampled.mNodes.push_back(*it);
               Requested -= 1.0;
             }
           else
-            NotSampled.nodes.push_back(*it);
+            NotSampled.mNodes.push_back(*it);
 
           Available -= 1.0;
         }
     }
-  else if (size() == Edges.size())
+  else if (size() == Active.edges.size())
     {
+      const std::vector< CEdge * > & Edges = Active.edges;
+
       double Requested = max;
       double Available = Edges.size();
 
@@ -301,7 +347,7 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
         {
           if (Available <= Requested
               || (Requested > 0.5
-                  && Probability(CRandom::G.Active()) < Requested / Available))
+                  && Probability(Generator) < Requested / Available))
             {
               Sampled.edges.push_back(*it);
               Requested -= 1.0;
@@ -312,51 +358,61 @@ void CSetContent::sampleMax(const size_t & max, CSetContent & sampled, CSetConte
           Available -= 1.0;
         }
     }
+
+  Sampled.sync();
+  NotSampled.sync();
 }
 
 void CSetContent::samplePercent(const double & percent, CSetContent & sampled, CSetContent & notSampled) const
 {
-  SetContent & Sampled = sampled.getContext().Active();
-  SetContent & NotSampled = notSampled.getContext().Active();
+  SetContent & Sampled = sampled.activeContent();
+  SetContent & NotSampled = notSampled.activeContent();
   
-  Sampled.edges.clear();
-  Sampled.nodes.clear();
-  Sampled.dBFieldValues.clear();
+  Sampled.clear();
+  NotSampled.clear();
 
-  NotSampled.edges.clear();
-  NotSampled.nodes.clear();
-  NotSampled.dBFieldValues.clear();
+  if (size() == 0)
+    return;
 
   CRandom::uniform_real Percent(0.0, 100.0);
+  CRandom::generator_t & Generator = CRandom::G.Active();
+  const SetContent & Active = activeContent();
 
   // Sampling is only supported if we have either only nodes or only edges;
-  if (size() == getNodes().size())
+  if (size() == Active.mNodes.size())
     {
-      std::vector< CNode * >::const_iterator it = getNodes().begin();
-      std::vector< CNode * >::const_iterator end = getNodes().end();
+      const NodeContent & Nodes = getNodeContent(Scope::local);
+
+      std::vector< CNode * >::const_iterator it = Nodes.begin();
+      std::vector< CNode * >::const_iterator end = Nodes.end();
 
       for (; it != end; ++it)
-        if (Percent(CRandom::G.Active()) < percent)
-          Sampled.nodes.push_back(*it);
+        if (Percent(Generator) < percent)
+          Sampled.mNodes.push_back(*it);
         else
-          NotSampled.nodes.push_back(*it);
+          NotSampled.mNodes.push_back(*it);
     }
-  else if (size() == getEdges().size())
+  else if (size() == Active.edges.size())
     {
-      std::vector< CEdge * >::const_iterator it = getEdges().begin();
-      std::vector< CEdge * >::const_iterator end = getEdges().end();
+      std::vector< CEdge * >::const_iterator it = Active.edges.begin();
+      std::vector< CEdge * >::const_iterator end = Active.edges.end();
 
       for (; it != end; ++it)
-        if (Percent(CRandom::G.Active()) < percent)
+        if (Percent(Generator) < percent)
           Sampled.edges.push_back(*it);
         else
           NotSampled.edges.push_back(*it);
     }
+
+  Sampled.sync();
+  NotSampled.sync();
 }
 
 size_t CSetContent::size() const
 {
-  return getEdges().size() + getNodes().size() + getDBFieldValues().size();
+  const SetContent & Active = activeContent();
+
+  return Active.edges.size() + Active.mNodes.size() + Active.dBFieldValues.size();
 }
 
 size_t CSetContent::totalSize() const
@@ -368,7 +424,7 @@ size_t CSetContent::totalSize() const
   const SetContent * pEnd = Context.endThread();
 
   for (; pIt != pEnd; ++pIt)
-    TotalSize += pIt->edges.size() + pIt->nodes.size() + pIt->dBFieldValues.size();
+    TotalSize += pIt->edges.size() + pIt->localNodes.size() + pIt->dBFieldValues.size();
 
   return TotalSize;
 }
@@ -387,7 +443,21 @@ CContext< size_t > CSetContent::sizes() const
   size_t * pSize = Sizes.beginThread();
 
   for (; pIt != pEnd; ++pIt, ++pSize)
-    *pSize =  pIt->edges.size() + pIt->nodes.size() + pIt->dBFieldValues.size();
+    *pSize =  pIt->edges.size() + pIt->mNodes.size() + pIt->dBFieldValues.size();
 
   return Sizes;
 }
+
+void CSetContent::setScope(const CSetContent::Scope & scope)
+{
+  mScope = scope;
+
+  if (mScope == Scope::global)
+    setScopeProtected();
+}
+
+const CSetContent::Scope & CSetContent::getScope() const
+{
+  return mScope;
+}
+

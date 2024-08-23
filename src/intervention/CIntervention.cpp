@@ -67,7 +67,15 @@ void CIntervention::load(const std::string & file)
     {
       CIntervention * pIntervention = new CIntervention(json_array_get(pArray, i));
 
-      if (!pIntervention->isValid())
+      if (pIntervention->isValid())
+        {
+          if (!INSTANCES.insert(std::make_pair(pIntervention->mId, pIntervention)).second)
+            {
+              CLogger::error("CIntervention: Duplicate Intervention with Id '{}'.", pIntervention->mId);
+              delete pIntervention;
+            }
+        }
+      else
         {
           delete pIntervention;
         }
@@ -204,8 +212,6 @@ void CIntervention::fromJSON(const json_t * json)
       mId = uniqueId.str();
     }
 
-  INSTANCES[mId] = this;
-
   if (CAnnotation::mAnnId.empty())
     CAnnotation::mAnnId = mId;
 
@@ -215,13 +221,12 @@ void CIntervention::fromJSON(const json_t * json)
     {
       // Added the intervention's id to the triggered ids.
       json_object_set_new(const_cast< json_t * >(json), "interventionIds", json_array());
-      json_t * pArray = json_object_get(json, "interventionIds");
-      json_array_append_new(pArray, json_string(mId.c_str()));
 
       CTrigger * pTrigger = new CTrigger(json);
 
       if (pTrigger->isValid())
         {
+          pTrigger->addIntervention(mId, this);
           CTrigger::INSTANCES.push_back(pTrigger);
           IdOrTrigger = true;
         }

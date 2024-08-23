@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -54,6 +54,8 @@ public:
   static std::set< shared_pointer, Compare > Unique;
 
   static shared_pointer FromJSON(const json_t * json);
+
+  static size_t Set(const std::string & idRef);
 
   CSizeOf();
 

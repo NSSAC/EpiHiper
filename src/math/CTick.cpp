@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -28,6 +28,8 @@
  *  Created on: Nov 22, 2019
  *      Author: shoops
  */
+
+#include <sstream>
 
 #include "math/CTick.h"
 
@@ -69,6 +71,17 @@ CTick & CTick::operator = (const int & value)
 
   return *this;
 }
+
+// virtual 
+std::string CTick::getComputableId() const
+{
+  std::ostringstream os;
+  os << "CTick (" << mComputableId  << ")";
+
+  return os.str();
+
+}
+
 
 // virtual 
 void CTick::determineIsStatic()

@@ -44,7 +44,8 @@ TEST_CASE("Isolation", "[EpiHiper]")
 {
   CSimConfig::init();
   CTrait::init();
-  CLogger::setLevel(CLogger::LogLevel::debug);
+  CLogger::pushLevel(CLogger::LogLevel::debug);
+  CLogger::info("Starting Test: Isolation");
 
   CNetwork::init(getAbsolutePath("example/contactNetwork.txt"));
   REQUIRE_FALSE(CLogger::hasErrors());
@@ -64,17 +65,21 @@ TEST_CASE("Isolation", "[EpiHiper]")
   CLogger::updateTick();
   CDependencyGraph::buildGraph();
 
-  REQUIRE(CDependencyGraph::applyComputeOnceOrder());
-  REQUIRE(CDependencyGraph::applyUpdateOrder());
-  REQUIRE(CInitialization::processAll());
-  REQUIRE(CActionQueue::processCurrentActions());
+#pragma omp parallel
+  {
+    REQUIRE(CDependencyGraph::applyComputeOnceOrder());
+    REQUIRE(CDependencyGraph::applyUpdateOrder());
+    REQUIRE(CInitialization::processAll());
+    REQUIRE(CActionQueue::processCurrentActions());
+  }
 
-  CSetList & SetList = CSetList::INSTANCE;
-  REQUIRE(SetList["edge_target_in_population"]->size() == 64);
-  REQUIRE(SetList["edge_target_not_in_population"]->size() == 152);
-  REQUIRE(SetList["edge_source_in_population"]->size() == 64);
-  REQUIRE(SetList["edge_source_not_in_population"]->size() == 152);
-  REQUIRE(SetList["edge_to_disable"]->size() == 68);
+  REQUIRE(CSizeOf::Set("population") == 6);
+  REQUIRE(CSizeOf::Set("edge_target_in_population") == 64);
+  REQUIRE(CSizeOf::Set("edge_target_not_in_population") == 152);
+  REQUIRE(CSizeOf::Set("edge_source_in_population") == 64);
+  REQUIRE(CSizeOf::Set("edge_source_not_in_population") == 152);
+  REQUIRE(CSizeOf::Set("edge_to_disable") == 68);
 
+  CLogger::popLevel();
   clearTest();  
 }

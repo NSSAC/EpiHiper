@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -109,7 +109,8 @@ bool CDependencyGraph::applyComputeOnceOrder()
 bool CDependencyGraph::applyComputableSequence(CComputable::Sequence & updateSequence)
 {
   std::vector< CSetContent::Filter< CEdge > > EdgeFilter;
-  std::vector< CSetContent::Filter< CNode > > NodeFilter;
+  std::vector< CSetContent::Filter< CNode > > LocalNodeFilter;
+  std::vector< CSetContent::Filter< CNode > > GlobalNodeFilter;
 
   bool success = true;
   CComputable::Sequence::iterator it = updateSequence.begin();
@@ -127,13 +128,25 @@ bool CDependencyGraph::applyComputableSequence(CComputable::Sequence & updateSeq
               switch (pSetContent->filterType())
                 {
                 case CSetContent::FilterType::edge:
-                  EdgeFilter.push_back(CSetContent::Filter< CEdge >(pSetContent));
-                  CLogger::debug("CComputable: Adding '{}' to EdgeFilter.", pSetContent->getComputableId());
+                  {
+                    CSetContent::Filter< CEdge > Filter(pSetContent);
+                    Filter.start();
+                    EdgeFilter.push_back(CSetContent::Filter< CEdge >(pSetContent));
+                    CLogger::debug("CComputable: Adding '{}' to EdgeFilter.", pSetContent->getComputableId());
+                  }
                   break;
 
                 case CSetContent::FilterType::node:
-                  NodeFilter.push_back(CSetContent::Filter< CNode >(pSetContent));
-                  CLogger::debug("CComputable: Adding '{}' to NodeFilter.", pSetContent->getComputableId());
+                  {
+                    CSetContent::Filter< CNode > Filter(pSetContent);
+                    Filter.start();
+                    LocalNodeFilter.push_back(Filter);
+
+                    if (pSetContent->getScope() == CSetContent::Scope::global)
+                      GlobalNodeFilter.push_back(Filter);
+
+                    CLogger::debug("CComputable: Adding '{}' to NodeFilter.", pSetContent->getComputableId());
+                  }
                   break;
 
                 case CSetContent::FilterType::none:
@@ -159,21 +172,38 @@ bool CDependencyGraph::applyComputableSequence(CComputable::Sequence & updateSeq
           filter.addMatching(pEdge);
 
       for (CSetContent::Filter< CEdge > & filter : EdgeFilter)
-          filter.report();
+          filter.finish();
 
     }
 
-  if (!NodeFilter.empty())
+  if (!LocalNodeFilter.empty())
     {
+      std::map< size_t, CNode * >::const_iterator itGlobal = CNetwork::Context.Active().beginRemoteNodes();
+      std::map< size_t, CNode * >::const_iterator endGlobal = CNetwork::Context.Active().endRemoteNodes();
       CNode * pNode = CNetwork::Context.Active().beginNode();
       CNode * pNodeEnd = CNetwork::Context.Active().endNode();
+      CNode * pFirstLocalNode = pNode;
+
+      if (!GlobalNodeFilter.empty())
+        {
+          for (; itGlobal != endGlobal && itGlobal->second < pFirstLocalNode; ++itGlobal)
+            for (CSetContent::Filter< CNode > & filter : GlobalNodeFilter)
+              filter.addMatching(itGlobal->second);
+        }
 
       for (; pNode != pNodeEnd; ++pNode)
-        for (CSetContent::Filter< CNode > & filter : NodeFilter)
+        for (CSetContent::Filter< CNode > & filter : LocalNodeFilter)
           filter.addMatching(pNode);
 
-      for (CSetContent::Filter< CNode > & filter : NodeFilter)
-        filter.report();
+      if (!GlobalNodeFilter.empty())
+        {
+          for (; itGlobal != endGlobal; ++itGlobal)
+            for (CSetContent::Filter< CNode > & filter : GlobalNodeFilter)
+              filter.addMatching(itGlobal->second);
+        }
+
+      for (CSetContent::Filter< CNode > & filter : LocalNodeFilter)
+        filter.finish();
     }
 
   return success;

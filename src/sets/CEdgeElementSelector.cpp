@@ -318,18 +318,18 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
               mpValueList = new CValueList(json_object_get(json, "right"));
               CLogger::popLevel();
 
-              if (mpValueList != NULL)    
+              if (mpValueList != NULL)
                 {
                   if (mpValueList->isValid())
                     {
                       if (strcmp(Operator, "not in") == 0)
                         {
-                          mpCompute = &CEdgeElementSelector::propertyNotIn;
+                          mpCompute = &CEdgeElementSelector::propertySelection;
                           mpFilter = &CEdgeElementSelector::filterPropertyNotIn;
                         }
                       else
                         {
-                          mpCompute = &CEdgeElementSelector::propertyIn;
+                          mpCompute = &CEdgeElementSelector::propertySelection;
                           mpFilter = &CEdgeElementSelector::filterPropertyIn;
                         }
 
@@ -368,12 +368,17 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
                     }
 
                   mpSelector = CSetContent::create(json_object_get(json, "right"));
-                  
+
                   if (mpSelector
                       && mpSelector->isValid())
                     {
                       mPrerequisites.insert(mpSelector.get()); // DONE
                       mValid = true;
+
+                      if (mpCompute == &CEdgeElementSelector::withSourceNodeIn
+                          || mpCompute == &CEdgeElementSelector::withSourceNodeNotIn)
+                        setScope(Scope::global);
+
                       return;
                     }
 
@@ -384,30 +389,30 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
                 }
             }
 
-      if (strcmp(Operator, "in") == 0)
-        {
-          CConnection::setRequired(true);
-          mpCompute = &CEdgeElementSelector::dbIn;
+          if (strcmp(Operator, "in") == 0)
+            {
+              CConnection::setRequired(true);
+              mpCompute = &CEdgeElementSelector::dbIn;
+            }
+          else if (strcmp(Operator, "not in") == 0)
+            {
+              CConnection::setRequired(true);
+              mpCompute = &CEdgeElementSelector::dbNotIn;
+            }
+          else
+            {
+              CLogger::error("Edge selector: Invalid or missing value 'left' for {}", CSimConfig::jsonToString(json));
+              return;
+            }
         }
-      else if (strcmp(Operator, "not in") == 0)
+      else if (strcmp(json_string_value(pValue), "withTargetNodeIn") == 0)
         {
-          CConnection::setRequired(true);
-          mpCompute = &CEdgeElementSelector::dbNotIn;
+          mpCompute = &CEdgeElementSelector::withTargetNodeIn;
         }
-      else
+      else if (strcmp(json_string_value(pValue), "withSourceNodeIn") == 0)
         {
-          CLogger::error("Edge selector: Invalid or missing value 'left' for {}", CSimConfig::jsonToString(json));
-          return;
+          mpCompute = &CEdgeElementSelector::withSourceNodeIn;
         }
-    }
-  else if (strcmp(json_string_value(pValue), "withTargetNodeIn") == 0)
-    {
-      mpCompute = &CEdgeElementSelector::withTargetNodeIn;
-    }
-  else if (strcmp(json_string_value(pValue), "withSourceNodeIn") == 0)
-    {
-      mpCompute = &CEdgeElementSelector::withSourceNodeIn;
-    }
     }
   else
     {
@@ -557,6 +562,10 @@ void CEdgeElementSelector::fromJSONProtected(const json_t * json)
         {
           mPrerequisites.insert(mpSelector.get()); // DONE
           mValid = true;
+
+          if (mpCompute == &CEdgeElementSelector::withSourceNodeIn)
+            mpSelector->setScope(Scope::global);
+
           return;
         }
 
@@ -824,7 +833,7 @@ void CEdgeElementSelector::determineIsStatic()
 }
 
 // virtual
-bool CEdgeElementSelector::computeProtected()
+bool CEdgeElementSelector::computeSetContent()
 {
   if (mValid)
     {
@@ -840,6 +849,15 @@ bool CEdgeElementSelector::computeProtected()
     }
 
   return false;
+}
+
+// virtual
+void CEdgeElementSelector::setScopeProtected()
+{
+  if (mpCompute == &CEdgeElementSelector::withSourceNodeNotIn
+      || mpCompute == &CEdgeElementSelector::withSourceNodeIn)
+    if (mpSelector)
+      mpSelector->setScope(Scope::global);
 }
 
 // virtual
@@ -860,7 +878,7 @@ bool CEdgeElementSelector::filter(const CEdge * pEdge) const
 
 bool CEdgeElementSelector::all()
 {
-  std::vector< CEdge * > & Edges = getEdges();
+  std::vector< CEdge * > & Edges = activeContent().edges;
 
   if (Edges.empty())
     {
@@ -878,14 +896,13 @@ bool CEdgeElementSelector::all()
 }
 bool CEdgeElementSelector::propertySelection()
 {
-  std::vector< CEdge * > & Edges = getEdges();
-  Edges.clear();
+  std::vector< CEdge * > & Edges = activeContent().edges;
 
   CEdge * pEdge = CNetwork::Context.Active().beginEdge();
   CEdge * pEdgeEnd = CNetwork::Context.Active().endEdge();
 
   for (; pEdge != pEdgeEnd; ++pEdge)
-    if (filterPropertySelection(pEdge))
+    if ((this->*mpFilter)(pEdge))
       Edges.push_back(pEdge);
 
   CLogger::debug("CEdgeElementSelector: propertySelection returned '{}' edges.", Edges.size());
@@ -897,41 +914,9 @@ bool CEdgeElementSelector::filterPropertySelection(const CEdge * pEdge) const
   return mpComparison(mEdgeProperty.propertyOf(pEdge), *mpValue);
 }
 
-bool CEdgeElementSelector::propertyIn()
-{
-  std::vector< CEdge * > & Edges = getEdges();
-  Edges.clear();
-
-  CEdge * pEdge = CNetwork::Context.Active().beginEdge();
-  CEdge * pEdgeEnd = CNetwork::Context.Active().endEdge();
-
-  for (; pEdge != pEdgeEnd; ++pEdge)
-    if (filterPropertyIn(pEdge))
-      Edges.push_back(pEdge);
-
-  CLogger::debug("CEdgeElementSelector: propertyIn returned '{}' edges.", Edges.size());
-  return true;
-}
-
 bool CEdgeElementSelector::filterPropertyIn(const CEdge * pEdge) const
 {
   return mpValueList->contains(mEdgeProperty.propertyOf(pEdge));
-}
-
-bool CEdgeElementSelector::propertyNotIn()
-{
-  std::vector< CEdge * > & Edges = getEdges();
-  Edges.clear();
-
-  CEdge * pEdge = CNetwork::Context.Active().beginEdge();
-  CEdge * pEdgeEnd = CNetwork::Context.Active().endEdge();
-
-  for (; pEdge != pEdgeEnd; ++pEdge)
-    if (filterPropertyNotIn(pEdge))
-      Edges.push_back(pEdge);
-
-  CLogger::debug("CEdgeElementSelector: propertyNotIn returned '{}' edges.", Edges.size());
-  return true;
 }
 
 bool CEdgeElementSelector::filterPropertyNotIn(const CEdge * pEdge) const
@@ -941,14 +926,13 @@ bool CEdgeElementSelector::filterPropertyNotIn(const CEdge * pEdge) const
 
 bool CEdgeElementSelector::withTargetNodeIn()
 {
-  std::vector< CEdge * > & Edges = getEdges();
-  Edges.clear();
+  std::vector< CEdge * > & Edges = activeContent().edges;
+  const NodeContent & Nodes = mpSelector->getNodeContent(Scope::local);
 
-  const std::vector< CNode * > & Nodes = mpSelector->getNodes();
   CLogger::debug("CEdgeElementSelector: withTargetNodeIn nodes {}", Nodes.size());
   const CNetwork & Active = CNetwork::Context.Active();
 
-  if (!Nodes.empty())
+  if (Nodes.size() > 0)
     {
       std::vector< CNode * >::const_iterator itNode = Nodes.begin();
       std::vector< CNode * >::const_iterator endNode = Nodes.end();
@@ -976,18 +960,17 @@ bool CEdgeElementSelector::withTargetNodeIn()
 
 bool CEdgeElementSelector::withTargetNodeNotIn()
 {
-  std::vector< CEdge * > & Edges = getEdges();
-  Edges.clear();
+  std::vector< CEdge * > & Edges = activeContent().edges;
+  const NodeContent & Nodes = mpSelector->getNodeContent(Scope::local);
 
-  const std::vector< CNode * > & Nodes = mpSelector->getNodes();
   CLogger::debug("CEdgeElementSelector: withTargetNodeNotIn nodes {}", Nodes.size());
-  
-  if (!Nodes.empty())
-    {
-      CNetwork & Active = CNetwork::Context.Active();
 
-      CEdge * pEdge = Active.beginEdge();
-      CEdge * pEdgeEnd = Active.endEdge();
+  CNetwork & Active = CNetwork::Context.Active();
+  CEdge * pEdge = Active.beginEdge();
+  CEdge * pEdgeEnd = Active.endEdge();
+
+  if (Nodes.size() > 0)
+    {
       std::vector< CNode * >::const_iterator itNode = Nodes.begin();
       std::vector< CNode * >::const_iterator endNode = Nodes.end();
 
@@ -1013,23 +996,29 @@ bool CEdgeElementSelector::withTargetNodeNotIn()
           Edges.push_back(pEdge);
           ++pEdge;
         }
-
-      // Since the edges are sorted we have no need to sort
+    }
+  else
+    {
+      while (pEdge < pEdgeEnd)
+        {
+          Edges.push_back(pEdge);
+          ++pEdge;
+        }
     }
 
-  CLogger::debug("CEdgeElementSelector: withTargetNodeIn returned '{}' edges.", Edges.size());
+  // Since the edges are sorted we have no need to sort
+  CLogger::debug("CEdgeElementSelector: withTargetNodeNotIn returned '{}' edges.", Edges.size());
   return true;
 }
 
 bool CEdgeElementSelector::withSourceNodeIn()
 {
-  std::vector< CEdge * > & Edges = getEdges();
-  Edges.clear();
+  std::vector< CEdge * > & Edges = activeContent().edges;
+  const NodeContent & Nodes = mpSelector->getNodeContent(Scope::global);
 
-  const std::vector< CNode * > & Nodes = mpSelector->getNodes();
   CLogger::debug("CEdgeElementSelector: withSourceNodeIn nodes {}", Nodes.size());
 
-  if (!Nodes.empty())
+  if (Nodes.size() > 0)
     {
       std::vector< CNode * >::const_iterator itNode = Nodes.begin();
       std::vector< CNode * >::const_iterator endNode = Nodes.end();
@@ -1053,27 +1042,32 @@ bool CEdgeElementSelector::withSourceNodeIn()
 
 bool CEdgeElementSelector::withSourceNodeNotIn()
 {
-  std::vector< CEdge * > & Edges = getEdges();
-  Edges.clear();
+  std::vector< CEdge * > & Edges = activeContent().edges;
+  const NodeContent & Nodes = mpSelector->getNodeContent(Scope::global);
 
-  const std::vector< CNode * > & Nodes = mpSelector->getNodes();
   CLogger::debug("CEdgeElementSelector: withSourceNodeNotIn nodes {}", Nodes.size());
-  
-  if (!Nodes.empty())
+
+  CNetwork & Active = CNetwork::Context.Active();
+  CEdge * pEdge = Active.beginEdge();
+  CEdge * pEdgeEnd = Active.endEdge();
+
+  if (Nodes.size() > 0)
     {
-      CNetwork & Active = CNetwork::Context.Active();
-
-      CEdge * pEdge = Active.beginEdge();
-      CEdge * pEdgeEnd = Active.endEdge();
-
       // Since edges are not sorted by sourceId we must use find
       for (; pEdge != pEdgeEnd; ++pEdge)
         if (std::find(Nodes.begin(), Nodes.end(), pEdge->pSource) == Nodes.end())
           Edges.push_back(pEdge);
-
-      // Since the edges are sorted we have no need to sort
+    }
+  else
+    {
+      while (pEdge < pEdgeEnd)
+        {
+          Edges.push_back(pEdge);
+          ++pEdge;
+        }
     }
 
+  // Since the edges are sorted we have no need to sort
   CLogger::debug("CEdgeElementSelector: withSourceNodeNotIn returned '{}' edges.", Edges.size());
   return true;
 }
@@ -1081,8 +1075,7 @@ bool CEdgeElementSelector::withSourceNodeNotIn()
 bool CEdgeElementSelector::dbAll()
 {
   bool success = false;
-  std::vector< CEdge * > & Edges = getEdges();
-  Edges.clear();
+  std::vector< CEdge * > & Edges = activeContent().edges;
 
 #ifdef USE_LOCATION_ID
   CFieldValueList FieldValueList;
@@ -1104,8 +1097,7 @@ bool CEdgeElementSelector::dbAll()
 bool CEdgeElementSelector::dbSelection()
 {
   bool success = false;
-  std::vector< CEdge * > & Edges = getEdges();
-  Edges.clear();
+  std::vector< CEdge * > & Edges = activeContent().edges;
 
 #ifdef USE_LOCATION_ID
   CFieldValueList FieldValueList;
@@ -1135,9 +1127,7 @@ bool CEdgeElementSelector::dbIn()
   bool success = false;
 
 #ifdef USE_LOCATION_ID
-  std::vector< CEdge * > & Edges = getEdges();
-  Edges.clear();
-
+  std::vector< CEdge * > & Edges = activeContent().edges;
   CFieldValueList FieldValueList;
 
   if (mpDBFieldValueList != NULL)
@@ -1145,7 +1135,7 @@ bool CEdgeElementSelector::dbIn()
   else
     {
       CField Field = CSchema::INSTANCE.getTable(mDBTable).getField(mDBField);
-      const CDBFieldValues & ValueListMap = mpSelector->getDBFieldValues();
+      const CDBFieldValues & ValueListMap = mpSelector->activeContent().dBFieldValues;
       CDBFieldValues::const_iterator found = ValueListMap.find(Field.getType());
 
       if (found != ValueListMap.end())
@@ -1168,8 +1158,7 @@ bool CEdgeElementSelector::dbIn()
 bool CEdgeElementSelector::dbNotIn()
 {
   bool success = false;
-  std::vector< CEdge * > & Edges = getEdges();
-  Edges.clear();
+  std::vector< CEdge * > & Edges = activeContent().edges;
 
 #ifdef USE_LOCATION_ID
   CFieldValueList FieldValueList;
@@ -1179,7 +1168,7 @@ bool CEdgeElementSelector::dbNotIn()
   else
     {
       CField Field = CSchema::INSTANCE.getTable(mDBTable).getField(mDBField);
-      const CDBFieldValues & ValueListMap = mpSelector->getDBFieldValues();
+      const CDBFieldValues & ValueListMap = mpSelector->activeContent().dBFieldValues;
       CDBFieldValues::const_iterator found = ValueListMap.find(Field.getType());
 
       if (found != ValueListMap.end())

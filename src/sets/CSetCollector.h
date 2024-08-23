@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2023 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -237,6 +237,8 @@ inline bool CSetCollector< element_type, selector >::apply()
   if (pIn != &Set)
     Set = temp;
 
+  mpSelector->activeContent().sync();
+  
   CLogger::debug("CSetCollector::apply: returned '{}' elements.",Set.size());
 
   return true;
@@ -293,13 +295,13 @@ void CSetCollector< element_type, selector >::disable()
 template <> 
 inline std::vector< CNode * > & CSetCollector< CNode, CNodeElementSelector >::getSet() const
 {
-  return mpSelector->getNodes();
+  return mpSelector->activeContent().mNodes;
 }
 
 template <> 
 inline std::vector< CEdge * > & CSetCollector< CEdge, CEdgeElementSelector >::getSet() const
 {
-  return mpSelector->getEdges();
+  return mpSelector->activeContent().edges;
 }
 
 template <> 

@@ -56,15 +56,15 @@ public:
   virtual bool filter(const CEdge * pEdge) const override;
 
 protected:
-  virtual bool computeProtected() override;
+  virtual bool computeSetContent() override;
 
   virtual bool lessThanProtected(const CSetContent & rhs) const override;
+
+  virtual void setScopeProtected() override;
 
 private:
   bool all();
   bool propertySelection();
-  bool propertyIn();
-  bool propertyNotIn();
   bool withTargetNodeIn();
   bool withTargetNodeNotIn();
   bool withSourceNodeIn();

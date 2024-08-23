@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -36,7 +36,6 @@ CSet * CSet::empty()
 {
   CSet * pEmpty = new CSet();
   pEmpty->mId = "%empty%";
-  pEmpty->mType = Type::local;
   pEmpty->mValid = true;
   pEmpty->mStatic = true;
 
@@ -47,7 +46,6 @@ CSet::CSet()
   : CSetContent(CSetContent::Type::set)
   , CAnnotation()
   , mId()
-  , mType()
   , mpSetContent(NULL)
 {}
 
@@ -55,7 +53,6 @@ CSet::CSet(const CSet & src)
   : CSetContent(src)
   , CAnnotation(src)
   , mId(src.mId)
-  , mType(src.mType)
   , mpSetContent(src.mpSetContent)
 {}
 
@@ -63,7 +60,6 @@ CSet::CSet(const json_t * json)
   : CSetContent(CSetContent::Type::set)
   , CAnnotation()
   , mId()
-  , mType()
   , mpSetContent(NULL)
 {
   CSetContent::fromJSON(json);
@@ -119,18 +115,6 @@ void CSet::fromJSONProtected(const json_t * json)
 
   CAnnotation::fromJSON(json);
 
-  pValue = json_object_get(json, "scope");
-
-  if (json_is_string(pValue))
-    {
-      mType = std::string(json_string_value(pValue)) == "global" ? Type::global : Type::local;
-    }
-  else
-    {
-      CLogger::error("Set: Invalid or missing value for 'scope'.");
-      return;
-    }
-
   pValue = json_object_get(json, "content");
 
   if (json_is_object(pValue))
@@ -159,17 +143,20 @@ bool CSet::lessThanProtected(const CSetContent & rhs) const
   if (mId != pRhs->mId)  
     return mId < pRhs->mId;
 
-  if (mType != pRhs->mType)  
-    return mType < pRhs->mType;
-
   return mpSetContent < pRhs->mpSetContent;
 }
 
 // virtual
-bool CSet::computeProtected()
+bool CSet::computeSetContent()
 {
   CLogger::debug("CSet: No operation.");
   return true;
+}
+
+// virtual
+void CSet::setScopeProtected()
+{
+  mpSetContent->setScope(Scope::global);
 }
 
 // virtual 

@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -122,6 +122,9 @@ bool CSetReference::resolve()
           && (*it)->mpSet->isValid())
         {
           (*it)->mPrerequisites.insert((*it)->mpSet);
+
+          if ((*it)->getScope() == Scope::global)
+            (*it)->setScopeProtected();
         }
       else
         {
@@ -132,14 +135,22 @@ bool CSetReference::resolve()
         }
     }
 
+  UnResolved.clear();
   return success;
 }
 
 // virtual
-bool CSetReference::computeProtected()
+bool CSetReference::computeSetContent()
 {
   CLogger::debug("CSetReference: No operation.");
   return true;
+}
+
+// virtual
+void CSetReference::setScopeProtected()
+{
+  if (mpSet != nullptr)
+    mpSet->setScope(Scope::global);
 }
 
 // virtual 

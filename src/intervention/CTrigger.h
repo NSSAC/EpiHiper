@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -32,6 +32,7 @@
 #include "utilities/CAnnotation.h"
 #include "utilities/CCommunicate.h"
 #include "actions/CConditionDefinition.h"
+#include "intervention/CIntervention.h"
 
 class CIntervention;
 struct json_t;
@@ -39,6 +40,8 @@ struct json_t;
 class CTrigger : public CAnnotation
 {
 public:
+  friend void CIntervention::fromJSON(const json_t *);
+
   static std::vector< CTrigger * > INSTANCES;
 
   static bool * pGlobalTriggered;
@@ -70,6 +73,8 @@ public:
   const bool & isValid() const;
 
 private:
+  void addIntervention(const std::string & id, CIntervention * pIntervention);
+
   CConditionDefinition mCondition;
   std::map< std::string, CIntervention * > mInterventions;
   bool mIsLocalTrue;

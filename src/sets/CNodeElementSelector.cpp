@@ -57,7 +57,6 @@ CNodeElementSelector::CNodeElementSelector()
   , mpDBFieldValueList(NULL)
   , mpComparison(NULL)
   , mSQLComparison("")
-  , mLocalScope(true)
   , mpCompute(NULL)
   , mpFilter(NULL)
   , mpCollector(NULL)
@@ -77,7 +76,6 @@ CNodeElementSelector::CNodeElementSelector(const CNodeElementSelector & src)
   , mpDBFieldValueList(src.mpDBFieldValueList != NULL ? new CFieldValueList(*src.mpDBFieldValueList) : NULL)
   , mpComparison(src.mpComparison)
   , mSQLComparison(src.mSQLComparison)
-  , mLocalScope(src.mLocalScope)
   , mpCompute(src.mpCompute)
   , mpFilter(src.mpFilter)
   , mpCollector(src.mpCollector)
@@ -97,7 +95,6 @@ CNodeElementSelector::CNodeElementSelector(const json_t * json)
   , mpDBFieldValueList(NULL)
   , mpComparison(NULL)
   , mSQLComparison("")
-  , mLocalScope(true)
   , mpCompute(NULL)
   , mpFilter(NULL)
   , mpCollector(NULL)
@@ -127,27 +124,25 @@ CNodeElementSelector::~CNodeElementSelector()
 void CNodeElementSelector::fromJSONProtected(const json_t * json)
 {
   /*
-  "nodeElementSelector": {
+    "nodeElementSelector": {
       "$id": "#nodeElementSelector",
+      "title": "nodeElementSelector",
+      "$$target": [
+        "#/definitions/nodeElementSelector"
+      ],
       "description": "The specification of node elements of a set.",
       "type": "object",
       "allOf": [
         {
           "type": "object",
           "required": [
-            "elementType",
-            "scope"
+            "elementType"
           ],
           "properties": {
             "elementType": {
               "type": "string",
-              "enum": ["node"]
-            },
-            "scope": {
-              "type": "string",
               "enum": [
-                "local",
-                "global"
+                "node"
               ]
             }
           }
@@ -161,15 +156,23 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
                 "right"
               ],
               "properties": {
-                "operator": {"$ref": "#/definitions/comparisonOperator"},
+                "operator": {
+                  "$ref": "#/definitions/comparisonOperator"
+                },
                 "left": {
                   "type": "object",
-                  "required": ["node"],
+                  "required": [
+                    "node"
+                  ],
                   "properties": {
-                    "node": {"$ref": "#/definitions/nodeProperty"}
+                    "node": {
+                      "$ref": "#/definitions/nodeProperty"
+                    }
                   }
                 },
-                "right": {"$ref": "#/definitions/value"}
+                "right": {
+                  "$ref": "#/definitions/value"
+                }
               }
             },
             {
@@ -191,9 +194,13 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
                 },
                 "left": {
                   "type": "object",
-                  "required": ["node"],
+                  "required": [
+                    "node"
+                  ],
                   "properties": {
-                    "node": {"$ref": "#/definitions/nodeProperty"}
+                    "node": {
+                      "$ref": "#/definitions/nodeProperty"
+                    }
                   }
                 },
                 "right": {
@@ -218,79 +225,134 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
                 "operator": {
                   "description": "",
                   "type": "string",
-                  "enum": ["withIncomingEdgeIn"]
+                  "enum": [
+                    "withIncomingEdgeIn"
+                  ]
                 },
-                "selector": {"$ref": "#/definitions/setContent"}
+                "selector": {
+                  "$ref": "#/definitions/setContent"
+                }
               }
             },
             {
-              "description": "A filter selecting nodes from the external person trait database.",
-              "oneOf": [
-                {
-                  "description": "A table in the external person trait database.",
-                  "type": "object",
-                  "required": ["table"],
-                  "properties": {
-                    "table": {"$ref": "#/definitions/uniqueIdRef"}
-                  }
-                },
-                {
-                  "description": "A filter returning nodes if the result of comparing left and right values with the operator is true.",
-                  "required": [
-                    "operator",
-                    "left",
-                    "right"
-                  ],
-                  "properties": {
-                    "operator": {"$ref": "#/definitions/comparisonOperator"},
-                    "left": {"$ref": "#/definitions/dbField"},
-                    "right": {
-                      "type": "object",
-                      "description": "",
-                      "oneOf": [
-                        {"$ref": "#/definitions/dbFieldValue"},
-                        {"$ref": "#/definitions/observable"}
-                      ]
-                    }
-                  }
-                },
-                {
-                  "description": "A filter returning nodes if the left field value is or is not in the right list.",
-                  "required": [
-                    "operator",
-                    "left",
-                    "right"
-                  ],
-                  "properties": {
-                    "operator": {
-                      "description": "",
-                      "type": "string",
-                      "enum": [
-                        "in",
-                        "not in"
-                      ]
-                    },
-                    "left": {"$ref": "#/definitions/dbField"},
-                    "right": {
-                      "type": "object",
-                      "description": "",
-                      "oneOf": [
-                        {"$ref": "#/definitions/dbFieldValueList"},
-                        {"$ref": "#/definitions/dbFieldValueSelector"}
-                      ]
-                    }
-                  }
-                }
-              ]
+              "$ref": "#/definitions/dbSimpleQuery"
             }
           ]
         }
       ]
-    }
+    },
+    "dbSimpleQuery": {
+      "$id": "#dbSimpleQuery",
+      "title": "dbSimpleQuery",
+      "$$target": [
+        "#/definitions/dbSimpleQuery"
+      ],
+      "description": "A db query returning one field based on a simple constraint, i.e., no and and or in the where clause.",
+      "oneOf": [
+        {
+          "description": "A filter selecting nodes from the external person trait database.",
+          "oneOf": [
+            {
+              "description": "A table in the external person trait database.",
+              "type": "object",
+              "required": [
+                "table"
+              ],
+              "properties": {
+                "table": {
+                  "$ref": "#/definitions/uniqueIdRef"
+                }
+              }
+            },
+            {
+              "description": "A filter returning nodes if the result of comparing left and right values with the operator is true.",
+              "required": [
+                "operator",
+                "left",
+                "right"
+              ],
+              "properties": {
+                "operator": {
+                  "$ref": "#/definitions/comparisonOperator"
+                },
+                "left": {
+                  "$ref": "#/definitions/dbField"
+                },
+                "right": {
+                  "type": "object",
+                  "description": "",
+                  "oneOf": [
+                    {
+                      "$ref": "#/definitions/dbFieldValue"
+                    },
+                    {
+                      "$ref": "#/definitions/observable"
+                    },
+                    {
+                      "$ref": "#/definitions/variableReference"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "description": "A filter returning nodes if the left field value is or is not in the right list.",
+              "required": [
+                "operator",
+                "left",
+                "right"
+              ],
+              "properties": {
+                "operator": {
+                  "description": "",
+                  "type": "string",
+                  "enum": [
+                    "in",
+                    "not in"
+                  ]
+                },
+                "left": {
+                  "$ref": "#/definitions/dbField"
+                },
+                "right": {
+                  "type": "object",
+                  "description": "",
+                  "oneOf": [
+                    {
+                      "$ref": "#/definitions/dbFieldValueList"
+                    },
+                    {
+                      "$ref": "#/definitions/dbFieldValueSelector"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
   */
 
   mValid = false; // DONE
   mPrerequisites.clear();
+
+  /*
+        {
+          "type": "object",
+          "required": [
+            "elementType"
+          ],
+          "properties": {
+            "elementType": {
+              "type": "string",
+              "enum": [
+                "node"
+              ]
+            }
+          }
+        },
+  */
   json_t * pValue = json_object_get(json, "elementType");
 
   if (json_is_string(pValue)
@@ -301,24 +363,6 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
     }
 
   // mPrerequisites.insert(&CActionQueue::getCurrentTick());
-  pValue = json_object_get(json, "scope");
-
-  if (pValue != NULL
-      && strcmp(json_string_value(pValue), "local") == 0)
-    {
-      mLocalScope = true;
-    }
-  else if (pValue != NULL
-           && strcmp(json_string_value(pValue), "global") == 0)
-    {
-      mLocalScope = false;
-    }
-  else
-    {
-      CLogger::error("Node selector: Invalid or missing value 'scope' for {}", CSimConfig::jsonToString(json));
-      return;
-    }
-
   pValue = json_object_get(json, "operator");
 
   if (pValue != NULL)
@@ -360,42 +404,46 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
                || strcmp(Operator, "not in") == 0)
         {
           /*
-          {
-            "description": "",
-            "required": [
-              "operator",
-              "left",
-              "right"
-            ],
-            "properties": {
-              "operator": {
-                "description": "",
-                "type": "string",
-                   "enum": [
-                     "withPropertyIn",
-                     "in",
-                     "not in"
-                   ]
-              },
-              "left": {
-                "type": "object",
-                "required": ["node"],
-                "properties": {
-                  "node": {"$ref": "#/definitions/nodeProperty"}
-                }
-              },
-              "right": {
-                "oneOf": [
-                  {
-                    "$ref": "#/definitions/valueList"
-                  },
-                  {
-                    "$ref": "#/definitions/setContent"
+            {
+              "description": "",
+              "required": [
+                "operator",
+                "left",
+                "right"
+              ],
+              "properties": {
+                "operator": {
+                  "description": "",
+                  "type": "string",
+                  "enum": [
+                    "withPropertyIn",
+                    "in",
+                    "not in"
+                  ]
+                },
+                "left": {
+                  "type": "object",
+                  "required": [
+                    "node"
+                  ],
+                  "properties": {
+                    "node": {
+                      "$ref": "#/definitions/nodeProperty"
+                    }
                   }
-                ]
+                },
+                "right": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/definitions/valueList"
+                    },
+                    {
+                      "$ref": "#/definitions/setContent"
+                    }
+                  ]
+                }
               }
-            }
-          },
+            },
           */
 
           mNodeProperty.fromJSON(json_object_get(json, "left"));
@@ -412,12 +460,12 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
                     {
                       if (strcmp(Operator, "not in") == 0)
                         {
-                          mpCompute = &CNodeElementSelector::propertyNotIn;
+                          mpCompute = &CNodeElementSelector::propertySelection;
                           mpFilter = &CNodeElementSelector::filterPropertyNotIn;
                         }
                       else
                         {
-                          mpCompute = &CNodeElementSelector::propertyIn;
+                          mpCompute = &CNodeElementSelector::propertySelection;
                           mpFilter = &CNodeElementSelector::filterPropertyIn;
                         }
 
@@ -426,7 +474,8 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
                           mPrerequisites.insert(&CActionQueue::getCurrentTick());
 
 #ifdef USE_CSETCOLLECTOR
-                          if (mLocalScope)
+                          // TODO CRITICAL This will always be true we need to revert this setting when the scope is set to global. 
+                          if (mScope == Scope::local)
                             {
                               mpCollector = std::shared_ptr< CSetCollectorInterface >(new CSetCollector< CNode, CNodeElementSelector >(this));
                               mNodeProperty.registerSetCollector(mpCollector);
@@ -486,7 +535,7 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
         }
       else if (strcmp(Operator, "withIncomingEdgeIn") == 0)
         {
-          if (!mLocalScope)
+          if (mScope == Scope::global)
             {
               CLogger::error("Node selector: Invalid or missing value 'scope' for {}", CSimConfig::jsonToString(json));
               return;
@@ -503,12 +552,16 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
                 "operator": {
                   "description": "",
                   "type": "string",
-                  "enum": ["withIncomingEdgeIn"]
+                  "enum": [
+                    "withIncomingEdgeIn"
+                  ]
                 },
-                "selector": {"$ref": "#/definitions/setContent"}
+                "selector": {
+                  "$ref": "#/definitions/setContent"
+                }
               }
             },
-              */
+          */
           // We need to identify that we have this case
           mpSelector = CSetContent::create(json_object_get(json, "selector"));
 
@@ -543,12 +596,16 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
             {
               "description": "A table in the external person trait database.",
               "type": "object",
-              "required": ["table"],
+              "required": [
+                "table"
+              ],
               "properties": {
-                "table": {"$ref": "#/definitions/uniqueIdRef"}
+                "table": {
+                  "$ref": "#/definitions/uniqueIdRef"
+                }
               }
             },
-           */
+          */
           CConnection::setRequired(true);
           mpCompute = &CNodeElementSelector::dbAll;
           mValid = true;
@@ -556,12 +613,6 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
         }
       else
         {
-          if (!mLocalScope)
-            {
-              CLogger::error("Node selector: Invalid or missing value 'scope' for {}", CSimConfig::jsonToString(json));
-              return;
-            }
-
           mpCompute = &CNodeElementSelector::all;
           mValid = true;
           return;
@@ -682,18 +733,26 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
             "right"
           ],
           "properties": {
-            "operator": {"$ref": "#/definitions/comparisonOperator"},
+            "operator": {
+              "$ref": "#/definitions/comparisonOperator"
+            },
             "left": {
               "type": "object",
-              "required": ["node"],
+              "required": [
+                "node"
+              ],
               "properties": {
-                "node": {"$ref": "#/definitions/nodeProperty"}
+                "node": {
+                  "$ref": "#/definitions/nodeProperty"
+                }
               }
             },
-            "right": {"$ref": "#/definitions/value"}
+            "right": {
+              "$ref": "#/definitions/value"
+            }
           }
-        }
-       */
+        },
+      */
 
       mNodeProperty.fromJSON(json_object_get(json, "left"));
 
@@ -712,7 +771,8 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
                   mPrerequisites.insert(&CActionQueue::getCurrentTick());
 
 #ifdef USE_CSETCOLLECTOR
-                  if (mLocalScope)
+                  // TODO CRITICAL This will always be true we need to revert this setting when the scope is set to global. 
+                  if (mScope == Scope::local)
                     {
                       mpCollector = std::shared_ptr< CSetCollectorInterface >(new CSetCollector< CNode, CNodeElementSelector >(this));
                       mNodeProperty.registerSetCollector(mpCollector);
@@ -737,19 +797,30 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
             "right"
           ],
           "properties": {
-            "operator": {"$ref": "#/definitions/comparisonOperator"},
-            "left": {"$ref": "#/definitions/dbField"},
+            "operator": {
+              "$ref": "#/definitions/comparisonOperator"
+            },
+            "left": {
+              "$ref": "#/definitions/dbField"
+            },
             "right": {
               "type": "object",
               "description": "",
               "oneOf": [
-                {"$ref": "#/definitions/dbFieldValue"},
-                {"$ref": "#/definitions/observable"}
+                {
+                  "$ref": "#/definitions/dbFieldValue"
+                },
+                {
+                  "$ref": "#/definitions/observable"
+                },
+                {
+                  "$ref": "#/definitions/variableReference"
+                }
               ]
             }
           }
         },
-       */
+      */
 
       json_t * pLeft = json_object_get(json, "left");
 
@@ -918,9 +989,6 @@ bool CNodeElementSelector::lessThanProtected(const CSetContent & rhs) const
   if (mSQLComparison != pRhs->mSQLComparison)  
     return mSQLComparison < pRhs->mSQLComparison;
 
-  if (mLocalScope != pRhs->mLocalScope)  
-    return mLocalScope < pRhs->mLocalScope;
-
   return pointerLessThan(mpCompute, pRhs->mpCompute);
 }
 
@@ -934,7 +1002,7 @@ void CNodeElementSelector::determineIsStatic()
 }
 
 // virtual
-bool CNodeElementSelector::computeProtected()
+bool CNodeElementSelector::computeSetContent()
 {
   if (mValid)
     {
@@ -951,6 +1019,28 @@ bool CNodeElementSelector::computeProtected()
 
   return false;
 }
+
+// virtual
+void CNodeElementSelector::setScopeProtected()
+{
+  if (mpCollector)
+    {
+      mNodeProperty.deregisterSetCollector(mpCollector);
+      mpCollector.reset();
+    }
+
+  if (mpSelector)
+    {
+      if (mpCompute == &CNodeElementSelector::withIncomingEdgeIn
+          || mpCompute == &CNodeElementSelector::withIncomingEdgeNotIn)
+        {
+          CLogger::error("CNodeElementSelector::setScopeProtected: Invalid scope 'global' required for property 'edges'.");
+        }
+
+      mpSelector->setScope(Scope::global);
+    }
+}
+
 
 // virtual 
 CSetContent::FilterType CNodeElementSelector::filterType() const
@@ -970,17 +1060,42 @@ bool CNodeElementSelector::filter(const CNode * pNode) const
 
 bool CNodeElementSelector::all()
 {
-  std::vector< CNode * > & Nodes = getNodes();
+  std::vector< CNode * > & Nodes = activeContent().mNodes;
 
   if (Nodes.empty())
     {
-      Nodes.resize(CNetwork::Context.Active().getLocalNodeCount());
-      CNode * pNode = CNetwork::Context.Active().beginNode();
+      CNetwork & Active = CNetwork::Context.Active();
+      size_t Size = Active.getLocalNodeCount();
+
+      if (mScope == Scope::global)
+        Size += Active.getRemoteNodes().size();
+
+      Nodes.resize(Size);
       std::vector< CNode * >::iterator it = Nodes.begin();
       std::vector< CNode * >::iterator end = Nodes.end();
 
-      for (; it != end; ++it, ++pNode)
-        *it = pNode;
+      std::map< size_t, CNode * >::const_iterator itRemoteNodes = Active.beginRemoteNodes();
+      std::map< size_t, CNode * >::const_iterator endRemoteNodes = Active.endRemoteNodes();
+      
+      CNode * pLocalNode = Active.beginNode();
+      CNode * pLocalNodeEnd = pLocalNode + Active.getLocalNodeCount();
+
+      if (mScope == Scope::global)
+        {
+          for (; itRemoteNodes != endRemoteNodes && itRemoteNodes->first < pLocalNode->id; ++itRemoteNodes, ++it)
+            *it = itRemoteNodes->second;
+        }
+
+      for (; pLocalNode != pLocalNodeEnd; ++pLocalNode, ++it)
+        *it = pLocalNode;
+
+      if (mScope == Scope::global)
+        {
+          for (; itRemoteNodes != endRemoteNodes; ++itRemoteNodes, ++it)
+            *it = itRemoteNodes->second;
+        }
+
+      assert (it == end);
     }
 
   CLogger::debug("CNodeElementSelector: all returned '{}' nodes.", Nodes.size());
@@ -989,37 +1104,29 @@ bool CNodeElementSelector::all()
 
 bool CNodeElementSelector::propertySelection()
 {
-  std::vector< CNode * > & Nodes = getNodes();
-  Nodes.clear();
+  std::vector< CNode * > & Nodes = activeContent().mNodes;
 
+  std::map< size_t, CNode * >::const_iterator it = CNetwork::Context.Active().beginRemoteNodes();
+  std::map< size_t, CNode * >::const_iterator end = CNetwork::Context.Active().endRemoteNodes();
   CNode * pNode = CNetwork::Context.Active().beginNode();
   CNode * pNodeEnd = CNetwork::Context.Active().endNode();
+  CNode * pFirstLocalNode = pNode;
+
+  if (mScope == Scope::global)
+    for (; it != end && it->second < pFirstLocalNode; ++it)
+      if ((this->*mpFilter)(it->second))
+        Nodes.push_back(const_cast< CNode * >(it->second));
 
   for (; pNode != pNodeEnd; ++pNode)
-    if (filterPropertySelection(pNode))
+    if ((this->*mpFilter)(pNode))
       Nodes.push_back(pNode);
 
+  if (mScope == Scope::global)
+    for (; it != end; ++it)
+      if ((this->*mpFilter)(it->second))
+        Nodes.push_back(const_cast< CNode * >(it->second));
+
   CLogger::debug("CNodeElementSelector: propertySelection returned '{}' nodes.", Nodes.size());
-
-  if (!mLocalScope)
-    {
-      CLogger::debug("CNodeElementSelector: Processing remote nodes");
-      std::map< size_t, CNode * >::const_iterator it = CNetwork::Context.Active().beginRemoteNodes();
-      std::map< size_t, CNode * >::const_iterator end = CNetwork::Context.Active().endRemoteNodes();
-      bool sort = false;
-
-      for (; it != end; ++it)
-        if (filterPropertySelection(it->second))
-          {
-            Nodes.push_back(const_cast< CNode * >(it->second));
-            sort = true;
-          }
-
-      if (sort)
-        std::sort(Nodes.begin(), Nodes.end());
-
-      CLogger::debug("CNodeElementSelector: propertySelection returned '{}' nodes.", Nodes.size());
-    }
 
   return true;
 }
@@ -1029,84 +1136,9 @@ bool CNodeElementSelector::filterPropertySelection(const CNode * pNode) const
   return mpComparison(mNodeProperty.propertyOf(pNode), *mpValue);
 }
 
-bool CNodeElementSelector::propertyIn()
-{
-  std::vector< CNode * > & Nodes = getNodes();
-  Nodes.clear();
-
-  CNode * pNode = CNetwork::Context.Active().beginNode();
-  CNode * pNodeEnd = CNetwork::Context.Active().endNode();
-
-  for (; pNode != pNodeEnd; ++pNode)
-    if (mpValueList->contains(mNodeProperty.propertyOf(pNode)))
-      Nodes.push_back(pNode);
-
-  CLogger::debug("CNodeElementSelector: propertyIn returned '{}' nodes.", Nodes.size());
-
-  if (!mLocalScope)
-    {
-      CLogger::debug("CNodeElementSelector: Processing remote nodes");
-
-      std::map< size_t, CNode * >::const_iterator it = CNetwork::Context.Active().beginRemoteNodes();
-      std::map< size_t, CNode * >::const_iterator end = CNetwork::Context.Active().endRemoteNodes();
-      bool sort = false;
-
-      for (; it != end; ++it)
-        if (filterPropertyIn(it->second))
-          {
-            Nodes.push_back(const_cast< CNode * >(it->second));
-            sort = true;
-          }
-
-      if (sort)
-        std::sort(Nodes.begin(), Nodes.end());
-
-      CLogger::debug("CNodeElementSelector: propertyIn returned '{}' nodes.", Nodes.size());
-    }
-  return true;
-}
-
 bool CNodeElementSelector::filterPropertyIn(const CNode * pNode) const
 {
   return mpValueList->contains(mNodeProperty.propertyOf(pNode));
-}
-
-bool CNodeElementSelector::propertyNotIn()
-{
-  std::vector< CNode * > & Nodes = getNodes();
-  Nodes.clear();
-
-  CNode * pNode = CNetwork::Context.Active().beginNode();
-  CNode * pNodeEnd = CNetwork::Context.Active().endNode();
-
-  for (; pNode != pNodeEnd; ++pNode)
-    if (!mpValueList->contains(mNodeProperty.propertyOf(pNode)))
-      Nodes.push_back(pNode);
-
-  CLogger::debug("CNodeElementSelector: propertyNotIn returned '{}' nodes.", Nodes.size());
-
-  if (!mLocalScope)
-    {
-      CLogger::debug("CNodeElementSelector: Processing remote nodes");
-
-      std::map< size_t, CNode * >::const_iterator it = CNetwork::Context.Active().beginRemoteNodes();
-      std::map< size_t, CNode * >::const_iterator end = CNetwork::Context.Active().endRemoteNodes();
-      bool sort = false;
-
-      for (; it != end; ++it)
-        if (filterPropertyNotIn(it->second))
-          {
-            Nodes.push_back(const_cast< CNode * >(it->second));
-            sort = true;
-          }
-
-      if (sort)
-        std::sort(Nodes.begin(), Nodes.end());
-
-      CLogger::debug("CNodeElementSelector: propertyNotIn returned '{}' nodes.", Nodes.size());
-    }
-
-  return true;
 }
 
 bool CNodeElementSelector::filterPropertyNotIn(const CNode * pNode) const
@@ -1116,12 +1148,10 @@ bool CNodeElementSelector::filterPropertyNotIn(const CNode * pNode) const
 
 bool CNodeElementSelector::withIncomingEdgeIn()
 {
-  std::vector< CNode * > & Nodes = getNodes();
-  Nodes.clear();
-
+  std::vector< CNode * > & Nodes = activeContent().mNodes;
+  const std::vector< CEdge * > Edges = mpSelector->activeContent().edges;
   CNode * pNode = NULL;
 
-  const std::vector< CEdge * > Edges = mpSelector->getEdges();
   CLogger::debug("CNodeElementSelector: withIncomingEdgeNotIn edges {}", Edges.size());
 
   if (!Edges.empty())
@@ -1145,10 +1175,9 @@ bool CNodeElementSelector::withIncomingEdgeIn()
 
 bool CNodeElementSelector::withIncomingEdgeNotIn()
 {
-  std::vector< CNode * > & Nodes = getNodes();
-  Nodes.clear();
+  std::vector< CNode * > & Nodes = activeContent().mNodes;
+  const std::vector< CEdge * > Edges = mpSelector->activeContent().edges;
 
-  const std::vector< CEdge * > Edges = mpSelector->getEdges();
   CLogger::debug("CNodeElementSelector: withIncomingEdgeNotIn edges {}", Edges.size());
   
   if (!Edges.empty())
@@ -1192,24 +1221,22 @@ bool CNodeElementSelector::withIncomingEdgeNotIn()
 
 bool CNodeElementSelector::dbAll()
 {
-  std::vector< CNode * > & Nodes = getNodes();
-  Nodes.clear();
+  std::vector< CNode * > & Nodes = activeContent().mNodes;
 
   CFieldValueList FieldValueList;
-  bool success = CQuery::all(mDBTable, "pid", FieldValueList, mLocalScope);
+  bool success = CQuery::all(mDBTable, "pid", FieldValueList, mScope == Scope::local);
 
   CFieldValueList::const_iterator it = FieldValueList.begin();
   CFieldValueList::const_iterator end = FieldValueList.end();
   CNode * pNode;
+  CNetwork Active = CNetwork::Context.Active();
 
   for (; it != end; ++it)
     {
-      if ((pNode = CNetwork::Context.Active().lookupNode(it->toId(), mLocalScope)) != NULL)
+      if ((pNode = Active.lookupNode(it->toId(), mScope == Scope::local)) != NULL)
         Nodes.push_back(pNode);
     }
 
-  if (!mLocalScope)
-    std::sort(Nodes.begin(), Nodes.end());
 
   CLogger::debug("CNodeElementSelector: dbAll returned '{}' nodes.", Nodes.size());
   return success;
@@ -1218,17 +1245,16 @@ bool CNodeElementSelector::dbAll()
 bool CNodeElementSelector::dbSelection()
 {
   bool success = false;
-  std::vector< CNode * > & Nodes = getNodes();
-  Nodes.clear();
+  std::vector< CNode * > & Nodes = activeContent().mNodes;
 
   CFieldValueList FieldValueList;
 
   if (mpObservable)
-    success = CQuery::where(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpObservable, mSQLComparison);
+    success = CQuery::where(mDBTable, "pid", FieldValueList, mScope == Scope::local, mDBField, *mpObservable, mSQLComparison);
   else if (mpVariable)
-    success = CQuery::where(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, mpVariable->toValue(), mSQLComparison);
+    success = CQuery::where(mDBTable, "pid", FieldValueList, mScope == Scope::local, mDBField, mpVariable->toValue(), mSQLComparison);
   else
-    success = CQuery::where(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpDBFieldValue, mSQLComparison);
+    success = CQuery::where(mDBTable, "pid", FieldValueList, mScope == Scope::local, mDBField, *mpDBFieldValue, mSQLComparison);
 
   CFieldValueList::const_iterator it = FieldValueList.begin();
   CFieldValueList::const_iterator end = FieldValueList.end();
@@ -1236,11 +1262,11 @@ bool CNodeElementSelector::dbSelection()
 
   for (; it != end; ++it)
     {
-      if ((pNode = CNetwork::Context.Active().lookupNode(it->toId(), mLocalScope)) != NULL)
+      if ((pNode = CNetwork::Context.Active().lookupNode(it->toId(), mScope == Scope::local)) != NULL)
         Nodes.push_back(pNode);
     }
 
-  if (!mLocalScope)
+  if (mScope == Scope::global)
     std::sort(Nodes.begin(), Nodes.end());
 
   CLogger::debug("CNodeElementSelector: dbSelection returned '{}' nodes.", Nodes.size());
@@ -1250,21 +1276,20 @@ bool CNodeElementSelector::dbSelection()
 bool CNodeElementSelector::dbIn()
 {
   bool success = false;
-  std::vector< CNode * > & Nodes = getNodes();
-  Nodes.clear();
+  std::vector< CNode * > & Nodes = activeContent().mNodes;
 
   CFieldValueList FieldValueList;
 
   if (mpDBFieldValueList != NULL)
-    success = CQuery::in(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpDBFieldValueList);
+    success = CQuery::in(mDBTable, "pid", FieldValueList, mScope == Scope::local, mDBField, *mpDBFieldValueList);
   else
     {
       CField Field = CSchema::INSTANCE.getTable(mDBTable).getField(mDBField);
-      const CDBFieldValues & ValueListMap = mpSelector->getDBFieldValues();
+      const CDBFieldValues & ValueListMap = mpSelector->activeContent().dBFieldValues;
       CDBFieldValues::const_iterator found = ValueListMap.find(Field.getType());
 
       if (found != ValueListMap.end())
-        success = CQuery::in(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, found->second);
+        success = CQuery::in(mDBTable, "pid", FieldValueList, mScope == Scope::local, mDBField, found->second);
     }
 
   CFieldValueList::const_iterator it = FieldValueList.begin();
@@ -1273,11 +1298,11 @@ bool CNodeElementSelector::dbIn()
 
   for (; it != end; ++it)
     {
-      if ((pNode = CNetwork::Context.Active().lookupNode(it->toId(), mLocalScope)) != NULL)
+      if ((pNode = CNetwork::Context.Active().lookupNode(it->toId(), mScope == Scope::local)) != NULL)
         Nodes.push_back(pNode);
     }
 
-  if (!mLocalScope)
+  if (mScope == Scope::global)
     std::sort(Nodes.begin(), Nodes.end());
 
   CLogger::debug("CNodeElementSelector: dbIn returned '{}' nodes.", Nodes.size());
@@ -1287,21 +1312,20 @@ bool CNodeElementSelector::dbIn()
 bool CNodeElementSelector::dbNotIn()
 {
   bool success = false;
-  std::vector< CNode * > & Nodes = getNodes();
-  Nodes.clear();
+  std::vector< CNode * > & Nodes = activeContent().mNodes;
 
   CFieldValueList FieldValueList;
 
   if (mpDBFieldValueList != NULL)
-    success = CQuery::notIn(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, *mpDBFieldValueList);
+    success = CQuery::notIn(mDBTable, "pid", FieldValueList, mScope == Scope::local, mDBField, *mpDBFieldValueList);
   else
     {
       CField Field = CSchema::INSTANCE.getTable(mDBTable).getField(mDBField);
-      const CDBFieldValues & ValueListMap = mpSelector->getDBFieldValues();
+      const CDBFieldValues & ValueListMap = mpSelector->activeContent().dBFieldValues;
       CDBFieldValues::const_iterator found = ValueListMap.find(Field.getType());
 
       if (found != ValueListMap.end())
-        success = CQuery::notIn(mDBTable, "pid", FieldValueList, mLocalScope, mDBField, found->second);
+        success = CQuery::notIn(mDBTable, "pid", FieldValueList, mScope == Scope::local, mDBField, found->second);
     }
 
   CFieldValueList::const_iterator it = FieldValueList.begin();
@@ -1310,11 +1334,11 @@ bool CNodeElementSelector::dbNotIn()
 
   for (; it != end; ++it)
     {
-      if ((pNode = CNetwork::Context.Active().lookupNode(it->toId(), mLocalScope)) != NULL)
+      if ((pNode = CNetwork::Context.Active().lookupNode(it->toId(), mScope == Scope::local)) != NULL)
         Nodes.push_back(pNode);
     }
 
-  if (!mLocalScope)
+  if (mScope == Scope::global)
     std::sort(Nodes.begin(), Nodes.end());
 
   CLogger::debug("CNodeElementSelector: dbNotIn returned '{}' nodes.", Nodes.size());

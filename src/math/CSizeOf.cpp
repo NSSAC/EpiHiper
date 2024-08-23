@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -28,6 +28,7 @@
 
 #include "math/CSizeOf.h"
 #include "sets/CSetContent.h"
+#include "sets/CSetReference.h"
 #include "utilities/CLogger.h"
 #include "utilities/CSimConfig.h"
  
@@ -53,6 +54,21 @@ CSizeOf::shared_pointer CSizeOf::FromJSON(const json_t * json )
   shared_pointer New(pNew);
 
   return *Unique.insert(New).first;
+}
+
+// static 
+size_t CSizeOf::Set(const std::string & idRef)
+{
+  std::string JSON = "{\"sizeof\": {\"set\": {\"idRef\": \"" + idRef + "\"}}}";
+
+  json_error_t error;
+  json_t * pJson = json_loads(JSON.c_str(), 0, &error);
+
+  CSizeOf Tmp(pJson);
+  CSetReference::resolve();
+  Tmp.computeProtected();
+
+  return Tmp.toNumber();  
 }
 
 CSizeOf::CSizeOf()

@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -261,7 +261,7 @@ void CTrigger::fromJSON(const json_t * json)
 
         if (mInterventions[Id] == NULL)
           {
-            CLogger::error("Trigger ({}): Invalid id for item '{}'.", mAnnId, i);
+            CLogger::error("Trigger ({}): Invalid id '{}' for item '{}'.", mAnnId, Id, i);
             return;
           }
       }
@@ -272,5 +272,10 @@ void CTrigger::fromJSON(const json_t * json)
 const bool & CTrigger::isValid() const
 {
   return mValid;
+}
+
+void CTrigger::addIntervention(const std::string & id, CIntervention * pIntervention)
+{
+  mInterventions[id] = pIntervention;
 }
 
