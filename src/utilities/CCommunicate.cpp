@@ -193,7 +193,9 @@ int CCommunicate::finalize(void)
 #ifdef USE_MPI  
   if (MPIWinSize)
     {
-      MPI_Win_free(&MPIWin);
+      if (MPIProcesses > 1)
+        MPI_Win_free(&MPIWin);
+        
       MPIWinSize = 0;
 
       if (MPIRank == 0)
@@ -725,6 +727,19 @@ int CCommunicate::roundRobin(SendInterface * pSend,
 // static
 int CCommunicate::allocateRMA()
 {
+  if (MPIWinSize)
+    {
+#ifdef USE_MPI
+      if (MPIProcesses > 1)
+        MPI_Win_free(&MPIWin);
+#endif // USE_MPI
+        
+      MPIWinSize = 0;
+
+      if (MPIRank == 0)
+        delete[] RMABuffer;
+    }
+
   MPIWinSize = RMAIndex;
   int result = (int) ErrorCode::Success;
 
@@ -734,15 +749,18 @@ int CCommunicate::allocateRMA()
         {
           /* Everyone will retrieve from a buffer on root */
           RMABuffer = new double[MPIWinSize];
+          
 #ifdef USE_MPI
-          result = MPI_Win_create(RMABuffer, MPIWinSize, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &MPIWin);
+          if (CCommunicate::MPIProcesses > 1)
+            result = MPI_Win_create(RMABuffer, MPIWinSize * sizeof(double), sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &MPIWin);
 #endif // USE_MPI
         }
       else
         {
           /* Others only retrieve, so these windows can be size 0 */
 #ifdef USE_MPI
-          result = MPI_Win_create(NULL, 0, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &MPIWin);
+          if (CCommunicate::MPIProcesses > 1)
+            result = MPI_Win_create(NULL, 0, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &MPIWin);
 #endif // USE_MPI
         }
 
@@ -765,7 +783,8 @@ int CCommunicate::barrierRMA()
       std::chrono::time_point<std::chrono::steady_clock> Start = std::chrono::steady_clock::now();
 
 #pragma omp single
-      result = MPI_Win_fence(0, MPIWin);
+      if (CCommunicate::MPIProcesses > 1)
+        result = MPI_Win_fence(0, MPIWin);
 
       CLogger::debug("CCommunicate::barrierRMA: duration = '{}' \xc2\xb5s.",std::chrono::nanoseconds(std::chrono::steady_clock::now() - Start).count()/1000);
     }
@@ -780,14 +799,19 @@ double CCommunicate::getRMA(const int & index)
   double Value = std::numeric_limits< double >::quiet_NaN();
 
   if (index < (int) MPIWinSize)
-#pragma omp critical (access_rma)
+#pragma omp critical(access_rma)
     {
+      if (CCommunicate::MPIProcesses > 1)
+        {
 #ifdef USE_MPI
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, MPIWin);
-      MPI_Get(&Value, 1, MPI_DOUBLE, 0, (int) index, 1, MPI_DOUBLE, MPIWin);
-      MPI_Win_flush(0, MPIWin);
-      MPI_Win_unlock(0, MPIWin);
+          MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, MPIWin);
+          MPI_Get(&Value, 1, MPI_DOUBLE, 0, (int) index, 1, MPI_DOUBLE, MPIWin);
+          MPI_Win_flush(0, MPIWin);
+          MPI_Win_unlock(0, MPIWin);
 #endif // USE_MPI
+        }
+      else
+        RMABuffer[index] = Value;
     }
 
   return Value;
@@ -799,23 +823,32 @@ double CCommunicate::updateRMA(const int & index, CCommunicate::Operator pOperat
   double Value = std::numeric_limits< double >::quiet_NaN();
 
   if (index < (int) MPIWinSize)
-#pragma omp critical (access_rma)
     {
+      if (CCommunicate::MPIProcesses > 1)
+        {
 #ifdef USE_MPI
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, MPIWin);
-      MPI_Get(&Value, 1, MPI_DOUBLE, 0, (int) index, 1, MPI_DOUBLE, MPIWin);
-      MPI_Win_flush(0, MPIWin);
+          MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, MPIWin);
+          MPI_Get(&Value, 1, MPI_DOUBLE, 0, (int) index, 1, MPI_DOUBLE, MPIWin);
+          MPI_Win_flush(0, MPIWin);
 #endif // USE_MPI
+        }
+      else
+        Value = RMABuffer[index];
 
       (*pOperator)(Value, value);
 
+      if (CCommunicate::MPIProcesses > 1)
+        {
 #ifdef USE_MPI
-      MPI_Put(&Value, 1, MPI_DOUBLE, 0, (int) index, 1, MPI_DOUBLE, MPIWin);
-      MPI_Win_flush(0, MPIWin);
-      MPI_Win_unlock(0, MPIWin);
+          MPI_Put(&Value, 1, MPI_DOUBLE, 0, (int) index, 1, MPI_DOUBLE, MPIWin);
+          MPI_Win_flush(0, MPIWin);
+          MPI_Win_unlock(0, MPIWin);
 #endif // USE_MPI
+        }
+      else
+        RMABuffer[index] = Value;
     }
-  
+
   return Value;
 }
 

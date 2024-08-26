@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -27,6 +27,7 @@
 #include "actions/COperationDefinition.h"
 #include "actions/COperation.h"
 #include "actions/CConditionDefinition.h"
+#include "actions/CActionEnsemble.h"
 #include "math/CNodeProperty.h"
 #include "math/CEdgeProperty.h"
 #include "math/CObservable.h"
@@ -136,6 +137,10 @@ void COperationDefinition::fromJSON(const json_t * json)
       CLogger::error("Operation: Invalid target '{}'.", CSimConfig::jsonToString(json));
       return;
     }
+
+  if (!CActionEnsemble::inOnce()
+      && mTarget.getType() == CValueInstance::ValueType::Variable)
+    mTarget.variable()->setScope(CVariable::Scope::global);
 
   pValue = json_object_get(json, "operator");
 

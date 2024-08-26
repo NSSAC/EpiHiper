@@ -358,6 +358,7 @@ bool CTrait::fromString(const char * str, CTraitData::base & data) const
   if (!success)
     CLogger::error("CTrait: Invalid trait encoding '{}'.", str);
 
+#pragma omp critical
   mTextDecoding[str] = data;
 
   return success;

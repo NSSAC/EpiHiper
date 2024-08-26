@@ -36,6 +36,8 @@
 #include "network/CNetwork.h"
 #include "traits/CTrait.h"
 #include "utilities/CSimConfig.h"
+#include "variables/CVariable.h"
+#include "variables/CVariableList.h"
 
 extern std::string getAbsolutePath(const std::string & fileName);
 extern void clearTest();
@@ -57,6 +59,7 @@ TEST_CASE("Isolation", "[EpiHiper]")
   REQUIRE_FALSE(CLogger::hasErrors());
 
   REQUIRE(CSetReference::resolve());
+  REQUIRE(CCommunicate::allocateRMA() == (int) CCommunicate::ErrorCode::Success);
 
   CNetwork::Context.Master().load();
 
@@ -67,6 +70,8 @@ TEST_CASE("Isolation", "[EpiHiper]")
 
 #pragma omp parallel
   {
+    CVariableList::INSTANCE.resetAll(true);
+
     REQUIRE(CDependencyGraph::applyComputeOnceOrder());
     REQUIRE(CDependencyGraph::applyUpdateOrder());
     REQUIRE(CInitialization::processAll());
@@ -80,6 +85,7 @@ TEST_CASE("Isolation", "[EpiHiper]")
   REQUIRE(CSizeOf::Set("edge_source_not_in_population") == 152);
   REQUIRE(CSizeOf::Set("edge_to_disable") == 68);
 
+  REQUIRE(CVariableList::INSTANCE["edges_cut"].toValue().toNumber() == 68);
   CLogger::popLevel();
   clearTest();  
 }

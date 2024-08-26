@@ -113,11 +113,14 @@ void CSetContent::SetContent::sync()
 
   localNodes = globalNodes;
 
+  CLogger::trace("CSetContent::computeProtected: global: size {}, begin {}, end {}", globalNodes.mSize, globalNodes.mSize > 0 ? (void *) *globalNodes.mBegin : 0x0, globalNodes.mSize > 0 ? (void *) *(globalNodes.mEnd - 1) : 0x0);
+
   if (localNodes.mSize)
     {
       CNode * pFirstLocalNode = CNetwork::Context.Active().beginNode();
 
-      while (*localNodes.mBegin < pFirstLocalNode)
+      while (*localNodes.mBegin < pFirstLocalNode
+             && localNodes.mBegin != localNodes.mEnd)
         {
           ++localNodes.mBegin;
           --localNodes.mSize;
@@ -125,17 +128,25 @@ void CSetContent::SetContent::sync()
 
       CNode * pBeyondLocalNode = CNetwork::Context.Active().endNode();
 
-      // We must be able to dereference the iterator
-      --localNodes.mEnd;
-
-      while (pBeyondLocalNode <= *localNodes.mEnd)
+      if (localNodes.mSize == 0)
+        localNodes.mEnd = localNodes.mBegin;
+      else
         {
+          // We must be able to dereference the iterator. This is guaranteed
+          // since we at least one local node.
           --localNodes.mEnd;
-          --localNodes.mSize;
-        }
 
-      ++localNodes.mEnd;
+          while (pBeyondLocalNode <= *localNodes.mEnd)
+            {
+              --localNodes.mEnd;
+              --localNodes.mSize;
+            }
+
+          ++localNodes.mEnd;
+        }
     }
+
+  CLogger::trace("CSetContent::computeProtected: local: size {}, begin {}, end {}", localNodes.mSize, localNodes.mSize > 0 ? (void *) *localNodes.mBegin : 0x0, localNodes.mSize > 0 ? (void *) *(localNodes.mEnd - 1) : 0x0);
 }
 
 CSetContent::SetContent::Nodes & CSetContent::SetContent::nodes(const CSetContent::Scope & scope)

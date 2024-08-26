@@ -187,8 +187,11 @@ bool CDependencyGraph::applyComputableSequence(CComputable::Sequence & updateSeq
       if (!GlobalNodeFilter.empty())
         {
           for (; itGlobal != endGlobal && itGlobal->second < pFirstLocalNode; ++itGlobal)
-            for (CSetContent::Filter< CNode > & filter : GlobalNodeFilter)
-              filter.addMatching(itGlobal->second);
+            {
+              CLogger::trace("CDependencyGraph::applyComputableSequence: Active.mRemoteNodes[{}]: {}", itGlobal->first, (void *) itGlobal->second);
+              for (CSetContent::Filter< CNode > & filter : GlobalNodeFilter)
+                filter.addMatching(itGlobal->second);
+            }
         }
 
       for (; pNode != pNodeEnd; ++pNode)
@@ -198,8 +201,11 @@ bool CDependencyGraph::applyComputableSequence(CComputable::Sequence & updateSeq
       if (!GlobalNodeFilter.empty())
         {
           for (; itGlobal != endGlobal; ++itGlobal)
-            for (CSetContent::Filter< CNode > & filter : GlobalNodeFilter)
-              filter.addMatching(itGlobal->second);
+            {
+              CLogger::trace("CDependencyGraph::applyComputableSequence: Active.mRemoteNodes[{}]: {}", itGlobal->first, (void *) itGlobal->second);
+              for (CSetContent::Filter< CNode > & filter : GlobalNodeFilter)
+                filter.addMatching(itGlobal->second);
+            }
         }
 
       for (CSetContent::Filter< CNode > & filter : LocalNodeFilter)

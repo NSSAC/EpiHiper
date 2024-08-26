@@ -1164,6 +1164,7 @@ void CNetwork::initNodes()
           *pNode = DefaultNode;
           pNode->id = it->first;
           it->second = pNode;
+          CLogger::trace("CNetwork::initNodes: Master.mRemoteNodes[{}]: {}",  it->first, (void *) it->second);
         }
 
       mLocalNodes = pNode;
@@ -1175,6 +1176,7 @@ void CNetwork::initNodes()
           *pNode = DefaultNode;
           pNode->id = it->first;
           it->second = pNode;
+          CLogger::trace("CNetwork::initNodes: Master.mRemoteNodes[{}]: {}", it->first, (void *) it->second);
         }
     }
   }
@@ -1211,6 +1213,7 @@ void CNetwork::initNodes()
         for (; it != end; ++it)
           {
             it->second = Active.lookupNode(it->first, false);
+            CLogger::trace("CNetwork::initNodes: Active.mRemoteNodes[{}]: {}", it->first, (void *) it->second);
           }
       }
   }

@@ -29,6 +29,19 @@
 #include "actions/CActionEnsemble.h"
 #include "sets/CSetContent.h"
 #include "network/CNetwork.h"
+#include "network/CNode.h"
+
+// static 
+bool CActionEnsemble::InOnce = false;
+
+// static 
+size_t CActionEnsemble::Level = 0;
+
+// static 
+const bool & CActionEnsemble::inOnce()
+{
+  return InOnce;
+}
 
 CActionEnsemble::CActionEnsemble()
   : mOnce()
@@ -113,26 +126,39 @@ void CActionEnsemble::fromJSON(const json_t * json)
     },
   */
 
+  ++Level;
   mValid = true;
 
   json_t * pValue = json_object_get(json, "once");
 
-  for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
+  if (pValue != nullptr)
     {
-      CActionDefinition * pActionDefinition = new CActionDefinition(json_array_get(pValue, i));
+      InOnce = true;
 
-      if (pActionDefinition->isValid())
+      if (Level != 1)
         {
-          mOnce.push_back(pActionDefinition);
-        }
-      else
-        {
-          CLogger::error("Action ensemble: Invalid action in object 'once'.");
+          CLogger::error("Action ensemble: Attribute 'once' is only allowed at the top level.");
           mValid = false; // DONE
-          delete pActionDefinition;
         }
-    }
+      for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
+        {
+          CActionDefinition * pActionDefinition = new CActionDefinition(json_array_get(pValue, i));
 
+          if (pActionDefinition->isValid())
+            {
+              mOnce.push_back(pActionDefinition);
+            }
+          else
+            {
+              CLogger::error("Action ensemble: Invalid action in object 'once'.");
+              mValid = false; // DONE
+              delete pActionDefinition;
+            }
+        }
+
+      InOnce = false;
+    }
+    
   pValue = json_object_get(json, "foreach");
 
   for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
@@ -157,10 +183,10 @@ void CActionEnsemble::fromJSON(const json_t * json)
   if (!mSampling.isValid())
     {
       CLogger::error("Action ensemble: Invalid value for 'sampling': {}", CSimConfig::jsonToString(json));
-      return;
+      mValid = false;
     }
 
-  mValid = true;
+  --Level;
 }
 
 const bool & CActionEnsemble::isValid() const
@@ -197,6 +223,8 @@ bool CActionEnsemble::process(const CSetContent & targets)
 
       std::vector< CNode * >::const_iterator itNodes = Nodes.begin();
       std::vector< CNode * >::const_iterator endNodes = Nodes.end();
+
+      CLogger::trace("CActionEnsemble::process: Network[{}, {}], Set[{}, {}]", (void *) CNetwork::Context.Active().beginNode(), (void *) (CNetwork::Context.Active().endNode() - 1), Nodes.size() > 0 ? (void *) *itNodes : 0x0, Nodes.size() > 0 ? (void *) *--endNodes :0x0);
 
       for (; itNodes != endNodes; ++itNodes)
         for (it = mForEach.begin(); it != end; ++it)

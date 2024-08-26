@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -49,7 +49,12 @@ public:
 
   bool process(const CSetContent & targets);
 
+  static const bool & inOnce();
+  
 private:
+  static bool InOnce;
+  static size_t Level;
+
   std::vector< CActionDefinition * > mOnce;
   std::vector< CActionDefinition * > mForEach;
   CSampling mSampling;

@@ -303,13 +303,6 @@ void CActionDefinition::process(const CEdge * pEdge) const
   if (pEdge == NULL)
     return;
 
-  if (CNetwork::Context.Active().isRemoteNode(pEdge->pTarget))
-    {
-      CLogger::warn("CActionDefinition::process: [ActionDefinition: {}] Add remote action for edge '{}, {}'.", mIndex, pEdge->targetId, pEdge->sourceId);
-      CActionQueue::addRemoteAction(mIndex, pEdge);
-      return;
-    }
-
   try
     {
       ENABLE_TRACE(CLogger::trace("CActionDefinition::process: [ActionDefinition: {}] Add action for edge '{}, {}'.", mIndex, pEdge->targetId, pEdge->sourceId););
@@ -328,8 +321,8 @@ void CActionDefinition::process(const CNode * pNode) const
 
   if (CNetwork::Context.Active().isRemoteNode(pNode))
     {
-      ENABLE_TRACE(CLogger::trace("CActionDefinition::process: [ActionDefinition: {}] Add remote action for node '{}'.", mIndex, pNode->id););
-      CActionQueue::addRemoteAction(mIndex, pNode);
+      ENABLE_TRACE(CLogger::error("CActionDefinition::process: [ActionDefinition: {}] Add remote action for node '{}'.", mIndex, (void *) pNode););
+      // CActionQueue::addRemoteAction(mIndex, pNode);
       return;
     }
 

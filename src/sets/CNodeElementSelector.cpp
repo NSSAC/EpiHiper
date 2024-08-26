@@ -474,7 +474,7 @@ void CNodeElementSelector::fromJSONProtected(const json_t * json)
                           mPrerequisites.insert(&CActionQueue::getCurrentTick());
 
 #ifdef USE_CSETCOLLECTOR
-                          // TODO CRITICAL This will always be true we need to revert this setting when the scope is set to global. 
+                          // This will always be true we need to revert this setting when the scope is set to global. 
                           if (mScope == Scope::local)
                             {
                               mpCollector = std::shared_ptr< CSetCollectorInterface >(new CSetCollector< CNode, CNodeElementSelector >(this));
@@ -1266,10 +1266,8 @@ bool CNodeElementSelector::dbSelection()
         Nodes.push_back(pNode);
     }
 
-  if (mScope == Scope::global)
-    std::sort(Nodes.begin(), Nodes.end());
-
   CLogger::debug("CNodeElementSelector: dbSelection returned '{}' nodes.", Nodes.size());
+
   return success;
 }
 
@@ -1301,9 +1299,6 @@ bool CNodeElementSelector::dbIn()
       if ((pNode = CNetwork::Context.Active().lookupNode(it->toId(), mScope == Scope::local)) != NULL)
         Nodes.push_back(pNode);
     }
-
-  if (mScope == Scope::global)
-    std::sort(Nodes.begin(), Nodes.end());
 
   CLogger::debug("CNodeElementSelector: dbIn returned '{}' nodes.", Nodes.size());
   return success;
@@ -1337,9 +1332,6 @@ bool CNodeElementSelector::dbNotIn()
       if ((pNode = CNetwork::Context.Active().lookupNode(it->toId(), mScope == Scope::local)) != NULL)
         Nodes.push_back(pNode);
     }
-
-  if (mScope == Scope::global)
-    std::sort(Nodes.begin(), Nodes.end());
 
   CLogger::debug("CNodeElementSelector: dbNotIn returned '{}' nodes.", Nodes.size());
   return success;

@@ -76,6 +76,10 @@ if (ENABLE_LOGLEVEL_TRACE)
   set(SUPPORT_LOGLEVEL_TRACE 1)
 endif(ENABLE_LOGLEVEL_TRACE)
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(EPIHIPER_DEBUG 1)
+endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+
 set(PostgreSQL_TYPE_INCLUDE_DIR "ignored")
 find_package (PostgreSQL REQUIRED)
 include_directories(BEFORE ${PostgreSQL_INCLUDE_DIR})
