@@ -56,7 +56,6 @@ CEdgeElementSelector::CEdgeElementSelector()
   , mpComparison(NULL)
   , mpCompute(NULL)
   , mpFilter(NULL)
-  , mpCollector(NULL)
 {}
 
 CEdgeElementSelector::CEdgeElementSelector(const CEdgeElementSelector & src)
@@ -74,7 +73,6 @@ CEdgeElementSelector::CEdgeElementSelector(const CEdgeElementSelector & src)
   , mpComparison(src.mpComparison)
   , mpCompute(src.mpCompute)
   , mpFilter(src.mpFilter)
-  , mpCollector(src.mpCollector)
 {}
 
 CEdgeElementSelector::CEdgeElementSelector(const json_t * json)
@@ -92,7 +90,6 @@ CEdgeElementSelector::CEdgeElementSelector(const json_t * json)
   , mpComparison(NULL)
   , mpCompute(NULL)
   , mpFilter(NULL)
-  , mpCollector(NULL)
 {
   fromJSON(json);
 }
@@ -837,7 +834,9 @@ bool CEdgeElementSelector::computeSetContent()
 {
   if (mValid)
     {
-      if (mpCollector && mComputedOnce.Active())
+      if (mComputedOnce.Active()
+           && mpCollector 
+           && mpCollector->isEnabled())
         return mpCollector->apply();
       else if (mpCompute != NULL)
         {

@@ -36,6 +36,7 @@
 class CNetwork;
 class CNode;
 class CEdge;
+class CSetCollectorInterface;
 
 class CSetContent: public CComputable
 {
@@ -212,6 +213,8 @@ public:
 
   const Scope & getScope() const;
 
+  bool collectorEnabled() const;
+
 protected:
   virtual bool computeProtected() override;
 
@@ -234,6 +237,8 @@ protected:
   std::string mJSON;
 
   Scope mScope;
+
+  std::shared_ptr< CSetCollectorInterface > mpCollector;
 };
 
 template < class element_type >

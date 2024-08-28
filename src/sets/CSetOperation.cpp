@@ -281,7 +281,7 @@ bool CSetOperation::computeIntersection()
     {
       std::string Separator;
       std::ostringstream Message;
-      Message << "CSetOperation: computeIntersection (";
+      Message << "CSetOperation::computeIntersection (";
 
       for (it = mSets.begin(); it != end; ++it)
         {

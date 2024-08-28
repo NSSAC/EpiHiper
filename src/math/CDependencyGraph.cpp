@@ -129,23 +129,33 @@ bool CDependencyGraph::applyComputableSequence(CComputable::Sequence & updateSeq
                 {
                 case CSetContent::FilterType::edge:
                   {
-                    CSetContent::Filter< CEdge > Filter(pSetContent);
-                    Filter.start();
-                    EdgeFilter.push_back(CSetContent::Filter< CEdge >(pSetContent));
-                    CLogger::debug("CComputable: Adding '{}' to EdgeFilter.", pSetContent->getComputableId());
+                    if (pSetContent && pSetContent->collectorEnabled())
+                      success &= (*it)->compute();
+                    else
+                      {
+                        CSetContent::Filter< CEdge > Filter(pSetContent);
+                        Filter.start();
+                        EdgeFilter.push_back(CSetContent::Filter< CEdge >(pSetContent));
+                        CLogger::debug("CDependencyGraph::applyComputableSequence: adding '{}' to EdgeFilter.", pSetContent->getComputableId());
+                      }
                   }
                   break;
 
                 case CSetContent::FilterType::node:
                   {
-                    CSetContent::Filter< CNode > Filter(pSetContent);
-                    Filter.start();
-                    LocalNodeFilter.push_back(Filter);
+                    if (pSetContent && pSetContent->collectorEnabled())
+                      success &= (*it)->compute();
+                    else
+                      {
+                        CSetContent::Filter< CNode > Filter(pSetContent);
+                        Filter.start();
+                        LocalNodeFilter.push_back(Filter);
 
-                    if (pSetContent->getScope() == CSetContent::Scope::global)
-                      GlobalNodeFilter.push_back(Filter);
+                        if (pSetContent->getScope() == CSetContent::Scope::global)
+                          GlobalNodeFilter.push_back(Filter);
 
-                    CLogger::debug("CComputable: Adding '{}' to NodeFilter.", pSetContent->getComputableId());
+                        CLogger::debug("CDependencyGraph::applyComputableSequence: adding '{}' to NodeFilter.", pSetContent->getComputableId());
+                      }
                   }
                   break;
 
@@ -188,7 +198,7 @@ bool CDependencyGraph::applyComputableSequence(CComputable::Sequence & updateSeq
         {
           for (; itGlobal != endGlobal && itGlobal->second < pFirstLocalNode; ++itGlobal)
             {
-              CLogger::trace("CDependencyGraph::applyComputableSequence: Active.mRemoteNodes[{}]: {}", itGlobal->first, (void *) itGlobal->second);
+              // CLogger::trace("CDependencyGraph::applyComputableSequence: Active.mRemoteNodes[{}]: {}", itGlobal->first, (void *) itGlobal->second);
               for (CSetContent::Filter< CNode > & filter : GlobalNodeFilter)
                 filter.addMatching(itGlobal->second);
             }
@@ -202,7 +212,7 @@ bool CDependencyGraph::applyComputableSequence(CComputable::Sequence & updateSeq
         {
           for (; itGlobal != endGlobal; ++itGlobal)
             {
-              CLogger::trace("CDependencyGraph::applyComputableSequence: Active.mRemoteNodes[{}]: {}", itGlobal->first, (void *) itGlobal->second);
+              // CLogger::trace("CDependencyGraph::applyComputableSequence: Active.mRemoteNodes[{}]: {}", itGlobal->first, (void *) itGlobal->second);
               for (CSetContent::Filter< CNode > & filter : GlobalNodeFilter)
                 filter.addMatching(itGlobal->second);
             }
@@ -225,8 +235,11 @@ bool CDependencyGraph::applyUpdateOrder(CDependencyGraph::UpdateOrder & updateSe
   std::vector< CComputable::Sequence >::iterator it = updateSequence.begin();
   std::vector< CComputable::Sequence >::iterator end = updateSequence.end();
 
-  for (; it != end && success; ++it)
-    success &= applyComputableSequence(*it);
+  for (int level = 0; it != end && success; ++it, ++level)
+    {
+      CLogger::debug("CDependencyGraph::applyUpdateOrder: Level[{}] size: {}.", level, it->size());
+      success &= applyComputableSequence(*it);
+    }
 
 #else
 

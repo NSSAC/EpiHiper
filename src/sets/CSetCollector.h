@@ -48,6 +48,16 @@ class CSetCollectorInterface
 public:
   virtual ~CSetCollectorInterface(){};
 
+  virtual bool isEnabled() const
+  {
+    return false;
+  }
+  
+  virtual std::string getComputableId() const
+  {
+    return "invalid";
+  }
+
   virtual bool record(CNode * /* pNode */)
   {
     return false;
@@ -71,6 +81,10 @@ public:
   CSetCollector(selector * pSelector);
 
   virtual ~CSetCollector() {};
+
+  virtual bool isEnabled() const override;
+  
+  virtual std::string getComputableId() const override;
 
   virtual bool record(element_type * pType) override;
  
@@ -114,6 +128,24 @@ CSetCollector< element_type, selector >::CSetCollector(selector * pSelector)
 {
   mContext.init();
 }
+
+// virtual 
+template < class element_type, class selector > 
+bool CSetCollector< element_type, selector >::isEnabled() const
+{
+  return mContext.Active().enabled;
+}
+
+// virtual 
+template < class element_type, class selector > 
+std::string CSetCollector< element_type, selector >::getComputableId() const
+{
+  if (mpSelector)
+    return mpSelector->getComputableId();
+
+  return CSetCollectorInterface::getComputableId();
+}
+
 
 template < class element_type, class selector > 
 bool CSetCollector< element_type, selector >::record(element_type * pType)

@@ -59,7 +59,6 @@ CNodeElementSelector::CNodeElementSelector()
   , mSQLComparison("")
   , mpCompute(NULL)
   , mpFilter(NULL)
-  , mpCollector(NULL)
 {}
 
 CNodeElementSelector::CNodeElementSelector(const CNodeElementSelector & src)
@@ -78,7 +77,6 @@ CNodeElementSelector::CNodeElementSelector(const CNodeElementSelector & src)
   , mSQLComparison(src.mSQLComparison)
   , mpCompute(src.mpCompute)
   , mpFilter(src.mpFilter)
-  , mpCollector(src.mpCollector)
 {}
 
 CNodeElementSelector::CNodeElementSelector(const json_t * json)
@@ -97,7 +95,6 @@ CNodeElementSelector::CNodeElementSelector(const json_t * json)
   , mSQLComparison("")
   , mpCompute(NULL)
   , mpFilter(NULL)
-  , mpCollector(NULL)
 {
   fromJSON(json);
 }
@@ -1006,7 +1003,9 @@ bool CNodeElementSelector::computeSetContent()
 {
   if (mValid)
     {
-      if (mpCollector && mComputedOnce.Active())
+      if (mComputedOnce.Active()
+           && mpCollector 
+           && mpCollector->isEnabled())
         return mpCollector->apply();
       else if (mpCompute != NULL)
         {

@@ -34,7 +34,6 @@ class CFieldValue;
 class CFieldValueList;
 class CObservable;
 class CVariable;
-class CSetCollectorInterface;
 
 class CEdgeElementSelector: public CSetContent
 {
@@ -92,7 +91,6 @@ private:
   std::string mSQLComparison;
   bool (CEdgeElementSelector::*mpCompute)();
   bool (CEdgeElementSelector::*mpFilter)(const CEdge *) const;
-  std::shared_ptr< CSetCollectorInterface > mpCollector;
 };
 
 #endif /* SRC_SETS_CEDGEELEMENTSELECTOR_H_ */

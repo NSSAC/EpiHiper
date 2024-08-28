@@ -311,7 +311,7 @@ bool CEdgeProperty::setDuration(CEdge * pEdge, const CValueInterface & /* value 
 void CEdgeProperty::registerSetCollector(std::shared_ptr< CSetCollectorInterface > pCollector) const
 {
   Collectors[(size_t) mProperty].insert(pCollector);
-  CLogger::debug("CEdgeProperty::registerSetCollector: property '{}'. size '{}'", (size_t) mProperty, Collectors[(size_t) mProperty].size());
+  CLogger::debug("CEdgeProperty::registerSetCollector: '{}' property to '{}'. size '{}'", pCollector->getComputableId(), (size_t) mProperty, Collectors[(size_t) mProperty].size());
 }
 
 void CEdgeProperty::deregisterSetCollector(std::shared_ptr< CSetCollectorInterface > pCollector) const
@@ -319,7 +319,7 @@ void CEdgeProperty::deregisterSetCollector(std::shared_ptr< CSetCollectorInterfa
   if (!Collectors[(size_t) mProperty].empty())
     {
       Collectors[(size_t) mProperty].erase(pCollector);
-      CLogger::debug("CEdgeProperty::deregisterSetCollector: property '{}'. size '{}'",(size_t) mProperty, Collectors[(size_t) mProperty].size());
+      CLogger::debug("CEdgeProperty::deregisterSetCollector: '{}' from property '{}'. size '{}'", pCollector->getComputableId(), (size_t) mProperty, Collectors[(size_t) mProperty].size());
     }
 }
 

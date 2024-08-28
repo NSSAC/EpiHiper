@@ -35,7 +35,6 @@ class CFieldValue;
 class CFieldValueList;
 class CObservable;
 class CVariable;
-class CSetCollectorInterface;
 
 class CNodeElementSelector: public CSetContent
 {
@@ -93,7 +92,6 @@ private:
   std::string mSQLComparison;
   bool (CNodeElementSelector::*mpCompute)();
   bool (CNodeElementSelector::*mpFilter)(const CNode *) const;
-  std::shared_ptr< CSetCollectorInterface > mpCollector;
 };
 
 #endif /* SRC_SETS_CNODEELEMENTSELECTOR_H_ */

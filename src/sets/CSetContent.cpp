@@ -34,6 +34,7 @@
 #include "sets/CDBFieldSelector.h"
 #include "sets/CSetOperation.h"
 #include "sets/CSetList.h"
+#include "sets/CSetCollector.h"
 #include "utilities/CRandom.h"
 #include "utilities/CLogger.h"
 #include "utilities/CSimConfig.h"
@@ -64,6 +65,7 @@ CSetContent::CSetContent(const Type & type)
   , mType(type)
   , mJSON()
   , mScope(CSetContent::Scope::local)
+  , mpCollector(NULL)
 {
   mContext.init();
   mValid = true;
@@ -75,6 +77,7 @@ CSetContent::CSetContent(const CSetContent & src)
   , mType(src.mType)
   , mJSON(src.mJSON)
   , mScope(src.mScope)
+  , mpCollector(src.mpCollector)
 {}
 
 CSetContent::~CSetContent()
@@ -83,7 +86,13 @@ CSetContent::~CSetContent()
 // virtual
 bool CSetContent::computeProtected()
 {
-  mContext.Active().clear();
+  if (!mComputedOnce.Active()
+      || !mpCollector 
+      || !mpCollector->isEnabled())
+    {     
+      mContext.Active().clear();
+      CLogger::debug("CSetContent::computeProtected: '{}' clearing set content.", getComputableId());
+    }
 
   bool success = computeSetContent();
 
@@ -470,5 +479,13 @@ void CSetContent::setScope(const CSetContent::Scope & scope)
 const CSetContent::Scope & CSetContent::getScope() const
 {
   return mScope;
+}
+
+bool CSetContent::collectorEnabled() const
+{
+  if (mpCollector)
+    return mpCollector->isEnabled();
+
+  return false;
 }
 
