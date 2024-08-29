@@ -1074,10 +1074,11 @@ bool CEdgeElementSelector::withSourceNodeNotIn()
 bool CEdgeElementSelector::dbAll()
 {
   bool success = false;
-  std::vector< CEdge * > & Edges = activeContent().edges;
 
 #ifdef USE_LOCATION_ID
+  std::vector< CEdge * > & Edges = activeContent().edges;
   CFieldValueList FieldValueList;
+
   success = CQuery::all(mDBTable, "lid", FieldValueList, false);
 
   CEdge * pEdge = CNetwork::Context.Active().beginEdge();
@@ -1096,9 +1097,9 @@ bool CEdgeElementSelector::dbAll()
 bool CEdgeElementSelector::dbSelection()
 {
   bool success = false;
-  std::vector< CEdge * > & Edges = activeContent().edges;
 
 #ifdef USE_LOCATION_ID
+  std::vector< CEdge * > & Edges = activeContent().edges;
   CFieldValueList FieldValueList;
 
   if (mpObservable)
@@ -1157,9 +1158,9 @@ bool CEdgeElementSelector::dbIn()
 bool CEdgeElementSelector::dbNotIn()
 {
   bool success = false;
-  std::vector< CEdge * > & Edges = activeContent().edges;
 
 #ifdef USE_LOCATION_ID
+  std::vector< CEdge * > & Edges = activeContent().edges;
   CFieldValueList FieldValueList;
 
   if (mpDBFieldValueList != NULL)
@@ -1178,7 +1179,7 @@ bool CEdgeElementSelector::dbNotIn()
   CEdge * pEdgeEnd = CNetwork::Context.Active().endEdge();
 
   for (; pEdge != pEdgeEnd; ++pEdge)
-    if (FieldValueList.contains(pEdge->locationId))
+    if (!FieldValueList.contains(pEdge->locationId))
       Edges.push_back(pEdge);
 
   CLogger::debug("CEdgeElementSelector: dbNotIn returned '{}' edges.", Edges.size());
