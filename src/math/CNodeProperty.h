@@ -27,6 +27,7 @@
 
 #include <memory>
 #include "math/CValueInterface.h"
+#include "utilities/CEnumAnnotation.h"
 
 class CValue;
 class CNode;
@@ -48,6 +49,8 @@ public:
     edges,
     __SIZE
   };
+
+  static const CEnumAnnotation< std::string, Property > PropertyNames;
 
   static std::vector< std::set< std::shared_ptr< CSetCollectorInterface > > > Collectors;
 

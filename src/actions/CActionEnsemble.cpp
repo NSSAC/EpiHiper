@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -28,6 +28,20 @@
 #include "utilities/CSimConfig.h"
 #include "actions/CActionEnsemble.h"
 #include "sets/CSetContent.h"
+#include "network/CNetwork.h"
+#include "network/CNode.h"
+
+// static 
+bool CActionEnsemble::InOnce = false;
+
+// static 
+size_t CActionEnsemble::Level = 0;
+
+// static 
+const bool & CActionEnsemble::inOnce()
+{
+  return InOnce;
+}
 
 CActionEnsemble::CActionEnsemble()
   : mOnce()
@@ -112,26 +126,39 @@ void CActionEnsemble::fromJSON(const json_t * json)
     },
   */
 
+  ++Level;
   mValid = true;
 
   json_t * pValue = json_object_get(json, "once");
 
-  for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
+  if (pValue != nullptr)
     {
-      CActionDefinition * pActionDefinition = new CActionDefinition(json_array_get(pValue, i));
+      InOnce = true;
 
-      if (pActionDefinition->isValid())
+      if (Level != 1)
         {
-          mOnce.push_back(pActionDefinition);
-        }
-      else
-        {
-          CLogger::error("Action ensemble: Invalid action in object 'once'.");
+          CLogger::error("Action ensemble: Attribute 'once' is only allowed at the top level.");
           mValid = false; // DONE
-          delete pActionDefinition;
         }
-    }
+      for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
+        {
+          CActionDefinition * pActionDefinition = new CActionDefinition(json_array_get(pValue, i));
 
+          if (pActionDefinition->isValid())
+            {
+              mOnce.push_back(pActionDefinition);
+            }
+          else
+            {
+              CLogger::error("Action ensemble: Invalid action in object 'once'.");
+              mValid = false; // DONE
+              delete pActionDefinition;
+            }
+        }
+
+      InOnce = false;
+    }
+    
   pValue = json_object_get(json, "foreach");
 
   for (size_t i = 0, imax = json_array_size(pValue); i < imax; ++i)
@@ -156,10 +183,10 @@ void CActionEnsemble::fromJSON(const json_t * json)
   if (!mSampling.isValid())
     {
       CLogger::error("Action ensemble: Invalid value for 'sampling': {}", CSimConfig::jsonToString(json));
-      return;
+      mValid = false;
     }
 
-  mValid = true;
+  --Level;
 }
 
 const bool & CActionEnsemble::isValid() const
@@ -185,15 +212,19 @@ bool CActionEnsemble::process(const CSetContent & targets)
       CLogger::info("CActionEnsemble: Process '{}' action definitions in 'forEach'.", mForEach.size());
       end = mForEach.end();
 
-      std::vector< CEdge * >::const_iterator itEdges = targets.beginEdges();
-      std::vector< CEdge * >::const_iterator endEdges = targets.endEdges();
+      std::vector< CEdge * >::const_iterator itEdges = targets.activeContent().edges.begin();
+      std::vector< CEdge * >::const_iterator endEdges = targets.activeContent().edges.end();
 
       for (; itEdges != endEdges; ++itEdges)
         for (it = mForEach.begin(); it != end; ++it)
           (*it)->process(*itEdges);
 
-      std::vector< CNode * >::const_iterator itNodes = targets.beginNodes();
-      std::vector< CNode * >::const_iterator endNodes = targets.endNodes();
+      const CSetContent::NodeContent & Nodes = targets.getNodeContent(CSetContent::Scope::local);
+
+      std::vector< CNode * >::const_iterator itNodes = Nodes.begin();
+      std::vector< CNode * >::const_iterator endNodes = Nodes.end();
+
+      CLogger::trace("CActionEnsemble::process: Network[{}, {}], Set[{}, {}]", (void *) CNetwork::Context.Active().beginNode(), (void *) (CNetwork::Context.Active().endNode() - 1), Nodes.size() > 0 ? (void *) *itNodes : 0x0, Nodes.size() > 0 ? (void *) *--endNodes :0x0);
 
       for (; itNodes != endNodes; ++itNodes)
         for (it = mForEach.begin(); it != end; ++it)

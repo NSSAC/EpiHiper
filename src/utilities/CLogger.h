@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2020 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -157,8 +157,12 @@ template< class ... Arguments >
           break;
         }
 
+#ifdef EPIHIPER_DEBUG
+      pIt->pLogger->flush();
+#else
       if (Context.Active().levels.top() == spdlog::level::trace)
         pIt->pLogger->flush();
+#endif // EpiHiper_DEBUG
     }
 
 }

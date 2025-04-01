@@ -1,3 +1,27 @@
+// BEGIN: Copyright 
+// MIT License 
+//  
+// Copyright (C) 2023 - 2024 Rector and Visitors of the University of Virginia 
+//  
+// Permission is hereby granted, free of charge, to any person obtaining a copy 
+// of this software and associated documentation files (the "Software"), to deal 
+// in the Software without restriction, including without limitation the rights 
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+// copies of the Software, and to permit persons to whom the Software is 
+// furnished to do so, subject to the following conditions: 
+//  
+// The above copyright notice and this permission notice shall be included in all 
+// copies or substantial portions of the Software. 
+//  
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+// SOFTWARE 
+// END: Copyright 
+
 // Copyright (C) 2021 by Pedro Mendes, Rector and Visitors of the
 // University of Virginia, University of Heidelberg, and University
 // of Connecticut School of Medicine.
@@ -38,6 +62,7 @@
 #include "math/CSizeOf.h"
 #include "utilities/CDirEntry.h"
 #include "math/CObservable.h"
+#include "traits/CTrait.h"
 
 /**
  * Tries to find the test file in the srcdir environment variable.
@@ -50,6 +75,15 @@
  *
  * @return the full path to the test file
  */
+
+// Uncomment the following line if you want to attache a debugger
+// #define DEBUG_WAIT 1
+
+#ifdef DEBUG_WAIT
+#  include <sys/types.h>
+#  include <unistd.h>
+#endif // DEBUG_WAIT
+
 std::string getAbsolutePath(const std::string& relativePath)
 {
   char* srcDir = getenv("srcdir");
@@ -78,6 +112,7 @@ void clearTest()
   CSetContent::Unique.clear();
   CSetList::INSTANCE.reset();
   CComputable::Instances.reset();
+  CTrait::clear();
   CNetwork::clear();
   CConnection::clear();
   CActionQueue::clear();
@@ -89,8 +124,22 @@ int main(int argc, char * argv[])
   int EXIT = EXIT_SUCCESS;
 
   CLogger::init();
+
   CCommunicate::init(argc, argv);
 
+#ifdef DEBUG_WAIT
+  int debugwait = (CCommunicate::MPIRank == 0);
+
+  printf("Rank: %d, PID: %d\n", CCommunicate::MPIRank, getpid());
+
+  while (debugwait)
+    sleep(1);
+#endif
+
+  CLogger::pushLevel(CLogger::LogLevel::debug);
+  CLogger::setLogDir(getAbsolutePath("tests/TestRunner"));
+  CLogger::popLevel();
+  
   // Random seeding
   CRandom::init(std::numeric_limits< size_t >::max());
 

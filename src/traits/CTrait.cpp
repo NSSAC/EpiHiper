@@ -55,6 +55,17 @@ void CTrait::init()
 }
 
 // static 
+void CTrait::clear()
+{
+  CTrait::ActivityTrait = nullptr;
+  CTrait::EdgeTrait = nullptr;
+  CTrait::NodeTrait = nullptr;
+
+  INSTANCES.clear();
+}
+  
+
+// static 
 const CTrait * CTrait::find(const std::string & id)
 {
   std::map< std::string, CTrait >::const_iterator found = INSTANCES.find(id);
@@ -347,6 +358,7 @@ bool CTrait::fromString(const char * str, CTraitData::base & data) const
   if (!success)
     CLogger::error("CTrait: Invalid trait encoding '{}'.", str);
 
+#pragma omp critical
   mTextDecoding[str] = data;
 
   return success;

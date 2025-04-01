@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -33,12 +33,20 @@
 #include <memory>
 #include <set>
 
+class CNetwork;
 class CNode;
 class CEdge;
+class CSetCollectorInterface;
 
 class CSetContent: public CComputable
 {
 public:
+  enum struct Scope
+  {
+    global,
+    local
+  };
+
   typedef std::shared_ptr< CSetContent > shared_pointer;
 
   class CDBFieldValues : public std::map< CValueList::Type, CValueList >
@@ -47,14 +55,52 @@ public:
     size_t size() const;
   };
 
- struct SetContent
+public:
+
+  struct SetContent
   {
-    std::vector< CNode * > nodes;
+    void clear();
+
+    void sync();
+
+    class Nodes
+    {
+    public:
+      friend void SetContent::clear();
+      friend void SetContent::sync();
+
+      std::vector< CNode * >::const_iterator begin() const
+      {
+        return mBegin;
+      }
+
+      std::vector< CNode * >::const_iterator end() const
+      {
+        return mEnd;
+      }
+
+      size_t size() const
+      {
+        return mSize;
+      }
+
+    private:
+      std::vector< CNode * >::const_iterator mBegin;
+      std::vector< CNode * >::const_iterator mEnd;
+      size_t mSize = 0;
+    };
+
+    Nodes & nodes(const Scope & scope);
+
+    std::vector< CNode * > mNodes;
+    Nodes globalNodes;
+    Nodes localNodes;
     std::vector< CEdge * > edges;
     CDBFieldValues dBFieldValues;
   };
 
-public:
+  typedef SetContent::Nodes NodeContent;
+
   static shared_pointer create(const json_t * json);
 
   struct Compare
@@ -92,7 +138,9 @@ public:
 
     void addMatching(element_type * pType);
 
-    void report() const;
+    void start();
+
+    void finish();
   };
 
 protected:
@@ -127,31 +175,19 @@ public:
 
   void fromJSON(const json_t * json);
 
+  const std::string & getJSON() const;
+
   bool contains(CNode * pNode) const;
 
   bool contains(CEdge * pEdge) const;
 
   bool contains(const CValueInterface & value) const;
 
-  std::vector< CEdge * >::const_iterator beginEdges() const;
+  const SetContent & activeContent() const;
 
-  std::vector< CEdge * >::const_iterator endEdges() const;
+  SetContent & activeContent();
 
-  std::vector< CNode * >::const_iterator beginNodes() const;
-
-  std::vector< CNode * >::const_iterator endNodes() const;
-
-  const std::vector< CEdge * > & getEdges() const;
-
-  const std::vector< CNode * > & getNodes() const;
-
-  const CDBFieldValues & getDBFieldValues() const;
-
-  std::vector< CEdge * > & getEdges();
-
-  std::vector< CNode * > & getNodes();
-
-  CDBFieldValues & getDBFieldValues();
+  virtual const SetContent::Nodes & getNodeContent(const Scope & scope) const;
 
   inline virtual const CContext< SetContent > & getContext() const
   {
@@ -173,21 +209,36 @@ public:
 
   CContext< size_t > sizes() const;
 
+  void setScope(const Scope & scope);
+
+  const Scope & getScope() const;
+
+  bool collectorEnabled() const;
+
 protected:
   virtual bool computeProtected() override;
+
+  virtual bool computeSetContent() = 0;
 
   virtual void fromJSONProtected(const json_t * json) = 0;
 
   virtual bool lessThanProtected(const CSetContent & rhs) const = 0;
 
+  virtual void setScopeProtected() = 0;
+
 private:
   static std::set< shared_pointer > SetContents;
 
-  Type mType;
-  
   CContext< SetContent > mContext;
 
+protected:
+  Type mType;
+  
   std::string mJSON;
+
+  Scope mScope;
+
+  std::shared_ptr< CSetCollectorInterface > mpCollector;
 };
 
 template < class element_type >
@@ -211,18 +262,14 @@ int CSetContent::comparePointer(const element_type * pLhs, const element_type * 
 template <>
 inline CSetContent::Filter< CEdge >::Filter(CSetContent * pSetContent)
   : mpSetContent(pSetContent)
-  , mpSet(&mpSetContent->getEdges())
-{
-  mpSet->clear();
-}
+  , mpSet(&mpSetContent->activeContent().edges)
+{}
 
 template <>
 inline CSetContent::Filter< CNode >::Filter(CSetContent * pSetContent)
   : mpSetContent(pSetContent)
-  , mpSet(&mpSetContent->getNodes())
-{
-  mpSet->clear();
-}
+  , mpSet(&mpSetContent->activeContent().mNodes)
+{}
 
 template < class element_type >
 void CSetContent::Filter< element_type >::addMatching(element_type * pType)
@@ -232,8 +279,15 @@ void CSetContent::Filter< element_type >::addMatching(element_type * pType)
 }
 
 template < class element_type >
-void CSetContent::Filter< element_type >::report() const
+void CSetContent::Filter< element_type >::start() 
 {
+  mpSetContent->activeContent().clear();
+}
+
+template < class element_type >
+void CSetContent::Filter< element_type >::finish() 
+{
+  mpSetContent->activeContent().sync();
   CLogger::debug("CSetContent: '{}' contains '{}' elements.", mpSetContent->getComputableId(), mpSet->size());
 }
 

@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -53,7 +53,7 @@ CVariable::CVariable()
   , CComputable()
   , CAnnotation()
   , mId()
-  , mScope()
+  , mScope(CVariable::Scope::local)
   , mInitialValue(std::numeric_limits< double >::quiet_NaN())
   , mLocalValue()
   , mResetValue(0)
@@ -80,7 +80,7 @@ CVariable::CVariable(const json_t * json)
   , CComputable()
   , CAnnotation()
   , mId()
-  , mScope()
+  , mScope(CVariable::Scope::local)
   , mInitialValue(std::numeric_limits< double >::quiet_NaN())
   , mLocalValue()
   , mResetValue(0)
@@ -89,12 +89,6 @@ CVariable::CVariable(const json_t * json)
   mLocalValue.init();
 
   fromJSON(json);
-
-  if (isValid()
-      && mScope == Scope::global)
-    {
-      mIndex = CCommunicate::getRMAIndex();
-    }
 }
 
 // virtual
@@ -170,19 +164,6 @@ void CVariable::fromJSON(const json_t * json)
       return;
     }
 
-  pValue = json_object_get(json, "scope");
-
-  if (json_is_string(pValue))
-    {
-      std::string(json_string_value(pValue));
-      mScope = std::string(json_string_value(pValue)) == "global" ? Scope::global : Scope::local;
-    }
-  else
-    {
-      CLogger::error("Variable: Invalid or missing value for 'scope'.");
-      return;
-    }
-
   pValue = json_object_get(json, "reset");
 
   if (json_is_real(pValue))
@@ -242,7 +223,7 @@ bool CVariable::reset(const bool & force)
 
       if (CCommunicate::MPIRank == 0
           && mScope == Scope::global
-          && CCommunicate::MPIProcesses > 1)
+          && CCommunicate::TotalProcesses() > 1)
         {
           CCommunicate::updateRMA(mIndex, &CValueInterface::equal, mLocalValue.Master());
         }
@@ -285,16 +266,24 @@ bool CVariable::setValue(const CValueInterface & value, CValueInterface::pOperat
                               CValueInterface::operatorToString(pOperator),
                               OperatorValue););
 
-  double & Value = mLocalValue.Active();
-  const double OldValue = Value;
+  bool changed = false;
 
   if (mScope == Scope::global
-      && CCommunicate::MPIProcesses > 1)
-    Value = CCommunicate::updateRMA(mIndex, pOperator, OperatorValue);
+      && CCommunicate::TotalProcesses() > 1)
+#pragma omp critical      
+    {
+      double & Value = mLocalValue.Master();
+      const double OldValue = Value;
+      Value = CCommunicate::updateRMA(mIndex, pOperator, OperatorValue);
+      changed = (Value != OldValue);
+    }
   else
-    (*pOperator)(Value, OperatorValue);
-
-  bool changed = (Value != OldValue);
+    {
+      double & Value = mLocalValue.Active();
+      const double OldValue = Value;
+      (*pOperator)(Value, OperatorValue);
+      changed = (Value != OldValue);
+    }
 
   if (changed)
     CVariableList::INSTANCE.changedVariables().Active().insert(this);
@@ -332,3 +321,14 @@ bool CVariable::computeProtected()
 {
   return true;
 }
+
+void CVariable::setScope(const CVariable::Scope & scope)
+{
+  if (scope == Scope::global
+      && mIndex == std::numeric_limits< size_t >::max())
+    {
+      mScope = Scope::global;
+      mIndex = CCommunicate::getRMAIndex();
+    }
+}
+

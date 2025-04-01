@@ -8,6 +8,7 @@ Contact Network
 * |network-metadata-synopsis|_
 * |network-encoding-synopsis|_
 * :ref:`network-examples`
+* :ref:`network-partitioning`
 
 .. |network-introduction-synopsis| replace:: Contact Network: a graph :math:`G` that captures the contacts between individuals.
 .. _`network-introduction-synopsis`: `network-introduction`_
@@ -21,7 +22,7 @@ Introduction
 
    |network-introduction-synopsis|
 
-The EpiHiper contact network :math:`G` is a graph that captures the contacts between individuals. It captures the specifics of those contacts as listed in :numref:`network-edge-spec`. Edges are directed and endpoints are referred to as sources and targets.
+The EpiHiper contact network :math:`G` is a graph that captures the contacts between individuals. It captures the specifics of those contacts as listed in :numref:`network-edge-spec`. Edges are directed and endpoints are referred to as sources and targets. The edges in the network must be sorted by ``targetPID``.
 
 **Remark:** Note again that :math:`G` only captures contacts and their durations; it does not capture when these happen within an
 iteration. It is one of the assumptions of the model that order of contacts within an iteration does not matter.
@@ -277,3 +278,35 @@ Examples
   0,1:2,10905,1:2,1800,7692
   0,1:2,11094,1:2,6840,7692
   0,1:2,11134,1:2,1800,7692
+
+.. _network-partitioning:
+
+Partitioning
+------------
+
+The network for EpiHiper may be partitioned prior to computation. In fact for large networks an existing partition for the number of compute processes and/or threads is preferred. The format of a network partition is identical to the network except that includes additional information about the partition in the JSON header :doc:`network </schema/partition>`.
+
+To define the meta data of the partition, the following syntax is added:
+
+.. code-block:: text
+
+  partition:   numberOfNodes numberOfEdges numberOfParts firstLocalNode beyondLocalNode
+
+.. list-table:: List of meta data attributes
+  :name: network-json-partition
+  :header-rows: 1
+  
+  * - | JSON property
+    - | Description
+  * - | numberOfNodes in the partition
+    - | binary or text
+  * - | numberOfEdges 
+    - | number of edges in the partition
+  * - | numberOfParts 
+    - | the total number of parts of the partition
+  * - | firstLocalNode 
+    - | ``targetPID`` of the first node in the partition
+  * - | beyondLocalNode 
+    - | ``targetPID`` of the last node incremented by 1
+
+The naming convention for the part of the partition is ``file name`` of the unpartitioned network append with ``.N`` where :math:`N` is the index of the part starting with zero. Edges in a partition must be sorted by ``targetPID`` and the ranges :math:`[firstLocalNode, beyondLocalNode)` must be non overlapping and increasing with index.

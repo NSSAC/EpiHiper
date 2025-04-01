@@ -36,6 +36,8 @@
 #include "network/CNetwork.h"
 #include "traits/CTrait.h"
 #include "utilities/CSimConfig.h"
+#include "variables/CVariable.h"
+#include "variables/CVariableList.h"
 
 extern std::string getAbsolutePath(const std::string & fileName);
 extern void clearTest();
@@ -44,7 +46,8 @@ TEST_CASE("Isolation", "[EpiHiper]")
 {
   CSimConfig::init();
   CTrait::init();
-  CLogger::setLevel(CLogger::LogLevel::debug);
+  CLogger::pushLevel(CLogger::LogLevel::debug);
+  CLogger::info("Starting Test: Isolation");
 
   CNetwork::init(getAbsolutePath("example/contactNetwork.txt"));
   REQUIRE_FALSE(CLogger::hasErrors());
@@ -56,6 +59,7 @@ TEST_CASE("Isolation", "[EpiHiper]")
   REQUIRE_FALSE(CLogger::hasErrors());
 
   REQUIRE(CSetReference::resolve());
+  REQUIRE(CCommunicate::allocateRMA() == (int) CCommunicate::ErrorCode::Success);
 
   CNetwork::Context.Master().load();
 
@@ -64,17 +68,24 @@ TEST_CASE("Isolation", "[EpiHiper]")
   CLogger::updateTick();
   CDependencyGraph::buildGraph();
 
-  REQUIRE(CDependencyGraph::applyComputeOnceOrder());
-  REQUIRE(CDependencyGraph::applyUpdateOrder());
-  REQUIRE(CInitialization::processAll());
-  REQUIRE(CActionQueue::processCurrentActions());
+#pragma omp parallel
+  {
+    CVariableList::INSTANCE.resetAll(true);
 
-  CSetList & SetList = CSetList::INSTANCE;
-  REQUIRE(SetList["edge_target_in_population"]->size() == 64);
-  REQUIRE(SetList["edge_target_not_in_population"]->size() == 152);
-  REQUIRE(SetList["edge_source_in_population"]->size() == 64);
-  REQUIRE(SetList["edge_source_not_in_population"]->size() == 152);
-  REQUIRE(SetList["edge_to_disable"]->size() == 68);
+    REQUIRE(CDependencyGraph::applyComputeOnceOrder());
+    REQUIRE(CDependencyGraph::applyUpdateOrder());
+    REQUIRE(CInitialization::processAll());
+    REQUIRE(CActionQueue::processCurrentActions());
+  }
 
+  REQUIRE(CSizeOf::Set("population") == 6);
+  REQUIRE(CSizeOf::Set("edge_target_in_population") == 64);
+  REQUIRE(CSizeOf::Set("edge_target_not_in_population") == 152);
+  REQUIRE(CSizeOf::Set("edge_source_in_population") == 64);
+  REQUIRE(CSizeOf::Set("edge_source_not_in_population") == 152);
+  REQUIRE(CSizeOf::Set("edge_to_disable") == 68);
+
+  REQUIRE(CVariableList::INSTANCE["edges_cut"].toValue().toNumber() == 68);
+  CLogger::popLevel();
   clearTest();  
 }

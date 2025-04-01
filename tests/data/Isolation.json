@@ -1,6 +1,13 @@
 {
   "$schema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/initializationSchema.json",
   "epiHiperSchema": "https://raw.githubusercontent.com/NSSAC/EpiHiper-Schema/master/schema/initializationSchema.json",
+  "variables": [
+    {
+      "id": "edges_cut",
+      "initialValue": 0,
+      "scope": "local"
+    }
+  ],
   "sets": [
     {
       "id": "population",
@@ -161,6 +168,19 @@
               "source": {
                 "value": {
                   "number": 1000000
+                }
+              }
+            },
+            {
+              "target": {
+                "variable": {
+                  "idRef": "edges_cut"
+                }
+              },
+              "operator": "+=",
+              "source": {
+                "value": {
+                  "number": 1
                 }
               }
             }

@@ -35,7 +35,6 @@ class CFieldValue;
 class CFieldValueList;
 class CObservable;
 class CVariable;
-class CSetCollectorInterface;
 
 class CNodeElementSelector: public CSetContent
 {
@@ -55,19 +54,19 @@ public:
   virtual bool filter(const CNode * pNode) const override;
 
 protected:
-  virtual bool computeProtected() override;
+  virtual bool computeSetContent() override;
 
   virtual void fromJSONProtected(const json_t * json) override;
 
   virtual bool lessThanProtected(const CSetContent & rhs) const override;
+
+  virtual void setScopeProtected() override;
 
 private:
   static CNodeElementSelector * pALL;
   
   bool all();
   bool propertySelection();
-  bool propertyIn();
-  bool propertyNotIn();
   bool withIncomingEdgeIn();
   bool withIncomingEdgeNotIn();
   bool dbAll();
@@ -91,10 +90,8 @@ private:
   CFieldValueList * mpDBFieldValueList;
   CValueInterface::pComparison mpComparison;
   std::string mSQLComparison;
-  bool mLocalScope;
   bool (CNodeElementSelector::*mpCompute)();
   bool (CNodeElementSelector::*mpFilter)(const CNode *) const;
-  std::shared_ptr< CSetCollectorInterface > mpCollector;
 };
 
 #endif /* SRC_SETS_CNODEELEMENTSELECTOR_H_ */

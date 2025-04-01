@@ -111,6 +111,9 @@ size_t toFieldValueList(const CField & field, const pqxx::result & result, CFiel
   return 0;
 }
 
+// static 
+std::string CQuery::GlobalConstraint = "";
+
 // static
 CContext< std::string > CQuery::LocalConstraint = CContext< std::string >();
 
@@ -127,6 +130,10 @@ void CQuery::init()
       {
         LocalConstraint.init();
         Limit = CSimConfig::getDBConnection().maxRecords;
+
+        std::ostringstream Query;
+        Query << "pid BETWEEN " << CNetwork::Context.Master().getTotalNodeRange()[0] << " AND " << CNetwork::Context.Master().getTotalNodeRange()[1];
+        GlobalConstraint = Query.str();
       }
     }
 
@@ -183,13 +190,7 @@ bool CQuery::all(const std::string & table,
 
   std::ostringstream Query;
   Query << "SELECT DISTINCT " << CConnection::quote(resultField) << " FROM " << CConnection::quote(table);
-
-  if (local)
-    {
-      Query << " WHERE " << LocalConstraint.Active();
-    }
-
-  Query << " ORDER BY " << CConnection::quote(resultField);
+  Query << " WHERE " << (local ? LocalConstraint.Active() : GlobalConstraint);
   // std::cout << Query.str() << std::endl;
 
   bool success = true;
@@ -339,12 +340,7 @@ bool CQuery::in(const std::string & table,
     }
 
   Query << ")";
-
-  if (local)
-    {
-      Query << " AND " << LocalConstraint.Active();
-    }
-
+  Query << " AND " << (local ? LocalConstraint.Active() : GlobalConstraint);
   Query << " ORDER BY " << CConnection::quote(resultField);
   // std::cout << Query.str() << std::endl;
 
@@ -469,11 +465,7 @@ bool CQuery::where(const std::string & table,
       break;
     }
 
-  if (local)
-    {
-      Query << " AND " << LocalConstraint.Active();
-    }
-
+  Query << " AND " << (local ? LocalConstraint.Active() : GlobalConstraint);
   Query << " ORDER BY " << CConnection::quote(resultField);
   // std::cout << Query.str() << std::endl;
 

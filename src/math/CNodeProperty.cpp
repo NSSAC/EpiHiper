@@ -34,6 +34,16 @@
 #include "utilities/CLogger.h"
 
 // static 
+const CEnumAnnotation< std::string, CNodeProperty::Property > CNodeProperty::PropertyNames({
+  "id",
+  "susceptibilityFactor",
+  "infectivityFactor",
+  "healthState",
+  "nodeTrait",
+  "edges",
+});
+
+// static 
 std::vector< std::set< std::shared_ptr< CSetCollectorInterface > > > CNodeProperty::Collectors((size_t) CNodeProperty::Property::__SIZE);
 
 CNodeProperty::CNodeProperty()
@@ -226,7 +236,7 @@ bool CNodeProperty::setNodeTrait(CNode * pNode, const CValueInterface & value, C
 void CNodeProperty::registerSetCollector(std::shared_ptr< CSetCollectorInterface > pCollector) const
 {
   Collectors[(size_t) mProperty].insert(pCollector);
-  CLogger::debug("CNodeProperty::registerSetCollector: property '{}'. size '{}'", (size_t) mProperty, Collectors[(size_t) mProperty].size());
+  CLogger::debug("CNodeProperty::registerSetCollector: '{}' to property '{}'. size '{}'", pCollector->getComputableId(), (size_t) mProperty, Collectors[(size_t) mProperty].size());
 }    
 
 void CNodeProperty::deregisterSetCollector(std::shared_ptr< CSetCollectorInterface > pCollector) const
@@ -234,6 +244,6 @@ void CNodeProperty::deregisterSetCollector(std::shared_ptr< CSetCollectorInterfa
   if (!Collectors[(size_t) mProperty].empty())
     {
       Collectors[(size_t) mProperty].erase(pCollector);
-      CLogger::debug("CNodeProperty::deregisterSetCollector: property '{}'. size '{}'", (size_t) mProperty, Collectors[(size_t) mProperty].size());
+      CLogger::debug("CNodeProperty::deregisterSetCollector: '{}' from property '{}'. size '{}'", pCollector->getComputableId(), (size_t) mProperty, Collectors[(size_t) mProperty].size());
     }
 }    

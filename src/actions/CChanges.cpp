@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2020 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -181,7 +181,7 @@ CCommunicate::ErrorCode CChanges::determineNodesRequested()
 
   for (; it != end; ++it, ++pId)
     {
-      ENABLE_TRACE(CLogger::trace("CChanges: request node '{}'.", it->first););
+      ENABLE_TRACE(CLogger::trace("CChanges::determineNodesRequested: node '{}'.", it->first););
       *pId = it->first;
     }
 
@@ -226,7 +226,7 @@ CCommunicate::ErrorCode CChanges::sendNodesRequested(std::ostream & os, int rece
         {
           if (it->changed)
             {
-              ENABLE_TRACE(CLogger::trace("CChanges: send node '{}'.", it->id););
+              ENABLE_TRACE(CLogger::trace("CChanges::sendNodesRequested: node '{}'.", it->id););
 
               it->toBinary(OutStream);
               ++Count;
@@ -240,7 +240,7 @@ CCommunicate::ErrorCode CChanges::sendNodesRequested(std::ostream & os, int rece
     os << OutStream.str();
   }
 
-  CLogger::debug("CChanges: Sending '{}' nodes to: '{}'.", Count, receiver);
+  CLogger::debug("CChanges::sendNodesRequested: Sending '{}' nodes to: '{}'.", Count, receiver);
 
   return CCommunicate::ErrorCode::Success;
 }

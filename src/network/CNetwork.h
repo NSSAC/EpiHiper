@@ -29,6 +29,7 @@
 #include <set>
 #include <map>
 #include <iostream>
+#include <array>
 
 #include "utilities/CAnnotation.h"
 #include "utilities/CCommunicate.h"
@@ -141,6 +142,10 @@ public:
   
   bool concatenateDump();
 
+  int determineNodeRange();
+  CCommunicate::ErrorCode receiveNodeRange(std::istream & is, int sender);
+  const std::array< size_t, 2 > & getTotalNodeRange() const;
+
 private:
   void initNodes();
   void initOutgoingEdges();
@@ -160,6 +165,7 @@ private:
   size_t mEdgesSize;
   size_t mTotalNodesSize;
   size_t mTotalEdgesSize;
+  std::array< size_t, 2 > mTotalNodeRange;
   size_t mSizeOfPid;
   std::string mAccumulationTime;
   double mTimeResolution;

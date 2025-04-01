@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -85,6 +85,7 @@ CActionDefinition * CActionDefinition::GetActionDefinition(const size_t & index)
 void CActionDefinition::clear()
 {
   INSTANCES.clear();
+  Priorities.clear();
 }
 
 CActionDefinition::CActionDefinition()
@@ -302,13 +303,6 @@ void CActionDefinition::process(const CEdge * pEdge) const
   if (pEdge == NULL)
     return;
 
-  if (CNetwork::Context.Active().isRemoteNode(pEdge->pTarget))
-    {
-      CLogger::warn("CActionDefinition::process: [ActionDefinition: {}] Add remote action for edge '{}, {}'.", mIndex, pEdge->targetId, pEdge->sourceId);
-      CActionQueue::addRemoteAction(mIndex, pEdge);
-      return;
-    }
-
   try
     {
       ENABLE_TRACE(CLogger::trace("CActionDefinition::process: [ActionDefinition: {}] Add action for edge '{}, {}'.", mIndex, pEdge->targetId, pEdge->sourceId););
@@ -327,8 +321,8 @@ void CActionDefinition::process(const CNode * pNode) const
 
   if (CNetwork::Context.Active().isRemoteNode(pNode))
     {
-      ENABLE_TRACE(CLogger::trace("CActionDefinition::process: [ActionDefinition: {}] Add remote action for node '{}'.", mIndex, pNode->id););
-      CActionQueue::addRemoteAction(mIndex, pNode);
+      ENABLE_TRACE(CLogger::error("CActionDefinition::process: [ActionDefinition: {}] Add remote action for node '{}'.", mIndex, (void *) pNode););
+      // CActionQueue::addRemoteAction(mIndex, pNode);
       return;
     }
 

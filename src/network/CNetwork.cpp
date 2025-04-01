@@ -146,6 +146,7 @@ CNetwork::CNetwork()
   , mEdgesSize(0)
   , mTotalNodesSize(0)
   , mTotalEdgesSize(0)
+  , mTotalNodeRange({std::numeric_limits< size_t >::max(), 0})
   , mSizeOfPid(0)
   , mAccumulationTime()
   , mTimeResolution(0)
@@ -1124,6 +1125,8 @@ void CNetwork::load()
   }
 
   initOutgoingEdges();
+
+  determineNodeRange();
 }
 
 void CNetwork::initNodes()
@@ -1164,6 +1167,7 @@ void CNetwork::initNodes()
           *pNode = DefaultNode;
           pNode->id = it->first;
           it->second = pNode;
+          CLogger::trace("CNetwork::initNodes: Master.mRemoteNodes[{}]: {}",  it->first, (void *) it->second);
         }
 
       mLocalNodes = pNode;
@@ -1175,6 +1179,7 @@ void CNetwork::initNodes()
           *pNode = DefaultNode;
           pNode->id = it->first;
           it->second = pNode;
+          CLogger::trace("CNetwork::initNodes: Master.mRemoteNodes[{}]: {}", it->first, (void *) it->second);
         }
     }
   }
@@ -1211,6 +1216,7 @@ void CNetwork::initNodes()
         for (; it != end; ++it)
           {
             it->second = Active.lookupNode(it->first, false);
+            CLogger::trace("CNetwork::initNodes: Active.mRemoteNodes[{}]: {}", it->first, (void *) it->second);
           }
       }
   }
@@ -1938,4 +1944,42 @@ bool CNetwork::concatenateDump()
   os.close();
 
   return true;
+}
+
+int CNetwork::determineNodeRange()
+{
+  CNetwork & Master = Context.Master();
+  Master.mTotalNodeRange[0] = Master.mFirstLocalNode;
+  Master.mTotalNodeRange[1] = Master.mBeyondLocalNode;
+
+  CCommunicate::ClassMemberReceive< CNetwork > Receive(this, &CNetwork::receiveNodeRange);
+  CCommunicate::roundRobinFixed(&Master.mTotalNodeRange, 2 * sizeof(size_t), &Receive);
+
+  if (CCommunicate::LocalProcesses() > 1)
+    {
+      const CNetwork & Master = Context.Master();
+
+#pragma omp parallel
+      Context.Active().mTotalNodeRange = Master.mTotalNodeRange;
+    }
+
+  CLogger::info("Network: Node Range = ['{}', '{}')", Master.mTotalNodeRange[0], Master.mTotalNodeRange[1]);
+  return (int) CCommunicate::ErrorCode::Success;
+}
+
+CCommunicate::ErrorCode CNetwork::receiveNodeRange(std::istream & is, int /* sender */)
+{
+  size_t NodeRange[2];
+  is.read(reinterpret_cast< char * >(&NodeRange), 2 * sizeof(size_t));
+
+  CNetwork & Master = Context.Master();
+  Master.mTotalNodeRange[0] = std::min(Master.mTotalNodeRange[0], NodeRange[0]);
+  Master.mTotalNodeRange[1] = std::max(Master.mTotalNodeRange[1], NodeRange[1]);
+
+  return CCommunicate::ErrorCode::Success;
+}
+  
+const std::array< size_t, 2 > & CNetwork::getTotalNodeRange() const
+{
+  return mTotalNodeRange;
 }

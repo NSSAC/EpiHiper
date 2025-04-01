@@ -1,7 +1,7 @@
 # BEGIN: Copyright 
 # MIT License 
 #  
-# Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+# Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
 #  
 # Permission is hereby granted, free of charge, to any person obtaining a copy 
 # of this software and associated documentation files (the "Software"), to deal 
@@ -25,7 +25,7 @@
 cmake_minimum_required (VERSION 3.11)
 cmake_policy(SET CMP0074 NEW)
 
-project (EpiHiper VERSION 2.1.1)
+project (EpiHiper VERSION 2.2.0)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 
@@ -75,6 +75,10 @@ option(ENABLE_LOGLEVEL_TRACE "Enable loglevel trace" OFF)
 if (ENABLE_LOGLEVEL_TRACE)
   set(SUPPORT_LOGLEVEL_TRACE 1)
 endif(ENABLE_LOGLEVEL_TRACE)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(EPIHIPER_DEBUG 1)
+endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
 set(PostgreSQL_TYPE_INCLUDE_DIR "ignored")
 find_package (PostgreSQL REQUIRED)

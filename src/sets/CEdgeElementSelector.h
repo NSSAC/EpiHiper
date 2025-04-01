@@ -34,7 +34,6 @@ class CFieldValue;
 class CFieldValueList;
 class CObservable;
 class CVariable;
-class CSetCollectorInterface;
 
 class CEdgeElementSelector: public CSetContent
 {
@@ -56,15 +55,15 @@ public:
   virtual bool filter(const CEdge * pEdge) const override;
 
 protected:
-  virtual bool computeProtected() override;
+  virtual bool computeSetContent() override;
 
   virtual bool lessThanProtected(const CSetContent & rhs) const override;
+
+  virtual void setScopeProtected() override;
 
 private:
   bool all();
   bool propertySelection();
-  bool propertyIn();
-  bool propertyNotIn();
   bool withTargetNodeIn();
   bool withTargetNodeNotIn();
   bool withSourceNodeIn();
@@ -92,7 +91,6 @@ private:
   std::string mSQLComparison;
   bool (CEdgeElementSelector::*mpCompute)();
   bool (CEdgeElementSelector::*mpFilter)(const CEdge *) const;
-  std::shared_ptr< CSetCollectorInterface > mpCollector;
 };
 
 #endif /* SRC_SETS_CEDGEELEMENTSELECTOR_H_ */
