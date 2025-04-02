@@ -298,8 +298,8 @@ To define the meta data of the partition, the following syntax is added:
   
   * - | JSON property
     - | Description
-  * - | numberOfNodes in the partition
-    - | binary or text
+  * - | numberOfNodes
+    - | number of nodes in the partition
   * - | numberOfEdges 
     - | number of edges in the partition
   * - | numberOfParts 
