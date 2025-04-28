@@ -4,6 +4,7 @@ This image is used to clone the epihiper repo and build binaries.  If you just w
 
 ## Building
 
-docker build -t ghcr.io/nssac/epihiper-build:latest .
+docker build --secret id=gh_token,src=/path/to/gh_token -t ghcr.io/nssac/epihiper-build:latest .
+
 
 

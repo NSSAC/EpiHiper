@@ -4,6 +4,6 @@ This image contains the sciduct version of epihiper and associated scripts. It d
 
 ## Building
 
-docker build -t ghcr.io/nssac/epihiper-sciduct:latest .
+docker build --secret id=gh_token,src=/path/to/gh_token -t ghcr.io/nssac/epihiper-sciduct:latest .
 
 
