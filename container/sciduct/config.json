@@ -1,0 +1,210 @@
+{
+  "apps": [
+    {
+      "name": "epihiper_simulation",
+      "app": "epiHiper_sciduct",
+      "binds": {
+        "input": "/input",
+        "output": "/output",
+        "job": "/job",
+        "container_cache": "/cache"
+      },
+      "pre_task": "epiHiper_sciduct.pre",
+      "description": "Runs an EpiHiper replicates for a single configuration.",
+      "input_schema": {
+        "properties": {
+          "startTick": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "endTick": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "startTick",
+          "endTick"
+        ]
+      },
+      "input_files": [
+        {
+          "name": "diseaseModel",
+          "types": [
+            "epihiperDiseaseModel",
+            "json"
+          ],
+          "required": true
+        },
+        {
+          "name": "initialization",
+          "types": [
+            "epihiperInitialization",
+            "json"
+          ],
+          "required": false
+        },
+        {
+          "name": "contactNetwork",
+          "types": [
+            "epihiperContactNetwork",
+            "json",
+            "population_network+text"
+          ],
+          "required": true
+        },
+        {
+          "name": "personTraitDB",
+          "types": [
+            "epihiperPopulation",
+            "json",
+            "population+text"
+          ],
+          "required": true
+        },
+        {
+          "name": "traits",
+          "types": [
+            "epihiperTraits",
+            "json"
+          ],
+          "required": true,
+          "default": "/resources/epihiper/epihiper_traits/epihiper_default"
+        },
+        {
+          "name": "intervention",
+          "types": [
+            "epihiperIntervention",
+            "json"
+          ],
+          "required": true,
+          "default": "/resources/epihiper/epihiper_traits/default_intervention"
+        }
+      ],
+      "output_schema": {},
+      "output_files": {
+        "type": "epihiper_replicate",
+        "associateJobMeta": true,
+        "contents": [
+          {
+            "file": "output.csv",
+            "name": "output.csv",
+            "type": "epihiperSimulation",
+            "isContainer": false
+          },
+          {
+            "file": "outputSummary.csv",
+            "name": "outputSummary.csv",
+            "type": "epihiperSimulationSummary",
+            "isContainer": false
+          }
+        ]
+      },
+      "resource_requirements": {
+        "capabilities": {
+          "mpi": true
+        },
+        "cores": [1,148],
+        "tasks": [1,148],
+        "timelimit": 240,
+	"resource_calculator": "    import math\n    def get_pop_size(pop):\n        total=None\n        facets = pop['autometa'].get('facets',[])\n        for facet in facets:\n            if facet.get('ann:id',None) == 'total':\n                total = facet.get('value')\n                break\n            continue\n        if total is None:\n            raise Exception('Unable to determin population size')\n        return total\n\n    population=None\n    for file in job.get('input_files',[]):\n        if file['name'] == 'personTraitDB':\n            population = file\n            break\n        continue\n\n    pop_size = get_pop_size(population)\n    cores = math.ceil(pop_size / 500000)\n    return {\n       'capabilities': jobdef['resource_requirements'].get('capabilities',{\"mpi\": True}),\n       'cores': cores,\n       'tasks': cores,\n       'timelimit': jobdef['resource_requirements']['timelimit']\n    }"
+      }
+    },
+    {
+      "name": "partition_epihiper_contact_network",
+      "app": "partition_sciduct",
+      "description": "Separates a contact network into N partitions",
+      "binds": {
+        "input": "input",
+        "output": "output",
+        "job": "job"
+      },
+      "input_schema": {
+        "properties": {
+          "partitions": {
+            "type": "integer",
+            "description": "Number of partitions to divide provided contact_network into",
+            "min": 2
+          }
+        }
+      },
+      "input_files": [
+        {
+          "name": "contactNetwork",
+          "required": true,
+          "types": [
+            "population_network+text",
+            "json"
+          ]
+        }
+      ],
+      "output_schema": {},
+      "output_files": {
+        "type": "epihiper_partition_set",
+        "associateJobMeta": true,
+        "contents": [
+          {
+            "match": "${MATCH}/contactNetwork.*",
+            "associateJobMeta": true,
+            "type": "epihiper_partition",
+            "min": 0
+          }
+        ]
+      },
+      "resource_requirements": {
+        "cores": 1,
+        "timelimit": 240
+      }
+    },
+    {
+      "name": "analyze",
+      "app" : "analyze_epihiper_disease_model",
+      "description": "analyse epihiper disease model",
+      "binds": {
+        "input": "input",
+        "output": "output",
+        "job": "job"
+      },
+      "input_schema": {},
+      "input_files": [
+        {
+          "name": "analyze",
+          "required": true,
+          "types": [
+            "epihiperAnalyze",
+            "json"
+          ]
+        },
+        {
+          "name": "diseaseModel",
+          "required": true,
+          "types": [
+            "epihiperDiseaseModel",
+            "json"
+          ]
+        }
+      ],
+      "output_schema": {},
+      "output_files": {
+        "type": "epiHiperModelAnalyzer",
+        "associateJobMeta": true,
+        "contents": [
+          {
+            "file": "output.csv",
+            "name": "output.csv",
+            "associateJobMeta": true,
+            "type": "csv"
+          }
+        ]
+      },
+      "resource_requirements": {
+        "cores": 1,
+        "timelimit": 240
+      }
+    }
+  ],
+  "description": "EpiHiper Simulation Engine and related utilities",
+  "license": "commercial",
+  "image_type": "apptainer+scif",
+  "version": "0.0.0"
+}

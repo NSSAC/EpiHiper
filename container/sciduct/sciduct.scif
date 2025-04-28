@@ -1,0 +1,34 @@
+%appinstall sciduct
+BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%S.%NZ")
+mv /config.json config.json.in &&
+jq --arg build_date $BUILD_DATE '. + {build_date: $build_date}' config.json.in > config.json
+cp config.json /tmp/config.json &&
+[ "$VERSION" = "0.0.0" ] || jq -r ".version=\"$VERSION\"" /tmp/config.json > config.json
+
+echo "trying to validate the jobservice config against . . ."
+echo "https://github.com/NSSAC/sciduct_jobservice/blob/main/src/jobservice/schema/image_configuration.json"
+REPO_NAME=sciduct_jobservice
+echo "using a Github token previously created at https://github.com/settings/tokens"
+cd lib
+git clone --depth=1 https://$(cat /run/secrets/gh_token)@github.com/NSSAC/${REPO_NAME}.git
+cd $REPO_NAME
+git show HEAD:src/jobservice/schema/image_configuration.json > image_configuration.json
+# We could, actually, remove the repo at this point. But it should be minimal, with depth=1, and no checked out files.
+VALIDATE_CMD="jsonschema -i $SCIF_APPROOT/config.json image_configuration.json"
+echo "Running: $VALIDATE_CMD"
+eval $VALIDATE_CMD
+if [ $? -eq 0 ]; then
+    echo "Generated Configuration appears to be valid" && rm -v $SCIF_APPROOT/config.json.in
+else
+	echo "Generated Configuration failed validation"
+	exit 1
+fi
+ln -s $SCIF_APPROOT/config.json /config.json
+
+
+%appenv sciduct
+CONFIG_JSON=$SCIF_APPROOT_sciduct/config.json
+export CONFIG_JSON
+
+%apprun sciduct
+cat $CONFIG_JSON
