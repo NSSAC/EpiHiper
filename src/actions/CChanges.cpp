@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2020 - 2024 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 - 2025 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -181,7 +181,7 @@ CCommunicate::ErrorCode CChanges::determineNodesRequested()
 
   for (; it != end; ++it, ++pId)
     {
-      ENABLE_TRACE(CLogger::trace("CChanges::determineNodesRequested: node '{}'.", it->first););
+      // ENABLE_TRACE(CLogger::trace("CChanges::determineNodesRequested: node '{}'.", it->first););
       *pId = it->first;
     }
 

@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2025 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -1070,6 +1070,9 @@ void CNetwork::load()
         assert(itSourceOnlyNode == endSourceOnlyNode);
         assert(Active.mBeyondLocalNode > Node
                || Node == std::numeric_limits< size_t >::max());
+
+        if (!Active.mLocalNodeIds.empty())
+          Active.mFirstLocalNode = std::max(Active.mFirstLocalNode, *Active.mLocalNodeIds.begin());
       }
 
 #pragma omp atomic
@@ -1149,9 +1152,8 @@ void CNetwork::initNodes()
     }
 
   mLocalNodes = mNodes;
-
-  CNode DefaultNode = CNode::getDefault();
   CNode * pNode = mNodes;
+  CNode DefaultNode = CNode::getDefault();
 
   // Initialize Remote Nodes which are part of mNodes and thus properly sorted by Id
 #pragma omp parallel
@@ -1161,16 +1163,21 @@ void CNetwork::initNodes()
 
 #pragma omp single
     {
-      for (; it != end && it->first < mFirstLocalNode; ++it, ++pNode)
+      // We need to determine the first local node to correctly identify remote nodes
+      for (; it != end && it->first < mFirstLocalNode; ++it)
+        ++mLocalNodes;
+
+      // CLogger::trace("CNetwork::initNodes: FirstLocalNode[{}]: {}",  mFirstLocalNode, (void *) mLocalNodes);
+
+      for (it = mRemoteNodes.begin(); it != end && it->first < mFirstLocalNode; ++it, ++pNode)
 #pragma omp task
         {
           *pNode = DefaultNode;
           pNode->id = it->first;
           it->second = pNode;
-          CLogger::trace("CNetwork::initNodes: Master.mRemoteNodes[{}]: {}",  it->first, (void *) it->second);
+          // CLogger::trace("CNetwork::initNodes: Master.mRemoteNodes[{}]: {}",  it->first, (void *) it->second);
         }
 
-      mLocalNodes = pNode;
       pNode += mLocalNodesSize;
 
       for (; it != end; ++it, ++pNode)
@@ -1179,7 +1186,7 @@ void CNetwork::initNodes()
           *pNode = DefaultNode;
           pNode->id = it->first;
           it->second = pNode;
-          CLogger::trace("CNetwork::initNodes: Master.mRemoteNodes[{}]: {}", it->first, (void *) it->second);
+          // CLogger::trace("CNetwork::initNodes: Master.mRemoteNodes[{}]: {}", it->first, (void *) it->second);
         }
     }
   }
@@ -1198,7 +1205,7 @@ void CNetwork::initNodes()
   {
     CNetwork & Active = Context.Active();
     CNode * pNode = Active.beginNode();
-
+    
     for (const size_t & Id : Active.mLocalNodeIds)
       {
         *pNode = DefaultNode;
@@ -1216,7 +1223,7 @@ void CNetwork::initNodes()
         for (; it != end; ++it)
           {
             it->second = Active.lookupNode(it->first, false);
-            CLogger::trace("CNetwork::initNodes: Active.mRemoteNodes[{}]: {}", it->first, (void *) it->second);
+            // CLogger::trace("CNetwork::initNodes: Active.mRemoteNodes[{}]: {}", it->first, (void *) it->second);
           }
       }
   }

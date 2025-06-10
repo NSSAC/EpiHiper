@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2025 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -122,7 +122,7 @@ void CSetContent::SetContent::sync()
 
   localNodes = globalNodes;
 
-  CLogger::trace("CSetContent::computeProtected: global: size {}, begin {}, end {}", globalNodes.mSize, globalNodes.mSize > 0 ? (void *) *globalNodes.mBegin : 0x0, globalNodes.mSize > 0 ? (void *) *(globalNodes.mEnd - 1) : 0x0);
+  ENABLE_TRACE(CLogger::trace("CSetContent::computeProtected: global: size {}, begin {}, end {}", globalNodes.mSize, globalNodes.mSize > 0 ? (void *) *globalNodes.mBegin : 0x0, globalNodes.mSize > 0 ? (void *) *(globalNodes.mEnd - 1) : 0x0););
 
   if (localNodes.mSize)
     {
@@ -155,7 +155,7 @@ void CSetContent::SetContent::sync()
         }
     }
 
-  CLogger::trace("CSetContent::computeProtected: local: size {}, begin {}, end {}", localNodes.mSize, localNodes.mSize > 0 ? (void *) *localNodes.mBegin : 0x0, localNodes.mSize > 0 ? (void *) *(localNodes.mEnd - 1) : 0x0);
+  ENABLE_TRACE(CLogger::trace("CSetContent::computeProtected: local: size {}, begin {}, end {}", localNodes.mSize, localNodes.mSize > 0 ? (void *) *localNodes.mBegin : 0x0, localNodes.mSize > 0 ? (void *) *(localNodes.mEnd - 1) : 0x0););
 }
 
 CSetContent::SetContent::Nodes & CSetContent::SetContent::nodes(const CSetContent::Scope & scope)
