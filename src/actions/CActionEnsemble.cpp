@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2025 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -224,13 +224,13 @@ bool CActionEnsemble::process(const CSetContent & targets)
       std::vector< CNode * >::const_iterator itNodes = Nodes.begin();
       std::vector< CNode * >::const_iterator endNodes = Nodes.end();
 
-      CLogger::trace("CActionEnsemble::process: Network[{}, {}], Set[{}, {}]", (void *) CNetwork::Context.Active().beginNode(), (void *) (CNetwork::Context.Active().endNode() - 1), Nodes.size() > 0 ? (void *) *itNodes : 0x0, Nodes.size() > 0 ? (void *) *--endNodes :0x0);
+      ENABLE_TRACE(CLogger::trace("CActionEnsemble::process: Network[{}, {}], Set[{}, {}]", (void *) CNetwork::Context.Active().beginNode(), (void *) (CNetwork::Context.Active().endNode() - 1), Nodes.size() > 0 ? (void *) *itNodes : 0x0, Nodes.size() > 0 ? (void *) *(endNodes -1) :0x0););
 
       for (; itNodes != endNodes; ++itNodes)
         for (it = mForEach.begin(); it != end; ++it)
           (*it)->process(*itNodes);
     }
-    
+
   if (!mSampling.isEmpty())
     CLogger::info("CActionEnsemble: Process 'sampling'.");
     

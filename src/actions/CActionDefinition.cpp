@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2025 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -289,7 +289,7 @@ void CActionDefinition::process() const
 {
   try
     {
-      ENABLE_TRACE(ENABLE_TRACE(ENABLE_TRACE(ENABLE_TRACE(CLogger::trace("CActionDefinition::process: [ActionDefinition: {}] node and edge independent action.", mIndex);););););
+      ENABLE_TRACE(CLogger::trace("CActionDefinition::process: [ActionDefinition: {}] node and edge independent action.", mIndex););
       CActionQueue::addAction(mDelay, new CVariableAction(this));
     }
   catch (...)
