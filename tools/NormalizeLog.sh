@@ -3,7 +3,7 @@
 # BEGIN: Copyright 
 # MIT License 
 #  
-# Copyright (C) 2020 - 2023 Rector and Visitors of the University of Virginia 
+# Copyright (C) 2020 - 2025 Rector and Visitors of the University of Virginia 
 #  
 # Permission is hereby granted, free of charge, to any person obtaining a copy 
 # of this software and associated documentation files (the "Software"), to deal 
@@ -76,7 +76,7 @@ normalize () {
 
     if (strtonum(Tick) > '${End}')
       exit 0
-  }' "${1}" > $out
+  }' "${1}" | grep -vE '(µs|Memory VM:|CRandom:|Network:|CCommunicate:|CChanges:|0x[0-9a-f]+)' > $out
 }
 
 for f in $@; do
