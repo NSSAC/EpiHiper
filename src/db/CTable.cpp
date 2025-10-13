@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2025 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -109,6 +109,7 @@ void CTable::fromJSON(const json_t * json)
 
   pValue = json_object_get(pSchema, "primaryKey");
 
+  // TODO CRITICAL: This "pid" will not work for location trait db we must also allow lid
   if (json_is_string(pValue))
     {
       if (strcmp(json_string_value(pValue), "pid") != 0)

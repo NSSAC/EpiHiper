@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2025 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -36,7 +36,7 @@ class CConnection
 public:
   static void init();
   static void clear();
-  static pqxx::read_transaction * work();
+  template < class Type > static Type * work();
   static std::string quote(const std::string & str);
   static void setRequired(const bool & required);
   
@@ -48,5 +48,30 @@ private:
   CConnection(const std::string & uri = "");
   pqxx::connection mConnection;
 };
+
+#include "utilities/CLogger.h"
+
+template < class Type > 
+Type * CConnection::work()
+{
+  if (pINSTANCE == NULL)
+    return NULL;
+
+  Type * pWork = NULL;
+
+  try
+    {
+      pWork = new Type(pINSTANCE->mConnection);
+    }
+
+  catch (const std::exception & e)
+    {
+      CLogger::error("CConnection: {}", CLogger::sanitize(e.what()));
+      pWork = NULL;
+    }
+
+  return pWork;
+}
+
 
 #endif /* SRC_DB_CCONNECTION_H_ */
