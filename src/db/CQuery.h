@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2025 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -33,6 +33,8 @@
 #define SRC_DB_CQUERY_H_
 
 #include <string>
+#include <sstream>
+#include <pqxx/pqxx>
 
 #include "utilities/CContext.h"
 
@@ -71,7 +73,11 @@ public:
                    const CValueInterface & constraint,
                    const std::string & cmp);
 
+  static pqxx::result sql(const std::string & sql);
+
 private:
+  static std::string createTemporaryTable(const std::string field, std::ostringstream & query);
+
   static std::string GlobalConstraint;
   static CContext< std::string > LocalConstraint;
   static size_t Limit;

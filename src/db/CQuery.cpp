@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2024 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2025 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -197,7 +197,7 @@ bool CQuery::all(const std::string & table,
 
 #pragma omp critical (sql_query)
   {
-    pqxx::read_transaction * pWork = CConnection::work();
+    pqxx::read_transaction * pWork = CConnection::work< pqxx::read_transaction >();
 
     if (pWork == NULL)
       success = false;
@@ -209,6 +209,8 @@ bool CQuery::all(const std::string & table,
             while (toFieldValueList(ResultField, pWork->exec(Query.str() + limit(Offset)), result) == Limit
                    && Limit != 0)
               continue;
+
+            pWork->commit();
           }
 
         catch (const std::exception & e)
@@ -217,8 +219,7 @@ bool CQuery::all(const std::string & table,
             success = false;
           }
 
-        pWork->commit();
-        delete pWork;
+          delete pWork;
       }
 
     CLogger::debug("CQuery::All: {} returned '{}' rows.", Query.str(), result.size());
@@ -295,8 +296,9 @@ bool CQuery::in(const std::string & table,
     }
 
   std::ostringstream Query;
-
-  Query << "SELECT DISTINCT " << CConnection::quote(resultField) << " FROM " << CConnection::quote(table) << " WHERE " << CConnection::quote(constraintField) << ((!in) ? " NOT  IN (" : " IN (");
+  
+  std::string TmpTableName = createTemporaryTable(constraintField, Query);
+  Query << "INSERT INTO " << CConnection::quote(TmpTableName) << " (" << CConnection::quote(constraintField) << ") VALUES (";
 
   bool FirstTime = true;
   CFieldValueList::const_iterator it = constraints.begin();
@@ -310,7 +312,7 @@ bool CQuery::in(const std::string & table,
         }
       else
         {
-          Query << ", ";
+          Query << "), (";
         }
 
       switch (constraints.getType())
@@ -339,16 +341,32 @@ bool CQuery::in(const std::string & table,
         }
     }
 
-  Query << ")";
-  Query << " AND " << (local ? LocalConstraint.Active() : GlobalConstraint);
+  Query << "); ";
+  Query << "SELECT DISTINCT " << CConnection::quote(resultField) << " FROM " << CConnection::quote(table) << " AS l ";
+  Query << (in ? "INNER JOIN " : "LEFT JOIN ") << CConnection::quote(TmpTableName) << " AS r "; 
+  Query << "ON l." << CConnection::quote(constraintField) << " = r." << CConnection::quote(constraintField);
+
+  if (resultField == "pid")
+    {
+      if (in)
+        Query << " WHERE ";
+      else
+        Query << " WHERE r." << CConnection::quote(constraintField) << "IS NULL AND ";
+
+      Query << (local ? LocalConstraint.Active() : GlobalConstraint);
+    }
+  else if (!in)
+    {
+      Query << " WHERE r." << CConnection::quote(constraintField) << "IS NULL ";
+    }
+
   Query << " ORDER BY " << CConnection::quote(resultField);
-  // std::cout << Query.str() << std::endl;
 
   bool success = true;
 
 #pragma omp critical (sql_query)
   {
-    pqxx::read_transaction * pWork = CConnection::work();
+    pqxx::work * pWork = CConnection::work< pqxx::work >();
 
     if (pWork == NULL)
       success = false;
@@ -360,6 +378,8 @@ bool CQuery::in(const std::string & table,
             while (toFieldValueList(ResultField, pWork->exec(Query.str() + limit(Offset)), result) == Limit
                    && Limit != 0)
               continue;
+
+            pWork->commit();
           }
 
         catch (const std::exception & e)
@@ -368,7 +388,6 @@ bool CQuery::in(const std::string & table,
             success = false;
           }
 
-        pWork->commit();
         delete pWork;
 
         CLogger::debug("CQuery::{}: {} returned '{}' rows.", in ?  "in" : "notIn", Query.str(), result.size());
@@ -473,7 +492,7 @@ bool CQuery::where(const std::string & table,
 
 #pragma omp critical (sql_query)
   {
-    pqxx::read_transaction * pWork = CConnection::work();
+    pqxx::read_transaction * pWork = CConnection::work< pqxx::read_transaction >();
 
     if (pWork == NULL)
       success = false;
@@ -485,6 +504,8 @@ bool CQuery::where(const std::string & table,
             while (toFieldValueList(ResultField, pWork->exec(Query.str() + limit(Offset)), result) == Limit
                    && Limit != 0)
               continue;
+
+            pWork->commit();
           }
 
         catch (const std::exception & e)
@@ -493,9 +514,6 @@ bool CQuery::where(const std::string & table,
             success = false;
           }
 
-        if (success)
-          pWork->commit();
-
         delete pWork;
 
         CLogger::debug("CQuery::where: {} returned '{}' rows.", Query.str(), result.size());
@@ -503,4 +521,50 @@ bool CQuery::where(const std::string & table,
   }
 
   return success;
+}
+
+// static 
+pqxx::result CQuery::sql(const std::string & sql)
+{
+  pqxx::result Result;
+
+#pragma omp critical (sql_query)
+  {
+    pqxx::read_transaction * pWork = CConnection::work< pqxx::read_transaction >();
+
+    if (pWork != NULL)
+      {
+        try
+          {
+            Result = pWork->exec(sql);
+            pWork->commit();
+          }
+
+        catch (const std::exception & e)
+          {
+            CLogger::error("CQuery::where: {}", CLogger::sanitize(e.what()));
+          }
+
+        delete pWork;
+
+        CLogger::debug("CQuery::{}: {} returned '{}' rows.", "sql", sql, Result.size());
+      }
+  }
+
+  return Result;
+}
+
+// static 
+std::string CQuery::createTemporaryTable(const std::string field, std::ostringstream & query)
+{
+  std::string TableName = CSchema::INSTANCE.getTableForField(field);
+  const CTable & Table = CSchema::INSTANCE.getTable(TableName);
+  const CField & Field = Table.getField(field);
+
+  std::string TmpTableName = Table.getId() + '_' + Field.getId();
+
+  query << "CREATE TEMPORARY TABLE IF NOT EXISTS " << CConnection::quote(TmpTableName) << " (";
+  query << CConnection::quote(Field.getId()) << " " << CConnection::quote(Field.getDBType()) << "); ";
+
+  return TmpTableName;
 }

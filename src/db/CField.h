@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2025 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -57,12 +57,19 @@ public:
 
   bool isValidValue( const std::string & value) const;
 
+  bool hasConstraints() const;
+
+  const std::set< std::string > & getConstraints() const;
+
+  const std::string & getDBType() const;
+
 private:
   std::string mId;
   std::string mLabel;
   CValue::Type mType;
   std::set< std::string > mValidValues;
   bool mValid;
+  mutable std::string mDBType;
 };
 
 #endif /* SRC_DB_CFIELD_H_ */

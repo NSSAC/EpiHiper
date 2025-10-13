@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2019 - 2025 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -26,6 +26,10 @@
 #include <jansson.h>
 
 #include "db/CField.h"
+#include "db/CConnection.h"
+#include "db/CSchema.h"
+#include "db/CQuery.h"
+#include "db/CFieldValue.h"
 #include "utilities/CLogger.h"
 
 CField::CField()
@@ -34,6 +38,7 @@ CField::CField()
   , mType()
   , mValidValues()
   , mValid(false)
+  , mDBType()
 {}
 
 CField::CField(const CField & src)
@@ -42,6 +47,7 @@ CField::CField(const CField & src)
   , mType(src.mType)
   , mValidValues(src.mValidValues)
   , mValid(src.mValid)
+  , mDBType(src.mDBType)
 {}
 
 // virtual
@@ -52,6 +58,7 @@ void CField::fromJSON(const json_t * json)
 {
   mValid = false; // DONE
   mValidValues.clear();
+  mDBType.clear();
 
   json_t * pValue = json_object_get(json, "name");
 
@@ -141,5 +148,51 @@ bool CField::isValidValue(const std::string & value) const
     return true;
     
   return mValidValues.find(value) != mValidValues.end();
+}
+
+bool CField::hasConstraints() const
+{
+  return !mValidValues.empty();
+}
+
+const std::set< std::string > & CField::getConstraints() const
+{
+  return mValidValues;
+}
+
+const std::string & CField::getDBType() const
+{
+  if (mDBType.empty())
+    {
+      std::ostringstream Query;
+
+      // TODO CRITICAL This postgresql specif and needs to be pushed the appropriate class
+      Query << "SELECT ";
+      Query << "    pg_catalog.format_type(f.atttypid,f.atttypmod) AS type ";
+      Query << "FROM ";
+      Query << "    pg_attribute f ";
+      Query << "    JOIN pg_class c ON c.oid = f.attrelid ";
+      Query << "    JOIN pg_type t ON t.oid = f.atttypid ";
+      Query << "    LEFT JOIN pg_attrdef d ON d.adrelid = c.oid AND d.adnum = f.attnum ";
+      Query << "    LEFT JOIN pg_namespace n ON n.oid = c.relnamespace ";
+      Query << "    LEFT JOIN pg_constraint p ON p.conrelid = c.oid AND f.attnum = ANY (p.conkey) ";
+      Query << "    LEFT JOIN pg_class AS g ON p.confrelid = g.oid ";
+      Query << "WHERE c.relkind = 'r'::char ";
+      Query << "    AND n.nspname = 'public' ";
+      Query << "    AND c.relname = '" << CSchema::INSTANCE.getTableForField(mId) << "' "; 
+      Query << "    AND f.attname = '" << mId << "' ";
+      Query << "    AND f.attnum > 0"; 
+      
+      for (const pqxx::row & Row : CQuery::sql(Query.str()))
+        for (const pqxx::field & Field : Row)
+          {
+            mDBType = CFieldValue(Field.as(std::string())).toString();
+
+            if (!mDBType.empty())
+              break;
+          }
+    }
+
+  return mDBType;
 }
 
