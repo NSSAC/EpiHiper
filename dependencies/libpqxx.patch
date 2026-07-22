@@ -1,0 +1,22 @@
+diff --git a/cmake/config.cmake b/cmake/config.cmake
+index aaed617f..f10d1837 100644
+--- a/cmake/config.cmake
++++ b/cmake/config.cmake
+@@ -22,7 +22,7 @@ endfunction(detect_attribute)
+ 
+ include(CheckIncludeFileCXX)
+ include(CheckFunctionExists)
+-include(CMakeDetermineCompileFeatures)
++# include(CMakeDetermineCompileFeatures)
+ include(CheckCXXSourceCompiles)
+ 
+ check_include_file_cxx("sys/select.h" HAVE_SYS_SELECT_H)
+@@ -32,7 +32,7 @@ check_include_file_cxx("unistd.h" HAVE_UNISTD_H)
+ 
+ check_function_exists("poll" HAVE_POLL)
+ 
+-cmake_determine_compile_features(CXX)
++# cmake_determine_compile_features(CXX)
+ cmake_policy(SET CMP0057 NEW)
+ if (cxx_attribute_deprecated IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+   set(PQXX_HAVE_DEPRECATED)

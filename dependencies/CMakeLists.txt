@@ -1,7 +1,7 @@
 # BEGIN: Copyright 
 # MIT License 
 #  
-# Copyright (C) 2019 - 2023 Rector and Visitors of the University of Virginia 
+# Copyright (C) 2019 - 2026 Rector and Visitors of the University of Virginia 
 #  
 # Permission is hereby granted, free of charge, to any person obtaining a copy 
 # of this software and associated documentation files (the "Software"), to deal 
@@ -53,7 +53,8 @@ ExternalProject_Add(jansson
   SOURCE_DIR        ${CMAKE_CURRENT_SOURCE_DIR}/jansson
   
   CONFIGURE_COMMAND  cmake 
-  	-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR} 
+  	-DCMAKE_POLICY_VERSION_MINIMUM=3.5
+    -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR} 
   	-DJANSSON_BUILD_DOCS=OFF 
   	${CMAKE_CURRENT_SOURCE_DIR}/jansson
   	
@@ -65,7 +66,9 @@ ExternalProject_Add(libpqxx
   PREFIX            ${CMAKE_BINARY_DIR}/dependencies
   SOURCE_DIR        ${CMAKE_CURRENT_SOURCE_DIR}/libpqxx
 
+  PATCH_COMMAND     git checkout -- . && git apply ${CMAKE_CURRENT_SOURCE_DIR}/libpqxx.patch
   CONFIGURE_COMMAND cmake
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5
     -DCMAKE_POLICY_DEFAULT_CMP0074=NEW
     -DPostgreSQL_TYPE_INCLUDE_DIR=ignored
     -DPostgreSQL_ROOT=${PostgreSQL_ROOT}
@@ -77,7 +80,7 @@ ExternalProject_Add(libpqxx
   	${CMAKE_CURRENT_SOURCE_DIR}/libpqxx
   	
   BUILD_COMMAND      make 
-  INSTALL_COMMAND    make install
+  INSTALL_COMMAND    make install && cd ${CMAKE_CURRENT_SOURCE_DIR}/libpqxx && git checkout -- .
 )
 
 ExternalProject_Add(spdlog
@@ -86,7 +89,8 @@ ExternalProject_Add(spdlog
 
   PATCH_COMMAND     git checkout -- . && git apply ${CMAKE_CURRENT_SOURCE_DIR}/spdlog.patch
   CONFIGURE_COMMAND cmake
-  	-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR} 
+  	-DCMAKE_POLICY_VERSION_MINIMUM=3.5
+    -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR} 
   	-DSPDLOG_BUILD_TESTS=OFF
   	-DSPDLOG_BUILD_EXAMPLE=OFF
   	${CMAKE_CURRENT_SOURCE_DIR}/spdlog
