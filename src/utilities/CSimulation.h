@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2020 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 - 2026 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -26,18 +26,27 @@
 #define SIMULATION_H
 
 #include "utilities/CCommunicate.h"
+#include "plugins/CCustomMethod.h"
 
-class CSimulation {
+class CSimulation: public CCustomMethod< CCustomMethodType::increment_tick >
+{
 private:
+  static bool defaultIncrementTick(int tick, bool init);
+  CSimulation();
+  bool _validate();
+  bool _run();
+
   bool valid;
   int startTick;
   int endTick;
 
 public:
-  CSimulation();
+  static CSimulation INSTANCE;
+  static void setCustomMethod(CCustomMethodType::increment_tick pCustomMethod);
+  static bool run();
+  static bool validate();
+
   ~CSimulation();
-  bool validate();
-  bool run();
 };
 
 #endif

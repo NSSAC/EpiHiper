@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2022 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2022 - 2026 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -33,29 +33,29 @@ std::map< std::string, void * > CPlugin::Libraries;
 // static
 void CPlugin::Init()
 {
-  for (const std::string & PluginPath : CSimConfig::getPlugins())
+  for (const std::string & Plugin : CSimConfig::getPlugins())
     {
       void * pLibraryHandle = nullptr;
 
-      if (!PluginPath.empty())
+      if (!Plugin.empty())
         {
-          std::map< std::string, void * >::const_iterator found = Libraries.find(PluginPath);
+          std::map< std::string, void * >::const_iterator found = Libraries.find(Plugin);
 
           if (found != Libraries.end())
             {
-              CLogger::warn("CPlugin {}: Plugin already loaded.", PluginPath);
+              CLogger::warn("CPlugin {}: Plugin already loaded.", Plugin);
               continue;
             }
           else
             {
 #ifdef TARGET_MACOSX
-              pLibraryHandle = dlopen(PluginPath.c_str(), RTLD_NOW);
+              pLibraryHandle = dlopen(Plugin.c_str(), RTLD_NOW);
 #else
-              pLibraryHandle = dlopen(PluginPath.c_str(), RTLD_NOW | RTLD_DEEPBIND);
+              pLibraryHandle = dlopen(Plugin.c_str(), RTLD_NOW | RTLD_DEEPBIND);
 #endif // TARGET_MACOSX
               if (pLibraryHandle != nullptr)
                 {
-                  Libraries.emplace(PluginPath, pLibraryHandle);
+                  Libraries.emplace(Plugin, pLibraryHandle);
                 }
               else
                 {
@@ -73,7 +73,7 @@ void CPlugin::Init()
               continue;
             }
 
-          CLogger::info("CPlugin {}: Calling EpiHiperPluginInit().", PluginPath);
+          CLogger::info("CPlugin {}: Calling EpiHiperPluginInit().", Plugin);
           (*pInit)();
         }
     }

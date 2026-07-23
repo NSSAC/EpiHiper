@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2022 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2022 - 2026 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -38,6 +38,7 @@ namespace CCustomMethodType
   typedef double (*transmission_propensity)(const CTransmission * pTransmission, const CEdge * pEdge);
   typedef const CProgression * (*state_progression)(const CHealthState * pHealthState, const CNode * pNode);
   typedef unsigned int (*progression_dwell_time)(const CProgression * pProgression, const CNode * pNode);
+  typedef bool (*increment_tick)(int tick, bool init);
 } // namespace CCustomMethodType
 
 template < class custom_type >
