@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2020 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 - 2026 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -47,28 +47,47 @@
 #include "utilities/CStatus.h"
 #include "variables/CVariableList.h"
 
-// initialize according to config
+// static 
+void CSimulation::setCustomMethod(CCustomMethodType::increment_tick pCustomMethod)
+{
+  INSTANCE.CCustomMethod::setCustomMethod(pCustomMethod);
+}
+
+// static 
+bool CSimulation::run()
+{
+  return INSTANCE._run();
+}
+
+// static 
+bool CSimulation::validate()
+{
+  return INSTANCE._validate();
+}
+
+  // initialize according to config
 CSimulation::CSimulation()
-  : valid(false)
+  : CCustomMethod(&CSimulation::defaultIncrementTick)
+  , valid(false)
   , startTick(0)
   , endTick(0)
-{
-  startTick = CSimConfig::getStartTick();
-  endTick = CSimConfig::getEndTick();
-}
+{}
 
 CSimulation::~CSimulation()
 {}
 
 // check all required components are ready
-bool CSimulation::validate()
+bool CSimulation::_validate()
 {
+  startTick = CSimConfig::getStartTick();
+  endTick = CSimConfig::getEndTick();
+
   valid = (startTick <= endTick);
 
   return valid;
 }
 
-bool CSimulation::run()
+bool CSimulation::_run()
 {
   bool success = true;
   std::chrono::time_point<std::chrono::steady_clock> Start = std::chrono::steady_clock::now();
@@ -99,6 +118,8 @@ bool CSimulation::run()
       success &= false;
 
     CVariableList::INSTANCE.resetAll();
+
+    success &= (*mpCustomMethod)(CActionQueue::getCurrentTick(), true);
 
     if (!CActionQueue::processCurrentActions())
       success &= false;
@@ -162,6 +183,8 @@ bool CSimulation::run()
 
         CVariableList::INSTANCE.resetAll();
 
+        success &= (*mpCustomMethod)(CActionQueue::getCurrentTick(), false);
+
         if (!CActionQueue::processCurrentActions())
           success &= false;
         
@@ -200,4 +223,10 @@ bool CSimulation::run()
     }
 
   return success;
+}
+
+// static
+bool CSimulation::defaultIncrementTick(int /* tick */, bool /* init */)
+{
+  return true;
 }

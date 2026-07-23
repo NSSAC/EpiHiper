@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2022 - 2023 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2022 - 2026 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -30,6 +30,7 @@
 #include "diseaseModel/CProgression.h"
 #include "network/CNode.h"
 #include "network/CEdge.h"
+#include "utilities/CSimulation.h"
 #include "utilities/CLogger.h"
 
 void EpiHiperPluginInit()
@@ -51,6 +52,9 @@ void EpiHiperPluginInit()
       CLogger::info("EpiHiperPlugin: Setting custom method for progression '{}'.", Progression.getId());
       Progression.setCustomMethod(&EpiHiperPlugin::progression_dwell_time);
     }
+
+  CLogger::info("EpiHiperPlugin: Setting custom method for incrementing tick.");
+  CSimulation::setCustomMethod(&EpiHiperPlugin::increment_tick);
 }
 
 // static 
@@ -90,3 +94,8 @@ unsigned int EpiHiperPlugin::progression_dwell_time(const CProgression * pProgre
   return CProgression::defaultMethod(pProgression, pNode);
 }
 
+// static 
+bool EpiHiperPlugin::increment_tick(int tick, bool init)
+{
+  return true;
+}

@@ -1,7 +1,7 @@
 // BEGIN: Copyright 
 // MIT License 
 //  
-// Copyright (C) 2020 - 2024 Rector and Visitors of the University of Virginia 
+// Copyright (C) 2020 - 2026 Rector and Visitors of the University of Virginia 
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal 
@@ -170,12 +170,10 @@ int main(int argc, char * argv[])
   CCommunicate::memUsage();
 
   {
-    CSimulation sim;
-
-    if (!sim.validate())
+    if (!CSimulation::validate())
       goto failed;
 
-    if (!sim.run())
+    if (!CSimulation::run())
       goto failed;
   }
 
